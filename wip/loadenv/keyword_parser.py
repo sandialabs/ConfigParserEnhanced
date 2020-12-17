@@ -57,27 +57,30 @@ class KeywordParser:
     def parse_compiler(self):
         # NOTE: Should "default" be included?
         valid_compilers = ["cuda", "clang", "gcc", "gnu", "intel", "xl"]
-        compilers = re.findall(
-            f"({'|'.join(f'{c}[^A-Z^a-z]*' for c in valid_compilers)})[_-]",
-            self.keyword_string
-        )
+
+        # Find compilers with version numbers in the keyword string
+        regex_list = [f"{c}[^A-Z^a-z]*" for c in valid_compilers]
+        compilers = re.findall(f"({'|'.join(regex_list)})[_-]",
+                               self.keyword_string)
         if len(compilers) == 0:
             raise Exception("No valid compiler name in the keyword string.")
 
         return "-".join(compilers)
 
     def parse_kokkos_thread(self):
-        valid_mpis = ["intelmpi", "mpich", "openmp", "spmpi-rolling", "spmpi"]
-        kokkos_threads = re.findall(
-            f"({'|'.join(f'{m}i?[^A-Z^a-z]*' for m in valid_mpis)})[_-]",
-            self.keyword_string
-        )
+        valid_kokkos_threads = ["intelmpi", "mpich", "openmp", "spmpi-rolling",
+                                "spmpi"]
+
+        # Find kokkos_threads with version numbers in the keyword string
+        regex_list = [f'{vkt}i?[^A-Z^a-z]*' for vkt in valid_kokkos_threads]
+        kokkos_threads = re.findall(f"({'|'.join(regex_list)})[_-]",
+                                    self.keyword_string)
         if len(kokkos_threads) == 0:
             return "serial"
         if len(kokkos_threads) > 1:
             # Check if the same type is repeated
-            for mpi in valid_mpis:
-                if len([k for k in kokkos_threads if mpi in k]) == 1:
+            for vkt in valid_kokkos_threads:
+                if len([kt for kt in kokkos_threads if vkt in kt]) == 1:
                     raise Exception("Can't specify more than one MPI type.")
 
         # if self.mpi_is_supported(kokkos_thread) is False:
