@@ -57,46 +57,33 @@ class KeywordParser:
     def parse_compiler(self):
         # NOTE: Should "default" be included?
         valid_compilers = ["cuda", "clang", "gcc", "gnu", "intel", "xl"]
-        valid_compiler_in_keyword_string = [c in self.keyword_string
-                                            for c in valid_compilers]
-        if not any(valid_compiler_in_keyword_string):
+        compilers = re.findall(
+            f"({'|'.join(f'{c}[^A-Z^a-z]*' for c in valid_compilers)})[_-]",
+            self.keyword_string
+        )
+        if len(compilers) == 0:
             raise Exception("No valid compiler name in the keyword string.")
-
-        bases = [name for name, in_keyword_string
-                 in zip(valid_compilers, valid_compiler_in_keyword_string)
-                 if in_keyword_string is True]
-
-        compilers = []
-        for base in bases:
-            match = re.search(f"({base}[^A-Z^a-z]*)[_-][A-Za-z]",
-                              self.keyword_string)
-            compilers.append(match.groups()[0])
 
         return "-".join(compilers)
 
     def parse_kokkos_thread(self):
-        valid_mpis = ["intelmpi", "mpich", "openmp", "spmpi-rolling"]
-        valid_mpi_in_keyword_string = [m in self.keyword_string
-                                       for m in valid_mpis]
-        if not any(valid_mpi_in_keyword_string):
+        valid_mpis = ["intelmpi", "mpich", "openmp", "spmpi-rolling", "spmpi"]
+        kokkos_threads = re.findall(
+            f"({'|'.join(f'{m}i?[^A-Z^a-z]*' for m in valid_mpis)})[_-]",
+            self.keyword_string
+        )
+        if len(kokkos_threads) == 0:
             return "serial"
-
-        bases = [name for name, in_keyword_string
-                 in zip(valid_mpis, valid_mpi_in_keyword_string)
-                 if in_keyword_string is True]
-
-        if len(bases) > 1:
-            raise Exception("Can't specify more than one MPI type.")
-
-        base = bases[0]
-        match = re.search(f"({base}i?[^A-Z^a-z]*)[_-][A-Za-z]",
-                          self.keyword_string)
-        kokkos_thread = match.groups()[0]
+        if len(kokkos_threads) > 1:
+            # Check if the same type is repeated
+            for mpi in valid_mpis:
+                if len([k for k in kokkos_threads if mpi in k]) == 1:
+                    raise Exception("Can't specify more than one MPI type.")
 
         # if self.mpi_is_supported(kokkos_thread) is False:
         #     raise Exception(f"MPI {kokkos_thread} is not supported on "
         #                     f"{self.system_name}.")
-        return kokkos_thread
+        return kokkos_threads[0]
 
     # def mpi_is_supported(self, mpi):
     #     if self.system_name is None:
