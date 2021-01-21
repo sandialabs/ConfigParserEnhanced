@@ -14,58 +14,48 @@ class KeywordParser:
         self.shared_static = self.parse_shared_static()
         self.release_debug = self.parse_release_debug()
 
-    # @property
-    # def supported_compilers(self):
-    #     # Need a list of supported compilers for certain systems
-    #     if self.system_name is None:
-    #         self.parse_system_name()
-
-    #     supported_compilers_list = {
-    #         "ascic": [],
-    #         # cuda can be in combination with either gnu or xl
-    #         "machine-type-2": ["gnu-7.3.1", "cuda-10.1.243", "xl-2020.03.18"],
-    #         "cafe": [],
-    #         "chama": [],
-    #         "cee-rhel6": ["clang-9.0.1", "gnu-7.2.0", "intel-19.0.3",
-    #                       "cuda-10.1.243"],
-    #         "machine-type-3": [],
-    #         "machine-type-3empire": [],
-    #         "eclipse": [],
-    #         "sems-rhel7": [],
-    #         "stria": [],
-    #         "machine-type-5": [],
-    #         "machine-type-4": [],
-    #         "vortex": [],
-    #     }
-    #     return supported_compilers_list[self.system_name]
-
     def parse_system_name(self):
-        valid_names = ["ascic", "machine-type-2", "cafe", "cee-rhel6", "chama", "machine-type-3",
-                       "machine-type-3empire", "eclipse", "sems-rhel7", "stria", "machine-type-5",
-                       "machine-type-4", "vortex"]
-        valid_name_in_keyword_string = [name in self.keyword_string
-                                        for name in valid_names]
-        print(f"Keyword String: {self.keyword_string}")
-        if not any(valid_name_in_keyword_string):
+        valid_sys_names = ["ascic", "machine-type-2", "cafe", "cee-rhel6", "chama",
+                           "machine-type-3", "machine-type-3empire", "eclipse", "sems-rhel7",
+                           "stria", "machine-type-5", "machine-type-4", "vortex"]
+        matched_sys_names = re.findall(f"({'|'.join(valid_sys_names)})",
+                                       self.keyword_string)
+        if len(matched_sys_names) == 0:
             raise Exception("No valid system name in the keyword string.")
+        elif len(matched_sys_names) > 1:
+            raise Exception("Can't specify more than one system name "
+                            f"(you specified {matched_sys_names}).")
 
-        system_name = [name for name, in_keyword_string
-                       in zip(valid_names, valid_name_in_keyword_string)
-                       if in_keyword_string is True][0]
-        return system_name
+        # Some names are nicknames
+        system_name = matched_sys_names[0]
+        if system_name in ["ascic", "cafe", "chama", "eclipse", "stria",
+                           "vortex"]:
+            system_name - {
+                "ascic": "sems-rhel7",
+                "cafe": "sems-rhel7",
+                "chama": "machine-type-5",
+                "eclipse": "machine-type-3",
+                "stria": "machine-type-4",
+                "vortex": "machine-type-2",
+            }[system_name]
+
+        return matched_sys_names[0]
 
     def parse_compiler(self):
         # NOTE: Should "default" be included?
-        valid_compilers = ["cuda", "clang", "gcc", "gnu", "intel", "xl"]
+        valid_compilers = ["arm", "cuda", "clang", "gcc", "gnu", "intel", "xl"]
 
         # Find compilers with version numbers in the keyword string
         regex_list = [f"{c}[^A-Z^a-z]*" for c in valid_compilers]
-        compilers = re.findall(f"({'|'.join(regex_list)})[_-]",
-                               self.keyword_string)
-        if len(compilers) == 0:
-            raise Exception("No valid compiler name in the keyword string.")
+        matched_compilers = re.findall(f"({'|'.join(regex_list)})[_-]",
+                                       self.keyword_string)
+        if len(matched_compilers) == 0:
+            raise Exception("No valid compiler found in the keyword string.")
+        if len(matched_compilers) > 1:
+            if "cuda" not in "-".join(matched_compilers):
+                raise Exception("Can't specify more than one CPU compiler.")
 
-        return "-".join(compilers)
+        return "-".join(matched_compilers)
 
     def parse_kokkos_thread(self):
         valid_kokkos_threads = ["intelmpi", "mpich", "openmp", "spmpi-rolling",
@@ -73,71 +63,36 @@ class KeywordParser:
 
         # Find kokkos_threads with version numbers in the keyword string
         regex_list = [f'{vkt}i?[^A-Z^a-z]*' for vkt in valid_kokkos_threads]
-        kokkos_threads = re.findall(f"({'|'.join(regex_list)})[_-]",
-                                    self.keyword_string)
-        if len(kokkos_threads) == 0:
+        matched_kokkos_threads = re.findall(f"({'|'.join(regex_list)})[_-]",
+                                            self.keyword_string)
+        if len(matched_kokkos_threads) == 0:
             return "serial"
-        if len(kokkos_threads) > 1:
+        if len(matched_kokkos_threads) > 1:
             # Check if the same type is repeated
             for vkt in valid_kokkos_threads:
-                if len([kt for kt in kokkos_threads if vkt in kt]) == 1:
+                if len([k for k in matched_kokkos_threads if vkt in k]) == 1:
                     raise Exception("Can't specify more than one MPI type.")
 
         # if self.mpi_is_supported(kokkos_thread) is False:
         #     raise Exception(f"MPI {kokkos_thread} is not supported on "
         #                     f"{self.system_name}.")
-        return kokkos_threads[0]
-
-    # def mpi_is_supported(self, mpi):
-    #     if self.system_name is None:
-    #         self.parse_system_name()
-
-    #     supported_mpi_list = {
-    #         "ascic": [],
-    #         "machine-type-2": ["spmpi-rolling", "spmpi_rolling"],
-    #         "cafe": [],
-    #         "cee-rhel6": [],
-    #         "chama": [],
-    #         "machine-type-3": [],
-    #         "machine-type-3empire": [],
-    #         "eclipse": [],
-    #         "sems-rhel7": [],
-    #         "stria": [],
-    #         "machine-type-5": [],
-    #         "machine-type-4": [],
-    #         "vortex": [],
-    #     }
-    #     supported_mpis = supported_mpi_list[self.system_name]
-
-    #     if self.system_name == "cee-rhel6":
-    #         match = re.search(r"([A-Za-z])", self.compiler)
-    #         compiler_base_name = match.groups(0)[0]
-
-    #         supported_mpis = {
-    #             "clang": ["openmpi-4.0.3"],
-    #             "gnu": ["openmpi-4.0.3"],
-    #             "intel": ["mpich2-3.2", "intelmpi-2018.4"],
-    #             "cuda": ["openmpi-4.0.3"],
-    #         }[compiler_base_name]
-
-    #     return True if mpi in supported_mpis else False
+        return matched_kokkos_threads[0]
 
     def parse_kokkos_arch(self):
-        valid_kokkos_arch = ["BDW", "HSW", "Power8", "Power9", "KNL",
-                             "Kepler37", "Pascal60", "Volta70"]
-        valid_kokkos_arch_in_keyword_string = [ka in self.keyword_string
-                                               for ka in valid_kokkos_arch]
-        if not any(valid_kokkos_arch_in_keyword_string):
+        valid_kokkos_archs = ["BDW", "HSW", "Power8", "Power9", "KNL",
+                              "Kepler37", "Pascal60", "Volta70"]
+        matched_kokkos_archs = re.findall(f"({'|'.join(valid_kokkos_archs)})",
+                                          self.keyword_string)
+        if len(matched_kokkos_archs) == 0:
             return ""
+        if len(matched_kokkos_archs) > 1:
+            raise Exception("Can't specify more than one kokkos_arch "
+                            f"(you specified {matched_kokkos_archs}).")
 
-        kokkos_arch = [name for name, in_keyword_string
-                       in zip(valid_kokkos_arch,
-                              valid_kokkos_arch_in_keyword_string)
-                       if in_keyword_string is True][0]
-
+        kokkos_arch = matched_kokkos_archs[0]
         if (kokkos_arch in ["Kepler37", "Pascal60", "Volta70"]
                 and "cuda" not in self.keyword_string):
-            raise Exception(f"Cannot use {kokkos_arch} if 'cuda' is not "
+            raise Exception(f"Can't use {kokkos_arch} if 'cuda' is not "
                             "specified as compiler.")
         # Should also check if the host node supports the selected kokkos_arch
 
