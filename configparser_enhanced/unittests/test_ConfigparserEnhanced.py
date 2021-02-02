@@ -33,6 +33,41 @@ except ImportError:
 from configparser_enhanced import ConfigparserEnhanced
 
 
+
+#===============================================================================
+#
+# General Utility Functions
+#
+#===============================================================================
+
+def find_config_ini(filename="config.ini", rootpath="." ):
+    """
+    Recursively searches for a particular file among the subdirectory structure.
+    If we find it, then we return the full relative path to `pwd` to that file.
+
+    The _first_ match will be returned.
+
+    Args:
+        filename (str): The _filename_ of the file we're searching for. Default: 'config.ini'
+        rootpath (str): The _root_ path where we will begin our search from. Default: '.'
+
+    Returns:
+        String containing the path to the file if it was found. If a matching filename is not
+        found then `None` is returned.
+
+    """
+    output = None
+    for dirpath,dirnames,filename_list in os.walk(rootpath):
+        if filename in filename_list:
+            output = os.path.join(dirpath, filename)
+            break
+    if output is None:
+        raise FileNotFoundError("Unable to find {} in {}".format(filename, os.getcwd()))  # pragma: no cover
+    return output
+
+
+
+
 #===============================================================================
 #
 # Mock Helpers
@@ -76,19 +111,7 @@ class SetEnvironmentTest(TestCase):
     def setUp(self):
         print("")
         self.maxDiff = None
-        self._filename = self.find_config_ini(filename="config_test_configparserenhanced.ini")
-
-
-    def find_config_ini(self, filename="config.ini"):
-        rootpath = "."
-        output = None
-        for dirpath,dirnames,filename_list in os.walk(rootpath):
-            if filename in filename_list:
-                output = os.path.join(dirpath, filename)
-                break
-        if output is None:
-            raise FileNotFoundError("Unable to find {} in {}".format(filename, os.getcwd()))        # pragma: no cover
-        return output
+        self._filename = find_config_ini(filename="config_test_configparserenhanced.ini")
 
 
     def test_ConfigparserEnhanced_test_001(self):
