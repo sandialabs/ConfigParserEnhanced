@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
 """
 from __future__ import print_function
 
-import configparser
-import os
-import pprint
-import re
-import sys
+#import configparser
+#import os
+#import pprint
+#import re
+#import sys
 
 
 class ConfigparserEnhanced(object):

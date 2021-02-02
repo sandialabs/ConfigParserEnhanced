@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
+Init script for the ConfigparserEnhanced package
 """
 
 from .ConfigparserEnhanced import ConfigparserEnhanced
