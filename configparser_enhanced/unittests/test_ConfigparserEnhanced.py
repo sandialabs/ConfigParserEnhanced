@@ -30,6 +30,8 @@ try:
 except ImportError:
     from io import StringIO
 
+import configparser
+
 from configparser_enhanced import ConfigparserEnhanced
 
 
@@ -74,26 +76,26 @@ def find_config_ini(filename="config.ini", rootpath="." ):
 #
 #===============================================================================
 
-def mock_module_noreturn(*args):
+def mock_function_noreturn(*args):
     """
-    Mock the module() command that has no return value.
+    Mock a function that does not return a value (i.e., returns NoneType)
     """
-    print("\nmock> module({}) ==> NoneType".format(args))
+    print("\nmock> f({}) ==> NoneType".format(args))
 
 
-def mock_module_pass(*args):
+def  mock_function_pass(*args):
     """
-    Mock the module() command that 'passes', returning a 0.
+    Mock a function that 'passes', i.e., returns a 0.
     """
-    print("\nmock> module({}) ==> 0".format(args))
+    print("\nmock> f({}) ==> 0".format(args))
     return 0
 
 
-def mock_module_fail(*args):
+def mock_function_fail(*args):
     """
-    Mock the module() command that 'fails', returning a 1.
+    Mock a function that 'fails', i.e., returns a 1.
     """
-    print("\nmock> module({}) ==> 1".format(args))
+    print("\nmock> f({}) ==> 1".format(args))
     return 1
 
 
@@ -114,14 +116,112 @@ class SetEnvironmentTest(TestCase):
         self._filename = find_config_ini(filename="config_test_configparserenhanced.ini")
 
 
-    def test_ConfigparserEnhanced_test_001(self):
+    def test_ConfigparserEnhanced_load_configdata(self):
         """
-        Stubbed in test that does nothing (yet)
+        Tests the basic loading of a configuration .ini file using the lazy-evaluated
+        `config` function.
         """
-        print("I am a test!")
+        section = None
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigparserEnhanced(self._filename, section)
+
+        self.assertIsInstance(parser, ConfigparserEnhanced)
 
 
+    def test_ConfigparserEnhanced_property_config(self):
+        """
+        Test the ConfigparserEnhanced property `config`
+        """
+        section = None
 
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigparserEnhanced(self._filename, section)
+
+        configdata = parser.config
+
+        self.assertIsInstance(configdata, configparser.ConfigParser)
+
+        assert configdata.has_section("SECTION-A")
+        assert configdata.has_section("SECTION-B")
+        assert configdata.has_section("SECTION C")
+
+        assert configdata.has_section("SECTION-A+")
+        assert configdata.has_section("SECTION-B+")
+        assert configdata.has_section("SECTION C+")
+
+
+    def test_ConfigparserEnhanced_property_section_missing(self):
+        """
+        Test accessing the `section` property of ConfigparserEnhanced.
+        """
+        section = None
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigparserEnhanced(self._filename)
+
+        self.assertEqual(parser.section, None)
+
+
+    def test_ConfigparserEnhanced_property_section_provided(self):
+        """
+        Test accessing the `section` property of ConfigparserEnhanced.
+        """
+        section = "SECTION-A"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigparserEnhanced(filename=self._filename, section=section)
+
+        self.assertEqual(parser.section, section)
+
+
+    def test_ConfigparserEnhanced_property_section_setter(self):
+        """
+        Test the setter property for sections.
+        """
+        section = "SECTION-A"
+
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        parser = ConfigparserEnhanced(filename=self._filename, section=section)
+        self.assertEqual(parser.section, section)
+
+        section = "SECTION C"
+        print("new section: {}".format(section))
+        parser.section = section
+        self.assertEqual(parser.section, section)
+
+
+    def test_ConfigparserEnhanced_property_section_setter_typeerror(self):
+        """
+        Test the setter property when it gets a non-string type in assignment.
+        It should raise a TypeError.
+        """
+        section = 100
+
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        parser = ConfigparserEnhanced(filename=self._filename)
+
+        print("new section: {}".format(section))
+        with self.assertRaises(TypeError):
+            parser.section = section
 
 
 

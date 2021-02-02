@@ -40,14 +40,21 @@ def find_config_ini(filename="config.ini", rootpath="." ):
 
 def test_configparserEnhanced(filename="config.ini"):
 
-    profile="SECTION A"
+    section_name = "SECTION A"
 
-    print("filename: {}".format(filename))
-    print("profile : {}".format(profile))
+    print("filename    : {}".format(filename))
+    print("section name: {}".format(section_name))
 
-    parser = ConfigparserEnhanced(filename=filename, profile=profile)
+    parser = ConfigparserEnhanced(filename=filename, section=section_name)
 
-    return parser
+    confdata = parser.config
+
+    parser.section = "SECTION-A+"
+    parser.section = "SECTION C+"
+    data = parser.parse_configuration()
+
+
+    return confdata
 
 
 
