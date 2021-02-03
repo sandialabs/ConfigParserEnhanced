@@ -122,6 +122,34 @@ class ConfigparserEnhanced(object):
         return data
 
 
+# TODO:
+# - We might consider replacing the regex
+#   expression from text with a property so derivitive classes could easily
+#   override it by changing the property.
+#   - related to this, might create some kind of a `normalize_op1()`
+#     method, that could be also overridden or something to deal with
+#     operand clanup operations?
+#   - would a `normalize_op2()` method also be useful for completeness?
+# Should work with:
+# op1
+# op1 op2
+# op1 'op2'
+# op1 'op 2'
+# op1 op2 op3
+# op1 'op2' op3
+# op-1
+# op-1 op2
+# op-1 op2 op3
+# op-1 'op2'
+# op-1 'op2' op3
+# op-1 'op 2'
+# op-1 op-2
+# op_1 op_2
+# - Develop new tests
+# - Clean up REGEX -- op2 needs some love to be more forgiving.
+# - Get to a working state
+
+
     def _parse_configuration_r(self, section_name, data=None, processed_sections=None) -> dict:
         """
         """
@@ -147,7 +175,7 @@ class ConfigparserEnhanced(object):
         processed_sections[section_name] = True
 
         # regex key splitter to extract op1 and op2
-        regex_key_splitter = re.compile(r"^([a-zA-Z0-9-]+)( '?([a-zA-Z0-9 ]+)'?(?: .*)*)?")
+        regex_key_splitter = re.compile(r"^([a-zA-Z0-9-_]+)( '?([a-zA-Z0-9-_ ]+)'?(?: .*)*)?")
 
         for sec_k,sec_v in current_section.items():
             sec_k = str(sec_k).strip()
