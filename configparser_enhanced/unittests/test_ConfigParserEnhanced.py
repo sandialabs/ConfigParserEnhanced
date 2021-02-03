@@ -32,7 +32,7 @@ except ImportError:
 
 import configparser
 
-from configparser_enhanced import ConfigparserEnhanced
+from configparser_enhanced import ConfigParserEnhanced
 
 
 
@@ -116,7 +116,7 @@ class SetEnvironmentTest(TestCase):
         self._filename = find_config_ini(filename="config_test_configparserenhanced.ini")
 
 
-    def test_ConfigparserEnhanced_load_configdata(self):
+    def test_ConfigParserEnhanced_load_configdata(self):
         """
         Tests the basic loading of a configuration .ini file using the lazy-evaluated
         `config` function.
@@ -127,14 +127,14 @@ class SetEnvironmentTest(TestCase):
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
-        parser = ConfigparserEnhanced(self._filename, section)
+        parser = ConfigParserEnhanced(self._filename, section)
 
-        self.assertIsInstance(parser, ConfigparserEnhanced)
+        self.assertIsInstance(parser, ConfigParserEnhanced)
 
 
-    def test_ConfigparserEnhanced_property_config(self):
+    def test_ConfigParserEnhanced_property_config(self):
         """
-        Test the ConfigparserEnhanced property `config`
+        Test the ConfigParserEnhanced property `config`
         """
         section = None
 
@@ -142,7 +142,7 @@ class SetEnvironmentTest(TestCase):
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
-        parser = ConfigparserEnhanced(self._filename, section)
+        parser = ConfigParserEnhanced(self._filename, section)
 
         configdata = parser.config
 
@@ -157,9 +157,9 @@ class SetEnvironmentTest(TestCase):
         assert configdata.has_section("SECTION C+")
 
 
-    def test_ConfigparserEnhanced_property_section_missing(self):
+    def test_ConfigParserEnhanced_property_section_missing(self):
         """
-        Test accessing the `section` property of ConfigparserEnhanced.
+        Test accessing the `section` property of ConfigParserEnhanced.
         """
         section = None
 
@@ -167,14 +167,14 @@ class SetEnvironmentTest(TestCase):
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
-        parser = ConfigparserEnhanced(self._filename)
+        parser = ConfigParserEnhanced(self._filename)
 
         self.assertEqual(parser.section, None)
 
 
-    def test_ConfigparserEnhanced_property_section_provided(self):
+    def test_ConfigParserEnhanced_property_section_provided(self):
         """
-        Test accessing the `section` property of ConfigparserEnhanced.
+        Test accessing the `section` property of ConfigParserEnhanced.
         """
         section = "SECTION-A"
 
@@ -182,12 +182,12 @@ class SetEnvironmentTest(TestCase):
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
-        parser = ConfigparserEnhanced(filename=self._filename, section=section)
+        parser = ConfigParserEnhanced(filename=self._filename, section=section)
 
         self.assertEqual(parser.section, section)
 
 
-    def test_ConfigparserEnhanced_property_section_setter(self):
+    def test_ConfigParserEnhanced_property_section_setter(self):
         """
         Test the setter property for sections.
         """
@@ -197,7 +197,7 @@ class SetEnvironmentTest(TestCase):
         print("Load file  : {}".format(self._filename))
         print("section    : {}".format(section))
 
-        parser = ConfigparserEnhanced(filename=self._filename, section=section)
+        parser = ConfigParserEnhanced(filename=self._filename, section=section)
         self.assertEqual(parser.section, section)
 
         section = "SECTION C"
@@ -206,7 +206,7 @@ class SetEnvironmentTest(TestCase):
         self.assertEqual(parser.section, section)
 
 
-    def test_ConfigparserEnhanced_property_section_setter_typeerror(self):
+    def test_ConfigParserEnhanced_property_section_setter_typeerror(self):
         """
         Test the setter property when it gets a non-string type in assignment.
         It should raise a TypeError.
@@ -217,7 +217,7 @@ class SetEnvironmentTest(TestCase):
         print("Load file  : {}".format(self._filename))
         print("section    : {}".format(section))
 
-        parser = ConfigparserEnhanced(filename=self._filename)
+        parser = ConfigParserEnhanced(filename=self._filename)
 
         print("new section: {}".format(section))
         with self.assertRaises(TypeError):

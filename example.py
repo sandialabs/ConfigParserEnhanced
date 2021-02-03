@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-test app for ConfigparserEnhanced (will be deleted later, probably).
+test app for ConfigParserEnhanced (will be deleted later, probably).
 """
 from __future__ import print_function  # python 2 -> 3 compatiblity
 
 import os
 
-from configparser_enhanced import ConfigparserEnhanced
+from configparser_enhanced import ConfigParserEnhanced
 
 
 
@@ -45,7 +45,7 @@ def test_configparserEnhanced(filename="config.ini"):
     print("filename    : {}".format(filename))
     print("section name: {}".format(section_name))
 
-    parser = ConfigparserEnhanced(filename=filename, section=section_name)
+    parser = ConfigParserEnhanced(filename=filename, section=section_name)
 
     confdata = parser.config
 

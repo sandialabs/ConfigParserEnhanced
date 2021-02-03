@@ -22,7 +22,7 @@ import sys
 # M A I N   C L A S S
 # ===============================
 
-class ConfigparserEnhanced(object):
+class ConfigParserEnhanced(object):
     """
 
     Args:

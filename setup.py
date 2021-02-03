@@ -11,7 +11,7 @@ setup(
     name="configparser_enhanced",
     version="0.0.1",
     description="Environment Modules / LMOD helper",
-    url="https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigparserEnhanced",
+    url="https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced",
     author="William McLendon",
     author_email="wcmclen@sandia.gov",
     packages=['configparser_enhanced'],

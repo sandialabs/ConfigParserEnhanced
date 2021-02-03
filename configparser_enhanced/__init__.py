@@ -4,5 +4,5 @@
 Init script for the ConfigparserEnhanced package
 """
 
-from .ConfigparserEnhanced import ConfigparserEnhanced
+from .ConfigParserEnhanced import ConfigParserEnhanced
 
