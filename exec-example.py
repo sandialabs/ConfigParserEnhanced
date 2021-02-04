@@ -64,7 +64,6 @@ def test_configparserEnhanced(filename="config.ini"):
 
 
 
-
 def main():
     """
     main app

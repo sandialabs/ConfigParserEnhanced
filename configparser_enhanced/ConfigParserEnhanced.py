@@ -115,6 +115,11 @@ class ConfigParserEnhanced(Debuggable):
         self.inifilename = filename
 
 
+    # -----------------------
+    #   P R O P E R T I E S
+    # -----------------------
+
+
     @property
     def inifilename(self):
         if not hasattr(self, '_inifile'):
@@ -222,6 +227,24 @@ class ConfigParserEnhanced(Debuggable):
 
         self._section = value
         return self._section
+
+
+    # --------------------
+    #   P A R S E R
+    # --------------------
+
+
+    @property
+    def parser_data_init(self):
+        """
+        Initializer for the data object that gets sent to parser initially.
+
+        Returns:
+            dict containing the 'base' configuration that is empty and ready for
+            for the parser handlers to populate.
+        """
+        output = {}
+        return output
 
 
     @property
@@ -346,19 +369,6 @@ class ConfigParserEnhanced(Debuggable):
         return output
 
 
-    @property
-    def parser_data_init(self):
-        """
-        Initializer for the data object that gets sent to parser initially.
-
-        Returns:
-            dict containing the 'base' configuration that is empty and ready for
-            for the parser handlers to populate.
-        """
-        output = {}
-        return output
-
-
     def parse_configuration(self) -> dict:
         """
         Top level parser entry point.
@@ -437,6 +447,11 @@ class ConfigParserEnhanced(Debuggable):
         return data
 
 
+    # --------------------
+    #   H A N D L E R S
+    # --------------------
+
+
     def _handler_use(self, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
         """
         This is a handler that will get executed when we detect a `use` operation in
@@ -467,6 +482,11 @@ class ConfigParserEnhanced(Debuggable):
         self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use'})                         # Logging
         self.debug_message(0, "--- _handler_{}".format(op1))                                        # Console
         return 0
+
+
+    # --------------------
+    #   H E L P E R S
+    # --------------------
 
 
     def _loginfo_add(self, entry) -> None:
