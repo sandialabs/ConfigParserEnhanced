@@ -127,7 +127,8 @@ class SetEnvironmentTest(TestCase):
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
-        parser = ConfigParserEnhanced(self._filename, section)
+        parser = ConfigParserEnhanced(self._filename)
+        parser.section = section
 
         self.assertIsInstance(parser, ConfigParserEnhanced)
 
@@ -142,7 +143,9 @@ class SetEnvironmentTest(TestCase):
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
-        parser = ConfigParserEnhanced(self._filename, section)
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 5
+        parser.section = section
 
         configdata = parser.config
 
@@ -168,8 +171,12 @@ class SetEnvironmentTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 5
 
-        self.assertEqual(parser.section, None)
+        # Trying to access parser.section if no section has been set should
+        # throw a ValueError
+        with self.assertRaises(ValueError):
+            parser.section
 
 
     def test_ConfigParserEnhanced_property_section_provided(self):
@@ -182,7 +189,9 @@ class SetEnvironmentTest(TestCase):
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
-        parser = ConfigParserEnhanced(filename=self._filename, section=section)
+        parser = ConfigParserEnhanced(filename=self._filename)
+        parser.debug_level = 5
+        parser.section = section
 
         self.assertEqual(parser.section, section)
 
@@ -197,7 +206,10 @@ class SetEnvironmentTest(TestCase):
         print("Load file  : {}".format(self._filename))
         print("section    : {}".format(section))
 
-        parser = ConfigParserEnhanced(filename=self._filename, section=section)
+        parser = ConfigParserEnhanced(filename=self._filename)
+        parser.section = section
+        parser.debug_level = 5
+
         self.assertEqual(parser.section, section)
 
         section = "SECTION C"
@@ -218,10 +230,73 @@ class SetEnvironmentTest(TestCase):
         print("section    : {}".format(section))
 
         parser = ConfigParserEnhanced(filename=self._filename)
+        parser.debug_level = 5
 
         print("new section: {}".format(section))
         with self.assertRaises(TypeError):
             parser.section = section
+
+
+    def test_ConfigParserEnhanced_operand_variations_test(self):
+        """
+        This test will verify that ConfigParserEnhanced can properly parse out the op1, op2
+        entries from a variety of different configurations in the .ini file.
+
+        Examples, the following `key` options should properly be evaluated:
+        - `op1`             --> op1: "op1"   op2: None
+        - `op1 op2`         --> op1: "op1"   op2: "op2"
+        - `op1 'op2'`       --> op1: "op1"   op2: "op2"
+        - `op1 'op 2'`      --> op1: "op1"   op2: "op 2"
+        - `op1 op2 op3`     --> op1: "op1"   op2: "op2"
+        - `op1 'op2' op3`   --> op1: "op1"   op2: "op2"
+        - `op-1`            --> op1: "op_1"  op2: None
+        - `op-1 op2`        --> op1: "op_1"  op2: "op2"
+        - `op-1 op2 op3`    --> op1: "op_1"  op2: "op2"
+        - `op-1 'op2'`      --> op1: "op_1"  op2: "op2"
+        - `op-1 'op2' op3`  --> op1: "op_1"  op2: "op2"
+        - `op-1 'op 2'`     --> op1: "op_1"  op2: "op 2"
+        - `op-1 'op 2' op3` --> op1: "op_1"  op2: "op 2"
+        - `op-1 op-2`       --> op1: "op_1"  op2: "op-2"
+        - `op_1 op_2`       --> op1: "op_1"  op2: "op_2"
+        """
+        section = "OPERAND_TEST"
+
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        parser = ConfigParserEnhanced(filename=self._filename)
+        parser.section = section
+        parser.debug_level = 5
+
+        data = parser.parse_configuration()
+        print(data)
+
+        results_expected = [ ('op1', None),
+                             ('op1', 'op2'),
+                             ('op1', 'op2'),
+                             ('op1', 'op 2'),
+                             ('op1', 'op2'),
+                             ('op1', 'op2'),
+                             ('op_1', None),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op 2'),
+                             ('op_1', 'op 2'),
+                             ('op_1', 'op-2'),
+                             ('op_1', 'op_2')
+        ]
+        print("results_expected:")
+        pprint(results_expected)
+
+        results_actual = [ (d['op1'],d['op2']) for d in parser._loginfo if d['type']=='section-operands']
+        print("results_actual:")
+        pprint(results_actual)
+
+        self.assertListEqual(results_expected, results_actual)
+        print("Test Complete.")
 
 
 
