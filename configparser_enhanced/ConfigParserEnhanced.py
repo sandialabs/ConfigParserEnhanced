@@ -438,6 +438,7 @@ class ConfigParserEnhanced(Debuggable):
             self.debug_message(0, "- op1: {}".format(op1))                                          # Console
             self.debug_message(0, "- op2: {}".format(op2))                                          # Console
 
+            # Call the op handler if one exists for this op.
             ophandler_f = getattr(self, "_handler_{}".format(op1), None)
             if ophandler_f:
                 ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
