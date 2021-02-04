@@ -130,6 +130,12 @@ class ConfigParserEnhanced(Debuggable):
 
     @inifilename.setter
     def inifilename(self, filename):
+        """
+        Todo:
+            - Support pathlib.Path objects as well as string only.
+              - update tests to test that setup.
+            - Convert strings internally to a pathlib.Path object? (check before just doing)
+        """
         if not isinstance(filename, str):
             raise TypeError("ERROR: .ini filename must be a string type.")
 
@@ -142,6 +148,7 @@ class ConfigParserEnhanced(Debuggable):
                 delattr(self, '_loginfo')
 
         self._inifile = filename
+        return self._inifile
 
 
     @property
@@ -169,7 +176,7 @@ class ConfigParserEnhanced(Debuggable):
             try:
                 with open(self.inifilename, 'r') as ifp:
                     self._configdata.read_file(ifp)
-            except IOError as err:
+            except IOError:
                 msg = "\n" + \
                       "+" + "="*78 + "+\n" + \
                       "|   ERROR: Unable to load configuration .ini file\n" + \
@@ -188,6 +195,9 @@ class ConfigParserEnhanced(Debuggable):
 
         Returns:
             String containing the root-level section we'd like to parse.
+
+        Todo:
+            Should we rename this to something more like `sectionname`
         """
         if not hasattr(self, '_section'):
             raise ValueError("ERROR: A section has not been set yet.")
@@ -407,7 +417,7 @@ class ConfigParserEnhanced(Debuggable):
         if current_section is None:
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
-        if data == None:
+        if data is None:
             data = self.parser_data_init
             assert isinstance(data, dict)
 
@@ -419,6 +429,8 @@ class ConfigParserEnhanced(Debuggable):
             sec_k = str(sec_k).strip()
             sec_v = str(sec_v).strip()
             sec_v = sec_v.strip('"')
+            # Todo: check configparser's configuration regarding settings, rules, etc.
+            #       for expansion rules and quotation handling.
 
             self.debug_message(0, "- Entry: `{}` : `{}`".format(sec_k,sec_v))                       # Console
             self._loginfo_add({'type': 'section-key-value', 'key': sec_k, 'value': sec_v})          # Logging
@@ -427,7 +439,7 @@ class ConfigParserEnhanced(Debuggable):
             regex_op_splitter_m = self.regex_op_matcher(sec_k)
 
             # Skip entry if we didn't get a match
-            if not regex_op_splitter_m:
+            if regex_op_splitter_m is None:
                 continue
 
             self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))
@@ -439,9 +451,17 @@ class ConfigParserEnhanced(Debuggable):
             self.debug_message(0, "- op2: {}".format(op2))                                          # Console
 
             # Call the op handler if one exists for this op.
-            ophandler_f = getattr(self, "_handler_{}".format(op1), None)
-            if ophandler_f:
-                ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
+            handler_name = "_handler_{}".format(op1)
+            ophandler_f = getattr(self, handler_name, None)
+            if ophandler_f is not None:
+                rval = ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
+                if rval != 0:
+                    self.debug_message(1, '- WARNING: handler {} returned {}'.format(handler_name, rval))
+                    # Todo: This should throw an error because nonzero rval means the handler
+                    #       said it failed somehow.
+
+        # Remove the section from the `processed_sections` field when we exit.
+        del processed_sections[section_name]
 
         self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
         self.debug_message(0, "Completed section: `{}`".format(section_name))                       # Console
@@ -477,8 +497,23 @@ class ConfigParserEnhanced(Debuggable):
         if op2 not in processed_sections.keys():
             self._parse_configuration_r(op2, data, processed_sections)
         else:
-            self.debug_message(0, "WARNING: Detected a cycle in section `use` dependencies:\n" + \
-                                  "         cannot load [{}] from [{}].".format(op1, section_name))
+            self._loginfo_add({'type': 'cycle-detected', 'sec-src': section_name, 'sec-dst': op1})  # Logging
+            self.debug_message(0, "WARNING: Detected a cycle in section `use` dependencies:\n" +    # Console
+                                  "         cannot load [{}] from [{}].".format(op1, section_name)) # Console
+            # Todo: Should we throw here instead of just printing out a warning that might
+            #       not get noticed?  Not throwing just means we'll be tolerant of cycles and not
+            #       re-process a rule that was already processed on a DFS chain but throwing will
+            #       force people to make sure their sections generate a DAG.
+            #     - This could be made optional by creating a new parameter, say 'failure_handling'
+            #       that could be different things, such as 'always_fail', or make it an integer
+            #       that works similar to debug_level.  Values can be:
+            #       - 0 - Handle things silently whenver possible.
+            #       - 1 - Handle things but print out a warning about it.
+            #       - 2 - Throw on critical events.
+            #       - 3 - Throw on critical or serious events.
+            #       - 4 - Throw on critical, serious or minor events.
+            #       - 5 - Throw on critical, serious, minor and warning events.
+            #     - Maybe failure types are 'critical', 'serious', 'minor', 'warning' ?
 
         self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use'})                         # Logging
         self.debug_message(0, "--- _handler_{}".format(op1))                                        # Console

@@ -383,6 +383,20 @@ class SetEnvironmentTest(TestCase):
     def test_ConfigParserEnhanced_keyword_use_cycle_exists(self):
         """
         Test the handler and parser for `use` commands to make sure we recurse properly.
+
+        The test layout in the config.ini test file is this:
+
+        CYCLE_TEST_A
+          |--> CYCLE_TEST_B
+          |      |--> CYCLE_TEST_C
+          |             |--> CYCLE_TEST_A (NOT ALLOWED DUE TO CYCLE)
+          |--> CYCLE_TEST_B
+          |      |--> CYCLE_TEST_C
+          |             |--> CYCLE_TEST_A (NOT ALLOWED DUE TO CYCLE)
+
+        Todo:
+            There is some discussion needed on whether or not we should just issue a warning
+            when breaking a cycle or if we should throw some error(s).
         """
         section = "CYCLE_TEST_A"
 
@@ -402,8 +416,17 @@ class SetEnvironmentTest(TestCase):
 
         # Check that we only entered the right sections and that we didn't recurse through the
         # cycle.
-        section_entry_list = [ d['name'] for d in parser._loginfo if d['type']=='section-entry']
-        self.assertListEqual(section_entry_list, ['CYCLE_TEST_A', 'CYCLE_TEST_B', 'CYCLE_TEST_C'])
+        section_entry_list_actual = [ d['name'] for d in parser._loginfo if d['type']=='section-entry']
+
+        # What did we expect to get?
+        section_entry_list_expected = ['CYCLE_TEST_A',
+                                       'CYCLE_TEST_B', 'CYCLE_TEST_C',
+                                       'CYCLE_TEST_B', 'CYCLE_TEST_C']
+
+        print("section_entry_list_expected: {}".format(section_entry_list_expected))
+        print("section_entry_list_actual  : {}".format(section_entry_list_actual))
+
+        self.assertListEqual(section_entry_list_actual, section_entry_list_expected)
 
         print("OK")
 
@@ -602,8 +625,6 @@ class SetEnvironmentTest(TestCase):
         parser.parse_configuration()
 
         print("OK")
-
-
 
 
 
