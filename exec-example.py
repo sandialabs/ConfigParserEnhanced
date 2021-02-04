@@ -72,7 +72,6 @@ def main():
     fname_ini = "config_test_configparserenhanced.ini"
     fpath_ini = find_config_ini(filename=fname_ini)
 
-
     test_configparserEnhanced(filename=fpath_ini)
 
 
