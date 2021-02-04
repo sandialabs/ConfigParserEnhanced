@@ -409,14 +409,14 @@ class ConfigParserEnhanced(Debuggable):
 
             ophandler_f = getattr(self, "_handler_{}".format(op1), None)
             if ophandler_f:
-                ophandler_f(section_name, op1, op2, data, processed_sections)
+                ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
 
         self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
         self.debug_message(0, "Completed section: `{}`".format(section_name))                       # Console
         return data
 
 
-    def _handler_use(self, section_name, op1, op2, data, processed_sections=None) -> int:
+    def _handler_use(self, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
         """
         This is a handler that will get executed when we detect a `use` operation in
         our parser.
