@@ -346,9 +346,26 @@ class ConfigParserEnhanced(Debuggable):
         return output
 
 
+    @property
+    def parser_data_init(self):
+        """
+        Initializer for the data object that gets sent to parser initially.
+
+        Returns:
+            dict containing the 'base' configuration that is empty and ready for
+            for the parser handlers to populate.
+        """
+        output = {}
+        return output
+
+
     def parse_configuration(self) -> dict:
         """
         Top level parser entry point.
+
+        Args:
+            data (dict): An initializer for the `data` object which will be passed down into
+                         all handlers within the parser for updates and additions. Default: None
         """
         data = self._parse_configuration_r(self.section)
         return data
@@ -380,7 +397,11 @@ class ConfigParserEnhanced(Debuggable):
         if current_section is None:
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
-        if processed_sections is None:
+        if data == None:
+            data = self.parser_data_init
+            assert isinstance(data, dict)
+
+        if processed_sections == None:
             processed_sections = {}
         processed_sections[section_name] = True
 
