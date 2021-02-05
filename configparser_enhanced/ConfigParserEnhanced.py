@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import configparser
 import os
+from pathlib import Path
 #import pprint
 import re
 import sys
@@ -129,15 +130,21 @@ class ConfigParserEnhanced(Debuggable):
 
 
     @inifilename.setter
-    def inifilename(self, filename):
+    def inifilename(self, value):
         """
+        inifilename can be set to one of these things:
+        1. a `str` contining a path to a .ini file.
+        2. a `pathlib.Path` object pointing to a .ini file.
+        3. a `list` of one or more of (1) or (2).
+
+        entries in the list will be converted to pathlib.Path objects.
         Todo:
             - Support pathlib.Path objects as well as string only.
               - update tests to test that setup.
             - Convert strings internally to a pathlib.Path object? (check before just doing)
         """
-        if not isinstance(filename, str):
-            raise TypeError("ERROR: .ini filename must be a string type.")
+        if not isinstance(value, (str,Path,list)):
+            raise TypeError("ERROR: .ini filename must be a `str`, a `Path` or a `list` of either.")
 
         # if we have already loaded a .ini file, we should reset the data
         # structure. Delete any lazy-created properties, etc.
@@ -147,7 +154,13 @@ class ConfigParserEnhanced(Debuggable):
             if hasattr(self, '_loginfo'):
                 delattr(self, '_loginfo')
 
-        self._inifile = filename
+        # Internally we represent the inifile as a `list of Path` objects.
+        # Do the necessary conversions to make that so.
+        if not isinstance(value, list):
+            value = [ value ]
+
+        self._inifile = [ Path(x) for x in value ]
+
         return self._inifile
 
 
@@ -164,6 +177,11 @@ class ConfigParserEnhanced(Debuggable):
             configparser.ConfigParser object containing the contents of the configuration
             file that is loaded from a .ini file.
 
+        Raises:
+            ValueError if the length of `self.inifilename` is zero.
+            IOError if any of the files in `self.inifilename` don't
+                exist or are not files.
+
         .. configparser reference:
             https://docs.python.org/3/library/configparser.html
         """
@@ -173,17 +191,25 @@ class ConfigParserEnhanced(Debuggable):
             # prevent ConfigParser from lowercasing the keys
             self._configdata.optionxform = str
 
-            try:
-                with open(self.inifilename, 'r') as ifp:
-                    self._configdata.read_file(ifp)
-            except IOError:
-                msg = "\n" + \
-                      "+" + "="*78 + "+\n" + \
-                      "|   ERROR: Unable to load configuration .ini file\n" + \
-                      "|   - Requested file: `{}`\n".format(self.inifilename) + \
-                      "|   - CWD: `{}`\n".format(os.getcwd()) + \
-                      "+" + "="*78 + "+\n"
-                raise IOError(msg)
+            # configparser.ConfigParser.read() will not fail if it doesn't read the
+            # .ini file(s) in the list, it'll just happily continue on and return
+            # whatever it does get... or an empty configuration if no files were found.
+            # We want to fail if we provide a bad file name so we need to check here.
+            if len(self.inifilename) == 0:
+                raise ValueError("ERROR: No .ini filename(s) were provided.")
+
+            for inifilename_i in self.inifilename:
+
+                if (inifilename_i.exists() and inifilename_i.is_file()) is not True:
+                    msg = "\n" + \
+                          "+" + "="*78 + "+\n" + \
+                          "|   ERROR: Unable to load configuration .ini file\n" + \
+                          "|   - Requested file: `{}`\n".format(inifilename_i) + \
+                          "|   - CWD: `{}`\n".format(os.getcwd()) + \
+                          "+" + "="*78 + "+\n"
+                    raise IOError(msg)
+
+            self._configdata.read(self.inifilename, encoding='utf-8')
 
         return self._configdata
 

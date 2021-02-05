@@ -49,7 +49,7 @@ def test_configparserEnhanced(filename="config.ini"):
     parser.section     = section_name
     parser.debug_level = 1
 
-    confdata = parser.config
+    confdata = parser.configdata
 
     parser.section = "SECTION-A+"
     parser.section = "SECTION C+"

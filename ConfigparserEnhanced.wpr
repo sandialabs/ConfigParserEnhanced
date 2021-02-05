@@ -13,4 +13,4 @@ proj.directory-list = [{'dirloc': loc('.'),
 proj.file-type = 'shared'
 proj.main-file = loc('exec-example.py')
 testing.auto-test-file-specs = (('glob',
-                                 'test_*.py'),)
+                                 'unittests/test_*.py'),)
