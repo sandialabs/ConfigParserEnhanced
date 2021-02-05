@@ -160,7 +160,7 @@ class SetEnvironmentTest(TestCase):
         assert configdata.has_section("SECTION C+")
 
 
-    def test_ConfigParserEnhanced_property_inifilename_changed(self):
+    def test_ConfigParserEnhanced_property_inifilepath_changed(self):
         """
         Tests that changing the inifile will properly reset the data structure.
         """
@@ -179,7 +179,7 @@ class SetEnvironmentTest(TestCase):
         self.assertIsInstance(parser._loginfo, list)
         self.assertIsInstance(parser._configdata, configparser.ConfigParser)
 
-        parser.inifilename = "foobar"
+        parser.inifilepath = "foobar"
 
         self.assertFalse( hasattr(parser, '_loginfo') )
         self.assertFalse( hasattr(parser, '_configdata') )
@@ -451,9 +451,9 @@ class SetEnvironmentTest(TestCase):
         print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_inifilename_missing(self):
+    def test_ConfigParserEnhanced_assert_inifilepath_missing(self):
         """
-        Tests a throw if we somehow are missing the `inifilename` property.
+        Tests a throw if we somehow are missing the `inifilepath` property.
 
         This normally shouldn't be possible in the base class because this is a required
         parameter to the c'tor but a derived class might not implement a proper c'tor so
@@ -470,17 +470,17 @@ class SetEnvironmentTest(TestCase):
         parser.section = section
 
         # remove the _filename entry from the parser instance.
-        delattr(parser, '_inifile')
+        delattr(parser, '_inifilepath')
 
         with self.assertRaises(ValueError):
-            inifilename = parser.inifilename
+            inifilepath = parser.inifilepath
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_inifilename_not_str(self):
+    def test_ConfigParserEnhanced_assert_inifilepath_not_str(self):
         """
-        Tests that we properly raise the exception if we try and set the `inifilename`
+        Tests that we properly raise the exception if we try and set the `inifilepath`
         property to something that is not a string.
         """
         section = "SECTION-A"
@@ -493,15 +493,15 @@ class SetEnvironmentTest(TestCase):
         parser.section = section
 
         # remove the _filename entry from the parser instance.
-        delattr(parser, '_inifile')
+        delattr(parser, '_inifilepath')
 
         with self.assertRaises(TypeError):
-            parser.inifilename = 12345
+            parser.inifilepath = 12345
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_inifilename_filenotfound(self):
+    def test_ConfigParserEnhanced_assert_inifilepath_filenotfound(self):
         """
         Tests that changing the inifile will properly reset the data structure.
         """

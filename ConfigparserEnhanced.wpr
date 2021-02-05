@@ -4,6 +4,24 @@
 # Wing project file                                              #
 ##################################################################
 [project attributes]
+console.toolbox = [{'autosave': False,
+                    'cmd': 'exec-tests.sh ',
+                    'env': ('project',
+                            [u'']),
+                    'hostname': ('project',
+                                 None),
+                    'id': 'cmd-oV5bOWsmbUl3eefG',
+                    'io_encoding': None,
+                    'key_binding': '',
+                    'line_mode': True,
+                    'pseudo_tty': False,
+                    'pypath': ('project',
+                               []),
+                    'raise_panel': True,
+                    'rundir': ('project',
+                               u''),
+                    'shared': False,
+                    'title': 'Tests with Coverage'}]
 proj.directory-list = [{'dirloc': loc('.'),
                         'excludes': (),
                         'filter': u'*',

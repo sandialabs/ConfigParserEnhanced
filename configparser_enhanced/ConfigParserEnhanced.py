@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-# TODO: Implement me!
+Todo:
+    Fill in file-level docstring
+    Clean up docstrings
 """
 from __future__ import print_function
 
@@ -113,7 +115,7 @@ class ConfigParserEnhanced(Debuggable):
         https://docs.python.org/3/library/configparser.html
     """
     def __init__(self, filename):
-        self.inifilename = filename
+        self.inifilepath = filename
 
 
     # -----------------------
@@ -122,33 +124,29 @@ class ConfigParserEnhanced(Debuggable):
 
 
     @property
-    def inifilename(self):
-        if not hasattr(self, '_inifile'):
+    def inifilepath(self) -> list:
+        if not hasattr(self, '_inifilepath'):
             raise ValueError("ERROR: The filename has not been specified yet.")
         else:
-            return self._inifile
+            return self._inifilepath
 
 
-    @inifilename.setter
-    def inifilename(self, value):
+    @inifilepath.setter
+    def inifilepath(self, value) -> list:
         """
-        inifilename can be set to one of these things:
+        inifilepath can be set to one of these things:
         1. a `str` contining a path to a .ini file.
         2. a `pathlib.Path` object pointing to a .ini file.
         3. a `list` of one or more of (1) or (2).
 
         entries in the list will be converted to pathlib.Path objects.
-        Todo:
-            - Support pathlib.Path objects as well as string only.
-              - update tests to test that setup.
-            - Convert strings internally to a pathlib.Path object? (check before just doing)
         """
         if not isinstance(value, (str,Path,list)):
             raise TypeError("ERROR: .ini filename must be a `str`, a `Path` or a `list` of either.")
 
         # if we have already loaded a .ini file, we should reset the data
         # structure. Delete any lazy-created properties, etc.
-        if hasattr(self, '_inifile'):
+        if hasattr(self, '_inifilepath'):
             if hasattr(self, '_configdata'):
                 delattr(self, '_configdata')
             if hasattr(self, '_loginfo'):
@@ -159,9 +157,9 @@ class ConfigParserEnhanced(Debuggable):
         if not isinstance(value, list):
             value = [ value ]
 
-        self._inifile = [ Path(x) for x in value ]
+        self._inifilepath = [ Path(x) for x in value ]
 
-        return self._inifile
+        return self._inifilepath
 
 
     @property
@@ -178,8 +176,8 @@ class ConfigParserEnhanced(Debuggable):
             file that is loaded from a .ini file.
 
         Raises:
-            ValueError if the length of `self.inifilename` is zero.
-            IOError if any of the files in `self.inifilename` don't
+            ValueError if the length of `self.inifilepath` is zero.
+            IOError if any of the files in `self.inifilepath` don't
                 exist or are not files.
 
         .. configparser reference:
@@ -195,21 +193,29 @@ class ConfigParserEnhanced(Debuggable):
             # .ini file(s) in the list, it'll just happily continue on and return
             # whatever it does get... or an empty configuration if no files were found.
             # We want to fail if we provide a bad file name so we need to check here.
-            if len(self.inifilename) == 0:
+            if len(self.inifilepath) == 0:
                 raise ValueError("ERROR: No .ini filename(s) were provided.")
 
-            for inifilename_i in self.inifilename:
+            for inifilepath_i in self.inifilepath:
 
-                if (inifilename_i.exists() and inifilename_i.is_file()) is not True:
+                # Sanity type check here -- we'd throw on the .exists() and .is_file()
+                # methods below if the entry isn't a Path object, but the erorr might
+                # be cryptic. This will throw a more explicit error.
+                # This should never happen if the users set things up through the
+                # property interface.
+                if isinstance(inifilepath_i, Path) is not True:
+                    raise TypeError("INTERNAL ERROR: .ini file paths should be Path objects!")
+
+                if (inifilepath_i.exists() and inifilepath_i.is_file()) is not True:
                     msg = "\n" + \
                           "+" + "="*78 + "+\n" + \
                           "|   ERROR: Unable to load configuration .ini file\n" + \
-                          "|   - Requested file: `{}`\n".format(inifilename_i) + \
+                          "|   - Requested file: `{}`\n".format(inifilepath_i) + \
                           "|   - CWD: `{}`\n".format(os.getcwd()) + \
                           "+" + "="*78 + "+\n"
                     raise IOError(msg)
 
-            self._configdata.read(self.inifilename, encoding='utf-8')
+            self._configdata.read(self.inifilepath, encoding='utf-8')
 
         return self._configdata
 
@@ -217,16 +223,14 @@ class ConfigParserEnhanced(Debuggable):
     @property
     def section(self) -> str:
         """
-        The section that the parser portion will parse out.
+        The name of the section that the parser will use as the _root_ section
+        for parsing (via a DFS parsing scheme).
 
         Returns:
             String containing the root-level section we'd like to parse.
-
-        Todo:
-            Should we rename this to something more like `sectionname`
         """
         if not hasattr(self, '_section'):
-            raise ValueError("ERROR: A section has not been set yet.")
+            raise ValueError("ERROR: `section` has not been set yet.")
         else:
             if not isinstance(self._section, str):
                 raise TypeError("An Internal ERROR occurred - `section` should always return a str.")
@@ -483,8 +487,8 @@ class ConfigParserEnhanced(Debuggable):
                 rval = ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
                 if rval != 0:
                     self.debug_message(1, '- WARNING: handler {} returned {}'.format(handler_name, rval))
-                    # Todo: This should throw an error because nonzero rval means the handler
-                    #       said it failed somehow.
+                    # Todo: (Discussion) should we throw an error because nonzero
+                    #       rval means the handler said it failed somehow.
 
         # Remove the section from the `processed_sections` field when we exit.
         del processed_sections[section_name]
