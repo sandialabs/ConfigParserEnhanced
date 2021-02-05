@@ -147,7 +147,7 @@ class SetEnvironmentTest(TestCase):
         parser.debug_level = 5
         parser.section = section
 
-        configdata = parser.config
+        configdata = parser.configdata
 
         self.assertIsInstance(configdata, configparser.ConfigParser)
 
@@ -517,7 +517,7 @@ class SetEnvironmentTest(TestCase):
         parser.section = section
 
         with self.assertRaises(IOError):
-            parser.config
+            parser.configdata
 
         print("OK")
 

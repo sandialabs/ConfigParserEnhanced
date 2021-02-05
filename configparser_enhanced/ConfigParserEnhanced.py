@@ -152,7 +152,7 @@ class ConfigParserEnhanced(Debuggable):
 
 
     @property
-    def config(self) -> configparser.ConfigParser:
+    def configdata(self) -> configparser.ConfigParser:
         """
         This property provides a link to the raw results from using the configparser
         class to parse a .ini file.
@@ -404,7 +404,7 @@ class ConfigParserEnhanced(Debuggable):
         self._loginfo_add({'type': 'section-entry', 'name': section_name})                          # Logging
 
         try:
-            current_section = self.config[section_name]
+            current_section = self.configdata[section_name]
         except KeyError:
             message = "ERROR: No section named `{}` was found in the configuration file.".format(section_name)
             raise KeyError(message)
