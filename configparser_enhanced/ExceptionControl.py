@@ -131,10 +131,6 @@ class ExceptionControl(object):
             if message == None:
                 raise exception_type
             else:
-                #print("="*60)
-                #print("EXCEPTION OCCURRED: {}".format(exception_type.__name__))
-                #if message != None:
-                    #print("Message: {}".format(message))
                 raise exception_type(message)
         elif self.exception_control_level > 0:
             try:
