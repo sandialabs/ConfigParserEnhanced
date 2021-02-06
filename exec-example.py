@@ -47,7 +47,7 @@ def test_configparserEnhanced(filename="config.ini"):
 
     parser = ConfigParserEnhanced(filename=filename)
     parser.section     = section_name
-    parser.raise_level = 5
+    parser.exception_control_level = 5
     parser.debug_level = 1
 
     confdata = parser.configdata

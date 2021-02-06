@@ -21,59 +21,114 @@ import traceback
 # ===========================================================
 
 
-class ThrowControl(object):
+class ExceptionControl(object):
     """
+    The ExceptionControl class is intended as a helper class that would be inherited as a
+    superclass to some other class to give it the capability to implement conditional
+    exception handling options.
+
+    This allows developers to create _conditional exceptions_ in their class which can
+    do nothing, print a warning, or raise an exception based on the severity of the issue
+    and the threshold level setting, which is set via a property.
+
+    There are four 'types' of events that can be created:
+    - WARNING : The lowest severity. These are mostly informative, they
+                might not indicate an _error_ but we might want them to make note
+                of something that isn't quite right.
+    - MINOR   : This is more severe than a WARNING type and indicates that an
+                actual error probably happened but not a major one. This might
+                be somethig that needs to be noted but doesn't always warrant
+                halting execution.
+    - SERIOUS : Second highest level of severity. This indicates something serious
+                happened. We would definitely want to handle this and call out that
+                a problem happened. The likelihood that this kind of event should
+                halt execution and/or throw an exception rather than print out a message
+                is high.
+    - CRITICAL: The highest severity of event. This would generally indicate something
+                seriously bad went wrong and we should definitely raise the exception
+                and halt execution.
+
+    When events are raised, we will set them to the appropriate type and the behaviour can
+    be determined based on the `exception_control_level` property on the class. This property
+    determines how an event is handled. The values allowed for this are 0..5 where:
+    - 0 : Silent Running. Events do not print out anything nor do they raise
+          an exception.
+    - 1 : Warnings Only. A warning message is printed out for all events.
+          No exceptions get raised.
+    - 2 : Raise critical events.
+          CRITICAL events will cause the exception to be raised.
+          Lower severity events will print out a warning message.
+    - 3 : Raise serious or critical events.
+          CRITICAL and SERIOUS events will raise the associated exception.
+          Lower severity events will print out a warning message.
+    - 4 : Raise minor, serious and critical events.
+          CRITICAL, SERIOUS and MINOR events will raise their associated
+          exception.
+          Lower severity events will print out a warning message.
+    - 5 : All events trigger their exception.
+
+
     Todo:
-        Should we throw here instead of just printing out a warning that might
-        not get noticed?  Not throwing just means we'll be tolerant of cycles and not
-        re-process a rule that was already processed on a DFS chain but throwing will
-        force people to make sure their sections generate a DAG.
-        - This could be made optional by creating a new parameter, say 'failure_handling'
-          that could be different things, such as 'always_fail', or make it an integer
-          that works similar to debug_level.  Values can be:
-            - 0 - Handle things silently whenver possible.
-            - 1 - Handle things but print out a warning about it.
-            - 2 - Throw on critical events.
-            - 3 - Throw on critical or serious events.
-            - 4 - Throw on critical, serious or minor events.
-            - 5 - Throw on critical, serious, minor and warning events.
-        - Maybe failure types are 'critical', 'serious', 'minor', 'warning' ?
+        - Convert this to an abstract base class
     """
+
     @property
-    def raise_level(self):
-        if not hasattr(self, '_raise_level'):
-            self._raise_level = 1
-        return self._raise_level
-
-
-    @raise_level.setter
-    def raise_level(self, value):
+    def exception_control_level(self):
         """
-        Sets the value of the `raise_level` property. The parameter must be convertable
-        to an integer and must be between 0 and 5. Values below 0 will be set to 0 and
-        values greater than 5 are set to 5.
+        Gets the value of the `exception_control_level` property.
+        """
+        if not hasattr(self, '_exception_control_level'):
+            self._exception_control_level = 1
+        return self._exception_control_level
+
+
+    @exception_control_level.setter
+    def exception_control_level(self, value):
+        """
+        Sets the value of the `exception_control_level` property.
+        The parameter must be convertable to an integer and must be
+        between 0 and 5. Values below 0 will be set to 0 and values
+        greater than 5 are set to 5.
         """
         value = int(value)
         value = max(0, value)
         value = min(5, value)
-        self._raise_level = value
-        return self._raise_level
+        self._exception_control_level = value
+        return self._exception_control_level
 
 
-    def conditional_raise(self, event_type, exception_type, message=None):
+    def exception_control_event(self, event_type, exception_type, message=None):
         """
+        Create an event that will be handled based on the rules given
+        by the current `exception_control_level` value and the severity
+        class of this event.
+
+        Args:
+            event_type (str):
+            exception_type (object): An Exception type that would be raised
+                if the `exception_control_level` threshold is high enough to
+                make this exception get raised.
+            message (str): If the exception gets triggered, what message
+                should we pass along when it gets raised.
+
+        Returns:
+            None
+
+        Todo:
+            Add some type checking that `exception_type` is, in fact, derived
+            from the base Exception class.
         """
         event_type = str(event_type).upper()
 
-        event_type_to_raise_level_map = {
+        event_type_to_exception_control_level_map = {
             "WARNING" : 5,
             "MINOR"   : 4,
             "SERIOUS" : 3,
             "CRITICAL": 2,
         }
 
-        req_raise_level = event_type_to_raise_level_map[event_type]
-        if self.raise_level >= req_raise_level:
+        req_exception_control_level = event_type_to_exception_control_level_map[event_type]
+        if self.exception_control_level >= req_exception_control_level:
             if message == None:
                 raise exception_type
             else:
@@ -82,7 +137,7 @@ class ThrowControl(object):
                 #if message != None:
                     #print("Message: {}".format(message))
                 raise exception_type(message)
-        elif self.raise_level > 0:
+        elif self.exception_control_level > 0:
             try:
                 raise exception_type
             except exception_type as ex:
@@ -92,10 +147,10 @@ class ThrowControl(object):
                     print("Message: {}".format(message))
                 print("Traceback:")
                 traceback.print_tb(ex.__traceback__)
-                print("Increase throw level to {} to trigger exception.".format(req_raise_level))
+                print("Increase throw level to {} to trigger exception.".format(req_exception_control_level))
                 print("="*60)
                 sys.stdout.flush()
-
+        return
 
 
 
@@ -173,7 +228,7 @@ class Debuggable(object):
 #   M A I N   C L A S S
 # ===============================
 
-class ConfigParserEnhanced(Debuggable, ThrowControl):
+class ConfigParserEnhanced(Debuggable, ExceptionControl):
     """
     Provides an enhanced version of the `configparser` module which enables some
     extended processing of the information provided in a `.ini` file.
@@ -565,8 +620,8 @@ class ConfigParserEnhanced(Debuggable, ThrowControl):
                 rval = ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
                 if rval != 0:
                     #self.debug_message(1, '- WARNING: handler {} returned {}'.format(handler_name, rval))
-                    self.conditional_raise("WARNING", ValueError,
-                                           "Handler `{}` returned {} but we expected 0".format(handler_name, rval))
+                    self.exception_control_event("WARNING", ValueError,
+                                                 "Handler `{}` returned {} but we expected 0".format(handler_name, rval))
                     # Todo: (Discussion) should we throw an error because nonzero
                     #       rval means the handler said it failed somehow.
 
