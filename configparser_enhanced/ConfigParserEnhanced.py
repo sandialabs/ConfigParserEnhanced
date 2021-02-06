@@ -13,11 +13,89 @@ from pathlib import Path
 #import pprint
 import re
 import sys
+import traceback
 
 
 # ===========================================================
 #   H E L P E R   F U N C T I O N S   A N D   C L A S S E S
 # ===========================================================
+
+
+class ThrowControl(object):
+    """
+    Todo:
+        Should we throw here instead of just printing out a warning that might
+        not get noticed?  Not throwing just means we'll be tolerant of cycles and not
+        re-process a rule that was already processed on a DFS chain but throwing will
+        force people to make sure their sections generate a DAG.
+        - This could be made optional by creating a new parameter, say 'failure_handling'
+          that could be different things, such as 'always_fail', or make it an integer
+          that works similar to debug_level.  Values can be:
+            - 0 - Handle things silently whenver possible.
+            - 1 - Handle things but print out a warning about it.
+            - 2 - Throw on critical events.
+            - 3 - Throw on critical or serious events.
+            - 4 - Throw on critical, serious or minor events.
+            - 5 - Throw on critical, serious, minor and warning events.
+        - Maybe failure types are 'critical', 'serious', 'minor', 'warning' ?
+    """
+    @property
+    def raise_level(self):
+        if not hasattr(self, '_raise_level'):
+            self._raise_level = 1
+        return self._raise_level
+
+
+    @raise_level.setter
+    def raise_level(self, value):
+        """
+        Sets the value of the `raise_level` property. The parameter must be convertable
+        to an integer and must be between 0 and 5. Values below 0 will be set to 0 and
+        values greater than 5 are set to 5.
+        """
+        value = int(value)
+        value = max(0, value)
+        value = min(5, value)
+        self._raise_level = value
+        return self._raise_level
+
+
+    def conditional_raise(self, event_type, exception_type, message=None):
+        """
+        """
+        event_type = str(event_type).upper()
+
+        event_type_to_raise_level_map = {
+            "WARNING" : 5,
+            "MINOR"   : 4,
+            "SERIOUS" : 3,
+            "CRITICAL": 2,
+        }
+
+        req_raise_level = event_type_to_raise_level_map[event_type]
+        if self.raise_level >= req_raise_level:
+            if message == None:
+                raise exception_type
+            else:
+                #print("="*60)
+                #print("EXCEPTION OCCURRED: {}".format(exception_type.__name__))
+                #if message != None:
+                    #print("Message: {}".format(message))
+                raise exception_type(message)
+        elif self.raise_level > 0:
+            try:
+                raise exception_type
+            except exception_type as ex:
+                print("="*60)
+                print("EXCEPTION SKIPPED: {}".format(exception_type.__name__))
+                if message != None:
+                    print("Message: {}".format(message))
+                print("Traceback:")
+                traceback.print_tb(ex.__traceback__)
+                print("Increase throw level to {} to trigger exception.".format(req_raise_level))
+                print("="*60)
+                sys.stdout.flush()
+
 
 
 
@@ -95,7 +173,7 @@ class Debuggable(object):
 #   M A I N   C L A S S
 # ===============================
 
-class ConfigParserEnhanced(Debuggable):
+class ConfigParserEnhanced(Debuggable, ThrowControl):
     """
     Provides an enhanced version of the `configparser` module which enables some
     extended processing of the information provided in a `.ini` file.
@@ -486,7 +564,9 @@ class ConfigParserEnhanced(Debuggable):
             if ophandler_f is not None:
                 rval = ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
                 if rval != 0:
-                    self.debug_message(1, '- WARNING: handler {} returned {}'.format(handler_name, rval))
+                    #self.debug_message(1, '- WARNING: handler {} returned {}'.format(handler_name, rval))
+                    self.conditional_raise("WARNING", ValueError,
+                                           "Handler `{}` returned {} but we expected 0".format(handler_name, rval))
                     # Todo: (Discussion) should we throw an error because nonzero
                     #       rval means the handler said it failed somehow.
 
