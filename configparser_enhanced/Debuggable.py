@@ -28,7 +28,7 @@ class Debuggable(object):
     Note:
         Normal operation of codes will have a debug_level of 0.
 
-    Attributes:
+    Args:
         debug_level (int): sets the debugging level we'll be using for an instance
             of the class. This can be any integer > 0. If a negative number is
             assigned then it will be set to 0. Default: 0
@@ -59,7 +59,7 @@ class Debuggable(object):
         return self._debug_level
 
 
-    def debug_message(self, debug_level, message, end="\n"):
+    def debug_message(self, debug_level, message, end="\n", useprefix=True):
         """
         A simple wrapper to `print()` which optionally prints out a message
         based on the current `debug_level`. If `debug_level` is > 0 then an
@@ -69,7 +69,7 @@ class Debuggable(object):
         If `debug_level` is > 0, we will also force a stdout flush once the
         command has completed.
 
-        Attributes:
+        Args:
             debug_level (int): Sets the debug-level requirement of this message.
                 If `self.debug_level` is <= `debug_level` then this message will
                 be printed. If this paramter is 0 then we do not prepend the debug
@@ -77,11 +77,17 @@ class Debuggable(object):
                 a basic `print()` message.
             message (str): This is the message that will be printed.
             end (str): This allows us to override the line-ending. Default="\n"
+            useprefix (Bool): If enabled and `debug_level` is > 0 then a prefix
+                of `[D-{debug_level}] ` will be prepended to the message when
+                printed. Default: True
 
         """
         if self.debug_level >= debug_level:
             if debug_level > 0:
-                message = "[D-{}] {}".format(debug_level, message)
+                prefix = ""
+                if useprefix:
+                    prefix = "[D-{}] ".format(debug_level)
+                message = "{}{}".format(prefix, message)
             print(message, end=end)
             if debug_level > 0:
                 sys.stdout.flush()

@@ -106,7 +106,7 @@ def mock_function_fail(*args):
 #
 #===============================================================================
 
-class SetEnvironmentTest(TestCase):
+class ConfigParserEnhancedTest(TestCase):
     """
     Main test driver for the SetEnvironment class
     """
