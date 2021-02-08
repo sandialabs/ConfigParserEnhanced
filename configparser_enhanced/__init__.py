@@ -6,4 +6,5 @@ Init script for the ConfigparserEnhanced package
 
 from .ConfigParserEnhanced import ConfigParserEnhanced
 from .ConfigParserEnhanced import Debuggable
+from .ConfigParserEnhanced import ExceptionControl
 

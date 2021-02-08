@@ -432,6 +432,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
         self.debug_message(0, "Completed section: `{}`".format(section_name))                       # Console
+
+        ## REMOVEME
+        #rval = 10
+        #self.exception_control_event("WARNING", ValueError,
+                                     #"Handler `{}` returned {} but we expected 0".format(handler_name, rval))
         return data
 
 

@@ -77,7 +77,7 @@ class ExceptionControl(object):
         Gets the value of the `exception_control_level` property.
         """
         if not hasattr(self, '_exception_control_level'):
-            self._exception_control_level = 1
+            self._exception_control_level = 2
         return self._exception_control_level
 
 
@@ -142,8 +142,9 @@ class ExceptionControl(object):
                     print("Message: {}".format(message))
                 print("Traceback:")
                 traceback.print_tb(ex.__traceback__)
-                print("Increase throw level to {} to trigger exception.".format(req_exception_control_level))
+                print("Increase `exception_control_level` to {} to raise this exception.".format(req_exception_control_level))
                 print("="*60)
                 sys.stdout.flush()
+
         return
 

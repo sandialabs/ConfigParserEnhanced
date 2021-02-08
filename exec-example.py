@@ -60,7 +60,6 @@ def test_configparserEnhanced(filename="config.ini"):
     print("")
     parser._loginfo_print()
 
-
     return confdata
 
 
