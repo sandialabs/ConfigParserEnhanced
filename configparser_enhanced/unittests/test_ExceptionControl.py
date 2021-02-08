@@ -84,7 +84,6 @@ class ExceptionControlTest(TestCase):
         print("")
 
 
-
     def test_ExceptionControl_property_exception_control_level(self):
         """
         Test reading and setting the property `exception_control_level`
@@ -133,146 +132,6 @@ class ExceptionControlTest(TestCase):
         print("OK")
 
 
-
-    def test_ExceptionControl_method_exception_control_event(self):
-
-        class testme(ExceptionControl):
-            def __init__(self):
-                pass
-                return
-
-            def event_warning(self):
-                inst_testme.exception_control_event("WARNING", ValueError, message="message text")
-
-            def event_minor(self):
-                inst_testme.exception_control_event("MINOR", ValueError, message="message text")
-
-            def event_serious(self):
-                inst_testme.exception_control_event("SERIOUS", ValueError, message="message text")
-
-            def event_critical(self):
-                inst_testme.exception_control_event("CRITICAL", ValueError, message="message text")
-
-            def event_warning_nomsg(self):
-                inst_testme.exception_control_event("WARNING", ValueError, message="message text")
-
-            def event_minor_nomsg(self):
-                inst_testme.exception_control_event("MINOR", ValueError, message="message text")
-
-            def event_serious_nomsg(self):
-                inst_testme.exception_control_event("SERIOUS", ValueError, message="message text")
-
-            def event_critical_nomsg(self):
-                inst_testme.exception_control_event("CRITICAL", ValueError, message="message text")
-
-
-
-        inst_testme = testme()
-
-        # Default exception_control_level == 2
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_warning()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_minor()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_serious()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_critical()
-
-
-        # Set exception_control_level = 0 (Silent Running)
-        inst_testme.exception_control_level = 0
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_warning()
-            print(fake_out.getvalue())
-            self.assertEqual("", fake_out.getvalue().rstrip())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_minor()
-            print(fake_out.getvalue())
-            self.assertEqual("", fake_out.getvalue().rstrip())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_serious()
-            print(fake_out.getvalue())
-            self.assertEqual("", fake_out.getvalue().rstrip())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_critical()
-            print(fake_out.getvalue())
-            self.assertEqual("", fake_out.getvalue().rstrip())
-
-
-        # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
-        inst_testme.exception_control_level = 1
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_warning()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_minor()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_serious()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_critical()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-
-        # Set exception_control_level = 2 (raise CRITICAL)
-        inst_testme.exception_control_level = 2
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_warning()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_minor()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_serious()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-
-        # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
-        inst_testme.exception_control_level = 3
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_warning()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_minor()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_serious()
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_critical()
-
-
-        # Set exception_control_level = 4 (raise CRITICAL, SERIOUS, MINOR)
     def test_ExceptionControl_method_exception_control_event(self):
 
         class testme(ExceptionControl):
@@ -515,6 +374,21 @@ class ExceptionControlTest(TestCase):
             inst_testme.event_critical_nomsg()
             print(fake_out.getvalue())
             self.assertNotIn("Message:", fake_out.getvalue())
+
+
+        # Set exception_control_level = 5 (raise ALL)
+        inst_testme.exception_control_level = 5
+        with self.assertRaises(ValueError):
+            inst_testme.event_warning_nomsg()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_minor_nomsg()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious_nomsg()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical_nomsg()
 
         print("OK")
 
