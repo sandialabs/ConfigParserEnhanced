@@ -184,6 +184,54 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
+    def test_ConfigParserEnhanced_property_inifilepath_empty(self):
+        """
+        Tests what happenes if `inifilepath = []` and we try to
+        load configdata using configparser.ConfigParser.
+        """
+        section = "SECTION-A"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 1
+
+        parser.inifilepath = []
+
+        with self.assertRaises(ValueError):
+            configdata = parser.configdata
+
+        print("OK")
+
+
+    def test_ConfigParserEnhanced_property_inifilepath_invalid_entry(self):
+        """
+        Tests what happenes if `inifilepath = []` and we try to
+        load configdata using configparser.ConfigParser.
+        """
+        section = "SECTION-A"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 1
+
+        with self.assertRaises(TypeError):
+            parser.inifilepath = [ None ]
+
+        # Setter will fail if we tried this but to test a
+        # check inside the `configdata` property we'll force
+        # it here (whitebox testing FTW)
+        parser._inifilepath = [ None ]
+        with self.assertRaises(TypeError):
+            configdata = parser.configdata
+
+        print("OK")
+
     #def test_ConfigParserEnhanced_property_section_missing(self):
         #"""
         #Test accessing the `section` property of ConfigParserEnhanced.
@@ -544,6 +592,74 @@ class ConfigParserEnhancedTest(TestCase):
         #print("new section: {}".format(section))
         #with self.assertRaises(TypeError):
             #parser.section = section
+
+
+    def test_ConfigParserEnhanced_parse_configuration_launch(self):
+        """
+        Test the `section` parameter checks to `parse_configuration()`.
+        """
+        parser = ConfigParserEnhanced(filename=self._filename)
+        parser.debug_level = 5
+
+        # Trigger a TypeError if `section` is not a string type.
+        section = None
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+        with self.assertRaises(TypeError):
+            data = parser.parse_configuration(section)
+
+        # Trigger a ValueError if `section` is an empty string.
+        section = ""
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+        with self.assertRaises(ValueError):
+            data = parser.parse_configuration(section)
+
+        # Test that calling parse_configuration will reset _loginfo
+        # (whitebox)
+        section = "SECTION-A"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+        parser._loginfo = [ 1, 2, 3 ]
+
+        data = parser.parse_configuration(section)
+        self.assertNotEqual(parser._loginfo, [1,2,3])
+
+        print("OK")
+
+
+    def test_ConfigParserEnhanced_parse_configuration_handler_fail(self):
+        """
+        Test that we trigger the failure check if a handler returns a
+        nonzero value. This test requires us to derive a subclass of
+        `ConfigParserEnhanced` and add a handler that will always fail
+        its test.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            def _handler_test_handler_fail(self, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
+                print("_handler_test_handler_fail()")
+                return 1
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        # Test that calling parse_configuration will reset _loginfo
+        # (whitebox)
+        section = "HANDLER_FAIL_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+        parser._loginfo = [ 1, 2, 3 ]
+
+        with self.assertRaises(RuntimeError):
+            data = parser.parse_configuration(section)
+
+        print("OK")
 
 
     def test_ConfigParserEnhanced_assert_parseconfiguration_r_section_None(self):

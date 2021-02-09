@@ -92,7 +92,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if not isinstance(value, list):
             value = [ value ]
 
-        self._inifilepath = [ Path(x) for x in value ]
+        self._inifilepath = []
+
+        for entry in value:
+            try:
+                self._inifilepath.append( Path(entry) )
+            except TypeError as ex:
+                self.debug_message(0, "ERROR: invalid entry in `inifilepath` list.")
+                raise ex
 
         return self._inifilepath
 
@@ -434,11 +441,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if ophandler_f is not None:
                 rval = ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
                 if rval != 0:
-                    #self.debug_message(1, '- WARNING: handler {} returned {}'.format(handler_name, rval))
-                    self.exception_control_event("WARNING", ValueError,
+                    self.exception_control_event("WARNING", RuntimeError,
                                                  "Handler `{}` returned {} but we expected 0".format(handler_name, rval))
-                    # Todo: (Discussion) should we throw an error because nonzero
-                    #       rval means the handler said it failed somehow.
 
         # Remove the section from the `processed_sections` field when we exit.
         del processed_sections[section_name]
