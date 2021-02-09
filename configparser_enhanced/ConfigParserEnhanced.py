@@ -162,55 +162,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return self._configdata
 
 
-    #@property
-    #def section(self) -> str:
-        #"""
-        #The name of the section that the parser will use as the _root_ section
-        #for parsing (via a DFS parsing scheme).
-
-        #Returns:
-            #String containing the root-level section we'd like to parse.
-        #"""
-        #if not hasattr(self, '_section'):
-            #raise ValueError("ERROR: `section` has not been set yet.")
-        #else:
-            #if not isinstance(self._section, str):
-                #raise TypeError("An Internal ERROR occurred - `section` should always return a str.")
-            #return self._section
-
-
-    #@section.setter
-    #def section(self, value) -> str:
-        #"""
-        #Provides a setter capability for the section data.
-
-        #Args:
-            #value str: the new value we wish to assign to the section.
-                #This should be a nonempty string.
-
-        #Raises:
-            #TypeError is raised if the value provided is not a string.
-            #ValueError is raised if we try to assign an empty string.
-
-        #"""
-        #if value == None:
-            #return None
-
-        #if not isinstance(value, str):
-            #raise TypeError("section names must be a string type.")
-
-        #if value == "":
-            #raise ValueError("section names cannot be empty.")
-
-        ## clear out any parser-specific stuff if we change the section out.
-        #if hasattr(self, '_section'):
-            #if hasattr(self, '_loginfo'):
-                #delattr(self, '_loginfo')
-
-        #self._section = value
-        #return self._section
-
-
     # --------------------
     #   P A R S E R
     # --------------------
