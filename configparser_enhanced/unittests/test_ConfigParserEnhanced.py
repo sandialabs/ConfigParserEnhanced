@@ -128,7 +128,6 @@ class ConfigParserEnhancedTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = ConfigParserEnhanced(self._filename)
-        parser.section = section
 
         self.assertIsInstance(parser, ConfigParserEnhanced)
 
@@ -145,7 +144,6 @@ class ConfigParserEnhancedTest(TestCase):
 
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 5
-        parser.section = section
 
         configdata = parser.configdata
 
@@ -172,9 +170,8 @@ class ConfigParserEnhancedTest(TestCase):
 
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 1
-        parser.section = section
 
-        parser.parse_configuration()
+        parser.parse_configuration(section)
 
         self.assertIsInstance(parser._loginfo, list)
         self.assertIsInstance(parser._configdata, configparser.ConfigParser)
@@ -187,99 +184,98 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
-    def test_ConfigParserEnhanced_property_section_missing(self):
-        """
-        Test accessing the `section` property of ConfigParserEnhanced.
-        """
-        section = None
+    #def test_ConfigParserEnhanced_property_section_missing(self):
+        #"""
+        #Test accessing the `section` property of ConfigParserEnhanced.
+        #"""
+        #section = None
 
-        print("\n")
-        print("Load file: {}".format(self._filename))
-        print("Section  : {}".format(section))
+        #print("\n")
+        #print("Load file: {}".format(self._filename))
+        #print("Section  : {}".format(section))
 
-        parser = ConfigParserEnhanced(self._filename)
-        parser.debug_level = 5
+        #parser = ConfigParserEnhanced(self._filename)
+        #parser.debug_level = 5
 
-        # Trying to access parser.section if no section has been set should
-        # throw a ValueError
-        with self.assertRaises(ValueError):
-            parser.section
-
-
-    def test_ConfigParserEnhanced_property_section_provided(self):
-        """
-        Test accessing the `section` property of ConfigParserEnhanced.
-        """
-        section = "SECTION-A"
-
-        print("\n")
-        print("Load file: {}".format(self._filename))
-        print("Section  : {}".format(section))
-
-        parser = ConfigParserEnhanced(filename=self._filename)
-        parser.debug_level = 5
-        parser.section = section
-
-        self.assertEqual(parser.section, section)
+        ## Trying to access parser.section if no section has been set should
+        ## throw a ValueError
+        #with self.assertRaises(ValueError):
+            #parser.section
 
 
-    def test_ConfigParserEnhanced_property_section_changed(self):
-        """
-        Test cleanup operations when we change the section name
-        """
-        section = "SECTION-A"
+    #def test_ConfigParserEnhanced_property_section_provided(self):
+        #"""
+        #Test accessing the `section` property of ConfigParserEnhanced.
+        #"""
+        #section = "SECTION-A"
 
-        print("\n")
-        print("Load file: {}".format(self._filename))
-        print("Section  : {}".format(section))
+        #print("\n")
+        #print("Load file: {}".format(self._filename))
+        #print("Section  : {}".format(section))
 
-        parser = ConfigParserEnhanced(self._filename)
-        parser.debug_level = 1
-        parser.section = section
+        #parser = ConfigParserEnhanced(filename=self._filename)
+        #parser.debug_level = 5
+        #parser.section = section
 
-        parser.parse_configuration()
-
-        self.assertIsInstance(parser._loginfo, list)
-        self.assertIsInstance(parser._configdata, configparser.ConfigParser)
-
-        parser.section = "SECTION-B"
-
-        self.assertFalse( hasattr(parser, '_loginfo') )
-        self.assertTrue( hasattr(parser, '_configdata') )
-
-        print("OK")
+        #self.assertEqual(parser.section, section)
 
 
-    def test_ConfigParserEnhanced_property_section_setter(self):
-        """
-        Test the setter property for sections.
-        """
-        section = "SECTION-A"
+    #def test_ConfigParserEnhanced_property_section_changed(self):
+        #"""
+        #Test cleanup operations when we change the section name
+        #"""
+        #section = "SECTION-A"
 
-        print("\n")
-        print("Load file  : {}".format(self._filename))
-        print("section    : {}".format(section))
+        #print("\n")
+        #print("Load file: {}".format(self._filename))
+        #print("Section  : {}".format(section))
 
-        parser = ConfigParserEnhanced(filename=self._filename)
-        parser.section = section
-        parser.debug_level = 5
+        #parser = ConfigParserEnhanced(self._filename)
+        #parser.debug_level = 1
 
-        self.assertEqual(parser.section, section)
+        #parser.parse_configuration(section)
 
-        section = "SECTION C"
-        print("new section: {}".format(section))
-        parser.section = section
-        self.assertEqual(parser.section, section)
+        #self.assertIsInstance(parser._loginfo, list)
+        #self.assertIsInstance(parser._configdata, configparser.ConfigParser)
 
-        # check that the setter returns None if we try and assign it None
-        val = parser.section = None
-        self.assertIsNone(val)
+        #parser.section = "SECTION-B"
 
-        # Check what happens if some jokester force-changes the _section data entry
-        # to a nonstring without going through the property interface.
-        parser._section = 1234
-        with self.assertRaises(TypeError):
-            parser.section
+        #self.assertFalse( hasattr(parser, '_loginfo') )
+        #self.assertTrue( hasattr(parser, '_configdata') )
+
+        #print("OK")
+
+
+    #def test_ConfigParserEnhanced_property_section_setter(self):
+        #"""
+        #Test the setter property for sections.
+        #"""
+        #section = "SECTION-A"
+
+        #print("\n")
+        #print("Load file  : {}".format(self._filename))
+        #print("section    : {}".format(section))
+
+        #parser = ConfigParserEnhanced(filename=self._filename)
+        #parser.section = section
+        #parser.debug_level = 5
+
+        #self.assertEqual(parser.section, section)
+
+        #section = "SECTION C"
+        #print("new section: {}".format(section))
+        #parser.section = section
+        #self.assertEqual(parser.section, section)
+
+        ## check that the setter returns None if we try and assign it None
+        #val = parser.section = None
+        #self.assertIsNone(val)
+
+        ## Check what happens if some jokester force-changes the _section data entry
+        ## to a nonstring without going through the property interface.
+        #parser._section = 1234
+        #with self.assertRaises(TypeError):
+            #parser.section
 
 
     def test_ConfigParserEnhanced_operand_variations_test(self):
@@ -311,10 +307,9 @@ class ConfigParserEnhancedTest(TestCase):
         print("section    : {}".format(section))
 
         parser = ConfigParserEnhanced(filename=self._filename)
-        parser.section = section
         parser.debug_level = 5
 
-        data = parser.parse_configuration()
+        data = parser.parse_configuration(section)
         print(data)
 
         results_expected = [ ('op1', None),
@@ -355,12 +350,9 @@ class ConfigParserEnhancedTest(TestCase):
         print("section    : {}".format(section))
 
         parser = ConfigParserEnhanced(filename=self._filename)
-        parser.section = section
         parser.debug_level = 5
 
-        self.assertEqual(parser.section, section)
-
-        data = parser.parse_configuration()
+        data = parser.parse_configuration(section)
 
         parser._loginfo_print(pretty=True)
 
@@ -405,12 +397,9 @@ class ConfigParserEnhancedTest(TestCase):
         print("section    : {}".format(section))
 
         parser = ConfigParserEnhanced(filename=self._filename)
-        parser.section = section
         parser.debug_level = 5
 
-        self.assertEqual(parser.section, section)
-
-        data = parser.parse_configuration()
+        data = parser.parse_configuration(section)
 
         parser._loginfo_print(pretty=True)
 
@@ -444,9 +433,8 @@ class ConfigParserEnhancedTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = ConfigParserEnhanced(self._filename)
-        parser.section = section
 
-        data = parser.parse_configuration()
+        data = parser.parse_configuration(section)
 
         print("OK")
 
@@ -467,7 +455,6 @@ class ConfigParserEnhancedTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = ConfigParserEnhanced(self._filename)
-        parser.section = section
 
         # remove the _filename entry from the parser instance.
         delattr(parser, '_inifilepath')
@@ -490,7 +477,6 @@ class ConfigParserEnhancedTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = ConfigParserEnhanced(self._filename)
-        parser.section = section
 
         # remove the _filename entry from the parser instance.
         delattr(parser, '_inifilepath')
@@ -514,7 +500,6 @@ class ConfigParserEnhancedTest(TestCase):
 
         parser = ConfigParserEnhanced(filename)
         parser.debug_level = 1
-        parser.section = section
 
         with self.assertRaises(IOError):
             parser.configdata
@@ -522,43 +507,43 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_section_empty(self):
-        """
-        Tests a throw if we give an empty string as the section name.
+    #def test_ConfigParserEnhanced_assert_section_empty(self):
+        #"""
+        #Tests a throw if we give an empty string as the section name.
 
-        This should throw during the call to the `section` property setter.
-        """
-        section = ""
+        #This should throw during the call to the `section` property setter.
+        #"""
+        #section = ""
 
-        print("\n")
-        print("Load file: {}".format(self._filename))
-        print("Section  : {}".format(section))
+        #print("\n")
+        #print("Load file: {}".format(self._filename))
+        #print("Section  : {}".format(section))
 
-        parser = ConfigParserEnhanced(self._filename)
+        #parser = ConfigParserEnhanced(self._filename)
 
-        with self.assertRaises(ValueError):
-            parser.section = section
+        #with self.assertRaises(ValueError):
+            #parser.section = section
 
-        print("OK")
+        #print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_section_setter_typeerror(self):
-        """
-        Test the setter property when it gets a non-string type in assignment.
-        It should raise a TypeError.
-        """
-        section = 100
+    #def test_ConfigParserEnhanced_assert_section_setter_typeerror(self):
+        #"""
+        #Test the setter property when it gets a non-string type in assignment.
+        #It should raise a TypeError.
+        #"""
+        #section = 100
 
-        print("\n")
-        print("Load file  : {}".format(self._filename))
-        print("section    : {}".format(section))
+        #print("\n")
+        #print("Load file  : {}".format(self._filename))
+        #print("section    : {}".format(section))
 
-        parser = ConfigParserEnhanced(filename=self._filename)
-        parser.debug_level = 5
+        #parser = ConfigParserEnhanced(filename=self._filename)
+        #parser.debug_level = 5
 
-        print("new section: {}".format(section))
-        with self.assertRaises(TypeError):
-            parser.section = section
+        #print("new section: {}".format(section))
+        #with self.assertRaises(TypeError):
+            #parser.section = section
 
 
     def test_ConfigParserEnhanced_assert_parseconfiguration_r_section_None(self):
@@ -621,8 +606,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 1
-        parser.section = section
-        parser.parse_configuration()
+        parser.parse_configuration(section)
 
         print("OK")
 

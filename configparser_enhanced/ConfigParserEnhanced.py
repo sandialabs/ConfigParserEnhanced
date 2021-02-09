@@ -155,53 +155,53 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return self._configdata
 
 
-    @property
-    def section(self) -> str:
-        """
-        The name of the section that the parser will use as the _root_ section
-        for parsing (via a DFS parsing scheme).
+    #@property
+    #def section(self) -> str:
+        #"""
+        #The name of the section that the parser will use as the _root_ section
+        #for parsing (via a DFS parsing scheme).
 
-        Returns:
-            String containing the root-level section we'd like to parse.
-        """
-        if not hasattr(self, '_section'):
-            raise ValueError("ERROR: `section` has not been set yet.")
-        else:
-            if not isinstance(self._section, str):
-                raise TypeError("An Internal ERROR occurred - `section` should always return a str.")
-            return self._section
+        #Returns:
+            #String containing the root-level section we'd like to parse.
+        #"""
+        #if not hasattr(self, '_section'):
+            #raise ValueError("ERROR: `section` has not been set yet.")
+        #else:
+            #if not isinstance(self._section, str):
+                #raise TypeError("An Internal ERROR occurred - `section` should always return a str.")
+            #return self._section
 
 
-    @section.setter
-    def section(self, value) -> str:
-        """
-        Provides a setter capability for the section data.
+    #@section.setter
+    #def section(self, value) -> str:
+        #"""
+        #Provides a setter capability for the section data.
 
-        Args:
-            value str: the new value we wish to assign to the section.
-                This should be a nonempty string.
+        #Args:
+            #value str: the new value we wish to assign to the section.
+                #This should be a nonempty string.
 
-        Raises:
-            TypeError is raised if the value provided is not a string.
-            ValueError is raised if we try to assign an empty string.
+        #Raises:
+            #TypeError is raised if the value provided is not a string.
+            #ValueError is raised if we try to assign an empty string.
 
-        """
-        if value == None:
-            return None
+        #"""
+        #if value == None:
+            #return None
 
-        if not isinstance(value, str):
-            raise TypeError("section names must be a string type.")
+        #if not isinstance(value, str):
+            #raise TypeError("section names must be a string type.")
 
-        if value == "":
-            raise ValueError("section names cannot be empty.")
+        #if value == "":
+            #raise ValueError("section names cannot be empty.")
 
-        # clear out any parser-specific stuff if we change the section out.
-        if hasattr(self, '_section'):
-            if hasattr(self, '_loginfo'):
-                delattr(self, '_loginfo')
+        ## clear out any parser-specific stuff if we change the section out.
+        #if hasattr(self, '_section'):
+            #if hasattr(self, '_loginfo'):
+                #delattr(self, '_loginfo')
 
-        self._section = value
-        return self._section
+        #self._section = value
+        #return self._section
 
 
     # --------------------
@@ -209,7 +209,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # --------------------
 
 
-    @property
     def parser_data_init(self):
         """
         Initializer for the data object that gets sent to parser initially.
@@ -344,15 +343,29 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-    def parse_configuration(self) -> dict:
+
+    def parse_configuration(self, section) -> dict:
         """
         Top level parser entry point.
 
         Args:
-            data (dict): An initializer for the `data` object which will be passed down into
-                         all handlers within the parser for updates and additions. Default: None
+            section (str): The section name that will be parsed and retrieved.
+
+        Returns:
+            dictionary containing the results of the section parsing. The contents
+            of this depends on the handlers available to the current class.
         """
-        data = self._parse_configuration_r(self.section)
+        if not isinstance(section, str):
+            raise TypeError("`section` must be a string type.")
+
+        if section == "":
+            raise ValueError("`section` cannot be empty.")
+
+        # clear out loginfo from any previous run(s)
+        if hasattr(self, '_loginfo'):
+            delattr(self, '_loginfo')
+
+        data = self._parse_configuration_r(section)
         return data
 
 
@@ -383,7 +396,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
         if data is None:
-            data = self.parser_data_init
+            data = self.parser_data_init()
             assert isinstance(data, dict)
 
         if processed_sections == None:
@@ -433,10 +446,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
         self.debug_message(0, "Completed section: `{}`".format(section_name))                       # Console
 
-        ## REMOVEME
-        #rval = 10
-        #self.exception_control_event("WARNING", ValueError,
-                                     #"Handler `{}` returned {} but we expected 0".format(handler_name, rval))
         return data
 
 
@@ -470,22 +479,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._parse_configuration_r(op2, data, processed_sections)
         else:
             self._loginfo_add({'type': 'cycle-detected', 'sec-src': section_name, 'sec-dst': op1})  # Logging
-            self.debug_message(0, "WARNING: Detected a cycle in section `use` dependencies:\n" +    # Console
-                                  "         cannot load [{}] from [{}].".format(op1, section_name)) # Console
-            # Todo: Should we throw here instead of just printing out a warning that might
-            #       not get noticed?  Not throwing just means we'll be tolerant of cycles and not
-            #       re-process a rule that was already processed on a DFS chain but throwing will
-            #       force people to make sure their sections generate a DAG.
-            #     - This could be made optional by creating a new parameter, say 'failure_handling'
-            #       that could be different things, such as 'always_fail', or make it an integer
-            #       that works similar to debug_level.  Values can be:
-            #       - 0 - Handle things silently whenver possible.
-            #       - 1 - Handle things but print out a warning about it.
-            #       - 2 - Throw on critical events.
-            #       - 3 - Throw on critical or serious events.
-            #       - 4 - Throw on critical, serious or minor events.
-            #       - 5 - Throw on critical, serious, minor and warning events.
-            #     - Maybe failure types are 'critical', 'serious', 'minor', 'warning' ?
+            message  = "Detected a cycle in `use` dependencies in .ini file.\n"
+            message += "- cannot load [{}] from [{}].".format(op1, section_name)
+            self.exception_control_event("WARNING", ValueError, message)
 
         self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use'})                         # Logging
         self.debug_message(0, "--- _handler_{}".format(op1))                                        # Console

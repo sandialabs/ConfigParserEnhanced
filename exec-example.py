@@ -52,10 +52,11 @@ def test_configparserEnhanced(filename="config.ini"):
 
     confdata = parser.configdata
 
-    parser.section = "SECTION-A+"
-    parser.section = "SECTION C+"
-    #parser.section = "OPERAND_TEST"
-    data = parser.parse_configuration()
+    section = "SECTION-A+"
+    section = "SECTION C+"
+    #section = "OPERAND_TEST"
+
+    data = parser.parse_configuration(section)
 
     print("")
     parser._loginfo_print()
