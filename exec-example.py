@@ -99,19 +99,6 @@ def test_configparserEnhanced(filename="config.ini"):
 
 def experimental(filename="config.ini"):
 
-    #section = "SECTION C+"
-
-    #print("\n")
-    #print("Load file  : {}".format(filename))
-    #print("section    : {}".format(section))
-
-    #parser = ConfigParserEnhanced(filename=filename)
-    #parser.debug_level = 1
-
-    #data = parser.parse_configuration(section)
-
-    #parser._loginfo_print(pretty=True)
-
     return
 
 
