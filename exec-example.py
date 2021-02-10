@@ -7,8 +7,7 @@ from __future__ import print_function  # python 2 -> 3 compatiblity
 
 import os
 
-from configparser_enhanced import ConfigParserEnhanced
-# from configparser_enhanced import ConfigParserEnhancedDataSection
+from configparserenhanced import ConfigParserEnhanced
 
 
 

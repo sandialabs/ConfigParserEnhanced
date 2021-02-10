@@ -29,7 +29,7 @@ try:
 except ImportError:
     from io import StringIO
 
-from configparser_enhanced import Debuggable
+from configparserenhanced import Debuggable
 
 
 

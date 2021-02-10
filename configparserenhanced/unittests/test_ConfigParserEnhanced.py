@@ -32,7 +32,7 @@ except ImportError:
 
 import configparser
 
-from configparser_enhanced import ConfigParserEnhanced
+from configparserenhanced import ConfigParserEnhanced
 
 
 
