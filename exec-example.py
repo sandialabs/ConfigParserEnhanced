@@ -8,6 +8,7 @@ from __future__ import print_function  # python 2 -> 3 compatiblity
 import os
 
 from configparser_enhanced import ConfigParserEnhanced
+# from configparser_enhanced import ConfigParserEnhancedDataSection
 
 
 
@@ -40,28 +41,79 @@ def find_config_ini(filename="config.ini", rootpath="." ):
 
 def test_configparserEnhanced(filename="config.ini"):
 
-    section_name = "SECTION A"
 
     print("filename    : {}".format(filename))
-    print("section name: {}".format(section_name))
+    print("")
 
     parser = ConfigParserEnhanced(filename=filename)
-    parser.section     = section_name
-    parser.exception_control_level = 5
     parser.debug_level = 1
-
-    confdata = parser.configdata
+    parser.exception_control_level = 4
 
     section = "SECTION-A+"
     section = "SECTION C+"
     #section = "OPERAND_TEST"
 
-    data = parser.parse_configuration(section)
 
+    #
+    # Check if 'key 4' is a member of this section in the basic configdata_parsed
+    # result ()
+    #
+    option = "key 4"
+    print("Is option `{}` in `{}`?".format(option, section))
+
+    if parser.configdata_parsed.has_option(section, option):
+        value = parser.configdata_parsed.get(section, option)
+        print("---> [{}][{}] == '{}'".format(section, option, value))
+    else:
+        print("---> NO")
     print("")
-    parser._loginfo_print()
 
-    return confdata
+    section = "SECTION C+"
+    print("Get {}".format(section))
+    sec_c = parser.configdata_parsed[section]
+    print(sec_c)
+    print("")
+
+    section = "SECTION-A"
+    print("Get {}".format(section))
+    sec_a = parser.configdata_parsed["SECTION-A"]
+    print(sec_a)
+    print("")
+
+    print("Loop over items in parser.configdata_parsed")
+    for section,options in parser.configdata_parsed.items():
+        print("[{}]".format(section))
+        max_keylen=0
+        for key in options.keys():
+            max_keylen=max(max_keylen, len(key))
+        for option,value in options.items():
+            print("{} : {}".format(option.ljust(max_keylen, ' '), value))
+        print("")
+    print("")
+
+    # Print the loginfo from the last search
+    parser._loginfo_print(pretty=True)
+
+    return
+
+
+
+def experimental(filename="config.ini"):
+
+    #section = "SECTION C+"
+
+    #print("\n")
+    #print("Load file  : {}".format(filename))
+    #print("section    : {}".format(section))
+
+    #parser = ConfigParserEnhanced(filename=filename)
+    #parser.debug_level = 1
+
+    #data = parser.parse_configuration(section)
+
+    #parser._loginfo_print(pretty=True)
+
+    return
 
 
 
@@ -71,6 +123,8 @@ def main():
     """
     fname_ini = "config_test_configparserenhanced.ini"
     fpath_ini = find_config_ini(filename=fname_ini)
+
+    experimental(filename=fpath_ini)
 
     test_configparserEnhanced(filename=fpath_ini)
 

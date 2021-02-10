@@ -10,14 +10,20 @@ from __future__ import print_function
 import configparser
 import os
 from pathlib import Path
-#import pprint
 import re
 import sys
-import traceback
+
+try:
+    # @final decorator, requires Python 3.8.x
+    from typing import final                                                      # pragma: no cover
+except ImportError:                                                               # pragma: no cover
+    pass                                                                          # pragma: no cover
 
 
 from .Debuggable import Debuggable
 from .ExceptionControl import ExceptionControl
+
+
 
 # ===========================================================
 #   H E L P E R   F U N C T I O N S   A N D   C L A S S E S
@@ -48,6 +54,34 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     .. configparser reference:
         https://docs.python.org/3/library/configparser.html
+
+    Todo:
+    1.  We might not want to rely on the `data` object for the parser to just be
+        a free-form dictionary. It might be best to make this a class object that
+        the parser can populate. Something like:
+
+        class ConfigParserEnhancedData(Debuggable, ExceptionControl):
+
+            def __init__(self):
+                pass
+
+            @property
+            def section_data(self):
+                - Provides the `use` equivalent of what happens when ConfigParser
+                  loads multiple files that have the same section names. That is,
+                  the union of all `key:value` pairs where the `last visited key`
+                  is the entry when there are conflicts.
+                - Returns:  { 'section name': {'key': 'value'}, ..., {'key': 'value'} }
+                - Lazy evaluated - if a section name is requested that we have, we return it
+                                   if a section name is requested we don't have, compute it.
+
+            def handler_data(self):
+                - Returns the data that the parser + handlers returns with special processing.
+
+    2.  Create a `generic_handler` handler - which does somethign with entries that don't
+        have a handler defined (i.e., what do we do with key-value pairs that have no 'rule')
+
+
     """
     def __init__(self, filename):
         self.inifilepath = filename
@@ -160,6 +194,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._configdata.read(self.inifilepath, encoding='utf-8')
 
         return self._configdata
+
+
+    @property
+    def configdata_parsed(self):
+        if not hasattr(self, '_configdata_parsed'):
+            self._configdata_parsed = self.ConfigParserEnhancedDataSection(owner=self)
+        return self._configdata_parsed
 
 
     # --------------------
@@ -327,7 +368,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return data
 
 
-    def _parse_configuration_r(self, section_name, data=None, processed_sections=None) -> dict:
+    def _parse_configuration_r(self, section_name, data=None, processed_sections=None, section_name_root=None) -> dict:
         """
         Recursive driver of the parser.
         """
@@ -336,8 +377,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if section_name == None:
             raise TypeError("ERROR: a section name must not be None.")
 
-        self.debug_message(0, "Processing section: `{}`".format(section_name))                      # Console Logging
+        self.debug_message(1, "Enter section: `{}`".format(section_name))                      # Console Logging
         self._loginfo_add({'type': 'section-entry', 'name': section_name})                          # Logging
+
+        if section_name_root is None:
+            section_name_root = section_name
+            self.configdata_parsed.sections_checked.add(section_name)
 
         try:
             current_section = self.configdata[section_name]
@@ -347,7 +392,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         # Verify that we actually got a section returned. If not, raise a KeyError.
         # (wcm) This might not be reachable given the KeyError check.
-        #       At least, I can't figure out how to trigger this manually in testing ;)
         #       It's probably not a bad idea to hang onto it for now, but maybe mark with
         #       a #pragma no cover?
         if current_section is None:
@@ -368,7 +412,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # Todo: check configparser's configuration regarding settings, rules, etc.
             #       for expansion rules and quotation handling.
 
-            self.debug_message(0, "- Entry: `{}` : `{}`".format(sec_k,sec_v))                       # Console
+            self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k,sec_v))                       # Console
             self._loginfo_add({'type': 'section-key-value', 'key': sec_k, 'value': sec_v})          # Logging
 
             # process the key via Regex to extract op1 and op2
@@ -383,23 +427,39 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             op2 = self.get_op2_from_regex_match(regex_op_splitter_m)
 
             self._loginfo_add({"type": 'section-operands', 'op1': op1, 'op2': op2})                 # Logging
-            self.debug_message(0, "- op1: {}".format(op1))                                          # Console
-            self.debug_message(0, "- op2: {}".format(op2))                                          # Console
+            self.debug_message(2, "- op1: {}".format(op1))                                          # Console
+            self.debug_message(2, "- op2: {}".format(op2))                                          # Console
 
             # Call the op handler if one exists for this op.
             handler_name = "_handler_{}".format(op1)
             ophandler_f = getattr(self, handler_name, None)
             if ophandler_f is not None:
-                rval = ophandler_f(section_name, op1, op2, data, processed_sections, entry=(sec_k,sec_v) )
+                rval = ophandler_f(section_name_root,
+                                   section_name,
+                                   op1, op2,
+                                   data,
+                                   processed_sections,
+                                   entry=(sec_k,sec_v))
                 if rval != 0:
                     self.exception_control_event("WARNING", RuntimeError,
                                                  "Handler `{}` returned {} but we expected 0".format(handler_name, rval))
+            else:
+                # Call the generic handler to update the 'generic' view
+                # of the (all key:value pairs that don't map to any other handlers)
+                rval = self._handler_generic(section_name_root,
+                                             section_name,
+                                             op1, op2,
+                                             data,
+                                             processed_sections,
+                                             entry=(sec_k,sec_v))
+
+
 
         # Remove the section from the `processed_sections` field when we exit.
         del processed_sections[section_name]
 
         self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
-        self.debug_message(0, "Completed section: `{}`".format(section_name))                       # Console
+        self.debug_message(1, "Exit section: `{}`".format(section_name))                       # Console
 
         return data
 
@@ -408,8 +468,17 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     #   H A N D L E R S
     # --------------------
 
+    def _handler_generic(self, section_root, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
+        """
+        """
+        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_generic'})
 
-    def _handler_use(self, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
+        self.configdata_parsed.set(section_root, entry[0], entry[1])
+
+        self._loginfo_add({'type': 'handler-exit',  'name': '_handler_generic'})
+
+
+    def _handler_use(self, section_root, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
         """
         This is a handler that will get executed when we detect a `use` operation in
         our parser.
@@ -426,12 +495,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Raises:
             Nothing
+
+        Todo:
+            Once we can use Python 3.8 in our environments, we can use the @final decorator
+            to mark this as something that should not be overridden. We also have to
+            import it: `from typing import final`
+            See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         self._loginfo_add({'type': 'handler-entry', 'name': '_handler_use'})                        # Logging
-        self.debug_message(0, "+++ _handler_{}".format(op1))                                        # Console
+        self.debug_message(1, "Enter handler: _handler_{}".format(op1))                                        # Console
 
         if op2 not in processed_sections.keys():
-            self._parse_configuration_r(op2, data, processed_sections)
+            self._parse_configuration_r(op2, data, processed_sections, section_root)
         else:
             self._loginfo_add({'type': 'cycle-detected', 'sec-src': section_name, 'sec-dst': op1})  # Logging
             message  = "Detected a cycle in `use` dependencies in .ini file.\n"
@@ -439,7 +514,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.exception_control_event("WARNING", ValueError, message)
 
         self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use'})                         # Logging
-        self.debug_message(0, "--- _handler_{}".format(op1))                                        # Console
+        self.debug_message(1, "Exit handler: _handler_{}".format(op1))                                        # Console
         return 0
 
 
@@ -459,6 +534,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Returns:
             Nothing
+
+
+        Todo:
+            Once we can use Python 3.8 in our environments, we can use the @final decorator
+            to mark this as something that should not be overridden. We also have to
+            import it: `from typing import final`
+            See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if not hasattr(self, '_loginfo'):
             self._loginfo = []
@@ -477,6 +559,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     def _loginfo_print(self, pretty=True) -> None:
         """
         This is a helper to pretty-print the loginfo object
+
+        Todo:
+            Once we can use Python 3.8 in our environments, we can use the @final decorator
+            to mark this as something that should not be overridden. We also have to
+            import it: `from typing import final`
+            See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if pretty:
             self.debug_message(1, "Loginfo:")
@@ -492,4 +580,167 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             print(self._loginfo)
 
         return
+
+
+    # ===========================================================
+    #  I N N E R   C L A S S E S
+    # ===========================================================
+
+
+    class ConfigParserEnhancedDataSection(Debuggable, ExceptionControl):
+        """
+        """
+        def __init__(self, owner=None):
+            self.owner = owner
+            self.set_owner_options()
+
+        @property
+        def owner(self):
+            if not hasattr(self, '_owner'):
+                self._owner = None
+            return self._owner
+
+        @owner.setter
+        def owner(self, value):
+            if not isinstance(value, (ConfigParserEnhanced)):
+                raise TypeError("Owner class must be a ConfigParserEnhanced or derivitive.")
+            self._owner = value
+            return self._owner
+
+        @property
+        def data(self) -> dict:
+            """
+            """
+            if not hasattr(self, '_data'):
+                self._data = {}
+            return self._data
+
+        @data.setter
+        def data(self, value) -> dict:
+            """
+            """
+            if not isinstance(value, dict):
+                raise TypeError("data must be a `dict` type.")
+            self._data = value
+            return self._data
+
+        @property
+        def sections_checked(self):
+            """
+            Implements a set that contains section names that
+            have already been parsed via lazy evaluation.
+            """
+            if not hasattr(self, '_sections_checked'):
+                self._sections_checked = set()
+            return self._sections_checked
+
+        def set_owner_options(self):
+            """
+            Get options from the owner class, if we have an owner class.
+            """
+            if self.owner != None:
+                self.exception_control_level = self.owner.exception_control_level
+                self.debug_level = self.owner.debug_level
+
+        def items(self, section=None):
+            section_list = self.data.keys()
+            if self.owner != None:
+                section_list = self.owner.configdata.keys()
+
+            output = None
+            if section is None:
+                for seci in section_list:
+                    self.parse_owner_section(seci)
+                output = self.data.items()
+            else:
+                output = self.options(section).items()
+            return output
+
+        def keys(self):
+            return self.data.keys()
+
+        def __iter__(self):
+            for k in self.keys():
+                yield k
+
+        def __getitem__(self, key):
+            if not self.has_section(key):
+                raise KeyError(key)
+            return self.data[key]
+
+        def __len__(self):
+            return len(self.data)
+
+        def sections(self):
+            return self.data.keys()
+
+        def has_section(self, section):
+            if self.owner != None and section not in self.sections_checked:
+                try:
+                    self.parse_owner_section(section)
+                except KeyError:
+                    pass
+            return section in self.data.keys()
+
+        def options(self, section):
+            if not self.has_section(section):
+                raise KeyError("Section {} does not exist.".format(section))
+            return self.data[section]
+
+        def has_option(self, section, option):
+            """
+            """
+            if self.owner != None and section not in self.sections_checked:
+                self.parse_owner_section(section)
+            return option in self.data[section].keys()
+
+        def get(self, section, option):
+            """
+            Get a section/option pair if it exists. If we have not
+            parsed the section yet, we should run the parser to
+            fully get the key data.
+            """
+            if self.owner != None and section not in self.sections_checked:
+                self.parse_owner_section(section)
+
+            if self.has_section(section):
+                if self.has_option(section, option):
+                    return self.data[section][option]
+                else:
+                    raise KeyError("Missing section:option -> '{}': '{}'".format(section,option))
+
+            # This is not reachable with a bad section name
+            # because the call to parse_owner_section(section) will
+            # raise a KeyError if the section name is bad, and
+            # the owner setter doesn't allow a NoneType to be assigned.
+            # But if someone assigned None to self._owner directly
+            # which Python won't prevent, we could get here... so
+            # this check helps prevent one from doing bad things.
+            raise KeyError("Missing section {}.".format(section))
+
+        def add_section(self, section):
+            """
+            Directly add a new section, if it does not exist.
+            """
+            if not self.has_section(section):
+                self.data[section] = {}
+
+        def set(self, section, option, value):
+            """
+            Directly set an option. If the section is missing we create an empty one.
+            """
+            if not self.has_section(section):
+                self.add_section(section)
+            if option not in self.data[section].keys():
+                self.data[section][option] = value
+            return self.data[section][option]
+
+        def parse_owner_section(self, section):
+            """
+            Parse the section from the owner class
+            """
+            if self.owner != None:
+                self.set_owner_options()
+                self.sections_checked.add(section)
+                self.owner.parse_configuration(section)
 
