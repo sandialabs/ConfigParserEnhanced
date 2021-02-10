@@ -535,7 +535,7 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
-    def test_ConfigParserEnhanced_parse_configuration_handler_fail(self):
+    def test_ConfigParserEnhanced_parse_configuration_handler_fail_01(self):
         """
         Test that we trigger the failure check if a handler returns a
         nonzero value. This test requires us to derive a subclass of
@@ -552,7 +552,46 @@ class ConfigParserEnhancedTest(TestCase):
                                            processed_sections=None,
                                            entry=None) -> int:
                 print("_handler_test_handler_fail()")
+                print("---> Returns 1!")
                 return 1
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        # Test that calling parse_configuration will reset _loginfo
+        # (whitebox)
+        section = "HANDLER_FAIL_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+        parser._loginfo = [ 1, 2, 3 ]
+
+        with self.assertRaises(RuntimeError):
+            data = parser.parse_configuration(section)
+
+        print("OK")
+
+
+    def test_ConfigParserEnhanced_parse_configuration_handler_fail_11(self):
+        """
+        Test that we trigger the failure check if a handler returns a
+        nonzero value. This test requires us to derive a subclass of
+        `ConfigParserEnhanced` and add a handler that will always fail
+        its test.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            def _handler_test_handler_fail(self,
+                                           section_root,
+                                           section_name,
+                                           op1, op2,
+                                           data,
+                                           processed_sections=None,
+                                           entry=None) -> int:
+                print("_handler_test_handler_fail()")
+                print("---> This one goes to 11!")
+                return 11
 
         parser = ConfigParserEnhancedTest(filename=self._filename)
         parser.debug_level = 5
@@ -770,7 +809,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         # Test length
         print("\nTest __len__")
-        self.assertEqual(12, len(parser.configdata_parsed))
+        self.assertEqual(14, len(parser.configdata_parsed))
 
         # Test options()
         print("\nTest options()")
@@ -847,6 +886,47 @@ class ConfigParserEnhancedTest(TestCase):
         parser.configdata_parsed._owner = None
         with self.assertRaises(KeyError):
             parser.configdata_parsed.get("Nonexistent Section", "key1")
+
+        print("OK")
+
+
+    def test_ConfigParserEnhanced_property_configdata_parsed_deptest(self):
+        """
+        """
+        print("\n")
+        print("---[ test_ConfigParserEnhanced_property_configdata_parsed_deptest")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.exception_control_level = 1
+        parser.debug_level = 1
+
+        print("")
+        print("\n-[ DEP-TEST-A ]------------")
+        parser.configdata_parsed.items("DEP-TEST-A")
+        print("\n[DEP-TEST-A]")
+        for k,v in parser.configdata_parsed.items("DEP-TEST-A"):
+            print(k,v)
+
+        print("\n-[ loginfo ]---------------")
+        pprint(parser._loginfo)
+
+        print("")
+        print("\n-[ DEP-TEST-B ]------------")
+        parser.configdata_parsed.items("DEP-TEST-B")
+        print("\n[DEP-TEST-B]")
+        for k,v in parser.configdata_parsed.items("DEP-TEST-B"):
+            print(k,v)
+
+        print("\n-[ loginfo ]---------------")
+        parser._loginfo_print()
+
+        print("\n-[ Validate ]--------------")
+        self.assertEqual("value1-A", parser.configdata_parsed.get('DEP-TEST-A', 'key1'))
+        self.assertEqual("value2-A", parser.configdata_parsed.get('DEP-TEST-A', 'key2'))
+
+        self.assertEqual("value1-B", parser.configdata_parsed.get('DEP-TEST-B', 'key1'))
+        self.assertEqual("value2-A", parser.configdata_parsed.get('DEP-TEST-B', 'key2'))
 
         print("OK")
 

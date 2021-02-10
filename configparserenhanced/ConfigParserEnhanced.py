@@ -81,6 +81,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     2.  Create a `generic_handler` handler - which does somethign with entries that don't
         have a handler defined (i.e., what do we do with key-value pairs that have no 'rule')
 
+    3. document exactly how the handlers should look.
+       - Should these be changed to classes?
+
 
     """
     def __init__(self, filename):
@@ -440,9 +443,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                                    data,
                                    processed_sections,
                                    entry=(sec_k,sec_v))
-                if rval != 0:
+
+                if rval > 0 and rval <= 10:
+                    # These rvals are currently reserved. If someone uses it we should
+                    # throw a critical error to get the developers' attention to either
+                    # expand rval handling or users should use something > 10.
+                    # Todo: Eventually we might make this more generic/configurable,
+                    # but not today.
                     self.exception_control_event("WARNING", RuntimeError,
-                                                 "Handler `{}` returned {} but we expected 0".format(handler_name, rval))
+                                                 "Handler `{}` returned {}".format(handler_name, rval))
+                elif rval > 10:
+                    self.exception_control_event("SERIOUS", RuntimeError,
+                                                 "Handler `{}` returned {}".format(handler_name, rval))
             else:
                 # Call the generic handler to update the 'generic' view
                 # of the (all key:value pairs that don't map to any other handlers)
@@ -459,7 +471,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         del processed_sections[section_name]
 
         self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
-        self.debug_message(1, "Exit section: `{}`".format(section_name))                       # Console
+        self.debug_message(1, "Exit section: `{}`".format(section_name))                            # Console
 
         return data
 
@@ -471,11 +483,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     def _handler_generic(self, section_root, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
         """
         """
-        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_generic'})
+        self.debug_message(1, "Enter handler: _handler_{}")                                         # Console
+        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_generic', 'entry': entry})    # Logging
 
         self.configdata_parsed.set(section_root, entry[0], entry[1])
 
-        self._loginfo_add({'type': 'handler-exit',  'name': '_handler_generic'})
+        self.debug_message(1, "Exit handler: _handler_generic")                                     # Console
+        self._loginfo_add({'type': 'handler-exit',  'name': '_handler_generic', 'entry': entry})    # Logging
+
 
 
     def _handler_use(self, section_root, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
@@ -491,7 +506,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                        (i.e., `section_name` if the full key is `use section_name`)
 
         Returns:
-            integer value: 0 if successful, 1 if there was a problem.
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use
+                > 10  : An unknown failure occurred.
 
         Raises:
             Nothing
@@ -502,19 +520,23 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             import it: `from typing import final`
             See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
-        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_use'})                        # Logging
-        self.debug_message(1, "Enter handler: _handler_{}".format(op1))                                        # Console
+        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_use', 'entry': entry})        # Logging
+        self.debug_message(1, "Enter handler: _handler_{}".format(op1))                             # Console
 
         if op2 not in processed_sections.keys():
             self._parse_configuration_r(op2, data, processed_sections, section_root)
         else:
             self._loginfo_add({'type': 'cycle-detected', 'sec-src': section_name, 'sec-dst': op1})  # Logging
+            self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use', 'entry': entry})     # Logging
+
             message  = "Detected a cycle in `use` dependencies in .ini file.\n"
-            message += "- cannot load [{}] from [{}].".format(op1, section_name)
+            message += "- cannot load [{}] from [{}].".format(op2, section_name)
             self.exception_control_event("WARNING", ValueError, message)
 
-        self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use'})                         # Logging
-        self.debug_message(1, "Exit handler: _handler_{}".format(op1))                                        # Console
+            return 0
+
+        self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use', 'entry': entry})         # Logging
+        self.debug_message(1, "Exit handler: _handler_{}".format(op1))                              # Console
         return 0
 
 
@@ -568,13 +590,29 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         if pretty:
             self.debug_message(1, "Loginfo:")
+            len_max_type = 0
+            len_max_key  = 0
             for entry in self._loginfo:
-                self.debug_message(1, "Entry Type: `{}`".format(entry['type']))
-                self.debug_message(1, "--------------" + "-"*len(entry['type']))
-                max_key_len = max(map(len, entry))
+                len_max_type = max(len_max_type, len(entry['type']))
                 for k,v in entry.items():
-                    key_len_diff = max_key_len - len(k)
-                    self.debug_message(1, "--- `{}`{}: `{}`".format(k,' '*(key_len_diff),v))
+                    len_max_key  = max(len_max_key, len(k))
+
+            special_keys = ["type", "name"]
+
+            for entry in self._loginfo:
+
+                for key in special_keys:
+                    if key in entry.keys():
+                        if key != special_keys[0]:
+                            line = "--> {} : {} ".format(key.ljust(len_max_key), entry[key])
+                        else:
+                            line = "{} : {} ".format(key.ljust(len_max_key+4), entry[key])
+                        self.debug_message(1, line)
+
+                for k,v in entry.items():
+                    if k not in special_keys:
+                        line = "--> {} : {}".format(k.ljust(len_max_key),v)
+                        self.debug_message(1, line)
                 self.debug_message(1, "")
         else:
             print(self._loginfo)
@@ -589,10 +627,84 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     class ConfigParserEnhancedDataSection(Debuggable, ExceptionControl):
         """
+        This class is intended to serve as a 'lite' analog to
+        `configparser.ConfigParser` to provide a similar result but with
+        the `ConfigParserEnhanced` class's ability to parse .ini files and
+        follow entries that implement a `use <section naem>:` rule. In
+        this case, when a section parses through we will return sections with
+        all options that _were not_ handled by some handler.
+
+        For example, if we have this .ini file:
+            ```
+            [SEC A]
+            opt1: value1-A
+            opt2: value2-A
+
+            [SEC B]
+            opt1: value1-B
+            use 'SEC A':
+
+            [SEC C]
+            use 'SEC A':
+            opt1: value1-C
+            ```
+        and we pull the `SEC B` data from it using, say, `options("SEC B")`,
+        the result we should expect is:
+
+            [SEC B]
+            opt1: value1-A
+            opt2: value2-A
+
+        but if we loaded `options("SEC C")` then we should get:
+
+            [SEC C]
+            opt1: value1-C
+            opt2: value1-A
+
+        Since the recursion of the `use` operations is a DFS, when there are
+        entries with the same keys, then the 'last one visited' will win.
+
+        When we parse a particular section this object the result for a given
+        section name is union of all options in the transitive closure of the
+        DAG generated by the `use` operations. For example:
+
+            ```
+            [SEC A]
+            use 'SEC B'
+            opt1: value1-A
+            opt2: value2-A
+
+            [SEC B]
+            use 'SEC A':
+            opt1: value1-B
+            ```
+
+        The results of `options('SEC A')` and `options('SEC B)` will be different:
+
+            >>> options("SEC A")
+            [SEC A]
+            opt1: value1-A
+            opt2: value2-A
+
+            >>> options("SEC B")
+            [SEC B]
+            opt1: value1-B
+            opt2: value1-A
+
+        Note:
+            This _MUST_ be an inner class of `ConfigParserEnhanced` because it
+            contains a 'hook' back to the instance of `ConfigParserEnhanced` in
+            in which this entry exists. This allows us to access the owner's
+            state so we can implement our lazy-evaluation and caching schemes.
+
+        Todo:
+            Should we modify the 'last one wins' policy so that we raise an
+            exception instead?
         """
         def __init__(self, owner=None):
             self.owner = owner
             self.set_owner_options()
+
 
         @property
         def owner(self):
@@ -600,12 +712,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._owner = None
             return self._owner
 
+
         @owner.setter
         def owner(self, value):
             if not isinstance(value, (ConfigParserEnhanced)):
                 raise TypeError("Owner class must be a ConfigParserEnhanced or derivitive.")
             self._owner = value
             return self._owner
+
 
         @property
         def data(self) -> dict:
@@ -615,6 +729,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._data = {}
             return self._data
 
+
         @data.setter
         def data(self, value) -> dict:
             """
@@ -623,6 +738,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 raise TypeError("data must be a `dict` type.")
             self._data = value
             return self._data
+
 
         @property
         def sections_checked(self):
@@ -634,6 +750,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._sections_checked = set()
             return self._sections_checked
 
+
         def set_owner_options(self):
             """
             Get options from the owner class, if we have an owner class.
@@ -641,6 +758,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if self.owner != None:
                 self.exception_control_level = self.owner.exception_control_level
                 self.debug_level = self.owner.debug_level
+
 
         def items(self, section=None):
             section_list = self.data.keys()
@@ -656,23 +774,29 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 output = self.options(section).items()
             return output
 
+
         def keys(self):
             return self.data.keys()
+
 
         def __iter__(self):
             for k in self.keys():
                 yield k
+
 
         def __getitem__(self, key):
             if not self.has_section(key):
                 raise KeyError(key)
             return self.data[key]
 
+
         def __len__(self):
             return len(self.data)
 
+
         def sections(self):
             return self.data.keys()
+
 
         def has_section(self, section):
             if self.owner != None and section not in self.sections_checked:
@@ -682,10 +806,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     pass
             return section in self.data.keys()
 
+
         def options(self, section):
             if not self.has_section(section):
                 raise KeyError("Section {} does not exist.".format(section))
             return self.data[section]
+
 
         def has_option(self, section, option):
             """
@@ -693,6 +819,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if self.owner != None and section not in self.sections_checked:
                 self.parse_owner_section(section)
             return option in self.data[section].keys()
+
 
         def get(self, section, option):
             """
@@ -718,6 +845,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # this check helps prevent one from doing bad things.
             raise KeyError("Missing section {}.".format(section))
 
+
         def add_section(self, section):
             """
             Directly add a new section, if it does not exist.
@@ -725,15 +853,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not self.has_section(section):
                 self.data[section] = {}
 
+
         def set(self, section, option, value):
             """
             Directly set an option. If the section is missing we create an empty one.
             """
             if not self.has_section(section):
                 self.add_section(section)
-            if option not in self.data[section].keys():
-                self.data[section][option] = value
+
+            # Note: we overwrite the option, even if it's already there.
+            self.data[section][option] = value
             return self.data[section][option]
+
 
         def parse_owner_section(self, section):
             """
