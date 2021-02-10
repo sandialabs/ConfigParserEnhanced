@@ -26,8 +26,114 @@ from .ExceptionControl import ExceptionControl
 
 
 # ===========================================================
-#   H E L P E R   F U N C T I O N S   A N D   C L A S S E S
+#  S U P P O R T   F U N C T I O N S   A N D   C L A S S E S
 # ===========================================================
+
+class HandlerParameters(object):
+    """
+    Contains the set of parameters that we pass to Handlers.
+    """
+    def __init__(self):
+        pass
+
+    @property
+    def section_root(self) -> str:
+        if not hasattr(self, '_section_root'):
+            self._section_root = None
+        return self._section_root
+
+    @section_root.setter
+    def section_root(self, value) -> str:
+        self._section_root = str(value)
+        return self._section_root
+
+    @property
+    def section_current(self) -> str:
+        if not hasattr(self, '_section_current'):
+            self._section_current = None
+        return self._section_current
+
+    @section_current.setter
+    def section_current(self, value) -> str:
+        self._section_current = str(value)
+        return self._section_current
+
+    @property
+    def raw_option(self) -> tuple:
+        """
+        This contains a copy of the key:value pair for the current
+        option without editing as a tuple.
+        """
+        if not hasattr(self, '_raw_option'):
+            self._raw_option = (None, None)
+        return self._raw_option
+
+    @raw_option.setter
+    def raw_option(self, value) -> tuple:
+        if not isinstance(value, tuple):
+            raise TypeError("raw_option must be a tuple.")
+        if len(value) != 2:
+            raise ValueError("raw_option must have at least 2 entries")
+        self._raw_option = value
+        return self._raw_option
+
+    @property
+    def op_params(self) -> tuple:
+        """
+        Operation parameters for this handler. This must be a tuple of length 2.
+        """
+        if not hasattr(self, '_op_params'):
+            self._op_params = (None, None)
+        return self._op_params
+
+    @op_params.setter
+    def op_params(self, value) -> tuple:
+        """
+        Setter for the params property.
+        Must be a tuple of length 2 to properly assign.
+
+        Raises:
+            TypeError if the value isn't a tuple.
+            ValueError if the value is a tuple len != 2.
+        """
+        if not isinstance(value, tuple):
+            raise TypeError("op_params must be a tuple.")
+        if len(value) != 2:
+            raise ValueError("op_params must have at least 2 entries")
+        self._op_params = value
+        return self._op_params
+
+    @property
+    def data_shared(self) -> dict:
+        """
+        Shared data for handlers. This entry should be considered
+        persistent across handlers when parsing is run and will
+        contain data and information that
+        """
+        if not hasattr(self, '_data_shared'):
+            self._data_shared = {}
+        return self._data_shared
+
+    @data_shared.setter
+    def data_shared(self, value) -> dict:
+        if not isinstance(value, (dict)):
+            raise TypeError("data_shared must be a dict type.")
+        self._data_shared = value
+        return self._data_shared
+
+    @property
+    def data_internal(self) -> dict:
+        if not hasattr(self, '_data_internal'):
+            self._data_internal = {}
+        return self._data_internal
+
+    @data_internal.setter
+    def data_internal(self) -> dict:
+        if not isinstance(value, (dict)):
+            raise TypeError("data_internal must be a dict type.")
+        self._data_shared = value
+        return self._data_shared
+
 
 
 
@@ -367,8 +473,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
+        handler_parameters = HandlerParameters()                # SCAFFOLDING
+        handler_parameters.section_root = section
+
         data = self._parse_configuration_r(section)
-        return data
+
+        return handler_parameters.data_shared
 
 
     def _parse_configuration_r(self, section_name, data=None, processed_sections=None, section_name_root=None) -> dict:
@@ -412,8 +522,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             sec_k = str(sec_k).strip()
             sec_v = str(sec_v).strip()
             sec_v = sec_v.strip('"')
-            # Todo: check configparser's configuration regarding settings, rules, etc.
-            #       for expansion rules and quotation handling.
 
             self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k,sec_v))                       # Console
             self._loginfo_add({'type': 'section-key-value', 'key': sec_k, 'value': sec_v})          # Logging
@@ -618,6 +726,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             print(self._loginfo)
 
         return
+
+
+    def new_handler_parameters(self) -> HandlerParameters:
+        """
+        Create and return a new HandlerParameters object.
+
+        This is called inside the parser to generate HandlerParameters.
+        If subclasses extend the HandlerParameters class, this can be
+        overridden.
+        """
+        return self.HandlerParameters()
+
 
 
     # ===========================================================
