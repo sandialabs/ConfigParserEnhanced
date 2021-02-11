@@ -562,6 +562,37 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
+    def test_ConfigParserEnhanced_parse_configuration_HandlerParameters_badtype(self):
+        """
+        Test that an overridden `new_handler_parameters()` method will
+        trigger an error in the parser if it doesn't return a `HandlerParameters`
+        type.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            def new_handler_parameters(self):
+                print("new_handler_parameters() --> {}")
+                return {}
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        section = "SECTION-A"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        # This should raise a TypeError because the overridden `new_handler_parameters`
+        # method is generating a dict type, but the parser will only work properly
+        # if this method generates a HandlerParameters (or a subclass of HandlerParameters)
+        # object.
+        with self.assertRaises(TypeError):
+            data = parser.parse_configuration(section)
+
+        print("OK")
+
+
     def test_ConfigParserEnhanced_assert_parseconfiguration_r_section_None(self):
         """
         Tests that a TypeError will be thrown if the `section` paramter is set to

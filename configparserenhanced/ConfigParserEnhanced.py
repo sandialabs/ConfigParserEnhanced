@@ -100,8 +100,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     @property
     def inifilepath(self) -> list:
         """
-        Todo:
-            Document this!
+        This _property_ provides access to the path to the .ini file (or files)
+        that we wish to process using the core `configparser.ConfigParser` module.
+
+        Returns:
+            A `list` containing the .ini files that will be processed.
 
         Note:
             Subclass(es) should not override this.
@@ -121,6 +124,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         3. a `list` of one or more of (1) or (2).
 
         entries in the list will be converted to pathlib.Path objects.
+
+        Returns:
+            A `list` containing the .ini files that will be processed.
 
         Note:
             Subclass(es) should not override this.
@@ -217,8 +223,28 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     @property
     def configdata_parsed(self):
         """
-        Todo:
-            Document meh!
+        This _property_ returns a _parsed_ representation of the configdata that would
+        be loaded from our .ini file. The data in this will return the contents of a
+        section plus its parsed results. For example, if we have this in our .ini
+        file:
+
+            [SEC A]
+            key A1: value A1
+
+            [SEC B]
+            use 'SEC A':
+            key B1: value B1
+
+        Extracting the data from 'SEC B' would result the contents of 'SEC B' + 'SEC A':
+
+            >>> ConfigParserEnhancedObj.configdata_parsed["SEC B"]
+            { 'key A1': 'value A1', 'key B1': 'value B1' }
+
+        Returns:
+            A `ConfigParserEnhanced.ConfigParserEnhancedDataSection` object.
+
+        See:
+            `ConfigParserEnhanced.ConfigParserEnhancedDataSection` for more information
 
         Note:
             Subclass(es) should not override this.
@@ -405,9 +431,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # initialize handler_parameters if not currently set up.
         if handler_parameters is None:
             handler_parameters = self.new_handler_parameters()
+
+            if not isinstance(handler_parameters, (HandlerParameters)):
+                raise TypeError("handler_parameters must be `HandlerParameters` or a derivitive.")
+
             handler_parameters.section_root = section_name
-            handler_parameters.data_shared      # initialize default (lazy eval)
-            handler_parameters.data_internal    # initialize default (lazy eval)
+            handler_parameters.data_shared      # initializes default (lazy eval, not necessary)
+            handler_parameters.data_internal    # initializes default (lazy eval, not necessary)
             handler_parameters.data_internal['processed_sections'] = set()                          # SCAFFOLDING (future use)
 
             # Pitfall: Only add 'sections_checked' for the _root_ node
@@ -497,8 +527,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 # These rvals are currently reserved. If someone uses it we should
                 # throw a critical error to get the developers' attention to either
                 # expand rval handling or users should use something > 10.
-                # Todo: Eventually we might make this more generic/configurable,
-                # but not today.
                 self.exception_control_event("WARNING", RuntimeError,
                                              "Handler `{}` returned {}".format(handler_name, handler_rval))
             elif handler_rval > 10:
@@ -523,7 +551,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     def _handler_generic(self, section_name, handler_parameters) -> int:
         """
-        Todo: Document meh!
+        A generic handler - this handler processes all _optons_ in a .ini
+        file section that do not have an operation handler defined for them.
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
         """
         entry        = handler_parameters.raw_option
         section_root = handler_parameters.section_root
@@ -553,12 +588,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Returns:
             integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use
-                > 10  : An unknown failure occurred.
-
-        Raises:
-            Nothing
+                0     : QAPLA'
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
 
         Todo:
             Once we can use Python 3.8 in our environments, we can use the @final decorator
@@ -590,7 +622,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     # --------------------
-    #   H E L P E R S
+    #   L O G I N F O
     # --------------------
 
 
@@ -749,8 +781,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             state so we can implement our lazy-evaluation and caching schemes.
 
         Todo:
-            Should we modify the 'last one wins' policy so that we raise an
-            exception instead?
+            We might revise the 'last one wins' strategy for handling instances
+            where the same key exists multiple times to instead throw an error.
+            The 'last one wins' is in line with the default `configparser` behaviour
+            when loading a set of .ini files -- if two files have the same section
+            in them, the result section in the data will be the union of all the options
+            from both with conflicting keys containing the value from the _last_ .ini
+            file in the list.
         """
         def __init__(self, owner=None):
             self.owner = owner
@@ -926,3 +963,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.sections_checked.add(section)
                 self.owner.parse_configuration(section)
 
+
+
+# EOF
