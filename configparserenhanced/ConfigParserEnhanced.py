@@ -189,6 +189,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         file:
 
         .. code-block:: ini
+
             [SEC A]
             key A1: value A1
 
