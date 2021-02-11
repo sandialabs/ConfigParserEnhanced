@@ -681,7 +681,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         the `ConfigParserEnhanced` class's ability to parse .ini files and
         follow entries that implement a `use <section naem>:` rule. In
         this case, when a section parses through we will return sections with
-        all options that _were not_ handled by some handler.
+        all options that *were not* handled by some handler.
 
         For example, if we have this .ini file:
 
