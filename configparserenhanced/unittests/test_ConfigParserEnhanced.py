@@ -545,12 +545,9 @@ class ConfigParserEnhancedTest(TestCase):
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
             def _handler_test_handler_fail(self,
-                                           section_root,
                                            section_name,
-                                           op1, op2,
-                                           data,
-                                           processed_sections=None,
-                                           entry=None) -> int:
+                                           handler_parameters,
+                                           processed_sections=None) -> int:
                 print("_handler_test_handler_fail()")
                 print("---> Returns 1!")
                 return 1
@@ -583,12 +580,9 @@ class ConfigParserEnhancedTest(TestCase):
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
             def _handler_test_handler_fail(self,
-                                           section_root,
                                            section_name,
-                                           op1, op2,
-                                           data,
-                                           processed_sections=None,
-                                           entry=None) -> int:
+                                           handler_parameters,
+                                           processed_sections=None) -> int:
                 print("_handler_test_handler_fail()")
                 print("---> This one goes to 11!")
                 return 11
@@ -910,6 +904,9 @@ class ConfigParserEnhancedTest(TestCase):
 
         print("\n-[ loginfo ]---------------")
         pprint(parser._loginfo)
+
+        self.assertEqual("value1-A", parser.configdata_parsed.get('DEP-TEST-A', 'key1'))
+        self.assertEqual("value2-A", parser.configdata_parsed.get('DEP-TEST-A', 'key2'))
 
         print("")
         print("\n-[ DEP-TEST-B ]------------")
