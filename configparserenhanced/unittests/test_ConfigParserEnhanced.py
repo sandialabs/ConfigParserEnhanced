@@ -688,11 +688,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         # entry must be a dict type. Throw TypeError if it isn't.
         with self.assertRaises(TypeError):
-            parser._loginfo_add(entry=None)
-
-        # entry must have a 'type' key, otherwise throw a ValueError.
-        with self.assertRaises(ValueError):
-            parser._loginfo_add(entry={})
+            parser._loginfo_add("test-type", entry=None)
 
         print("OK")
 
@@ -787,7 +783,6 @@ class ConfigParserEnhancedTest(TestCase):
         for i in parser.configdata_parsed:
             print("   ", i)
 
-
         # Test __getitem__
         print("\nTest __getitem__")
         sec_b = parser.configdata_parsed["SECTION-B"]
@@ -801,9 +796,12 @@ class ConfigParserEnhancedTest(TestCase):
         for i in parser.configdata_parsed.sections():
             print("   ", i)
 
-        # Test length
+        # Test length - This should be the # of sections in the .ini file.
         print("\nTest __len__")
-        self.assertEqual(14, len(parser.configdata_parsed))
+        exp_len = 15
+        act_len = len(parser.configdata_parsed)
+        self.assertEqual(exp_len, act_len,
+                         "ERROR: Length returned is {} but we expected {}".format(act_len, exp_len))
 
         # Test options()
         print("\nTest options()")
@@ -812,6 +810,9 @@ class ConfigParserEnhancedTest(TestCase):
 
         subset = {'key1': 'value1'}
         self.assertEqual(dict(data, **subset), data)
+        # self.assertDictContainsSubset is deprecated and will go away, so
+        # 'right' syntax for this now is to use dict(data, **subset)
+        # to pull the subset out of the dict and check it. :/
 
         subset = {'key2': 'value2'}
         self.assertEqual(dict(data, **subset), data)

@@ -504,6 +504,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_parameters.data_shared      # initialize default (lazy eval)
             handler_parameters.data_internal    # initialize default (lazy eval)
             handler_parameters.data_internal['processed_sections'] = set()                          # SCAFFOLDING (future use)
+            # Todo: move processed_sections into ^^^
 
             # Pitfall: Only add 'sections_checked' for the _root_ node
             #          because configdata_parsed recurses through and we
@@ -516,7 +517,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise TypeError("ERROR: a section name must not be None.")
 
         self.debug_message(1, "Enter section: `{}`".format(section_name))                           # Console Logging
-        self._loginfo_add({'type': 'section-entry', 'name': section_name})                          # Logging
+        self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
 
         # Load the section from the configparser.ConfigParser data.
         current_section = None
@@ -544,45 +545,50 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             sec_k = str(sec_k).strip()
             sec_v = str(sec_v).strip()
             sec_v = sec_v.strip('"')
+            handler_parameters.raw_option = (sec_k, sec_v)
 
             self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
-            self._loginfo_add({'type': 'section-key-value', 'key': sec_k, 'value': sec_v})          # Logging
+            self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
 
             # Extract operation parameters (op1, op2) using the regex matcher
             regex_op_splitter_m = self.regex_op_matcher(sec_k)
 
-            # Skip entry if we didn't get a match
-            if regex_op_splitter_m is None:
-                continue
-                # Todo: This is a BUG! If we can't split the entry we should call the generic
-                # handler... but the generic handler can also be called if we _do_ parse an
-                # operation-like entry but don't have a defined operation.
-
-            self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))           # Console
-            op1 = self.get_op1_from_regex_match(regex_op_splitter_m)
-            op2 = self.get_op2_from_regex_match(regex_op_splitter_m)
-
-            self._loginfo_add({"type": 'section-operands', 'op1': op1, 'op2': op2})                 # Logging
-            self.debug_message(2, "- op1: {}".format(op1))                                          # Console
-            self.debug_message(2, "- op2: {}".format(op2))                                          # Console
-
-            # Call the op handler if one exists for this op.
-            handler_parameters.op_params  = (op1,   op2)
-            handler_parameters.raw_option = (sec_k, sec_v)
-
-            # Generate handler name and check if we have one defined.
-            handler_name = "_handler_{}".format(op1)
-            ophandler_f = getattr(self, handler_name, None)
-
-            # Call the appropriate 'handler' for this entry.
+            # initialze handler return value.
             handler_rval = 0
-            if ophandler_f is not None:
-                # Call the computed handler for the detected operation.
-                handler_rval = ophandler_f(section_name, handler_parameters, processed_sections)
-            else:
-                # Call the generic handler to update the 'generic' view
-                # of the (all key:value pairs that don't map to any other handlers)
+
+            if regex_op_splitter_m is None:
+                # Call the generic handler if the key:value pair fails to produce a regex match.
+
+                self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
                 handler_rval = self._handler_generic(section_name, handler_parameters, processed_sections)
+
+            else:
+                # If we have a regex match, process the operation code and launch the
+                # operation-specific handler if it exists or the generic handler if
+                # it does not.
+
+                self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))       # Console
+
+                op1 = self.get_op1_from_regex_match(regex_op_splitter_m)
+                op2 = self.get_op2_from_regex_match(regex_op_splitter_m)
+                handler_parameters.op_params  = (op1,   op2)
+
+                self._loginfo_add('section-operands', {'op1': op1, 'op2': op2})                     # Logging
+                self.debug_message(2, "- op1: {}".format(op1))                                      # Console
+                self.debug_message(2, "- op2: {}".format(op2))                                      # Console
+
+                # Generate handler name and check if we have one defined.
+                handler_name = "_handler_{}".format(op1)
+                ophandler_f = getattr(self, handler_name, None)
+
+                # Call the appropriate 'handler' for this entry.
+                if ophandler_f is not None:
+                    # Call the computed handler for the detected operation.
+                    handler_rval = ophandler_f(section_name, handler_parameters, processed_sections)
+                else:
+                    # Call the generic handler to update the 'generic' view
+                    # of the (all key:value pairs that don't map to any other handlers)
+                    handler_rval = self._handler_generic(section_name, handler_parameters, processed_sections)
 
             # Check the return code from the handler
             if handler_rval == 0:
@@ -604,7 +610,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # - This properly enables a true DFS of `use` links.
         del processed_sections[section_name]
 
-        self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
+        self._loginfo_add('section-exit', {'name': section_name})                                   # Logging
         self.debug_message(1, "Exit section: `{}`".format(section_name))                            # Console
 
         return handler_parameters.data_shared
@@ -624,12 +630,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         self.debug_message(1, "Enter handler: _handler_generic")                                    # Console
         self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_generic', 'entry': entry})    # Logging
+        self._loginfo_add('handler-entry', {'name': '_handler_generic', 'entry': entry})            # Logging
 
         self.configdata_parsed.set(section_root, entry[0], entry[1])
 
         self.debug_message(1, "Exit handler: _handler_generic")                                     # Console
-        self._loginfo_add({'type': 'handler-exit',  'name': '_handler_generic', 'entry': entry})    # Logging
+        self._loginfo_add('handler-exit', {'name': '_handler_generic', 'entry': entry})             # Logging
         return 0
 
 
@@ -663,15 +669,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         op1,op2 = handler_parameters.op_params
         entry   = handler_parameters.raw_option
 
-        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_use', 'entry': entry})        # Logging
+        self._loginfo_add('handler-entry', {'name': '_handler_use', 'entry': entry})                # Logging
         self.debug_message(1, "Enter handler: _handler_use ({} -> {})".format(section_name, op2))   # Console
 
 
         if op2 not in processed_sections.keys():
             self._parse_configuration_r(op2, handler_parameters, processed_sections)
         else:
-            self._loginfo_add({'type': 'cycle-detected', 'sec-src': section_name, 'sec-dst': op1})  # Logging
-            self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use', 'entry': entry})     # Logging
+            self._loginfo_add('cycle-detected', {'sec-src': section_name, 'sec-dst': op1})          # Logging
+            self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})             # Logging
 
             message  = "Detected a cycle in `use` dependencies in .ini file.\n"
             message += "- cannot load [{}] from [{}].".format(op2, section_name)
@@ -679,7 +685,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             return 0
 
-        self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use', 'entry': entry})         # Logging
+        self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})                 # Logging
         self.debug_message(1, "Exit handler: _handler_use ({} -> {})".format(section_name, op2))    # Console
         return 0
 
@@ -689,12 +695,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # --------------------
 
 
-    def _loginfo_add(self, entry) -> None:
+    def _loginfo_add(self, typeinfo, entry) -> None:
         """
         If in debug mode, we can use this to log operations.
         Appends to _loginfo
 
         Args:
+            typeinfo (str): What kind of operation is this. This generates the
+                           'type' entry in the loginfo dict. (Required)
             entry (dict): A dictionary containing log information that we're appending.
                           At minimum it should have: `type: typestring`.
 
@@ -714,8 +722,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if self.debug_level > 0:
             if not isinstance(entry, dict):
                 raise TypeError("entry should be a dictionary type.")
-            if 'type' not in entry.keys():
-                raise ValueError("entry must have a `type: typestr` entry`")
+            entry['type'] = typeinfo
+
             self._loginfo.append(entry)
         else:
             pass
