@@ -3,7 +3,6 @@
 """
 Todo:
     Fill in file-level docstring
-    Clean up docstrings
 """
 from __future__ import print_function
 
@@ -679,7 +678,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         all options that _were not_ handled by some handler.
 
         For example, if we have this .ini file:
-            ```
+
+        .. code-block:: ini
+
             [SEC A]
             opt1: value1-A
             opt2: value2-A
@@ -691,7 +692,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             [SEC C]
             use 'SEC A':
             opt1: value1-C
-            ```
+
         and we pull the `SEC B` data from it using, say, `options("SEC B")`,
         the result we should expect is:
 
