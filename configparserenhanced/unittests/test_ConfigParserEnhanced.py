@@ -33,6 +33,9 @@ except ImportError:
 import configparser
 
 from configparserenhanced import ConfigParserEnhanced
+from ..HandlerParameters import HandlerParameters
+
+from .common import *
 
 
 
@@ -42,32 +45,6 @@ from configparserenhanced import ConfigParserEnhanced
 #
 #===============================================================================
 
-def find_config_ini(filename="config.ini", rootpath="." ):
-    """
-    Recursively searches for a particular file among the subdirectory structure.
-    If we find it, then we return the full relative path to `pwd` to that file.
-
-    The _first_ match will be returned.
-
-    Args:
-        filename (str): The _filename_ of the file we're searching for. Default: 'config.ini'
-        rootpath (str): The _root_ path where we will begin our search from. Default: '.'
-
-    Returns:
-        String containing the path to the file if it was found. If a matching filename is not
-        found then `None` is returned.
-
-    """
-    output = None
-    for dirpath,dirnames,filename_list in os.walk(rootpath):
-        if filename in filename_list:
-            output = os.path.join(dirpath, filename)
-            break
-    if output is None:
-        raise FileNotFoundError("Unable to find {} in {}".format(filename, os.getcwd()))  # pragma: no cover
-    return output
-
-
 
 
 #===============================================================================
@@ -76,28 +53,6 @@ def find_config_ini(filename="config.ini", rootpath="." ):
 #
 #===============================================================================
 
-def mock_function_noreturn(*args):
-    """
-    Mock a function that does not return a value (i.e., returns NoneType)
-    """
-    print("\nmock> f({}) ==> NoneType".format(args))                            # pragma: no cover
-
-
-def  mock_function_pass(*args):
-    """
-    Mock a function that 'passes', i.e., returns a 0.
-    """
-    print("\nmock> f({}) ==> 0".format(args))                                   # pragma: no cover
-    return 0                                                                    # pragma: no cover
-
-
-def mock_function_fail(*args):
-    """
-    Mock a function that 'fails', i.e., returns a 1.
-    """
-    print("\nmock> f({}) ==> 1".format(args))                                   # pragma: no cover
-    return 1                                                                    # pragma: no cover
-
 
 
 #===============================================================================
@@ -105,6 +60,8 @@ def mock_function_fail(*args):
 # Tests
 #
 #===============================================================================
+
+
 
 class ConfigParserEnhancedTest(TestCase):
     """
@@ -545,12 +502,9 @@ class ConfigParserEnhancedTest(TestCase):
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
             def _handler_test_handler_fail(self,
-                                           section_root,
                                            section_name,
-                                           op1, op2,
-                                           data,
-                                           processed_sections=None,
-                                           entry=None) -> int:
+                                           handler_parameters,
+                                           processed_sections=None) -> int:
                 print("_handler_test_handler_fail()")
                 print("---> Returns 1!")
                 return 1
@@ -583,12 +537,9 @@ class ConfigParserEnhancedTest(TestCase):
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
             def _handler_test_handler_fail(self,
-                                           section_root,
                                            section_name,
-                                           op1, op2,
-                                           data,
-                                           processed_sections=None,
-                                           entry=None) -> int:
+                                           handler_parameters,
+                                           processed_sections=None) -> int:
                 print("_handler_test_handler_fail()")
                 print("---> This one goes to 11!")
                 return 11
@@ -606,6 +557,37 @@ class ConfigParserEnhancedTest(TestCase):
         parser._loginfo = [ 1, 2, 3 ]
 
         with self.assertRaises(RuntimeError):
+            data = parser.parse_configuration(section)
+
+        print("OK")
+
+
+    def test_ConfigParserEnhanced_parse_configuration_HandlerParameters_badtype(self):
+        """
+        Test that an overridden `new_handler_parameters()` method will
+        trigger an error in the parser if it doesn't return a `HandlerParameters`
+        type.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            def new_handler_parameters(self):
+                print("new_handler_parameters() --> {}")
+                return {}
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        section = "SECTION-A"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        # This should raise a TypeError because the overridden `new_handler_parameters`
+        # method is generating a dict type, but the parser will only work properly
+        # if this method generates a HandlerParameters (or a subclass of HandlerParameters)
+        # object.
+        with self.assertRaises(TypeError):
             data = parser.parse_configuration(section)
 
         print("OK")
@@ -694,11 +676,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         # entry must be a dict type. Throw TypeError if it isn't.
         with self.assertRaises(TypeError):
-            parser._loginfo_add(entry=None)
-
-        # entry must have a 'type' key, otherwise throw a ValueError.
-        with self.assertRaises(ValueError):
-            parser._loginfo_add(entry={})
+            parser._loginfo_add("test-type", entry=None)
 
         print("OK")
 
@@ -793,7 +771,6 @@ class ConfigParserEnhancedTest(TestCase):
         for i in parser.configdata_parsed:
             print("   ", i)
 
-
         # Test __getitem__
         print("\nTest __getitem__")
         sec_b = parser.configdata_parsed["SECTION-B"]
@@ -807,9 +784,12 @@ class ConfigParserEnhancedTest(TestCase):
         for i in parser.configdata_parsed.sections():
             print("   ", i)
 
-        # Test length
+        # Test length - This should be the # of sections in the .ini file.
         print("\nTest __len__")
-        self.assertEqual(14, len(parser.configdata_parsed))
+        exp_len = 15
+        act_len = len(parser.configdata_parsed)
+        self.assertEqual(exp_len, act_len,
+                         "ERROR: Length returned is {} but we expected {}".format(act_len, exp_len))
 
         # Test options()
         print("\nTest options()")
@@ -818,6 +798,9 @@ class ConfigParserEnhancedTest(TestCase):
 
         subset = {'key1': 'value1'}
         self.assertEqual(dict(data, **subset), data)
+        # self.assertDictContainsSubset is deprecated and will go away, so
+        # 'right' syntax for this now is to use dict(data, **subset)
+        # to pull the subset out of the dict and check it. :/
 
         subset = {'key2': 'value2'}
         self.assertEqual(dict(data, **subset), data)
@@ -910,6 +893,9 @@ class ConfigParserEnhancedTest(TestCase):
 
         print("\n-[ loginfo ]---------------")
         pprint(parser._loginfo)
+
+        self.assertEqual("value1-A", parser.configdata_parsed.get('DEP-TEST-A', 'key1'))
+        self.assertEqual("value2-A", parser.configdata_parsed.get('DEP-TEST-A', 'key2'))
 
         print("")
         print("\n-[ DEP-TEST-B ]------------")

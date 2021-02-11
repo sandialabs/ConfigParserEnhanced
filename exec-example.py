@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-test app for ConfigParserEnhanced (will be deleted later, probably).
+Example app for ConfigParserEnhanced.
 """
 from __future__ import print_function  # python 2 -> 3 compatiblity
 

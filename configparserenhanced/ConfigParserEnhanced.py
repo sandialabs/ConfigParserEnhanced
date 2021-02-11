@@ -15,25 +15,27 @@ import sys
 
 try:
     # @final decorator, requires Python 3.8.x
-    from typing import final                                                      # pragma: no cover
-except ImportError:                                                               # pragma: no cover
-    pass                                                                          # pragma: no cover
+    from typing import final                                                                        # pragma: no cover
+except ImportError:                                                                                 # pragma: no cover
+    pass                                                                                            # pragma: no cover
 
 
 from .Debuggable import Debuggable
 from .ExceptionControl import ExceptionControl
+from .HandlerParameters import HandlerParameters
 
 
 
-# ===========================================================
-#   H E L P E R   F U N C T I O N S   A N D   C L A S S E S
-# ===========================================================
+# ===================================
+#  S U P P O R T   F U N C T I O N S
+# ===================================
 
 
 
 # ===============================
 #   M A I N   C L A S S
 # ===============================
+
 
 
 class ConfigParserEnhanced(Debuggable, ExceptionControl):
@@ -97,6 +99,16 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def inifilepath(self) -> list:
+        """
+        This _property_ provides access to the path to the .ini file (or files)
+        that we wish to process using the core `configparser.ConfigParser` module.
+
+        Returns:
+            A `list` containing the .ini files that will be processed.
+
+        Note:
+            Subclass(es) should not override this.
+        """
         if not hasattr(self, '_inifilepath'):
             raise ValueError("ERROR: The filename has not been specified yet.")
         else:
@@ -112,6 +124,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         3. a `list` of one or more of (1) or (2).
 
         entries in the list will be converted to pathlib.Path objects.
+
+        Returns:
+            A `list` containing the .ini files that will be processed.
+
+        Note:
+            Subclass(es) should not override this.
         """
         if not isinstance(value, (str,Path,list)):
             raise TypeError("ERROR: .ini filename must be a `str`, a `Path` or a `list` of either.")
@@ -159,6 +177,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             IOError if any of the files in `self.inifilepath` don't
                 exist or are not files.
 
+        Note:
+            Subclass(es) should not override this.
+
         .. configparser reference:
             https://docs.python.org/3/library/configparser.html
         """
@@ -201,6 +222,33 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def configdata_parsed(self):
+        """
+        This _property_ returns a _parsed_ representation of the configdata that would
+        be loaded from our .ini file. The data in this will return the contents of a
+        section plus its parsed results. For example, if we have this in our .ini
+        file:
+
+            [SEC A]
+            key A1: value A1
+
+            [SEC B]
+            use 'SEC A':
+            key B1: value B1
+
+        Extracting the data from 'SEC B' would result the contents of 'SEC B' + 'SEC A':
+
+            >>> ConfigParserEnhancedObj.configdata_parsed["SEC B"]
+            { 'key A1': 'value A1', 'key B1': 'value B1' }
+
+        Returns:
+            A `ConfigParserEnhanced.ConfigParserEnhancedDataSection` object.
+
+        See:
+            `ConfigParserEnhanced.ConfigParserEnhancedDataSection` for more information
+
+        Note:
+            Subclass(es) should not override this.
+        """
         if not hasattr(self, '_configdata_parsed'):
             self._configdata_parsed = self.ConfigParserEnhancedDataSection(owner=self)
         return self._configdata_parsed
@@ -211,16 +259,16 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # --------------------
 
 
-    def parser_data_init(self):
+    def new_handler_parameters(self) -> HandlerParameters:
         """
-        Initializer for the data object that gets sent to parser initially.
+        Create and return a new HandlerParameters object.
 
-        Returns:
-            dict containing the 'base' configuration that is empty and ready for
-            for the parser handlers to populate.
+        This is called inside the parser to generate HandlerParameters.
+        If subclasses extend the HandlerParameters class, this can be
+        overridden.
         """
-        output = {}
-        return output
+        params = HandlerParameters()
+        return params
 
 
     @property
@@ -237,6 +285,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         - `get_op1_from_regex_match()`
         - `get_op2_from_regex_match()`
         - `regex_op_matcher()`
+
+        Note:
+            This should not be overridden unless you _really_ know what you're
+            doing since it'll probably also break the parser. Changing this could
+            cascade into a lot of changes.
         """
         if not hasattr(self, '_regex_op_splitter'):
             # regex op splitter to extract op1 and op2, this is pretty complicated so here's the
@@ -345,7 +398,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-
     def parse_configuration(self, section) -> dict:
         """
         Top level parser entry point.
@@ -367,26 +419,42 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
-        data = self._parse_configuration_r(section)
-        return data
+        result = self._parse_configuration_r(section)
+
+        return result
 
 
-    def _parse_configuration_r(self, section_name, data=None, processed_sections=None, section_name_root=None) -> dict:
+    def _parse_configuration_r(self, section_name, handler_parameters=None, processed_sections=None):
         """
         Recursive driver of the parser.
         """
-        current_section = None
+        # initialize handler_parameters if not currently set up.
+        if handler_parameters is None:
+            handler_parameters = self.new_handler_parameters()
+
+            if not isinstance(handler_parameters, (HandlerParameters)):
+                raise TypeError("handler_parameters must be `HandlerParameters` or a derivitive.")
+
+            handler_parameters.section_root = section_name
+            handler_parameters.data_shared      # initializes default (lazy eval, not necessary)
+            handler_parameters.data_internal    # initializes default (lazy eval, not necessary)
+            handler_parameters.data_internal['processed_sections'] = set()                          # SCAFFOLDING (future use)
+
+            # Pitfall: Only add 'sections_checked' for the _root_ node
+            #          because configdata_parsed recurses through and we
+            #          want it's "meta section" to encapsulate the result
+            #          of the fully parsed entry from the the root section
+            #          of the search only.
+            self.configdata_parsed.sections_checked.add(section_name)
 
         if section_name == None:
             raise TypeError("ERROR: a section name must not be None.")
 
-        self.debug_message(1, "Enter section: `{}`".format(section_name))                      # Console Logging
-        self._loginfo_add({'type': 'section-entry', 'name': section_name})                          # Logging
+        self.debug_message(1, "Enter section: `{}`".format(section_name))                           # Console Logging
+        self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
 
-        if section_name_root is None:
-            section_name_root = section_name
-            self.configdata_parsed.sections_checked.add(section_name)
-
+        # Load the section from the configparser.ConfigParser data.
+        current_section = None
         try:
             current_section = self.configdata[section_name]
         except KeyError:
@@ -400,100 +468,113 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if current_section is None:
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
-        if data is None:
-            data = self.parser_data_init()
-            assert isinstance(data, dict)
-
-        if processed_sections == None:
-            processed_sections = {}
-        processed_sections[section_name] = True
+        # Initialize and set processed_sections
+        handler_parameters.data_internal['processed_sections'].add(section_name)
 
         for sec_k,sec_v in current_section.items():
             sec_k = str(sec_k).strip()
             sec_v = str(sec_v).strip()
             sec_v = sec_v.strip('"')
-            # Todo: check configparser's configuration regarding settings, rules, etc.
-            #       for expansion rules and quotation handling.
+            handler_parameters.raw_option = (sec_k, sec_v)
 
-            self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k,sec_v))                       # Console
-            self._loginfo_add({'type': 'section-key-value', 'key': sec_k, 'value': sec_v})          # Logging
+            self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
+            self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
 
-            # process the key via Regex to extract op1 and op2
+            # Extract operation parameters (op1, op2) using the regex matcher
             regex_op_splitter_m = self.regex_op_matcher(sec_k)
 
-            # Skip entry if we didn't get a match
+            # initialze handler return value.
+            handler_rval = 0
+
             if regex_op_splitter_m is None:
-                continue
+                # Call the generic handler if the key:value pair fails to produce a regex match.
 
-            self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))
-            op1 = self.get_op1_from_regex_match(regex_op_splitter_m)
-            op2 = self.get_op2_from_regex_match(regex_op_splitter_m)
+                self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
+                handler_rval = self._handler_generic(section_name, handler_parameters)
 
-            self._loginfo_add({"type": 'section-operands', 'op1': op1, 'op2': op2})                 # Logging
-            self.debug_message(2, "- op1: {}".format(op1))                                          # Console
-            self.debug_message(2, "- op2: {}".format(op2))                                          # Console
-
-            # Call the op handler if one exists for this op.
-            handler_name = "_handler_{}".format(op1)
-            ophandler_f = getattr(self, handler_name, None)
-            if ophandler_f is not None:
-                rval = ophandler_f(section_name_root,
-                                   section_name,
-                                   op1, op2,
-                                   data,
-                                   processed_sections,
-                                   entry=(sec_k,sec_v))
-
-                if rval > 0 and rval <= 10:
-                    # These rvals are currently reserved. If someone uses it we should
-                    # throw a critical error to get the developers' attention to either
-                    # expand rval handling or users should use something > 10.
-                    # Todo: Eventually we might make this more generic/configurable,
-                    # but not today.
-                    self.exception_control_event("WARNING", RuntimeError,
-                                                 "Handler `{}` returned {}".format(handler_name, rval))
-                elif rval > 10:
-                    self.exception_control_event("SERIOUS", RuntimeError,
-                                                 "Handler `{}` returned {}".format(handler_name, rval))
             else:
-                # Call the generic handler to update the 'generic' view
-                # of the (all key:value pairs that don't map to any other handlers)
-                rval = self._handler_generic(section_name_root,
-                                             section_name,
-                                             op1, op2,
-                                             data,
-                                             processed_sections,
-                                             entry=(sec_k,sec_v))
+                # If we have a regex match, process the operation code and launch the
+                # operation-specific handler if it exists or the generic handler if
+                # it does not.
 
+                self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))       # Console
+
+                op1 = self.get_op1_from_regex_match(regex_op_splitter_m)
+                op2 = self.get_op2_from_regex_match(regex_op_splitter_m)
+                handler_parameters.op_params  = (op1,   op2)
+
+                self._loginfo_add('section-operands', {'op1': op1, 'op2': op2})                     # Logging
+                self.debug_message(2, "- op1: {}".format(op1))                                      # Console
+                self.debug_message(2, "- op2: {}".format(op2))                                      # Console
+
+                # Generate handler name and check if we have one defined.
+                handler_name = "_handler_{}".format(op1)
+                ophandler_f = getattr(self, handler_name, None)
+
+                # Call the appropriate 'handler' for this entry.
+                if ophandler_f is not None:
+                    # Call the computed handler for the detected operation.
+                    handler_rval = ophandler_f(section_name, handler_parameters)
+                else:
+                    # Call the generic handler to update the 'generic' view
+                    # of the (all key:value pairs that don't map to any other handlers)
+                    handler_rval = self._handler_generic(section_name, handler_parameters)
+
+            # Check the return code from the handler
+            if handler_rval == 0:
+                pass
+            elif handler_rval <= 10:
+                # These rvals are currently reserved. If someone uses it we should
+                # throw a critical error to get the developers' attention to either
+                # expand rval handling or users should use something > 10.
+                self.exception_control_event("WARNING", RuntimeError,
+                                             "Handler `{}` returned {}".format(handler_name, handler_rval))
+            elif handler_rval > 10:
+                self.exception_control_event("SERIOUS", RuntimeError,
+                                             "Handler `{}` returned {}".format(handler_name, handler_rval))
 
 
         # Remove the section from the `processed_sections` field when we exit.
-        del processed_sections[section_name]
+        # - This properly enables a true DFS of `use` links.
+        handler_parameters.data_internal['processed_sections'].remove(section_name)
 
-        self._loginfo_add({'type': 'section-exit', 'name': section_name})                           # Logging
+        self._loginfo_add('section-exit', {'name': section_name})                                   # Logging
         self.debug_message(1, "Exit section: `{}`".format(section_name))                            # Console
 
-        return data
+        return handler_parameters.data_shared
 
 
     # --------------------
     #   H A N D L E R S
     # --------------------
 
-    def _handler_generic(self, section_root, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
+
+    def _handler_generic(self, section_name, handler_parameters) -> int:
         """
+        A generic handler - this handler processes all _optons_ in a .ini
+        file section that do not have an operation handler defined for them.
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
         """
-        self.debug_message(1, "Enter handler: _handler_{}")                                         # Console
-        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_generic', 'entry': entry})    # Logging
+        entry        = handler_parameters.raw_option
+        section_root = handler_parameters.section_root
+
+        self.debug_message(1, "Enter handler: _handler_generic")                                    # Console
+        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
+        self._loginfo_add('handler-entry', {'name': '_handler_generic', 'entry': entry})            # Logging
 
         self.configdata_parsed.set(section_root, entry[0], entry[1])
 
         self.debug_message(1, "Exit handler: _handler_generic")                                     # Console
-        self._loginfo_add({'type': 'handler-exit',  'name': '_handler_generic', 'entry': entry})    # Logging
+        self._loginfo_add('handler-exit', {'name': '_handler_generic', 'entry': entry})             # Logging
+        return 0
 
 
-
-    def _handler_use(self, section_root, section_name, op1, op2, data, processed_sections=None, entry=None) -> int:
+    def _handler_use(self, section_name, handler_parameters) -> int:
         """
         This is a handler that will get executed when we detect a `use` operation in
         our parser.
@@ -507,12 +588,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Returns:
             integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use
-                > 10  : An unknown failure occurred.
-
-        Raises:
-            Nothing
+                0     : QAPLA'
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
 
         Todo:
             Once we can use Python 3.8 in our environments, we can use the @final decorator
@@ -520,14 +598,17 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             import it: `from typing import final`
             See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
-        self._loginfo_add({'type': 'handler-entry', 'name': '_handler_use', 'entry': entry})        # Logging
-        self.debug_message(1, "Enter handler: _handler_{}".format(op1))                             # Console
+        op1,op2 = handler_parameters.op_params
+        entry   = handler_parameters.raw_option
 
-        if op2 not in processed_sections.keys():
-            self._parse_configuration_r(op2, data, processed_sections, section_root)
+        self._loginfo_add('handler-entry', {'name': '_handler_use', 'entry': entry})                # Logging
+        self.debug_message(1, "Enter handler: _handler_use ({} -> {})".format(section_name, op2))   # Console
+
+        if op2 not in handler_parameters.data_internal['processed_sections']:
+            self._parse_configuration_r(op2, handler_parameters)
         else:
-            self._loginfo_add({'type': 'cycle-detected', 'sec-src': section_name, 'sec-dst': op1})  # Logging
-            self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use', 'entry': entry})     # Logging
+            self._loginfo_add('cycle-detected', {'sec-src': section_name, 'sec-dst': op1})          # Logging
+            self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})             # Logging
 
             message  = "Detected a cycle in `use` dependencies in .ini file.\n"
             message += "- cannot load [{}] from [{}].".format(op2, section_name)
@@ -535,22 +616,24 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             return 0
 
-        self._loginfo_add({'type': 'handler-exit', 'name': '_handler_use', 'entry': entry})         # Logging
-        self.debug_message(1, "Exit handler: _handler_{}".format(op1))                              # Console
+        self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})                 # Logging
+        self.debug_message(1, "Exit handler: _handler_use ({} -> {})".format(section_name, op2))    # Console
         return 0
 
 
     # --------------------
-    #   H E L P E R S
+    #   L O G I N F O
     # --------------------
 
 
-    def _loginfo_add(self, entry) -> None:
+    def _loginfo_add(self, typeinfo, entry) -> None:
         """
         If in debug mode, we can use this to log operations.
         Appends to _loginfo
 
         Args:
+            typeinfo (str): What kind of operation is this. This generates the
+                           'type' entry in the loginfo dict. (Required)
             entry (dict): A dictionary containing log information that we're appending.
                           At minimum it should have: `type: typestring`.
 
@@ -570,8 +653,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if self.debug_level > 0:
             if not isinstance(entry, dict):
                 raise TypeError("entry should be a dictionary type.")
-            if 'type' not in entry.keys():
-                raise ValueError("entry must have a `type: typestr` entry`")
+            entry['type'] = typeinfo
+
             self._loginfo.append(entry)
         else:
             pass
@@ -698,8 +781,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             state so we can implement our lazy-evaluation and caching schemes.
 
         Todo:
-            Should we modify the 'last one wins' policy so that we raise an
-            exception instead?
+            We might revise the 'last one wins' strategy for handling instances
+            where the same key exists multiple times to instead throw an error.
+            The 'last one wins' is in line with the default `configparser` behaviour
+            when loading a set of .ini files -- if two files have the same section
+            in them, the result section in the data will be the union of all the options
+            from both with conflicting keys containing the value from the _last_ .ini
+            file in the list.
         """
         def __init__(self, owner=None):
             self.owner = owner
@@ -875,3 +963,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.sections_checked.add(section)
                 self.owner.parse_configuration(section)
 
+
+
+# EOF
