@@ -31,7 +31,7 @@ except ImportError:
 
 from configparserenhanced import Debuggable
 
-from .helpers import *
+from .common import *
 
 
 

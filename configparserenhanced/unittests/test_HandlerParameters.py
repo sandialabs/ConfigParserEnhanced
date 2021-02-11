@@ -32,7 +32,7 @@ except ImportError:
 
 from ..HandlerParameters import HandlerParameters
 
-from .helpers import *
+from .common import *
 
 
 

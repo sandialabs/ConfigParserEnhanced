@@ -35,7 +35,7 @@ import configparser
 from configparserenhanced import ConfigParserEnhanced
 from ..HandlerParameters import HandlerParameters
 
-from .helpers import *
+from .common import *
 
 
 
