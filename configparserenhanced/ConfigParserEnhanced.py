@@ -15,115 +15,20 @@ import sys
 
 try:
     # @final decorator, requires Python 3.8.x
-    from typing import final                                                      # pragma: no cover
-except ImportError:                                                               # pragma: no cover
-    pass                                                                          # pragma: no cover
+    from typing import final                                                                        # pragma: no cover
+except ImportError:                                                                                 # pragma: no cover
+    pass                                                                                            # pragma: no cover
 
 
 from .Debuggable import Debuggable
 from .ExceptionControl import ExceptionControl
+from .HandlerParameters import HandlerParameters
 
 
 
-# ===========================================================
-#  S U P P O R T   F U N C T I O N S   A N D   C L A S S E S
-# ===========================================================
-
-
-
-class HandlerParameters(object):
-    """
-    Contains the set of parameters that we pass to Handlers.
-    """
-    def __init__(self):
-        pass
-
-    @property
-    def section_root(self) -> str:
-        if not hasattr(self, '_section_root'):
-            self._section_root = None
-        return self._section_root
-
-    @section_root.setter
-    def section_root(self, value) -> str:
-        self._section_root = str(value)
-        return self._section_root
-
-    @property
-    def raw_option(self) -> tuple:
-        """
-        This contains a copy of the key:value pair for the current
-        option without editing as a tuple.
-        """
-        if not hasattr(self, '_raw_option'):
-            self._raw_option = (None, None)
-        return self._raw_option
-
-    @raw_option.setter
-    def raw_option(self, value) -> tuple:
-        if not isinstance(value, tuple):
-            raise TypeError("raw_option must be a tuple.")
-        if len(value) != 2:
-            raise ValueError("raw_option must have at least 2 entries")
-        self._raw_option = value
-        return self._raw_option
-
-    @property
-    def op_params(self) -> tuple:
-        """
-        Operation parameters for this handler. This must be a tuple of length 2.
-        """
-        if not hasattr(self, '_op_params'):
-            self._op_params = (None, None)
-        return self._op_params
-
-    @op_params.setter
-    def op_params(self, value) -> tuple:
-        """
-        Setter for the params property.
-        Must be a tuple of length 2 to properly assign.
-
-        Raises:
-            TypeError if the value isn't a tuple.
-            ValueError if the value is a tuple len != 2.
-        """
-        if not isinstance(value, tuple):
-            raise TypeError("op_params must be a tuple.")
-        if len(value) != 2:
-            raise ValueError("op_params must have at least 2 entries")
-        self._op_params = value
-        return self._op_params
-
-    @property
-    def data_shared(self) -> dict:
-        """
-        Shared data for handlers. This entry should be considered
-        persistent across handlers when parsing is run and will
-        contain data and information that
-        """
-        if not hasattr(self, '_data_shared'):
-            self._data_shared = {}
-        return self._data_shared
-
-    @data_shared.setter
-    def data_shared(self, value) -> dict:
-        if not isinstance(value, (dict)):
-            raise TypeError("data_shared must be a dict type.")
-        self._data_shared = value
-        return self._data_shared
-
-    @property
-    def data_internal(self) -> dict:
-        if not hasattr(self, '_data_internal'):
-            self._data_internal = {}
-        return self._data_internal
-
-    @data_internal.setter
-    def data_internal(self, value) -> dict:
-        if not isinstance(value, (dict)):
-            raise TypeError("data_internal must be a dict type.")
-        self._data_shared = value
-        return self._data_shared
+# ===================================
+#  S U P P O R T   F U N C T I O N S
+# ===================================
 
 
 
@@ -504,7 +409,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_parameters.data_shared      # initialize default (lazy eval)
             handler_parameters.data_internal    # initialize default (lazy eval)
             handler_parameters.data_internal['processed_sections'] = set()                          # SCAFFOLDING (future use)
-            # Todo: move processed_sections into ^^^
 
             # Pitfall: Only add 'sections_checked' for the _root_ node
             #          because configdata_parsed recurses through and we
@@ -535,11 +439,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
         # Initialize and set processed_sections
-        if processed_sections == None:
-            # Todo: Change this to a set() type
-            processed_sections = {}
-        processed_sections[section_name] = True
-
+        handler_parameters.data_internal['processed_sections'].add(section_name)
 
         for sec_k,sec_v in current_section.items():
             sec_k = str(sec_k).strip()
@@ -560,7 +460,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 # Call the generic handler if the key:value pair fails to produce a regex match.
 
                 self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
-                handler_rval = self._handler_generic(section_name, handler_parameters, processed_sections)
+                handler_rval = self._handler_generic(section_name, handler_parameters)
 
             else:
                 # If we have a regex match, process the operation code and launch the
@@ -584,11 +484,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 # Call the appropriate 'handler' for this entry.
                 if ophandler_f is not None:
                     # Call the computed handler for the detected operation.
-                    handler_rval = ophandler_f(section_name, handler_parameters, processed_sections)
+                    handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
                     # Call the generic handler to update the 'generic' view
                     # of the (all key:value pairs that don't map to any other handlers)
-                    handler_rval = self._handler_generic(section_name, handler_parameters, processed_sections)
+                    handler_rval = self._handler_generic(section_name, handler_parameters)
 
             # Check the return code from the handler
             if handler_rval == 0:
@@ -608,7 +508,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         # Remove the section from the `processed_sections` field when we exit.
         # - This properly enables a true DFS of `use` links.
-        del processed_sections[section_name]
+        handler_parameters.data_internal['processed_sections'].remove(section_name)
 
         self._loginfo_add('section-exit', {'name': section_name})                                   # Logging
         self.debug_message(1, "Exit section: `{}`".format(section_name))                            # Console
@@ -621,7 +521,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # --------------------
 
 
-    def _handler_generic(self, section_name, handler_parameters, processed_sections=None) -> int:
+    def _handler_generic(self, section_name, handler_parameters) -> int:
         """
         Todo: Document meh!
         """
@@ -639,7 +539,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return 0
 
 
-    def _handler_use(self, section_name, handler_parameters, processed_sections=None) -> int:
+    def _handler_use(self, section_name, handler_parameters) -> int:
         """
         This is a handler that will get executed when we detect a `use` operation in
         our parser.
@@ -672,9 +572,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._loginfo_add('handler-entry', {'name': '_handler_use', 'entry': entry})                # Logging
         self.debug_message(1, "Enter handler: _handler_use ({} -> {})".format(section_name, op2))   # Console
 
-
-        if op2 not in processed_sections.keys():
-            self._parse_configuration_r(op2, handler_parameters, processed_sections)
+        if op2 not in handler_parameters.data_internal['processed_sections']:
+            self._parse_configuration_r(op2, handler_parameters)
         else:
             self._loginfo_add('cycle-detected', {'sec-src': section_name, 'sec-dst': op1})          # Logging
             self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})             # Logging

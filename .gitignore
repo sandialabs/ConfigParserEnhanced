@@ -16,6 +16,8 @@ __pycache__
 # created by setup.py
 build
 
+# testing subdir
+tests
 
 # wingide user-specific configuration file
 *.wpu

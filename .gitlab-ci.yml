@@ -33,7 +33,8 @@ publish coverage:
     - python3 -m pytest --cov=configparserenhanced --cov-report html --cov-report term
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/coverage
-    - mv htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
+    #- mv htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
+    - mv tests/htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
 
 publish docs:
   stage: deploy

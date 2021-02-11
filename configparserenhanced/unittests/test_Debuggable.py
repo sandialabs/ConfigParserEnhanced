@@ -31,6 +31,8 @@ except ImportError:
 
 from configparserenhanced import Debuggable
 
+from .helpers import *
+
 
 
 #===============================================================================
@@ -40,33 +42,12 @@ from configparserenhanced import Debuggable
 #===============================================================================
 
 
+
 #===============================================================================
 #
 # Mock Helpers
 #
 #===============================================================================
-
-def mock_function_noreturn(*args):
-    """
-    Mock a function that does not return a value (i.e., returns NoneType)
-    """
-    print("\nmock> f({}) ==> NoneType".format(args))                            # pragma: no cover
-
-
-def  mock_function_pass(*args):
-    """
-    Mock a function that 'passes', i.e., returns a 0.
-    """
-    print("\nmock> f({}) ==> 0".format(args))                                   # pragma: no cover
-    return 0                                                                    # pragma: no cover
-
-
-def mock_function_fail(*args):
-    """
-    Mock a function that 'fails', i.e., returns a 1.
-    """
-    print("\nmock> f({}) ==> 1".format(args))                                   # pragma: no cover
-    return 1                                                                    # pragma: no cover
 
 
 
@@ -76,13 +57,14 @@ def mock_function_fail(*args):
 #
 #===============================================================================
 
+
+
 class DebuggableTest(TestCase):
     """
     Main test driver for the SetEnvironment class
     """
     def setUp(self):
         print("")
-
 
 
     def test_Debuggable_property_debug_level(self):

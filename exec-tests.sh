@@ -10,7 +10,17 @@ print_banner "Python 3"
 find . -name "__pycache__" -exec rm -rf {} \; >& /dev/null
 find . -name "*.py?" -exec rm {} \;           >& /dev/null
 
-python3 -m pytest --cov-report term-missing --cov-report html --cov=configparserenhanced
+#if [ -e tests ]; then
+#    rm -rf tests
+#fi
+
+options=(
+    --cov-report
+    term-missing
+    --cov-report html
+    --cov=configparserenhanced
+    )
+python3 -m pytest ${options[@]}
 err=$?
 if [ $err != 0 ]; then
     echo -e "<<< TESTING FAILED >>>"

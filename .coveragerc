@@ -1,0 +1,5 @@
+[run]
+omit = */unittests/*
+
+[html]
+directory = tests/htmlcov
