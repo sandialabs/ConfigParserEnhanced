@@ -44,9 +44,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     Todo:
         * Update documentation
+          * Properties should be documented in the `getter` method.
+
 
     .. configparser reference:
         https://docs.python.org/3/library/configparser.html
+    .. docstrings style reference:
+        https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html
     """
     def __init__(self, filename):
         self.inifilepath = filename
