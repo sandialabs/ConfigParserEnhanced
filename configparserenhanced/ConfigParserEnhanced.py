@@ -43,50 +43,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     Provides an enhanced version of the `configparser` module which enables some
     extended processing of the information provided in a `.ini` file.
 
-    Args:
-        filename (str): The filename of the .ini file to load.
-        section  (str): The section in the .ini file to process
-                        for an action list. Default: None
-
-    Attributes:
-        config  (object): The data from the .ini file as loaded by configparser.
-            This will return a `configparser.ConfigParser` object.
-        section (str): The section from the .ini file that is loaded.
-        actions (dict): The actions that would be processed when apply() is called.
+    Todo:
+        * Update documentation
 
     .. configparser reference:
         https://docs.python.org/3/library/configparser.html
-
-    Todo:
-    1.  We might not want to rely on the `data` object for the parser to just be
-        a free-form dictionary. It might be best to make this a class object that
-        the parser can populate. Something like:
-
-        class ConfigParserEnhancedData(Debuggable, ExceptionControl):
-
-            def __init__(self):
-                pass
-
-            @property
-            def section_data(self):
-                - Provides the `use` equivalent of what happens when ConfigParser
-                  loads multiple files that have the same section names. That is,
-                  the union of all `key:value` pairs where the `last visited key`
-                  is the entry when there are conflicts.
-                - Returns:  { 'section name': {'key': 'value'}, ..., {'key': 'value'} }
-                - Lazy evaluated - if a section name is requested that we have, we return it
-                                   if a section name is requested we don't have, compute it.
-
-            def handler_data(self):
-                - Returns the data that the parser + handlers returns with special processing.
-
-    2.  Create a `generic_handler` handler - which does somethign with entries that don't
-        have a handler defined (i.e., what do we do with key-value pairs that have no 'rule')
-
-    3. document exactly how the handlers should look.
-       - Should these be changed to classes?
-
-
     """
     def __init__(self, filename):
         self.inifilepath = filename
