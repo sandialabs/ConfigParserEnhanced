@@ -49,20 +49,6 @@ class HandlerParameters(object):
         self._section_root = str(value)
         return self._section_root
 
-    #@property
-    #def section(self) -> str:
-        #"""
-        #The current section
-        #"""
-        #if not hasattr(self, '_section'):
-            #self._section = None
-        #return self._section
-
-    #@section.setter
-    #def section(self, value) -> str:
-        #self._section = str(value)
-        #return self._section
-
     @property
     def raw_option(self) -> tuple:
         """
@@ -208,6 +194,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def inifilepath(self) -> list:
+        """
+        Todo:
+            Document this!
+
+        Note:
+            Subclass(es) should not override this.
+        """
         if not hasattr(self, '_inifilepath'):
             raise ValueError("ERROR: The filename has not been specified yet.")
         else:
@@ -223,6 +216,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         3. a `list` of one or more of (1) or (2).
 
         entries in the list will be converted to pathlib.Path objects.
+
+        Note:
+            Subclass(es) should not override this.
         """
         if not isinstance(value, (str,Path,list)):
             raise TypeError("ERROR: .ini filename must be a `str`, a `Path` or a `list` of either.")
@@ -270,6 +266,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             IOError if any of the files in `self.inifilepath` don't
                 exist or are not files.
 
+        Note:
+            Subclass(es) should not override this.
+
         .. configparser reference:
             https://docs.python.org/3/library/configparser.html
         """
@@ -312,6 +311,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def configdata_parsed(self):
+        """
+        Todo:
+            Document meh!
+
+        Note:
+            Subclass(es) should not override this.
+        """
         if not hasattr(self, '_configdata_parsed'):
             self._configdata_parsed = self.ConfigParserEnhancedDataSection(owner=self)
         return self._configdata_parsed
@@ -334,18 +340,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return params
 
 
-    def parser_data_init(self):
-        """
-        Initializer for the data object that gets sent to parser initially.
-
-        Returns:
-            dict containing the 'base' configuration that is empty and ready for
-            for the parser handlers to populate.
-        """
-        output = {}
-        return output
-
-
     @property
     def regex_op_splitter(self) -> str:
         """
@@ -360,6 +354,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         - `get_op1_from_regex_match()`
         - `get_op2_from_regex_match()`
         - `regex_op_matcher()`
+
+        Note:
+            This should not be overridden unless you _really_ know what you're
+            doing since it'll probably also break the parser. Changing this could
+            cascade into a lot of changes.
         """
         if not hasattr(self, '_regex_op_splitter'):
             # regex op splitter to extract op1 and op2, this is pretty complicated so here's the
@@ -489,15 +488,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
-#        handler_parameters = HandlerParameters()                                                    # SCAFFOLDING
-#        handler_parameters.section = section                                                        # SCAFFOLDING
-
         result = self._parse_configuration_r(section)
 
         return result
 
 
-#    def _parse_configuration_r(self, section_name, data=None, processed_sections=None, section_name_root=None) -> dict:
     def _parse_configuration_r(self, section_name, handler_parameters=None, processed_sections=None):
         """
         Recursive driver of the parser.
@@ -517,18 +512,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #          of the search only.
             self.configdata_parsed.sections_checked.add(section_name)
 
-#        handler_parameters.section = section_name
-
         if section_name == None:
-           raise TypeError("ERROR: a section name must not be None.")
+            raise TypeError("ERROR: a section name must not be None.")
 
         self.debug_message(1, "Enter section: `{}`".format(section_name))                           # Console Logging
         self._loginfo_add({'type': 'section-entry', 'name': section_name})                          # Logging
 
-#        if section_name_root is None:
-#            section_name_root = section_name
-#            self.configdata_parsed.sections_checked.add(section_name)
-
+        # Load the section from the configparser.ConfigParser data.
         current_section = None
         try:
             current_section = self.configdata[section_name]
@@ -543,10 +533,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if current_section is None:
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
-#        if data is None:
-#            data = self.parser_data_init()
-#            assert isinstance(data, dict)
-
+        # Initialize and set processed_sections
         if processed_sections == None:
             # Todo: Change this to a set() type
             processed_sections = {}
@@ -567,6 +554,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # Skip entry if we didn't get a match
             if regex_op_splitter_m is None:
                 continue
+                # Todo: This is a BUG! If we can't split the entry we should call the generic
+                # handler... but the generic handler can also be called if we _do_ parse an
+                # operation-like entry but don't have a defined operation.
 
             self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))           # Console
             op1 = self.get_op1_from_regex_match(regex_op_splitter_m)
@@ -627,6 +617,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     def _handler_generic(self, section_name, handler_parameters, processed_sections=None) -> int:
         """
+        Todo: Document meh!
         """
         entry        = handler_parameters.raw_option
         section_root = handler_parameters.section_root
