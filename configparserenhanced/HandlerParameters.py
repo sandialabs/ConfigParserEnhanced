@@ -27,28 +27,52 @@ except ImportError:                                                             
 
 
 class HandlerParameters(object):
-    """
-    Contains the set of parameters that we pass to Handlers.
+    """Contains the set of parameters that we pass to Handlers.
     """
     def __init__(self):
         pass
 
     @property
     def section_root(self) -> str:
+        """Name of the *root* section in section parsing.
+
+        This contains the *root* section when recursively parsing
+        sections in a .ini file by :class:`~.ConfigParserEnhanced`.
+
+        Returns:
+            string: A string containing the *root* section name.
+
+        Raises:
+            TypeError: if the setter fails to convert the assigned value
+            to a string object.
+        """
         if not hasattr(self, '_section_root'):
             self._section_root = None
         return self._section_root
 
     @section_root.setter
     def section_root(self, value) -> str:
-        self._section_root = str(value)
+        try:
+            self._section_root = str(value)
+        except:
+            raise TypeError("String conversion failed for {}".format(value))
         return self._section_root
 
     @property
     def raw_option(self) -> tuple:
-        """
-        This contains a copy of the key:value pair for the current
-        option without editing as a tuple.
+        """Raw copy of the ``(key:value)`` pair from current option.
+
+        This contains a copy of the ``key:value`` pair for the current
+        option without editing as a *tuple*.
+
+        Returns:
+            tuple: A tuple containing the ``key`` and ``value``
+            pairs from the current *option* being processed.
+            The tuple must be of length=2.
+
+        Raises:
+            TypeError: if the value isn't a tuple.
+            ValueError: if the value is a tuple len != 2.
         """
         if not hasattr(self, '_raw_option'):
             self._raw_option = (None, None)
@@ -67,6 +91,15 @@ class HandlerParameters(object):
     def op_params(self) -> tuple:
         """
         Operation parameters for this handler. This must be a tuple of length 2.
+
+        Returns:
+            tuple: A tuple containing the operations extracted from
+                the current operation. This will be ``(op1, op2)``.
+                The tuple must be of length=2.
+
+        Raises:
+            TypeError: if the value isn't a tuple.
+            ValueError: if the value is a tuple len != 2.
         """
         if not hasattr(self, '_op_params'):
             self._op_params = (None, None)
@@ -74,14 +107,6 @@ class HandlerParameters(object):
 
     @op_params.setter
     def op_params(self, value) -> tuple:
-        """
-        Setter for the params property.
-        Must be a tuple of length 2 to properly assign.
-
-        Raises:
-            TypeError if the value isn't a tuple.
-            ValueError if the value is a tuple len != 2.
-        """
         if not isinstance(value, tuple):
             raise TypeError("op_params must be a tuple.")
         if len(value) != 2:
@@ -91,10 +116,18 @@ class HandlerParameters(object):
 
     @property
     def data_shared(self) -> dict:
-        """
-        Shared data for handlers. This entry should be considered
-        persistent across handlers when parsing is run and will
-        contain data and information that
+        """Shared workspace data for handlers.
+
+        This entry should be considered persistent across handlers
+        when parsing is run and will contain data and information that
+        gets added by the various handlers.
+
+        Returns:
+            dict: A dictionary containing the *shared* workspace sent to the handlers in
+            :class:`~configparserenhanced.ConfigParserEnhanced`
+
+        Raises:
+            TypeError: if the type is not a ``dict`` during assignment.
         """
         if not hasattr(self, '_data_shared'):
             self._data_shared = {}
@@ -109,6 +142,23 @@ class HandlerParameters(object):
 
     @property
     def data_internal(self) -> dict:
+        """Internal data structure for recursive section parsing.
+
+        This property is used internally by the section parser in
+        :meth:`~.ConfigParserEnhanced.parse_configuration` to store
+        useful state information as the parser operates.
+
+        Information such as *previously visited sections* during
+        recursion is used to prevent infinite loops if there are
+        cycles present in the ``use <section>:`` entries.
+
+        Returns:
+            dict: A dictionary containing the internal state information for the parser.
+
+        Raises:
+            TypeError: if assignment is attempted by a value
+                that is not a ``dict`` type.
+        """
         if not hasattr(self, '_data_internal'):
             self._data_internal = {}
         return self._data_internal

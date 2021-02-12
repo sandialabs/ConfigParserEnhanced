@@ -7,7 +7,7 @@ The ConfigParserEnhanced provides extended functionality for the `configparser`
 module.
 
 Todo:
-    Fill in file-level docstring
+    * Fill in file-level docstring
 """
 from __future__ import print_function
 
@@ -203,10 +203,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             { 'key A1': 'value A1', 'key B1': 'value B1' }
 
         Returns:
-            A `ConfigParserEnhanced.ConfigParserEnhancedDataSection` object.
-
-        See Also:
-            `ConfigParserEnhanced.ConfigParserEnhancedDataSection` for more information
+            :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedDataSection`
 
         Note:
             Subclass(es) should not override this.
@@ -222,12 +219,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def new_handler_parameters(self) -> HandlerParameters:
-        """
-        Create and return a new HandlerParameters object.
+        """Generate a new :class:`~configparserenhanced.HandlerParameters` object.
 
         This is called inside the parser to generate HandlerParameters.
-        If subclasses extend the HandlerParameters class, this can be
-        overridden.
+        If subclasses extend the :class:`~configparserenhanced.HandlerParameters`
+        class, this can be overridden.
+
+        Returns:
+            :class:`~configparserenhanced.HandlerParameters` object.
         """
         params = HandlerParameters()
         return params
@@ -245,9 +244,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         This is only something you should do if you _really_ understand the
         core parser engine. If this is changed significantly, you will likely also
         need to override the following methods too:
-        - `get_op1_from_regex_match()`
-        - `get_op2_from_regex_match()`
-        - `regex_op_matcher()`
+
+        * :meth:`~ConfigParserEnhanced.get_op1_from_regex_match()`
+        * :meth:`~ConfigParserEnhanced.get_op2_from_regex_match()`
+        * :meth:`~ConfigParserEnhanced.regex_op_matcher()`
 
         Returns:
             re.Pattern: A compiled regular expression pattern.
@@ -299,8 +299,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def regex_op_matcher(self, text):
-        """
-        Executes the regex match operation against `regex_op_splitter`.
+        """Execute the regex match operation for operations.
+
+        Executes the regex match operation using the regex returned by
+        :class:`~ConfigParserEnhanced.regex_op_splitter`.
+
         This method adds the ability to add in extra checks for sanity
         that can be inserted into the parser. If the results of the match
         fails the extra scrutiny, then return None.
@@ -322,8 +325,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def get_op1_from_regex_match(self, regex_match) -> str:
-        """
-        Extracts op1 from the regular expression match groups.
+        """Extracts op1 from the regular expression match groups.
 
         Args:
             regex_match (object): A `re.match()` object.
@@ -343,8 +345,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def get_op2_from_regex_match(self, regex_match) -> str:
-        """
-        Extracts op2 from the regular expression match groups.
+        """Extracts op2 from the regular expression match groups.
 
         Args:
             regex_match (object): A `re.match()` object.
@@ -364,16 +365,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-    def parse_configuration(self, section) -> dict:
-        """
-        Top level parser entry point.
+    def parse_configuration(self, section):
+        """Execute parser operations for the provided *section*.
 
         Args:
             section (str): The section name that will be parsed and retrieved.
 
         Returns:
-            dictionary containing the results of the section parsing. The contents
-            of this depends on the handlers available to the current class.
+            :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
         """
         if not isinstance(section, str):
             raise TypeError("`section` must be a string type.")
@@ -390,9 +389,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return result
 
 
-    def _parse_configuration_r(self, section_name, handler_parameters=None, processed_sections=None):
-        """
-        Recursive driver of the parser.
+    def _parse_configuration_r(self, section_name, handler_parameters=None):
+        """Recursive driver of the parser.
+
+        Args:
+            section_name (str):
+            handler_parameters (object):
+
+        Returns:
+            :attr:`~HandlerParameters.data_shared`
         """
         # initialize handler_parameters if not currently set up.
         if handler_parameters is None:
@@ -682,10 +687,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     class ConfigParserEnhancedDataSection(Debuggable, ExceptionControl):
         """
-        This class is intended to serve as a 'lite' analog to
-        `configparser.ConfigParser` to provide a similar result but with
-        the `ConfigParserEnhanced` class's ability to parse .ini files and
-        follow entries that implement a `use <section naem>:` rule. In
+        This class is intended to serve as a *lite* analog to
+        ``configparser.ConfigParser`` to provide a similar result but with
+        the :class:`~ConfigParserEnhanced` class's ability to parse .ini files and
+        follow entries that implement a ``use <section name>:`` rule. In
         this case, when a section parses through we will return sections with
         all options that *were not* handled by some handler.
 
@@ -705,7 +710,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             use 'SEC A':
             opt1: value1-C
 
-        and we pull the `SEC B` data from it using, say, `options("SEC B")`,
+        and we pull the ``SEC B`` data from it using, say, ``options("SEC B")``,
         the result we should expect is:
 
         .. code-block:: ini
@@ -714,7 +719,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             opt1: value1-A
             opt2: value2-A
 
-        but if we loaded `options("SEC C")` then we should get:
+        but if we loaded ``options("SEC C")`` then we should get:
 
         .. code-block:: ini
 
@@ -722,7 +727,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             opt1: value1-C
             opt2: value1-A
 
-        Since the recursion of the `use` operations is a DFS, when there are
+        Since the recursion of the ``use`` operations is a DFS, when there are
         entries with the same keys, then the 'last one visited' will win.
 
         When we parse a particular section this object the result for a given
@@ -740,7 +745,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             use 'SEC A':
             opt1: value1-B
 
-        The results of `options('SEC A')` and `options('SEC B)` will be different:
+        The results of ``options('SEC A')`` and ``options('SEC B)`` will be different:
 
             >>> options("SEC A")
             [SEC A]
@@ -753,8 +758,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             opt2: value1-A
 
         Note:
-            This _MUST_ be an inner class of `ConfigParserEnhanced` because it
-            contains a 'hook' back to the instance of `ConfigParserEnhanced` in
+            This _MUST_ be an inner class of :class:`~ConfigParserEnhanced` because it
+            contains a 'hook' back to the instance of :class:`~ConfigParserEnhanced` in
             in which this entry exists. This allows us to access the owner's
             state so we can implement our lazy-evaluation and caching schemes.
 
