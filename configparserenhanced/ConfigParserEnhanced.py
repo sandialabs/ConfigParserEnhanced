@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
+ConfigParserEnhanced
+
+The ConfigParserEnhanced provides extended functionality for the `configparser`
+module.
+
 Todo:
     Fill in file-level docstring
 """
@@ -38,13 +43,14 @@ from .HandlerParameters import HandlerParameters
 
 
 class ConfigParserEnhanced(Debuggable, ExceptionControl):
-    """
-    Provides an enhanced version of the `configparser` module which enables some
-    extended processing of the information provided in a `.ini` file.
+    """An enhanced .ini file parser built using configparser.
+
+    Provides an enhanced version of the ``configparser`` module which enables some
+    extended processing of the information provided in a ``.ini`` file.
 
     Todo:
         * Update documentation
-          * Properties should be documented in the `getter` method.
+        * Properties should be documented in the `getter` method.
 
 
     .. configparser reference:
@@ -63,9 +69,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def inifilepath(self) -> list:
-        """
-        This _property_ provides access to the path to the .ini file (or files)
-        that we wish to process using the core `configparser.ConfigParser` module.
+        """list: provides access to the path to the .ini file (or files)
+
+        inifilepath can be set to one of these things:
+        1. a `str` contining a path to a .ini file.
+        2. a `pathlib.Path` object pointing to a .ini file.
+        3. a `list` of one or more of (1) or (2).
+
+        entries in the list will be converted to pathlib.Path objects.
 
         Returns:
             A `list` containing the .ini files that will be processed.
@@ -81,20 +92,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @inifilepath.setter
     def inifilepath(self, value) -> list:
-        """
-        inifilepath can be set to one of these things:
-        1. a `str` contining a path to a .ini file.
-        2. a `pathlib.Path` object pointing to a .ini file.
-        3. a `list` of one or more of (1) or (2).
-
-        entries in the list will be converted to pathlib.Path objects.
-
-        Returns:
-            A `list` containing the .ini files that will be processed.
-
-        Note:
-            Subclass(es) should not override this.
-        """
         if not isinstance(value, (str,Path,list)):
             raise TypeError("ERROR: .ini filename must be a `str`, a `Path` or a `list` of either.")
 
@@ -125,9 +122,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def configdata(self) -> configparser.ConfigParser:
-        """
-        This property provides a link to the raw results from using the configparser
-        class to parse a .ini file.
+        """The raw results to a vanilla configparser processed .ini file.
 
         This property is lazy-evaluated and will be processed the first time it is
         accessed.
@@ -186,8 +181,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def configdata_parsed(self):
-        """
-        This _property_ returns a _parsed_ representation of the configdata that would
+        """Enhanced configdata .ini file information (unhandled key-value pairs).
+
+        This *property* returns a *parsed* representation of the configdata that would
         be loaded from our .ini file. The data in this will return the contents of a
         section plus its parsed results. For example, if we have this in our .ini
         file:
@@ -209,7 +205,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Returns:
             A `ConfigParserEnhanced.ConfigParserEnhancedDataSection` object.
 
-        See:
+        See Also:
             `ConfigParserEnhanced.ConfigParserEnhancedDataSection` for more information
 
         Note:
@@ -238,8 +234,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     @property
-    def regex_op_splitter(self) -> str:
-        """
+    def regex_op_splitter(self) -> re.Pattern:
+        """re.Pattern: Regular expression based key splitter to op(param) pairs.
+
         This parameter stores the regex used to match operation lines in the parser.
 
         We provide this as a property in case a subclass needs to override it.
@@ -251,6 +248,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         - `get_op1_from_regex_match()`
         - `get_op2_from_regex_match()`
         - `regex_op_matcher()`
+
+        Returns:
+            re.Pattern: A compiled regular expression pattern.
 
         Note:
             This should not be overridden unless you _really_ know what you're
@@ -562,7 +562,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             Once we can use Python 3.8 in our environments, we can use the @final decorator
             to mark this as something that should not be overridden. We also have to
             import it: `from typing import final`
-            See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
+
+        See Also:
+            https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         op1,op2 = handler_parameters.op_params
         entry   = handler_parameters.raw_option
@@ -611,7 +613,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             Once we can use Python 3.8 in our environments, we can use the @final decorator
             to mark this as something that should not be overridden. We also have to
             import it: `from typing import final`
-            See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
+
+        See Also:
+            https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if not hasattr(self, '_loginfo'):
             self._loginfo = []
@@ -635,7 +639,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             Once we can use Python 3.8 in our environments, we can use the @final decorator
             to mark this as something that should not be overridden. We also have to
             import it: `from typing import final`
-            See: https://stackoverflow.com/questions/321024/making-functions-non-override-able
+
+        See Also:
+            https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if pretty:
             self.debug_message(1, "Loginfo:")
