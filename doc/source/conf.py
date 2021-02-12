@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -11,15 +13,16 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 from pathlib import Path
+import os
 import sys
 sys.path.append(str(Path.cwd().parent.parent.resolve()))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'ConfigParserEnhanced'
+project   = 'ConfigParserEnhanced'
 copyright = '2021, William McLendon'
-author = 'William McLendon'
+author    = 'William McLendon'
 
 
 # -- General configuration ---------------------------------------------------
@@ -32,6 +35,9 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
     "sphinxarg.ext",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.mathjax",
     "sphinx_rtd_theme",
 ]
 
@@ -56,3 +62,5 @@ html_logo = 'Python_Logo.png'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
