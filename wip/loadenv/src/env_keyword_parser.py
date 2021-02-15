@@ -29,17 +29,17 @@ class EnvKeywordParser:
         qualified_env_name = ekp.qualified_env_name
 
     Parameters:
-        keyword_str (str):  Keyword string to parse environment name from.
+        build_name (str):  Keyword string to parse environment name from.
         system_name (str):  The name of the system this script is being run
             on.
         supported_envs_filename (str, Path):  The name of the file to load
             the supported environment configuration from.
     """
 
-    def __init__(self, keyword_str, system_name, supported_envs_filename):
+    def __init__(self, build_name, system_name, supported_envs_filename):
         self._supported_envs = None
         self.supported_envs_filename = supported_envs_filename
-        self.keyword_str = keyword_str.replace("_", "-")
+        self.build_name = build_name.replace("_", "-")
         self.system_name = system_name
 
         env_names = [_ for _ in self.supported_envs[self.system_name].keys()]
@@ -64,7 +64,7 @@ class EnvKeywordParser:
     @property
     def qualified_env_name(self):
         """
-        Parses the :attr:`keyword_str` and returns the fully qualified
+        Parses the :attr:`build_name` and returns the fully qualified
         environment name that is listed as supported for the current
         :attr:`system_name` in the file :attr:`supported_envs_filename`.
         The way this happens is:
@@ -72,8 +72,8 @@ class EnvKeywordParser:
             * Gather the list of environment names, sorting them from longest
               to shortest.
 
-                 * March through this list, checking if any of these appear in the
-                   :attr:`keyword_str`.
+                 * March through this list, checking if any of these appear in
+                   the :attr:`build_name`.
                  * If an environment name is matched, continue past alias
                    checking.
                  * If not, move on to aliases.
@@ -81,14 +81,15 @@ class EnvKeywordParser:
             * Gather the list of aliases, sorting them from longest to
               shortest.
 
-                 * March through this list, checking if any of these appear in the
-                   :attr:`keyword_str`.
-                 * Get the environment name with :func:`get_env_name_for_alias`.
+                 * March through this list, checking if any of these appear in
+                   the :attr:`build_name`.
+                 * Get the environment name with
+                   :func:`get_env_name_for_alias`.
 
             * Run
               :func:`assert_kw_str_versions_for_env_name_components_are_supported`
               to make sure component versions specified in the
-              :attr:`keyword_str` are supported.
+              :attr:`build_name` are supported.
             * Done
 
         Returns:
@@ -96,14 +97,14 @@ class EnvKeywordParser:
         """
         matched_env_name = None
         for name in self.env_names:
-            if name in self.keyword_str:
+            if name in self.build_name:
                 matched_env_name = name
                 break
 
         if matched_env_name is None:
             matched_alias = None
             for alias in self.aliases:
-                if alias in self.keyword_str:
+                if alias in self.build_name:
                     matched_alias = alias
                     break
 
@@ -111,7 +112,7 @@ class EnvKeywordParser:
                 err_msg = self.get_err_msg_showing_supported_environments(
                     "Unable to find alias or environment name for system "
                     f"'{self.system_name}' in\nkeyword string "
-                    f"'{self.keyword_str}'"
+                    f"'{self.build_name}'"
                 )
                 sys.exit(err_msg)
 
@@ -413,19 +414,19 @@ class EnvKeywordParser:
             intel-19.0.4-mpich-7.7.6:
                 intel-19
 
-        Now consider ``keyword_str = 'intel-20'``. The usual method for
+        Now consider ``build_name = 'intel-20'``. The usual method for
         matching the environment name would find that `intel` is in the
-        :attr:`keyword_str`, and subsequently match the
+        :attr:`build_name`, and subsequently match the
         :attr:`qualified_env_name` as ``intel-18.0.5-mpich-7.7.6``. This method
-        matches ``intel-20`` in the :attr:`keyword_str` and checks if it exists
+        matches ``intel-20`` in the :attr:`build_name` and checks if it exists
         in any of the supported environment names. Since `intel-20` does not,
         an exception is raised.
 
-        Similarly, consider ``keyword_str = 'intel-19-mpich-7.2'``. The usual
-        method would find that ``intel-19`` is in the :attr:`keyword_str`, and
+        Similarly, consider ``build_name = 'intel-19-mpich-7.2'``. The usual
+        method would find that ``intel-19`` is in the :attr:`build_name`, and
         match the :attr:`qualified_env_name` as ``intel-19.0.4-mpich-7.7.6``.
         This method matches both ``intel-19`` and ``mpich-7.2`` in the
-        :attr:`keyword_str` and checks if both exist in any of the supported
+        :attr:`build_name` and checks if both exist in any of the supported
         environment names.  Since ``mpich-7.2`` does not, an exception is
         raised.
 
@@ -439,7 +440,7 @@ class EnvKeywordParser:
                 arm-21.0-openmpi-4.0.3:
                     arm-20.1
 
-        If we have ``keyword_str = 'arm-21.0-openmpi-4.0.2``, this method
+        If we have ``build_name = 'arm-21.0-openmpi-4.0.2``, this method
         would see that this version combination of ``arm`` and ``openmpi`` is
         not supported and raise an exception.
 
@@ -450,7 +451,7 @@ class EnvKeywordParser:
         matched_components = matched_env_name.split("-")
         regex_list = [f"{mc}[^A-Z^a-z]*" for mc in matched_components]
         versioned_components = re.findall(
-            f"({'|'.join(regex_list)})(?:-|$)", self.keyword_str
+            f"({'|'.join(regex_list)})(?:-|$)", self.build_name
         )
         # Regex Explanation
         # =================
