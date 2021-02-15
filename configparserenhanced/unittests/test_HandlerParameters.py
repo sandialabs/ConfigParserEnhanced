@@ -77,6 +77,11 @@ class HandlerParametersTest(TestCase):
         self.assertEqual(hp.section_root, None,
                          "default `section_root` should be: {}".format(expected))
 
+        # Verify the type checking on the setter
+        # - Setter only allows string types to be assigned.
+        with self.assertRaises(TypeError):
+            hp.section_root = None
+
 
     def test_HandlerParameters_property_raw_option(self):
         """

@@ -119,6 +119,23 @@ class ExceptionControl(object):
         Returns:
             None
         """
+        def _is_raisable(exception):
+            """
+            Inner helper function
+            """
+            try:
+                raise exception
+            except:
+                exc_type, exc = sys.exc_info()[:2]
+
+                if exc is exception or exc_type is exception:
+                    return True
+                elif exc_type is TypeError:
+                    return False                                                                    # pragma: no cover
+                else:
+                    # re-raise other exceptions such as KeyboardInterrupt, etc.
+                    raise                                                                           # pragma: no cover
+
         event_type = str(event_type).upper()
 
         event_type_to_exception_control_level_map = {
@@ -128,7 +145,7 @@ class ExceptionControl(object):
             "CRITICAL": 2,
         }
 
-        if not isinstance(exception_type, Exception):
+        if not _is_raisable(exception_type):
             raise TypeError("The exception type must be some kind of `Exception`.")
 
         req_exception_control_level = event_type_to_exception_control_level_map[event_type]
@@ -152,4 +169,10 @@ class ExceptionControl(object):
                 sys.stdout.flush()
 
         return
+
+
+
+
+
+
 

@@ -375,6 +375,43 @@ class ExceptionControlTest(TestCase):
         print("OK")
 
 
+    def test_ExceptionControl_method_exception_control_event_badexception(self):
+
+        class testme(ExceptionControl):
+            def __init__(self):
+                pass
+                return
+
+            def event_warning(self):
+                inst_testme.exception_control_event("WARNING", int, message="message text")
+
+            def event_minor(self):
+                inst_testme.exception_control_event("MINOR", None, message="message text")
+
+            def event_serious(self):
+                inst_testme.exception_control_event("SERIOUS", float, message="message text")
+
+            def event_critical(self):
+                inst_testme.exception_control_event("CRITICAL", None, message="message text")
+
+
+        inst_testme = testme()
+
+
+        for level in range(6):
+            inst_testme.exception_control_level = level
+            with self.assertRaises(TypeError):
+                inst_testme.event_warning()
+
+            with self.assertRaises(TypeError):
+                inst_testme.event_minor()
+
+            with self.assertRaises(TypeError):
+                inst_testme.event_serious()
+
+            with self.assertRaises(TypeError):
+                inst_testme.event_critical()
+
 
 # EOF
 

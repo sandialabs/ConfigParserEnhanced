@@ -34,8 +34,6 @@ In this way, we can customize our processing by subclassing
 ConfigParserEnhanced and defining our own handler methods.
 
 
-
-
 :Authors:
     William C. McLendon III
 :Version: 0.0.1-alpha
@@ -426,6 +424,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Returns:
             :attr:`~HandlerParameters.data_shared`
         """
+        if section_name == None:
+            raise TypeError("ERROR: a section name must not be None.")
+
         # initialize handler_parameters if not currently set up.
         if handler_parameters is None:
             handler_parameters = self.new_handler_parameters()
@@ -445,9 +446,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #          of the search only.
             self.configdata_parsed.sections_checked.add(section_name)
 
-        if section_name == None:
-            raise TypeError("ERROR: a section name must not be None.")
-
         self.debug_message(1, "Enter section: `{}`".format(section_name))                           # Console Logging
         self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
 
@@ -460,9 +458,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise KeyError(message)
 
         # Verify that we actually got a section returned. If not, raise a KeyError.
-        # (wcm) This might not be reachable given the KeyError check.
-        #       It's probably not a bad idea to hang onto it for now, but maybe mark with
-        #       a #pragma no cover?
+        # - Might not be reachable but let's keep this in place for now.
         if current_section is None:
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 

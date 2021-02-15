@@ -52,10 +52,9 @@ class HandlerParameters(object):
 
     @section_root.setter
     def section_root(self, value) -> str:
-        try:
-            self._section_root = str(value)
-        except:
+        if not isinstance(value, (str)):
             raise TypeError("String conversion failed for {}".format(value))
+        self._section_root = value
         return self._section_root
 
     @property
