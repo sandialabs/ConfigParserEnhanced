@@ -30,20 +30,22 @@ class Debuggable(object):
     the more _verbose_ / _detailed_ the messages will be.
 
     Note:
-        Normal operation of codes will have a debug_level of 0.
-
-        debug_level (int):
-
-    Todo:
-        This should be moved to its own class file / project so it can be
-        reused for other components of our framework.
+        Normal operation of codes will have a debug_level of 0, which would
+        not print out extra debugging information.
     """
 
     @property
     def debug_level(self) -> int:
-        """int: Sets the debugging level we'll be using for an instance
-            of the class. This can be any integer > 0. If a negative number is
-            assigned 0. *Default = 0*
+        """The ``debug_level`` of the class.
+
+        The *debug_level* is used by various functions to control the level
+        of detail provided during an execution.  Values should be positive
+        and range from 0 to *intmax*, where the higher the value the more
+        *detailed* the information is.
+
+        Returns:
+            int: The ``debug_level`` setting. If none has been set, the default
+            of 0 is used.
         """
         if not hasattr(self, '_debug_level'):
             self._debug_level = 0
@@ -60,11 +62,11 @@ class Debuggable(object):
         """Optionally prints a message based on the debug_level setting.
 
         A simple wrapper to ``print()`` which optionally prints out a message
-        based on the current ``debug_level``. If ``debug_level`` is > 0 then an
+        based on the current *debug_level*. If *debug_level* is > 0 then an
         annotation is prepended to the message that indicates what level of
         debugging triggers this message.
 
-        If ``debug_level`` is > 0, we will also force a stdout flush once the
+        If *debug_level* is > 0, we will also force a stdout flush once the
         command has completed.
 
         Args:
@@ -74,10 +76,10 @@ class Debuggable(object):
                 level annotation to the message so that it will appear the same as
                 a basic ``print()`` message.
             message (str): This is the message that will be printed.
-            end (str): This allows us to override the line-ending. *Default = "\n"*.
-            useprefix (bool): If enabled and ``debug_level`` is > 0 then a prefix
-                of ``[D-{debug_level}] `` will be prepended to the message when
-                printed. *Default = True*.
+            end (str): This allows us to override the line-ending.
+            useprefix (bool): If enabled and *debug_level* is > 0 then a prefix
+                of ``[D-{debug_level}]`` will be prepended to the message to
+                indicate the *debug_level* that triggers this message.
 
         Returns:
             None
@@ -88,7 +90,9 @@ class Debuggable(object):
                 if useprefix:
                     prefix = "[D-{}] ".format(debug_level)
                 message = "{}{}".format(prefix, message)
+
             print(message, end=end)
+
             if debug_level > 0:
                 sys.stdout.flush()
         return

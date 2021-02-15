@@ -1,5 +1,5 @@
 HandlerParameters
-====================
+=================
 
 .. automodule:: configparserenhanced.HandlerParameters
    :members:

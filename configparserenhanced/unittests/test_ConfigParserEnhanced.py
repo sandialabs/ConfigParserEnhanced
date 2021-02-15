@@ -718,7 +718,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser.exception_control_level = 0
         data = parser.parse_configuration(section)
 
-        inst = ConfigParserEnhanced.ConfigParserEnhancedDataSection(parser)
+        inst = ConfigParserEnhanced.ConfigParserEnhancedData(parser)
 
         # Trigger the 'None' default option for owner (when it doesn't exist)
         delattr(inst, '_owner')

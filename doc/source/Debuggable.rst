@@ -1,5 +1,5 @@
 Debuggable
-====================
+==========
 
 .. automodule:: configparserenhanced.Debuggable
    :members:

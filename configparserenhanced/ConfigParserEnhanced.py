@@ -1,13 +1,45 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-ConfigParserEnhanced
-
 The ConfigParserEnhanced provides extended functionality for the `configparser`
-module.
+module. This class enables configurable parsing of .ini files by splitting
+the **key** portion of an option in a configuration section into an **operation**
+and a **parameter**.  For example, given this .ini file:
 
-Todo:
-    * Fill in file-level docstring
+
+.. code-block:: ini
+    :linenos:
+
+    [SECTION_NAME]
+    key: value
+    operation parameter: optional value
+    operation parameter uniquestr: optional value
+
+The built-in parser will process each OPTION (``key:value`` pairs)
+in-order within a SECTION. During the parsing process we attempt to
+split the *key* field into two pieces consisting of an *operation*
+and a *parameter*.
+
+If there is a **handler method** associated with the **operation**
+field that is extracted then the parser will call that handler.
+Handlers are added as methods named like ``_handler_<operation>()``
+and will be called if they exist.  For example, if the **operation**
+field resolves to ``use``, then the parser looks for a method called
+``_handler_use()``.
+
+If the handler exists, then it is invoked. Otherwise the parser treats
+the OPTION field as a generic **key:value** pair as normal.
+
+In this way, we can customize our processing by subclassing
+ConfigParserEnhanced and defining our own handler methods.
+
+
+
+
+:Authors:
+    William C. McLendon III
+:Version: 0.0.1-alpha
+
 """
 from __future__ import print_function
 
@@ -47,11 +79,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     Provides an enhanced version of the ``configparser`` module which enables some
     extended processing of the information provided in a ``.ini`` file.
-
-    Todo:
-        * Update documentation
-        * Properties should be documented in the `getter` method.
-
 
     .. configparser reference:
         https://docs.python.org/3/library/configparser.html
@@ -203,13 +230,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             { 'key A1': 'value A1', 'key B1': 'value B1' }
 
         Returns:
-            :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedDataSection`
+            :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData`
 
         Note:
             Subclass(es) should not override this.
         """
         if not hasattr(self, '_configdata_parsed'):
-            self._configdata_parsed = self.ConfigParserEnhancedDataSection(owner=self)
+            self._configdata_parsed = self.ConfigParserEnhancedData(owner=self)
         return self._configdata_parsed
 
 
@@ -530,6 +557,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 0     : SUCCESS
                 [1-10]: Reserved for future use (WARNING)
                 > 10  : An unknown failure occurred (SERIOUS)
+
+        Note:
+            This handler implements a 'last one wins' strategy for handling
+            key naming conflicts. We simply overrwite the existing key in
+            ``configdata_parsed`` when conflicts occur. If one wanted to
+            raise an excpetion on a key conflcit we'd need to override this
+            method and add that.
         """
         entry        = handler_parameters.raw_option
         section_root = handler_parameters.section_root
@@ -537,6 +571,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.debug_message(1, "Enter handler: _handler_generic")                                    # Console
         self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
         self._loginfo_add('handler-entry', {'name': '_handler_generic', 'entry': entry})            # Logging
+
+        # Note: this generic handler implements a 'last one wins' strategy for
+        #       handling
 
         self.configdata_parsed.set(section_root, entry[0], entry[1])
 
@@ -685,8 +722,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # ===========================================================
 
 
-    class ConfigParserEnhancedDataSection(Debuggable, ExceptionControl):
-        """
+    class ConfigParserEnhancedData(Debuggable, ExceptionControl):
+        """ConfigParserEnhancedData
+
         This class is intended to serve as a *lite* analog to
         ``configparser.ConfigParser`` to provide a similar result but with
         the :class:`~ConfigParserEnhanced` class's ability to parse .ini files and
@@ -761,16 +799,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             This _MUST_ be an inner class of :class:`~ConfigParserEnhanced` because it
             contains a 'hook' back to the instance of :class:`~ConfigParserEnhanced` in
             in which this entry exists. This allows us to access the owner's
-            state so we can implement our lazy-evaluation and caching schemes.
-
-        Todo:
-            We might revise the 'last one wins' strategy for handling instances
-            where the same key exists multiple times to instead throw an error.
-            The 'last one wins' is in line with the default `configparser` behaviour
-            when loading a set of .ini files -- if two files have the same section
-            in them, the result section in the data will be the union of all the options
-            from both with conflicting keys containing the value from the _last_ .ini
-            file in the list.
+            state so we can implement our lazy-evaluation and caching schemes. When
+            an intance of ConfigParserEnhanced accesses a section via the ``configdata_parsed``
+            property, the parser will be invoked on this section to generate the result.
         """
         def __init__(self, owner=None):
             self.owner = owner
