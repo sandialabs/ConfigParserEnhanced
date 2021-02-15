@@ -103,7 +103,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 0
         parser.exception_control_level = 0
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
 
         print("OK")
 
@@ -147,7 +147,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 1
 
-        parser.parse_configuration(section)
+        parser.parse_section(section)
 
         self.assertIsInstance(parser._loginfo, list)
         self.assertIsInstance(parser._configdata, configparser.ConfigParser)
@@ -240,7 +240,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(filename=self._filename)
         parser.debug_level = 5
 
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
         print(data)
 
         results_expected = [ ('op1', None),
@@ -283,7 +283,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(filename=self._filename)
         parser.debug_level = 5
 
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
 
         parser._loginfo_print(pretty=True)
 
@@ -347,7 +347,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(filename=self._filename)
         parser.debug_level = 5
 
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
 
         parser._loginfo_print(pretty=True)
 
@@ -382,7 +382,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         parser = ConfigParserEnhanced(self._filename)
 
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
 
         print("OK")
 
@@ -455,9 +455,9 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
-    def test_ConfigParserEnhanced_parse_configuration_launch(self):
+    def test_ConfigParserEnhanced_parse_section_launch(self):
         """
-        Test the `section` parameter checks to `parse_configuration()`.
+        Test the `section` parameter checks to `parse_section()`.
         """
         parser = ConfigParserEnhanced(filename=self._filename)
         parser.debug_level = 5
@@ -468,7 +468,7 @@ class ConfigParserEnhancedTest(TestCase):
         print("Load file  : {}".format(self._filename))
         print("section    : {}".format(section))
         with self.assertRaises(TypeError):
-            data = parser.parse_configuration(section)
+            data = parser.parse_section(section)
 
         # Trigger a ValueError if `section` is an empty string.
         section = ""
@@ -476,9 +476,9 @@ class ConfigParserEnhancedTest(TestCase):
         print("Load file  : {}".format(self._filename))
         print("section    : {}".format(section))
         with self.assertRaises(ValueError):
-            data = parser.parse_configuration(section)
+            data = parser.parse_section(section)
 
-        # Test that calling parse_configuration will reset _loginfo
+        # Test that calling parse_section will reset _loginfo
         # (whitebox)
         section = "SECTION-A"
         print("\n")
@@ -486,13 +486,13 @@ class ConfigParserEnhancedTest(TestCase):
         print("section    : {}".format(section))
         parser._loginfo = [ 1, 2, 3 ]
 
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
         self.assertNotEqual(parser._loginfo, [1,2,3])
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_parse_configuration_handler_fail_01(self):
+    def test_ConfigParserEnhanced_parse_section_handler_fail_01(self):
         """
         Test that we trigger the failure check if a handler returns a
         nonzero value. This test requires us to derive a subclass of
@@ -513,7 +513,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser.debug_level = 5
         parser.exception_control_level = 5
 
-        # Test that calling parse_configuration will reset _loginfo
+        # Test that calling parse_section will reset _loginfo
         # (whitebox)
         section = "HANDLER_FAIL_TEST"
         print("\n")
@@ -522,12 +522,12 @@ class ConfigParserEnhancedTest(TestCase):
         parser._loginfo = [ 1, 2, 3 ]
 
         with self.assertRaises(RuntimeError):
-            data = parser.parse_configuration(section)
+            data = parser.parse_section(section)
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_parse_configuration_handler_fail_11(self):
+    def test_ConfigParserEnhanced_parse_section_handler_fail_11(self):
         """
         Test that we trigger the failure check if a handler returns a
         nonzero value. This test requires us to derive a subclass of
@@ -548,7 +548,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser.debug_level = 5
         parser.exception_control_level = 5
 
-        # Test that calling parse_configuration will reset _loginfo
+        # Test that calling parse_section will reset _loginfo
         # (whitebox)
         section = "HANDLER_FAIL_TEST"
         print("\n")
@@ -557,12 +557,12 @@ class ConfigParserEnhancedTest(TestCase):
         parser._loginfo = [ 1, 2, 3 ]
 
         with self.assertRaises(RuntimeError):
-            data = parser.parse_configuration(section)
+            data = parser.parse_section(section)
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_parse_configuration_HandlerParameters_badtype(self):
+    def test_ConfigParserEnhanced_parse_section_HandlerParameters_badtype(self):
         """
         Test that an overridden `new_handler_parameters()` method will
         trigger an error in the parser if it doesn't return a `HandlerParameters`
@@ -588,15 +588,15 @@ class ConfigParserEnhancedTest(TestCase):
         # if this method generates a HandlerParameters (or a subclass of HandlerParameters)
         # object.
         with self.assertRaises(TypeError):
-            data = parser.parse_configuration(section)
+            data = parser.parse_section(section)
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_parseconfiguration_r_section_None(self):
+    def test_ConfigParserEnhanced_assert_parsesection_r_section_None(self):
         """
         Tests that a TypeError will be thrown if the `section` paramter is set to
-        `None` when calling `_parse_configuration_r`.
+        `None` when calling ``_parse_section_r``.
 
         This is unlikely to happen from the top-level call -- it's more likely to happen
         if we mess up something in the recursion (i.e., a handler tries to invoke recursion
@@ -612,12 +612,12 @@ class ConfigParserEnhancedTest(TestCase):
         parser.debug_level = 1
 
         with self.assertRaises(TypeError):
-            parser._parse_configuration_r(None)
+            parser._parse_section_r(None)
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_parseconfiguration_r_section_missing(self):
+    def test_ConfigParserEnhanced_assert_parsesection_r_section_missing(self):
         """
         Test a `KeyError` that should get thrown if the recursive parser
         is given a section name that does not exist.
@@ -632,12 +632,12 @@ class ConfigParserEnhancedTest(TestCase):
         parser.debug_level = 1
 
         with self.assertRaises(KeyError):
-            parser._parse_configuration_r('blah blah blah')
+            parser._parse_section_r('blah blah blah')
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_assert_parseconfiguration_r_op_bad_char(self):
+    def test_ConfigParserEnhanced_assert_parsesection_r_op_bad_char(self):
         """
         This is a test to get a coverage line forced. The parser will skip over
         lines that don't properly parse.
@@ -653,7 +653,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 1
-        parser.parse_configuration(section)
+        parser.parse_section(section)
 
         print("OK")
 
@@ -672,7 +672,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 1
         parser.exception_control_level = 0
-        #data = parser.parse_configuration(section)
+        #data = parser.parse_section(section)
 
         # entry must be a dict type. Throw TypeError if it isn't.
         with self.assertRaises(TypeError):
@@ -695,7 +695,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 1
         parser.exception_control_level = 0
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
 
         parser._loginfo_print()
 
@@ -716,7 +716,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 0
         parser.exception_control_level = 0
-        data = parser.parse_configuration(section)
+        data = parser.parse_section(section)
 
         inst = ConfigParserEnhanced.ConfigParserEnhancedData(parser)
 

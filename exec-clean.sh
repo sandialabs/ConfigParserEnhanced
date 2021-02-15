@@ -6,5 +6,6 @@ find . -name ".DS_Store" -exec rm {} \;
 find . -name "._.DS_Store" -exec rm {} \;
 
 rm -rf build
-rm -rf htmlcov
+rm -rf tests/htmlcov
+rm -rf doc/html
 

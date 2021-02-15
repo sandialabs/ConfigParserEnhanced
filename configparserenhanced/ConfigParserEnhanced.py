@@ -390,7 +390,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-    def parse_configuration(self, section):
+    def parse_section(self, section):
         """Execute parser operations for the provided *section*.
 
         Args:
@@ -409,12 +409,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
-        result = self._parse_configuration_r(section)
+        result = self._parse_section_r(section)
 
         return result
 
 
-    def _parse_configuration_r(self, section_name, handler_parameters=None):
+    def _parse_section_r(self, section_name, handler_parameters=None):
         """Recursive driver of the parser.
 
         Args:
@@ -611,7 +611,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.debug_message(1, "Enter handler: _handler_use ({} -> {})".format(section_name, op2))   # Console
 
         if op2 not in handler_parameters.data_internal['processed_sections']:
-            self._parse_configuration_r(op2, handler_parameters)
+            self._parse_section_r(op2, handler_parameters)
         else:
             self._loginfo_add('cycle-detected', {'sec-src': section_name, 'sec-dst': op1})          # Logging
             self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})             # Logging
@@ -971,7 +971,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if self.owner != None:
                 self.set_owner_options()
                 self.sections_checked.add(section)
-                self.owner.parse_configuration(section)
+                self.owner.parse_section(section)
 
 
 
