@@ -114,6 +114,30 @@ class HandlerParameters(object):
         return self._op_params
 
     @property
+    def value(self) -> str:
+        """The value vield of an option.
+
+        This is the *value* field from a given option form a .ini
+        file of the form: ``key: value``.
+
+        If there was no value provided then this should return an
+        empty string.
+
+        Returns:
+            string: containing the value from the field.
+        """
+        if not hasattr(self, '_value'):
+            self._value = ""
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if not isinstance(value, (str)):
+            raise TypeError("Value must be a `str` type.")
+        self._value = value
+        return self._value
+
+    @property
     def data_shared(self) -> dict:
         """Shared workspace data for handlers.
 
@@ -169,5 +193,20 @@ class HandlerParameters(object):
         self._data_internal = value
         return self._data_internal
 
+    @property
+    def handler_name(self) -> str:
+        """The handler name for a given operation.
 
+        Returns:
+            string: containing the value from the field.
+        """
+        if not hasattr(self, '_handler_name'):
+            self._handler_name = ""
+        return self._handler_name
 
+    @handler_name.setter
+    def handler_name(self, handler_name):
+        if not isinstance(handler_name, (str)):
+            raise TypeError("handler_name must be a `str` type.")
+        self._handler_name = handler_name
+        return self._handler_name

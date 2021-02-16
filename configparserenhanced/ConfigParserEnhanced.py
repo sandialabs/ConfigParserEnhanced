@@ -78,12 +78,21 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     Provides an enhanced version of the ``configparser`` module which enables some
     extended processing of the information provided in a ``.ini`` file.
 
-    .. configparser reference:
-        https://docs.python.org/3/library/configparser.html
-    .. docstrings style reference:
-        https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html
+    See Also:
+        - `configparser reference <https://docs.python.org/3/library/configparser.html>`_
+        - `docstrings style guide <https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html>`_
+        - `regex tester <https://regexr.com/>`_
     """
     def __init__(self, filename):
+        """Constructor
+
+        Args:
+            filename (str,Path,list): The .ini file or files to be loaded. If a string
+                or Path is provided then we load only the one file. A *list* of strings
+                or Paths can also be provided which will be loaded by *configparser*'s
+                `read <https://docs.python.org/3/library/configparser.html#configparser.ConfigParser.read>`_
+                method.
+        """
         self.inifilepath = filename
 
 
@@ -312,8 +321,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #     In both cases, op1 = 'envvar-prepend' and op2 = 'PATH' but the addition of the
             #     'A' and 'B' will differentiate these keys from the configparser's perspective.
             #  - Note: This comment information should find its way into the docs sometime.
-            # regex_string = r"^([\w\d\-_]+)( '([\w\d\-_ ]+)'| ([\w\d\-_]+)(?: .*)*)?"   # (old and busted)
-            regex_string = r"^([\w\d\-_]+) ?('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
+            #regex_string = r"^([\w\d\-_]+) ?('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
+            regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
             #                  ^^^^^^^^^^    ^^^^^^^^^^^^^    ^^^^^^^^^^
             #                      \              \                \-- op3 : group 3
             #                       \              \--- op2 : group 2
@@ -365,7 +374,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         output = str(regex_match.groups()[0])
         output = output.strip()
-        output = output.replace('-','_')
         return output
 
 
@@ -390,7 +398,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-    def parse_section(self, section):
+    def parse_section(self, section, finalize=True):
         """Execute parser operations for the provided *section*.
 
         Args:
@@ -409,17 +417,20 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
-        result = self._parse_section_r(section)
+        result = self._parse_section_r(section, finalize=finalize)
 
         return result
 
 
-    def _parse_section_r(self, section_name, handler_parameters=None):
+    def _parse_section_r(self, section_name, handler_parameters=None, finalize=True):
         """Recursive driver of the parser.
 
         Args:
             section_name (str):
             handler_parameters (object):
+            finalize (bool): If enabled _and_ this level of recursion is the ROOT
+                level then we will call ``_handler_finalize()`` to wrap up the
+                recursion.
 
         Returns:
             :attr:`~HandlerParameters.data_shared`
@@ -470,6 +481,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             sec_v = str(sec_v).strip()
             sec_v = sec_v.strip('"')
             handler_parameters.raw_option = (sec_k, sec_v)
+            handler_parameters.value = sec_v
 
             self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
             self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
@@ -484,6 +496,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 # Call the generic handler if the key:value pair fails to produce a regex match.
 
                 self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
+                handler_parameters.handler_name = "_handler_generic"
                 handler_rval = self._handler_generic(section_name, handler_parameters)
 
             else:
@@ -500,33 +513,37 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._loginfo_add('section-operands', {'op1': op1, 'op2': op2})                     # Logging
                 self.debug_message(2, "- op1: {}".format(op1))                                      # Console
                 self.debug_message(2, "- op2: {}".format(op2))                                      # Console
+                self.debug_message(2, "- val: {}".format(handler_parameters.value))
 
                 # Generate handler name and check if we have one defined.
-                handler_name = "_handler_{}".format(op1)
+                handler_name = self._convert_op1_to_handlername(op1)
                 ophandler_f = getattr(self, handler_name, None)
 
                 # Call the appropriate 'handler' for this entry.
                 if ophandler_f is not None:
                     # Call the computed handler for the detected operation.
+                    handler_parameters.handler_name = handler_name
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
                     # Call the generic handler to update the 'generic' view
                     # of the (all key:value pairs that don't map to any other handlers)
+                    handler_parameters.handler_name = "_handler_generic"
                     handler_rval = self._handler_generic(section_name, handler_parameters)
+                    # Todo: consider making a 'handler wrapper' to actually make the call
+                    #       which makes sure we set the handler_name parameter?
 
             # Check the return code from the handler
-            if handler_rval == 0:
-                pass
-            elif handler_rval <= 10:
-                # These rvals are currently reserved. If someone uses it we should
-                # throw a critical error to get the developers' attention to either
-                # expand rval handling or users should use something > 10.
-                self.exception_control_event("WARNING", RuntimeError,
-                                             "Handler `{}` returned {}".format(handler_name, handler_rval))
-            elif handler_rval > 10:
-                self.exception_control_event("SERIOUS", RuntimeError,
-                                             "Handler `{}` returned {}".format(handler_name, handler_rval))
+            self._check_handler_rval(handler_parameters.handler_name, handler_rval)
 
+        # If we're exiting recursion from the root node and and finalize is enabled, we call
+        # the finalize handler.
+        if finalize and section_name == handler_parameters.section_root:
+            handler_finalize_params = HandlerParameters()
+            handler_finalize_params.handler_name = "_handler_finalize"
+            handler_finalize_params.data_shared  = handler_parameters.data_shared
+            handler_rval = self._handler_finalize(section_name, handler_finalize_params)
+
+            self._check_handler_rval("_handler_finalize", handler_rval)
 
         # Remove the section from the `processed_sections` field when we exit.
         # - This properly enables a true DFS of `use` links.
@@ -536,6 +553,59 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.debug_message(1, "Exit section: `{}`".format(section_name))                            # Console
 
         return handler_parameters.data_shared
+
+
+    def _convert_op1_to_handlername(self, op1) -> str:
+        """Convert op1 to a valid handler name
+
+        Args:
+            op1 (str): The operation parameter that is converted to
+                a proper handler name of the form ``_handler_{op1}()``
+
+        Returns:
+            string: A string containing the generated handler name that
+                the parser will search for.
+
+        Todo:
+            Generate a validation step to verify that the generated function name
+            is a valid function name (i.e, must not use any illegal characters).
+        """
+        if not isinstance(op1, (str)):
+            # This is probably not reachable. Add a '# pragma: no cover' ?
+            raise TypeError("op1 must be a string!")
+
+        output = op1
+        output = output.replace('-','_')
+        output = "_handler_{}".format(output)
+        return output
+
+
+    def _check_handler_rval(self, handler_name, handler_rval):
+        """Check the returned value from a handler.
+
+        Args:
+            handler_name (string): The name of the handler.
+            handler_rval (int): The return value from a handler to be processed.
+
+        Returns:
+            None
+
+        Raises:
+            RuntimeError might be raised if handler_rval is > 0 and the exception_control_level
+                is high enough depending onthe value of handler_rval.
+        """
+        if handler_rval == 0:
+            pass
+        elif handler_rval <= 10:
+            # These rvals are currently reserved. If someone uses it we should
+            # throw a critical error to get the developers' attention to either
+            # expand rval handling or users should use something > 10.
+            self.exception_control_event("WARNING", RuntimeError,
+                                         "Handler `{}` returned {}".format(handler_name, handler_rval))
+        elif handler_rval > 10:
+            self.exception_control_event("SERIOUS", RuntimeError,
+                                         "Handler `{}` returned {}".format(handler_name, handler_rval))
+        return
 
 
     # --------------------
@@ -563,18 +633,19 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         entry        = handler_parameters.raw_option
         section_root = handler_parameters.section_root
+        handler_name = handler_parameters.handler_name
 
-        self.debug_message(1, "Enter handler: _handler_generic")                                    # Console
+        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
         self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': '_handler_generic', 'entry': entry})            # Logging
+        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
 
         # Note: this generic handler implements a 'last one wins' strategy for
         #       handling
 
         self.configdata_parsed.set(section_root, entry[0], entry[1])
 
-        self.debug_message(1, "Exit handler: _handler_generic")                                     # Console
-        self._loginfo_add('handler-exit', {'name': '_handler_generic', 'entry': entry})             # Logging
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
         return 0
 
 
@@ -604,17 +675,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         See Also:
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
-        op1,op2 = handler_parameters.op_params
-        entry   = handler_parameters.raw_option
+        op1,op2      = handler_parameters.op_params
+        entry        = handler_parameters.raw_option
+        handler_name = handler_parameters.handler_name
 
-        self._loginfo_add('handler-entry', {'name': '_handler_use', 'entry': entry})                # Logging
-        self.debug_message(1, "Enter handler: _handler_use ({} -> {})".format(section_name, op2))   # Console
+        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
+        self.debug_message(1, "Enter handler: {} ({} -> {})".format(handler_name,section_name, op2))# Console
 
         if op2 not in handler_parameters.data_internal['processed_sections']:
-            self._parse_section_r(op2, handler_parameters)
+            self._parse_section_r(op2, handler_parameters, finalize=False)
         else:
             self._loginfo_add('cycle-detected', {'sec-src': section_name, 'sec-dst': op1})          # Logging
-            self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})             # Logging
+            self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})               # Logging
 
             message  = "Detected a cycle in `use` dependencies in .ini file.\n"
             message += "- cannot load [{}] from [{}].".format(op2, section_name)
@@ -622,14 +694,49 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             return 0
 
-        self._loginfo_add('handler-exit', {'name': '_handler_use', 'entry': entry})                 # Logging
-        self.debug_message(1, "Exit handler: _handler_use ({} -> {})".format(section_name, op2))    # Console
+        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
+        self.debug_message(1, "Exit handler: {} ({} -> {})".format(handler_name,section_name, op2)) # Console
         return 0
 
 
-    # --------------------
-    #   L O G I N F O
-    # --------------------
+    def _handler_finalize(self, section_name, handler_parameters) -> int:
+        """Finalize a recursive parse search.
+
+        This handler is called at the end of a search and can be used
+        to *finalize* processing of config.ini sections or save / cache
+        data from the search that other handlers added to
+        ``handler_parameters.data_shared``.
+
+        For this handler, the ``handler_parameters`` entries will only populate
+        the ``handler_name`` and ``data_shared`` properties.
+
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
+
+        Todo:
+            Test that we really only call this once at the end of recursion,
+            even when having multiple 'use' entries.
+        """
+        handler_name = handler_parameters.handler_name
+
+        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
+        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
+        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+
+        # subclasses can add custom code here.
+
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        return 0
+
+
+    # -----------------
+    #   H E L P E R S
+    # -----------------
 
 
     def _loginfo_add(self, typeinfo, entry) -> None:
@@ -652,7 +759,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             to mark this as something that should not be overridden. We also have to
             import it: `from typing import final`
 
-        See Also:
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if not hasattr(self, '_loginfo'):
@@ -678,7 +784,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             to mark this as something that should not be overridden. We also have to
             import it: `from typing import final`
 
-        See Also:
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if pretty:
@@ -792,7 +897,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             opt2: value1-A
 
         Note:
-            This _MUST_ be an inner class of :class:`~ConfigParserEnhanced` because it
+            This *MUST* be an inner class of :class:`~ConfigParserEnhanced` because it
             contains a 'hook' back to the instance of :class:`~ConfigParserEnhanced` in
             in which this entry exists. This allows us to access the owner's
             state so we can implement our lazy-evaluation and caching schemes. When
@@ -971,7 +1076,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if self.owner != None:
                 self.set_owner_options()
                 self.sections_checked.add(section)
-                self.owner.parse_section(section)
+                self.owner.parse_section(section, finalize=False)
 
 
 

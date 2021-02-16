@@ -47,6 +47,6 @@ proj.directory-list = [{'dirloc': loc('.'),
                         'recursive': True,
                         'watch_for_changes': True}]
 proj.file-type = 'shared'
-proj.main-file = loc('exec-example.py')
+proj.main-file = loc('exec-example-SetEnvironment.py')
 testing.auto-test-file-specs = (('glob',
                                  'unittests/test_*.py'),)
