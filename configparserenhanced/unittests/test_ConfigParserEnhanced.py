@@ -221,15 +221,15 @@ class ConfigParserEnhancedTest(TestCase):
         - `op1 'op 2'`      --> op1: "op1"   op2: "op 2"
         - `op1 op2 op3`     --> op1: "op1"   op2: "op2"
         - `op1 'op2' op3`   --> op1: "op1"   op2: "op2"
-        - `op-1`            --> op1: "op_1"  op2: None
-        - `op-1 op2`        --> op1: "op_1"  op2: "op2"
-        - `op-1 op2 op3`    --> op1: "op_1"  op2: "op2"
-        - `op-1 'op2'`      --> op1: "op_1"  op2: "op2"
-        - `op-1 'op2' op3`  --> op1: "op_1"  op2: "op2"
-        - `op-1 'op 2'`     --> op1: "op_1"  op2: "op 2"
-        - `op-1 'op 2' op3` --> op1: "op_1"  op2: "op 2"
-        - `op-1 op-2`       --> op1: "op_1"  op2: "op-2"
-        - `op_1 op_2`       --> op1: "op_1"  op2: "op_2"
+        - `op-1`            --> op1: "op-1"  op2: None
+        - `op-1 op2`        --> op1: "op-1"  op2: "op2"
+        - `op-1 op2 op3`    --> op1: "op-1"  op2: "op2"
+        - `op-1 'op2'`      --> op1: "op-1"  op2: "op2"
+        - `op-1 'op2' op3`  --> op1: "op-1"  op2: "op2"
+        - `op-1 'op 2'`     --> op1: "op-1"  op2: "op 2"
+        - `op-1 'op 2' op3` --> op1: "op-1"  op2: "op 2"
+        - `op-1 op-2`       --> op1: "op-1"  op2: "op-2"
+        - `op_1 op_2`       --> op1: "op-1"  op2: "op_2"
         """
         section = "OPERAND_TEST"
 
@@ -249,21 +249,23 @@ class ConfigParserEnhancedTest(TestCase):
                              ('op1', 'op 2'),
                              ('op1', 'op2'),
                              ('op1', 'op2'),
-                             ('op_1', None),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op 2'),
-                             ('op_1', 'op 2'),
-                             ('op_1', 'op-2'),
-                             ('op_1', 'op_2')
+                             ('op-1', None),
+                             ('op-1', 'op2'),
+                             ('op-1', 'op2'),
+                             ('op-1', 'op2'),
+                             ('op-1', 'op2'),
+                             ('op-1', 'op 2'),
+                             ('op-1', 'op 2'),
+                             ('op-1', 'op-2'),
+                             ('op_1', 'op_2'),
+                             ('op1',  'op2'),
+                             ('op1',  'op2')
         ]
-        print("results_expected:")
+        print("results_expected ({}):".format(len(results_expected)))
         pprint(results_expected)
 
         results_actual = [ (d['op1'],d['op2']) for d in parser._loginfo if d['type']=='section-operands']
-        print("results_actual:")
+        print("results_actual ({}):".format(len(results_actual)))
         pprint(results_actual)
 
         self.assertListEqual(results_expected, results_actual)
@@ -304,14 +306,16 @@ class ConfigParserEnhancedTest(TestCase):
             "_handler_generic",
             "_handler_generic",
             "_handler_generic",
-            "_handler_generic"
+            "_handler_generic",
+            "_handler_finalize"
         ]
         handler_exit_list_expected = [
             "_handler_generic",
             "_handler_generic",
             "_handler_generic",
             "_handler_use",
-            "_handler_generic"
+            "_handler_generic",
+            "_handler_finalize"
         ]
 
         self.assertListEqual(handler_entry_list, handler_entry_list_expected)

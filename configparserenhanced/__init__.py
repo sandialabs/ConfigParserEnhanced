@@ -3,10 +3,15 @@
 """
 Init script for the ConfigparserEnhanced package
 """
+__version__ = "0.0.1"
+__author__  = "William C. McLendon III"
+
 
 from .ConfigParserEnhanced import ConfigParserEnhanced
 
 from .Debuggable import Debuggable
 
 from .ExceptionControl import ExceptionControl
+
+from .SetEnvironment import SetEnvironment
 

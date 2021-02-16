@@ -64,22 +64,44 @@ Extending through Inheritance
 API Documentation
 -----------------
 
-
 ConfigParserEnhanced
 ++++++++++++++++++++
-
 .. automodule:: configparserenhanced.ConfigParserEnhanced
+   :no-members:
+
+Public Methods
+~~~~~~~~~~~~~~
+.. autoclass:: configparserenhanced.ConfigParserEnhanced
+   :noindex:
    :members:
    :undoc-members:
    :show-inheritance:
    :exclude-members: ConfigParserEnhancedData
+   :special-members: __init__
+
+
+Handlers (Private)
+~~~~~~~~~~~~~~~~~~
+These handlers defined by ConfigParserEnhanced and should not
+be overridden.
+
+.. automethod:: configparserenhanced.ConfigParserEnhanced._handler_use
+.. automethod:: configparserenhanced.ConfigParserEnhanced._handler_generic
+.. automethod:: configparserenhanced.ConfigParserEnhanced._handler_finalize
+
+
+Helpers (Private)
+~~~~~~~~~~~~~~~~~
+
+.. automethod:: configparserenhanced.ConfigParserEnhanced._loginfo_add
+.. automethod:: configparserenhanced.ConfigParserEnhanced._loginfo_print
 
 
 ConfigParserEnhancedData
-++++++++++++++++++++++++
-
+~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: configparserenhanced::ConfigParserEnhanced.ConfigParserEnhancedData
    :members:
    :undoc-members:
    :show-inheritance:
+
 
