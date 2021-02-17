@@ -1,5 +1,5 @@
-ExceptionControl
-================
+ExceptionControl Class Reference
+================================
 
 .. automodule:: configparserenhanced.ExceptionControl
    :members:
