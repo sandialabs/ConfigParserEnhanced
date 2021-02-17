@@ -98,7 +98,14 @@ Helpers (Private)
 
 
 ConfigParserEnhancedData
-~~~~~~~~~~~~~~~~~~~~~~~~
+++++++++++++++++++++++++
+ConfigParserEnhancedData is an *inner class* of ConfigParserEnhanced that
+behaves somewhat like a partial implementation of a ``configparser.ConfigParser``
+object that is customized to work in concert with ConfigParserEnhanced.
+
+This class operates using lazy-evaluation of the parser method in ConfigParserEnhanced
+to process sections when requested.
+
 .. autoclass:: configparserenhanced::ConfigParserEnhanced.ConfigParserEnhancedData
    :members:
    :undoc-members:
