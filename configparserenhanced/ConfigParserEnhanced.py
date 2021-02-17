@@ -33,6 +33,11 @@ the OPTION field as a generic **key:value** pair as normal.
 In this way, we can customize our processing by subclassing
 ConfigParserEnhanced and defining our own handler methods.
 
+Todo:
+    Determine if we can use the @final decorators (requires Python 3.8).
+    If it doesn't hurt older python versions we should use them to indicate
+    what methods should not be overridden, not that Python will enforce this
+    but it's better than nothing.
 
 :Authors:
     William C. McLendon III
@@ -457,6 +462,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #          of the search only.
             self.configdata_parsed.sections_checked.add(section_name)
 
+        # Todo: call _handler_initialize here on first search level.                                # TODO!
+
         self.debug_message(1, "Enter section: `{}`".format(section_name))                           # Console Logging
         self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
 
@@ -696,6 +703,34 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
         self.debug_message(1, "Exit handler: {} ({} -> {})".format(handler_name,section_name, op2)) # Console
+        return 0
+
+
+    def _handler_initialize(self, section_name, handler_parameters) -> int:
+        """Initialize a recursive parse search.
+
+        This handler is called at the start of a recursive search of the
+        .ini structure. Subclasses can override this method to perform setup
+        actions at the start of a search.
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
+        """
+        handler_name = handler_parameters.handler_name
+
+        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
+        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
+        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+
+        # -----[ Handler Content Start ]-------------------
+
+        # -----[ Handler Content End ]---------------------
+
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
         return 0
 
 

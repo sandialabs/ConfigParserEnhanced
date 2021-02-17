@@ -65,7 +65,9 @@ class SetEnvironment(ConfigParserEnhanced):
     @property
     def actions(self) -> list:
         """
-
+        The *actions* property contains the list of actions generated for
+        the most recent section that has been parsed. This is overwritten when
+        we execute a new parse.
 
         Returns:
             list: A *list* containing the sequence of actions that
