@@ -54,14 +54,14 @@ def test_configparserEnhanced(filename="config.ini"):
 
 
     #
-    # Check if 'key 4' is a member of this section in the basic configdata_parsed
+    # Check if 'key 4' is a member of this section in the basic configparserenhanceddata
     # result ()
     #
     option = "key 4"
     print("Is option `{}` in `{}`?".format(option, section))
 
-    if parser.configdata_parsed.has_option(section, option):
-        value = parser.configdata_parsed.get(section, option)
+    if parser.configparserenhanceddata.has_option(section, option):
+        value = parser.configparserenhanceddata.get(section, option)
         print("---> [{}][{}] == '{}'".format(section, option, value))
     else:
         print("---> NO")
@@ -69,18 +69,18 @@ def test_configparserEnhanced(filename="config.ini"):
 
     section = "SECTION C+"
     print("Get {}".format(section))
-    sec_c = parser.configdata_parsed[section]
+    sec_c = parser.configparserenhanceddata[section]
     print(sec_c)
     print("")
 
     section = "SECTION-A"
     print("Get {}".format(section))
-    sec_a = parser.configdata_parsed["SECTION-A"]
+    sec_a = parser.configparserenhanceddata["SECTION-A"]
     print(sec_a)
     print("")
 
-    print("Loop over items in parser.configdata_parsed")
-    for section,options in parser.configdata_parsed.items():
+    print("Loop over items in parser.configparserenhanceddata")
+    for section,options in parser.configparserenhanceddata.items():
         print("[{}]".format(section))
         max_keylen=0
         for key in options.keys():
