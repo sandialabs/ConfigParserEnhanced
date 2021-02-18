@@ -261,9 +261,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Args:
             section (str): The section name that will be parsed and retrieved.
-
+            initialize (bool): If True then ``handler_initialize()`` will be executed
+                at the start of the search. Default = True
+            finalize (bool): If True then ``handler_finalize()`` will be executed
+                at the end of the search. Default = True
         Returns:
             :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
+            Unless HandlerParameters is changed, this wil be a ``dict`` type.
         """
         if not isinstance(section, str):
             raise TypeError("`section` must be a string type.")
@@ -275,7 +279,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
-        result = self._parse_section_r(section, finalize=finalize)
+        result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
 
         return result
 
@@ -294,10 +298,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             section_name (str):
             handler_parameters (object):
             initialize (bool): If enabled _and_ this level of recursion is the ROOT
-                level then we will call ``_handler_initialize()`` to do some preprocessing
+                level then we will call ``handler_initialize()`` to do some preprocessing
                 activities.
             finalize (bool): If enabled _and_ this level of recursion is the ROOT
-                level then we will call ``_handler_finalize()`` to wrap up the
+                level then we will call ``handler_finalize()`` to wrap up the
                 recursion.
 
         Returns:
@@ -323,19 +327,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #          want it's "meta section" to encapsulate the result
             #          of the fully parsed entry from the the root section
             #          of the search only.
-            self.configparserenhanceddata.sections_checked.add(section_name)
+            self.configparserenhanceddata._sections_checked.add(section_name)
 
         # Execute _handler_initialize to add a pre-processing step.
-        # Todo: is there a better way to do this (and the finalize) steps?
-        #       do we even need the ``initialize`` and ``finalize`` parameters?
-        #       -> we'll have to check what those do to the configparserenhanceddata data
-        #          when loaded outside of a rooted search... ?
         if initialize and section_name == handler_parameters.section_root:
             handler_initialize_params = HandlerParameters()
-            handler_initialize_params.handler_name = "_handler_initialize"
+            handler_initialize_params.handler_name = "handler_initialize"
             handler_initialize_params.data_shared  = handler_parameters.data_shared
-            handler_rval = self._handler_initialize(section_name, handler_initialize_params)
-            self._check_handler_rval("_handler_initialize", handler_rval)
+            handler_rval = self.handler_initialize(section_name, handler_initialize_params)
+            self._check_handler_rval("handler_initialize", handler_rval)
 
         self.debug_message(1, "Enter section: `{}`".format(section_name))                           # Console Logging
         self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
@@ -354,6 +354,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
         # Initialize and set processed_sections
+        if not isinstance(handler_parameters.data_internal['processed_sections'], set):
+            message = "'processed_sections' data must be a `set` type."
+            raise TypeError(message)
         handler_parameters.data_internal['processed_sections'].add(section_name)
 
         for sec_k,sec_v in current_section.items():
@@ -373,11 +376,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_rval = 0
 
             if regex_op_splitter_m is None:
-                # Call the generic handler if the key:value pair fails to produce a regex match.
+                # Update configparserenhanceddata
+                self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
 
+                # Call generic_handler if option key did not expand to an 'operation'.
                 self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
-                handler_parameters.handler_name = "_handler_generic"
-                handler_rval = self._handler_generic(section_name, handler_parameters)
+                handler_parameters.handler_name = "handler_generic"
+                handler_rval = self.handler_generic(section_name, handler_parameters)
 
             else:
                 # If we have a regex match, process the operation code and launch the
@@ -396,36 +401,32 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.debug_message(2, "- val: {}".format(handler_parameters.value))                 # Console
 
                 # Generate handler name and check if we have one defined.
-                handler_name = self._convert_op1_to_handlername(op1)
-                ophandler_f = getattr(self, handler_name, None)
-
-#                if ophandler_f is None:
-#                    handler_name = "_" + handler_name
+                handler_name,ophandler_f = self._convert_op1_to_handler(op1)
 
                 # Call the appropriate 'handler' for this entry.
                 if ophandler_f is not None:
                     # Call the computed handler for the detected operation.
-                    handler_parameters.handler_name = handler_name                                  # check: is this redundant?
+                    handler_parameters.handler_name = handler_name
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
-                    # Call the generic handler to update the 'generic' view
-                    # of the (all key:value pairs that don't map to any other handlers)
-                    handler_parameters.handler_name = "_handler_generic"
-                    handler_rval = self._handler_generic(section_name, handler_parameters)
-                    # Todo: consider making a 'handler wrapper' to actually make the call
-                    #       which makes sure we set the handler_name parameter?
+                    # Update configparserenhanceddata
+                    self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
+
+                    # Call generic_handler if no operation handler found.
+                    handler_parameters.handler_name = "handler_generic"
+                    handler_rval = self.handler_generic(section_name, handler_parameters)
 
             # Check the return code from the handler
             self._check_handler_rval(handler_parameters.handler_name, handler_rval)
 
-        # If we're exiting recursion from the root node and and finalize is enabled, we call
-        # the finalize handler.
+        # If we're exiting recursion from the root node and and finalize is
+        # enabled, we call the finalize handler.
         if finalize and section_name == handler_parameters.section_root:
             handler_finalize_params = HandlerParameters()
-            handler_finalize_params.handler_name = "_handler_finalize"
+            handler_finalize_params.handler_name = "handler_finalize"
             handler_finalize_params.data_shared  = handler_parameters.data_shared
-            handler_rval = self._handler_finalize(section_name, handler_finalize_params)
-            self._check_handler_rval("_handler_finalize", handler_rval)
+            handler_rval = self.handler_finalize(section_name, handler_finalize_params)
+            self._check_handler_rval("handler_finalize", handler_rval)
 
         # Remove the section from the `processed_sections` field when we exit.
         # - This properly enables a true DFS of `use` links.
@@ -583,16 +584,28 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-    def _convert_op1_to_handlername(self, op1) -> str:
-        """Convert op1 to a valid handler name
+    def _convert_op1_to_handler(self, op1) -> str:
+        """Confgert op1 to handler name and get ref to handler.
+
+        This method converts the *operation* parameter (op1) to a
+        handler name and searches for the existence of a matching
+        method.
+
+        Handlers may be of the format: ``_handler_<operation>`` for
+        internal / private handlers (that should not be overridden)
+        or ``handler_<operation>`` for handlers that are considered
+        fair game for subclasses to override and customize.
 
         Args:
             op1 (str): The operation parameter that is converted to
                 a proper handler name of the form ``_handler_{op1}()``
+                or ``handler_{op1}()``.
 
         Returns:
-            string: A string containing the generated handler name that
-                the parser will search for.
+            tuple: A tuple containing the ``(handler_name, handler_method)``.
+                ``handler_name`` is a string.
+                ``handler_method`` is either a reference to the handler method
+                if it exists, or None if it does not exist.
 
         Todo:
             Generate a validation step to verify that the generated function name
@@ -602,10 +615,16 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # This is probably not reachable. Add a '# pragma: no cover' ?
             raise TypeError("op1 must be a string!")
 
-        output = op1
-        output = output.replace('-','_')
-        output = "_handler_{}".format(output)
-        return output
+        handler_name = op1
+        handler_name = handler_name.replace('-','_')
+        handler_name = "handler_{}".format(handler_name)
+        handler_f    = getattr(self, handler_name, None)
+
+        if handler_f is None:
+            handler_name = "_" + handler_name
+            handler_f    = getattr(self, handler_name, None)
+
+        return (handler_name, handler_f)
 
 
     def _check_handler_rval(self, handler_name, handler_rval):
@@ -641,7 +660,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # --------------------
 
 
-    def _handler_generic(self, section_name, handler_parameters) -> int:
+    def _add_configparserenhanceddata_option(self, section_name, handler_parameters) -> int:
         """
         A generic handler - this handler processes all _optons_ in a .ini
         file section that do not have an operation handler defined for them.
@@ -663,17 +682,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         section_root = handler_parameters.section_root
         handler_name = handler_parameters.handler_name
 
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
+        #self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
+        #self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
+        #self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
 
-        # Note: this generic handler implements a 'last one wins' strategy for
-        #       handling
-
+        # Update configparserenhanceddata (internal)
         self.configparserenhanceddata.set(section_root, entry[0], entry[1])
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
+        #self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        #self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
         return 0
 
 
@@ -727,7 +744,33 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return 0
 
 
-    def _handler_initialize(self, section_name, handler_parameters) -> int:
+    def handler_generic(self, section_name, handler_parameters) -> int:
+        """Handler for non-operation key:value pairs
+
+        A generic handler - this handler processes all _optons_ in a .ini
+        file section that do not have an operation handler defined for them.
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
+        """
+        handler_name = handler_parameters.handler_name
+        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
+        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+
+        # -----[ Handler Content Start ]-------------------
+
+
+        # -----[ Handler Content End ]---------------------
+
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        return 0
+
+
+    def handler_initialize(self, section_name, handler_parameters) -> int:
         """Initialize a recursive parse search.
 
         This handler is called at the start of a recursive search of the
@@ -755,7 +798,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return 0
 
 
-    def _handler_finalize(self, section_name, handler_parameters) -> int:
+    def handler_finalize(self, section_name, handler_parameters) -> int:
         """Finalize a recursive parse search.
 
         This handler is called at the end of a search and can be used
@@ -783,7 +826,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
         self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
 
-        # subclasses can add custom code here.
+        # -----[ Handler Content Start ]-------------------
+
+
+        # -----[ Handler Content End ]---------------------
 
         self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
         self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
@@ -961,23 +1007,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             property, the parser will be invoked on this section to generate the result.
         """
         def __init__(self, owner=None):
-            self.owner = owner
-            self.set_owner_options()
-
-
-        @property
-        def owner(self):
-            if not hasattr(self, '_owner'):
-                self._owner = None
-            return self._owner
-
-
-        @owner.setter
-        def owner(self, value):
-            if not isinstance(value, (ConfigParserEnhanced)):
-                raise TypeError("Owner class must be a ConfigParserEnhanced or derivitive.")
-            self._owner = value
-            return self._owner
+            self._owner = owner
+            self._set_owner_options()
 
 
         @property
@@ -999,35 +1030,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             return self._data
 
 
-        @property
-        def sections_checked(self):
-            """
-            Implements a set that contains section names that
-            have already been parsed via lazy evaluation.
-            """
-            if not hasattr(self, '_sections_checked'):
-                self._sections_checked = set()
-            return self._sections_checked
-
-
-        def set_owner_options(self):
-            """
-            Get options from the owner class, if we have an owner class.
-            """
-            if self.owner != None:
-                self.exception_control_level = self.owner.exception_control_level
-                self.debug_level = self.owner.debug_level
-
-
         def items(self, section=None):
             section_list = self.data.keys()
-            if self.owner != None:
-                section_list = self.owner.configparserdata.keys()
+            if self._owner != None:
+                section_list = self._owner.configparserdata.keys()
 
             output = None
             if section is None:
                 for seci in section_list:
-                    self.parse_owner_section(seci)
+                    self._parse_owner_section(seci)
                 output = self.data.items()
             else:
                 output = self.options(section).items()
@@ -1058,9 +1069,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
         def has_section(self, section):
-            if self.owner != None and section not in self.sections_checked:
+            if self._owner != None and section not in self._sections_checked:
                 try:
-                    self.parse_owner_section(section)
+                    self._parse_owner_section(section)
                 except KeyError:
                     pass
             return section in self.data.keys()
@@ -1075,8 +1086,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         def has_option(self, section, option):
             """
             """
-            if self.owner != None and section not in self.sections_checked:
-                self.parse_owner_section(section)
+            if self._owner != None and section not in self._sections_checked:
+                self._parse_owner_section(section)
             return option in self.data[section].keys()
 
 
@@ -1086,8 +1097,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             parsed the section yet, we should run the parser to
             fully get the key data.
             """
-            if self.owner != None and section not in self.sections_checked:
-                self.parse_owner_section(section)
+            if self._owner != None and section not in self._sections_checked:
+                self._parse_owner_section(section)
 
             if self.has_section(section):
                 if self.has_option(section, option):
@@ -1125,14 +1136,49 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             return self.data[section][option]
 
 
-        def parse_owner_section(self, section):
+        @property
+        def _owner(self):
+            if not hasattr(self, '_owner_data'):
+                self._owner_data = None
+            return self._owner_data
+
+
+        @_owner.setter
+        def _owner(self, value):
+            if not isinstance(value, (ConfigParserEnhanced)):
+                raise TypeError("Owner class must be a ConfigParserEnhanced or derivitive.")
+            self._owner_data = value
+            return self._owner_data
+
+
+        @property
+        def _sections_checked(self):
+            """
+            Implements a set that contains section names that
+            have already been parsed via lazy evaluation.
+            """
+            if not hasattr(self, '_sections_checked_data'):
+                self._sections_checked_data = set()
+            return self._sections_checked_data
+
+
+        def _set_owner_options(self):
+            """
+            Get options from the owner class, if we have an owner class.
+            """
+            if self._owner != None:
+                self.exception_control_level = self._owner.exception_control_level
+                self.debug_level = self._owner.debug_level
+
+
+        def _parse_owner_section(self, section):
             """
             Parse the section from the owner class
             """
-            if self.owner != None:
-                self.set_owner_options()
-                self.sections_checked.add(section)
-                self.owner.parse_section(section, initialize=False, finalize=False)
+            if self._owner != None:
+                self._set_owner_options()
+                self._sections_checked.add(section)
+                self._owner.parse_section(section, initialize=False, finalize=False)
 
 
 

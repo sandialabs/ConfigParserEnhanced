@@ -136,21 +136,17 @@ class ExceptionControlTest(TestCase):
 
         inst_testme = testme()
 
-        # Default exception_control_level == 2
+        # Default exception_control_level == 4
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
             self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
 
-        with patch('sys.stdout', new = StringIO()) as fake_out:
+        with self.assertRaises(ValueError):
             inst_testme.event_minor()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
 
-        with patch('sys.stdout', new = StringIO()) as fake_out:
+        with self.assertRaises(ValueError):
             inst_testme.event_serious()
-            print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
 
         with self.assertRaises(ValueError):
             inst_testme.event_critical()

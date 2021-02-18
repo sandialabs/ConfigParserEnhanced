@@ -302,22 +302,22 @@ class ConfigParserEnhancedTest(TestCase):
         handler_exit_list  = [ d['name'] for d in parser._loginfo if d['type']=='handler-exit']
 
         handler_entry_list_expected = [
-            "_handler_initialize",
+            "handler_initialize",
             "_handler_use",
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_finalize"
+            "handler_generic",
+            "handler_generic",
+            "handler_generic",
+            "handler_generic",
+            "handler_finalize"
         ]
         handler_exit_list_expected = [
-            "_handler_initialize",
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_generic",
+            "handler_initialize",
+            "handler_generic",
+            "handler_generic",
+            "handler_generic",
             "_handler_use",
-            "_handler_generic",
-            "_handler_finalize"
+            "handler_generic",
+            "handler_finalize"
         ]
 
         self.assertListEqual(handler_entry_list, handler_entry_list_expected)
@@ -727,12 +727,12 @@ class ConfigParserEnhancedTest(TestCase):
         inst = ConfigParserEnhanced.ConfigParserEnhancedData(parser)
 
         # Trigger the 'None' default option for owner (when it doesn't exist)
-        delattr(inst, '_owner')
-        new_owner = inst.owner
+        delattr(inst, '_owner_data')
+        new_owner = inst._owner
 
         # Test setting owner to something other than a ConfigParserEnhanced
         with self.assertRaises(TypeError):
-            inst.owner = None
+            inst._owner = None
 
         # Test setter for the data property.
         # - This isn't really used in our current code, but it's good to have a setter.
@@ -872,7 +872,7 @@ class ConfigParserEnhancedTest(TestCase):
             parser.configparserenhanceddata.get("Nonexistent Section", "key1")
 
         # Doing something evil
-        parser.configparserenhanceddata._owner = None
+        parser.configparserenhanceddata._owner_data = None
         with self.assertRaises(KeyError):
             parser.configparserenhanceddata.get("Nonexistent Section", "key1")
 

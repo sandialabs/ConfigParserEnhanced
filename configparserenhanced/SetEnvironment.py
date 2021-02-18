@@ -135,7 +135,7 @@ class SetEnvironment(ConfigParserEnhanced):
     # --------------------
 
 
-    def _handler_envvar_set(self, section_name, handler_parameters) -> int:
+    def handler_envvar_set(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-set operations.
 
         Handles operations that wish to *set* an environment variable.
@@ -149,7 +149,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_envvar_common(section_name, handler_parameters)
 
 
-    def _handler_envvar_append(self, section_name, handler_parameters) -> int:
+    def handler_envvar_append(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-append operations.
 
         Append operations will set or append a value to an environment variable
@@ -170,7 +170,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_envvar_common(section_name, handler_parameters)
 
 
-    def _handler_envvar_prepend(self, section_name, handler_parameters) -> int:
+    def handler_envvar_prepend(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-prepend operations.
 
         Handles operations that wish to *prepend* an environment variable.
@@ -184,7 +184,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_envvar_common(section_name, handler_parameters)
 
 
-    def _handler_envvar_remove(self, section_name, handler_parameters) -> int:
+    def handler_envvar_remove(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-remove operations.
 
         Removes all envvar operations that operate on the specified
@@ -225,7 +225,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def _handler_envvar_unset(self, section_name, handler_parameters) -> int:
+    def handler_envvar_unset(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-unset operations.
 
         Handles operations that wish to *unset* an environment variable.
@@ -239,7 +239,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_envvar_common(section_name, handler_parameters)
 
 
-    def _handler_module_load(self, section_name, handler_parameters) -> int:
+    def handler_module_load(self, section_name, handler_parameters) -> int:
         """
 
         Args:
@@ -256,7 +256,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_module_common(section_name, handler_parameters)
 
 
-    def _handler_module_purge(self, section_name, handler_parameters) -> int:
+    def handler_module_purge(self, section_name, handler_parameters) -> int:
         """
 
         Args:
@@ -273,7 +273,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_module_common(section_name, handler_parameters)
 
 
-    def _handler_module_remove(self, section_name, handler_parameters) -> int:
+    def handler_module_remove(self, section_name, handler_parameters) -> int:
         """
         Removes all module operations that operate on the labeled module from
         the action lists at the time this command is encountered.
@@ -323,7 +323,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def _handler_module_swap(self, section_name, handler_parameters) -> int:
+    def handler_module_swap(self, section_name, handler_parameters) -> int:
         """
 
         Args:
@@ -340,7 +340,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_module_common(section_name, handler_parameters)
 
 
-    def _handler_module_unload(self, section_name, handler_parameters) -> int:
+    def handler_module_unload(self, section_name, handler_parameters) -> int:
         """
 
         Args:
@@ -357,7 +357,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_module_common(section_name, handler_parameters)
 
 
-    def _handler_module_use(self, section_name, handler_parameters) -> int:
+    def handler_module_use(self, section_name, handler_parameters) -> int:
         """
 
         Args:
@@ -374,7 +374,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_module_common(section_name, handler_parameters)
 
 
-    def _handler_finalize(self, section_name, handler_parameters) -> int:
+    def handler_finalize(self, section_name, handler_parameters) -> int:
         """Finalize a recursive parse search.
 
         Returns:

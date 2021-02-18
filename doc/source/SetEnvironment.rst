@@ -27,23 +27,44 @@ Public Methods
    :undoc-members:
    :show-inheritance:
    :special-members: __init__
+   :exclude-members:
+      handler_initialize,
+      handler_finalize,
+      handler_envvar_append,
+      handler_envvar_prepend,
+      handler_envvar_remove,
+      handler_envvar_set,
+      handler_envvar_unset,
+      handler_module_load,
+      handler_module_purge,
+      handler_module_remove,
+      handler_module_swap,
+      handler_module_unload,
+      handler_module_use
 
 
-Handlers (Private)
+Operation Handlers
 ++++++++++++++++++
-Handler methods for the ConfigParserEnhanced's parser
+Operation handlers for .ini file processing
 
-.. automethod:: configparserenhanced.SetEnvironment._handler_envvar_append
-.. automethod:: configparserenhanced.SetEnvironment._handler_envvar_prepend
-.. automethod:: configparserenhanced.SetEnvironment._handler_envvar_remove
-.. automethod:: configparserenhanced.SetEnvironment._handler_envvar_set
-.. automethod:: configparserenhanced.SetEnvironment._handler_envvar_unset
-.. automethod:: configparserenhanced.SetEnvironment._handler_module_load
-.. automethod:: configparserenhanced.SetEnvironment._handler_module_purge
-.. automethod:: configparserenhanced.SetEnvironment._handler_module_remove
-.. automethod:: configparserenhanced.SetEnvironment._handler_module_swap
-.. automethod:: configparserenhanced.SetEnvironment._handler_module_unload
-.. automethod:: configparserenhanced.SetEnvironment._handler_module_use
+.. automethod:: configparserenhanced.SetEnvironment.handler_finalize
+
+Environment Variable Handlers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_append
+.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_prepend
+.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_remove
+.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_set
+.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_unset
+
+Environment Modules Handlers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: configparserenhanced.SetEnvironment.handler_module_load
+.. automethod:: configparserenhanced.SetEnvironment.handler_module_purge
+.. automethod:: configparserenhanced.SetEnvironment.handler_module_remove
+.. automethod:: configparserenhanced.SetEnvironment.handler_module_swap
+.. automethod:: configparserenhanced.SetEnvironment.handler_module_unload
+.. automethod:: configparserenhanced.SetEnvironment.handler_module_use
 
 Helpers (Private)
 +++++++++++++++++
