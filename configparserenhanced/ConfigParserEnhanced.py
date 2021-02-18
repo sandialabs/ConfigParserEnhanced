@@ -401,7 +401,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.debug_message(2, "- val: {}".format(handler_parameters.value))                 # Console
 
                 # Generate handler name and check if we have one defined.
-                handler_name,ophandler_f = self._convert_op1_to_handler(op1)
+                handler_name,ophandler_f = self._locate_handler_method(op1)
 
                 # Call the appropriate 'handler' for this entry.
                 if ophandler_f is not None:
@@ -584,7 +584,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-    def _convert_op1_to_handler(self, op1) -> str:
+    def _locate_handler_method(self, operation) -> str:
         """Confgert op1 to handler name and get ref to handler.
 
         This method converts the *operation* parameter (op1) to a
@@ -597,9 +597,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         fair game for subclasses to override and customize.
 
         Args:
-            op1 (str): The operation parameter that is converted to
-                a proper handler name of the form ``_handler_{op1}()``
-                or ``handler_{op1}()``.
+            operation (str): The operation parameter that is converted to
+                a proper handler name of the form ``_handler_{operation}()``
+                or ``handler_{operation}()``.
 
         Returns:
             tuple: A tuple containing the ``(handler_name, handler_method)``.
@@ -608,17 +608,25 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 if it exists, or None if it does not exist.
 
         Todo:
-            Generate a validation step to verify that the generated function name
-            is a valid function name (i.e, must not use any illegal characters).
+            * Generate a validation step to verify that the generated function name
+                is a valid function name (i.e, must not use any illegal characters).
+            * Determine what the right policy is to handle a situation where
+                there are both 'public api' and 'private api' handlers defined.
+                Which one should win? The public or private one?
+                I think we should check and if it's ambiguous, we raise an error.
         """
-        if not isinstance(op1, (str)):
+        if not isinstance(operation, (str)):
             # This is probably not reachable. Add a '# pragma: no cover' ?
             raise TypeError("op1 must be a string!")
 
-        handler_name = op1
+        handler_name = operation
         handler_name = handler_name.replace('-','_')
         handler_name = "handler_{}".format(handler_name)
         handler_f    = getattr(self, handler_name, None)
+
+        # Todo: check for handler for both public and private apis. if one exists
+        #       for both then throw an error since it's ambiguous which one should
+        #       win.
 
         if handler_f is None:
             handler_name = "_" + handler_name
@@ -655,9 +663,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return
 
 
-    # --------------------
-    #   H A N D L E R S
-    # --------------------
+    # -----------------------------------
+    #   P R I V A T E   H A N D L E R S
+    # -----------------------------------
 
 
     def _add_configparserenhanceddata_option(self, section_name, handler_parameters) -> int:
@@ -742,6 +750,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
         self.debug_message(1, "Exit handler: {} ({} -> {})".format(handler_name,section_name, op2)) # Console
         return 0
+
+
+    # ---------------------------------
+    #   P U B L I C   H A N D L E R S
+    # ---------------------------------
 
 
     def handler_generic(self, section_name, handler_parameters) -> int:
