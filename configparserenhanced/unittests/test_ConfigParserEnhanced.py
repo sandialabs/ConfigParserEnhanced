@@ -302,6 +302,7 @@ class ConfigParserEnhancedTest(TestCase):
         handler_exit_list  = [ d['name'] for d in parser._loginfo if d['type']=='handler-exit']
 
         handler_entry_list_expected = [
+            "_handler_initialize",
             "_handler_use",
             "_handler_generic",
             "_handler_generic",
@@ -310,6 +311,7 @@ class ConfigParserEnhancedTest(TestCase):
             "_handler_finalize"
         ]
         handler_exit_list_expected = [
+            "_handler_initialize",
             "_handler_generic",
             "_handler_generic",
             "_handler_generic",

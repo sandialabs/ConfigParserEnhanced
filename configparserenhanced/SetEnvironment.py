@@ -461,8 +461,8 @@ class SetEnvironment(ConfigParserEnhanced):
                   'value' : envvar_value_ref
                  }
 
-        self.debug_message(3, "--> Append to 'setenvironment' action list:")
-        self.debug_message(3, "    {}".format(action))
+        self.debug_message(3, "--> Append to 'setenvironment' action list:")                        # Console
+        self.debug_message(3, "    {}".format(action))                                              # Console
         data_shared_actions_ref.append(action)
 
         self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
