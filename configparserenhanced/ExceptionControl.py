@@ -167,6 +167,10 @@ class ExceptionControl(object):
                     print("Message: {}".format(message))
                 print("Traceback:")
                 traceback.print_tb(ex.__traceback__)
+                # Todo: We need to get the full traceback / stack trace information to print
+                #       here. This command just gives the 'last' entry, which is this spot...
+                #       which doesn't convey where exactly our actual error came from. :/
+
                 print("Increase `exception_control_level` to {} to raise this exception.".format(req_exception_control_level))
                 print("="*60)
                 sys.stdout.flush()

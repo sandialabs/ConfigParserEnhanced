@@ -14,7 +14,7 @@ module. This class attempts to satisfy the following goals:
 .. note:: ConfigParser SECTION entries are stored as a dict.
 
     Because ConfigParser treats OPTIONS as dictionary objects
-    storing ``{ key: value }`` entries the KEY fields must be
+    storing ``{ key: value }`` entries, the KEY fields must be
     unique within a SECTION or ConfigParser will raise a KeyError
     exception.
 
