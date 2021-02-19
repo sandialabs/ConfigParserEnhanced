@@ -736,8 +736,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 if it exists, or None if it does not exist.
 
         Todo:
-            * Generate a validation step to verify that the generated function name
-                is a valid function name (i.e, must not use any illegal characters).
+            * Update docstrings for this.
         """
         if not isinstance(operation, (str)):
             # This is probably not reachable. Add a '# pragma: no cover' ?
