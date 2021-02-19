@@ -32,8 +32,8 @@ except ImportError:
 
 import configparser
 
-from configparserenhanced import ConfigParserEnhanced
-from ..HandlerParameters import HandlerParameters
+from configparserenhanced import *
+# from ..HandlerParameters import HandlerParameters
 
 from .common import *
 
@@ -533,6 +533,130 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
+    def test_ConfigParserEnhanced_parser_handlerparameter_typechecks(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            def handler_generic(self, section_name, handler_parameters) -> int:
+                """
+                Redefine handler_generic so that it changes HandlerParameters
+                data_internal['processed_sections'] type to a non-set type.  This
+                should trigger a TypeError.
+                """
+                handler_parameters.data_internal['processed_sections'] = {}
+                return 0
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "SECTION-A"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        with self.assertRaises(TypeError):
+            parser.parse_section(section)
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_parser_handler_private(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that defines a custom 'private' handler.
+            """
+            def _handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        # parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "AMBIGUOUS_HANDLER_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        parser.parse_section(section)
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_parser_handler_public(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that defines a custom 'public' handler.
+            """
+            def handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        # parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "AMBIGUOUS_HANDLER_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        parser.parse_section(section)
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_parser_handler_ambiguous(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that sets up an ambiguous handler naming scheme
+            for an ``operation`` called "operation" (yeah, super creative).
+
+            This should trigger an ``AmbiguousHandlerError`` exception.
+            """
+            def handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+            def _handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        # parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "AMBIGUOUS_HANDLER_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        with self.assertRaises(AmbiguousHandlerError):
+            parser.parse_section(section)
+
+        print("OK")
+
+
     def test_ConfigParserEnhanced_parse_section_handler_fail_11(self):
         """
         Test that we trigger the failure check if a handler returns a
@@ -792,7 +916,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         # Test length - This should be the # of sections in the .ini file.
         print("\nTest __len__")
-        exp_len = 15
+        exp_len = 16
         act_len = len(parser.configparserenhanceddata)
         self.assertEqual(exp_len, act_len,
                          "ERROR: Length returned is {} but we expected {}".format(act_len, exp_len))

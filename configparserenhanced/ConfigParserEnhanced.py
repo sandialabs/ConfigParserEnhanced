@@ -65,9 +65,21 @@ from .HandlerParameters import HandlerParameters
 
 
 
-# ===================================
-#  S U P P O R T   F U N C T I O N S
-# ===================================
+# ============================================================
+#  S U P P O R T   F U N C T I O N S   A N D   C L A S S E S
+# ============================================================
+
+
+
+class AmbiguousHandlerError(Exception):
+    """Raised when the parser encounters ambiguity in Handler methods.
+
+    Attributes:
+        previous -- state at beginning of transition
+        next -- attempted new state
+        message -- explanation of why the specific transition is not allowed
+    """
+    pass
 
 
 
@@ -284,6 +296,103 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return result
 
 
+    # ---------------------------------
+    #   P U B L I C   H A N D L E R S
+    # ---------------------------------
+
+
+    def handler_generic(self, section_name, handler_parameters) -> int:
+        """Handler for non-operation key:value pairs
+
+        A generic handler - this handler processes all _optons_ in a .ini
+        file section that do not have an operation handler defined for them.
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
+        """
+        handler_name = handler_parameters.handler_name
+        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
+        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+
+        # -----[ Handler Content Start ]-------------------
+
+
+        # -----[ Handler Content End ]---------------------
+
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        return 0
+
+
+    def handler_initialize(self, section_name, handler_parameters) -> int:
+        """Initialize a recursive parse search.
+
+        This handler is called at the start of a recursive search of the
+        .ini structure. Subclasses can override this method to perform setup
+        actions at the start of a search.
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
+        """
+        handler_name = handler_parameters.handler_name
+
+        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
+        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+
+        # -----[ Handler Content Start ]-------------------
+
+
+        # -----[ Handler Content End ]---------------------
+
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        return 0
+
+
+    def handler_finalize(self, section_name, handler_parameters) -> int:
+        """Finalize a recursive parse search.
+
+        This handler is called at the end of a search and can be used
+        to *finalize* processing of config.ini sections or save / cache
+        data from the search that other handlers added to
+        ``handler_parameters.data_shared``.
+
+        For this handler, the ``handler_parameters`` entries will only populate
+        the ``handler_name`` and ``data_shared`` properties.
+
+
+        Returns:
+            integer value
+                0     : SUCCESS
+                [1-10]: Reserved for future use (WARNING)
+                > 10  : An unknown failure occurred (SERIOUS)
+
+        Todo:
+            Test that we really only call this once at the end of recursion,
+            even when having multiple 'use' entries.
+        """
+        handler_name = handler_parameters.handler_name
+
+        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
+        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
+        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+
+        # -----[ Handler Content Start ]-------------------
+
+
+        # -----[ Handler Content End ]---------------------
+
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        return 0
+
+
     # -------------------------------
     #   P A R S E R   H E L P E R S
     # -------------------------------
@@ -354,9 +463,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
         # Initialize and set processed_sections
-        if not isinstance(handler_parameters.data_internal['processed_sections'], set):
-            message = "'processed_sections' data must be a `set` type."
-            raise TypeError(message)
+        self._validate_handlerparameters(handler_parameters)
         handler_parameters.data_internal['processed_sections'].add(section_name)
 
         for sec_k,sec_v in current_section.items():
@@ -430,12 +537,33 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         # Remove the section from the `processed_sections` field when we exit.
         # - This properly enables a true DFS of `use` links.
+        self._validate_handlerparameters(handler_parameters)
         handler_parameters.data_internal['processed_sections'].remove(section_name)
 
         self._loginfo_add('section-exit', {'name': section_name})                                   # Logging
         self.debug_message(1, "Exit section: `{}`".format(section_name))                            # Console
 
         return handler_parameters.data_shared
+
+
+    def _validate_handlerparameters(self, handler_parameters):
+        """Check HandlerParameters
+
+        Check the handler_parameters object that's being passed around
+        to the handlers to very that items in it have the proper type(s).
+
+        Raises:
+            TypeError: Raises a ``TypeError`` if
+                ``handler_parameters.data_internal['processed_sections']`` is not a ``set``
+                type.
+        """
+        # Check that `data_internal['processed_sections']` is a `set` type.
+        if not isinstance(handler_parameters.data_internal['processed_sections'], set):
+            message = "`handler_parameters.data_internal['processed_sections']` " + \
+                      "must be a `set()` type."
+            raise TypeError(message)
+
+        return None
 
 
     def _new_handler_parameters(self) -> HandlerParameters:
@@ -610,10 +738,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Todo:
             * Generate a validation step to verify that the generated function name
                 is a valid function name (i.e, must not use any illegal characters).
-            * Determine what the right policy is to handle a situation where
-                there are both 'public api' and 'private api' handlers defined.
-                Which one should win? The public or private one?
-                I think we should check and if it's ambiguous, we raise an error.
         """
         if not isinstance(operation, (str)):
             # This is probably not reachable. Add a '# pragma: no cover' ?
@@ -621,18 +745,30 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         handler_name = operation
         handler_name = handler_name.replace('-','_')
-        handler_name = "handler_{}".format(handler_name)
-        handler_f    = getattr(self, handler_name, None)
 
-        # Todo: check for handler for both public and private apis. if one exists
-        #       for both then throw an error since it's ambiguous which one should
-        #       win.
+        handler_name_private = "_handler_{}".format(handler_name)
+        handler_name_public  = "handler_{}".format(handler_name)
 
-        if handler_f is None:
-            handler_name = "_" + handler_name
-            handler_f    = getattr(self, handler_name, None)
+        handler_private_f = getattr(self, handler_name_private, None)
+        handler_public_f  = getattr(self, handler_name_public,  None)
 
-        return (handler_name, handler_f)
+        if (handler_private_f is not None) and (handler_public_f is not None):
+            message  = "Ambiguous handler name."
+            message += " Both `{}` and `{}` exist".format(handler_name_private, handler_name_public)
+            message += " but only one is allowed."
+            self.exception_control_event("SERIOUS", AmbiguousHandlerError, message)
+
+        output = (None, None)
+        if handler_private_f is not None:
+            self.debug_message(5, "- Using _private_ handler: `{}`".format(handler_name_private))   # Console
+            output = (handler_name_private, handler_private_f)
+        elif handler_public_f is not None:
+            self.debug_message(5, "- Using _public_ handler `{}`".format(handler_name_public))      # Console
+            output = (handler_name_public, handler_public_f)
+        else:
+            self.debug_message(5, "- No handler found for operation `{}`".format(handler_name))     # Console
+
+        return output
 
 
     def _check_handler_rval(self, handler_name, handler_rval):
@@ -666,40 +802,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # -----------------------------------
     #   P R I V A T E   H A N D L E R S
     # -----------------------------------
-
-
-    def _add_configparserenhanceddata_option(self, section_name, handler_parameters) -> int:
-        """
-        A generic handler - this handler processes all _optons_ in a .ini
-        file section that do not have an operation handler defined for them.
-
-        Returns:
-            integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
-
-        Note:
-            This handler implements a 'last one wins' strategy for handling
-            key naming conflicts. We simply overrwite the existing key in
-            ``configparserenhanceddata`` when conflicts occur. If one wanted to
-            raise an excpetion on a key conflcit we'd need to override this
-            method and add that.
-        """
-        entry        = handler_parameters.raw_option
-        section_root = handler_parameters.section_root
-        handler_name = handler_parameters.handler_name
-
-        #self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        #self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        #self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
-
-        # Update configparserenhanceddata (internal)
-        self.configparserenhanceddata.set(section_root, entry[0], entry[1])
-
-        #self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        #self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
-        return 0
 
 
     def _handler_use(self, section_name, handler_parameters) -> int:
@@ -751,102 +853,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.debug_message(1, "Exit handler: {} ({} -> {})".format(handler_name,section_name, op2)) # Console
         return 0
 
-
-    # ---------------------------------
-    #   P U B L I C   H A N D L E R S
-    # ---------------------------------
-
-
-    def handler_generic(self, section_name, handler_parameters) -> int:
-        """Handler for non-operation key:value pairs
-
-        A generic handler - this handler processes all _optons_ in a .ini
-        file section that do not have an operation handler defined for them.
-
-        Returns:
-            integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
-        """
-        handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
-
-        # -----[ Handler Content Start ]-------------------
-
-
-        # -----[ Handler Content End ]---------------------
-
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
-        return 0
-
-
-    def handler_initialize(self, section_name, handler_parameters) -> int:
-        """Initialize a recursive parse search.
-
-        This handler is called at the start of a recursive search of the
-        .ini structure. Subclasses can override this method to perform setup
-        actions at the start of a search.
-
-        Returns:
-            integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
-        """
-        handler_name = handler_parameters.handler_name
-
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
-
-        # -----[ Handler Content Start ]-------------------
-
-
-        # -----[ Handler Content End ]---------------------
-
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
-        return 0
-
-
-    def handler_finalize(self, section_name, handler_parameters) -> int:
-        """Finalize a recursive parse search.
-
-        This handler is called at the end of a search and can be used
-        to *finalize* processing of config.ini sections or save / cache
-        data from the search that other handlers added to
-        ``handler_parameters.data_shared``.
-
-        For this handler, the ``handler_parameters`` entries will only populate
-        the ``handler_name`` and ``data_shared`` properties.
-
-
-        Returns:
-            integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
-
-        Todo:
-            Test that we really only call this once at the end of recursion,
-            even when having multiple 'use' entries.
-        """
-        handler_name = handler_parameters.handler_name
-
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
-
-        # -----[ Handler Content Start ]-------------------
-
-
-        # -----[ Handler Content End ]---------------------
-
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
-        return 0
 
 
     # -----------------
@@ -1019,6 +1025,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             an intance of ConfigParserEnhanced accesses a section via the ``configparserenhanceddata``
             property, the parser will be invoked on this section to generate the result.
         """
+
+
         def __init__(self, owner=None):
             self._owner = owner
             self._set_owner_options()
