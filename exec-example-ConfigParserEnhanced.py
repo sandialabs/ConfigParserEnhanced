@@ -91,6 +91,7 @@ def test_configparserEnhanced(filename="config.ini"):
     print("")
 
     # Print the loginfo from the last search
+    print("LOGINFO for the _last_ section processed:")
     parser._loginfo_print(pretty=True)
 
     return
