@@ -49,8 +49,8 @@ def test_setenvironment(filename="config.ini"):
     parser.debug_level = 1
     parser.exception_control_level = 4
 
-    parse_section(parser, "CONFIG_A")
-    # parse_section(parser, "CONFIG_B")
+    #parse_section(parser, "CONFIG_A")
+    parse_section(parser, "CONFIG_B")
 
     print("")
     parser.print_actions()

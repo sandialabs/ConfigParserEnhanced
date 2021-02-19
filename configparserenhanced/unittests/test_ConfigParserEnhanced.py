@@ -32,8 +32,8 @@ except ImportError:
 
 import configparser
 
-from configparserenhanced import ConfigParserEnhanced
-from ..HandlerParameters import HandlerParameters
+from configparserenhanced import *
+# from ..HandlerParameters import HandlerParameters
 
 from .common import *
 
@@ -73,7 +73,7 @@ class ConfigParserEnhancedTest(TestCase):
         self._filename = find_config_ini(filename="config_test_configparserenhanced.ini")
 
 
-    def test_ConfigParserEnhanced_load_configdata(self):
+    def test_ConfigParserEnhanced_load_configparserdata(self):
         """
         Tests the basic loading of a configuration .ini file using the lazy-evaluated
         `config` function.
@@ -121,17 +121,17 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 5
 
-        configdata = parser.configdata
+        configparserdata = parser.configparserdata
 
-        self.assertIsInstance(configdata, configparser.ConfigParser)
+        self.assertIsInstance(configparserdata, configparser.ConfigParser)
 
-        assert configdata.has_section("SECTION-A")
-        assert configdata.has_section("SECTION-B")
-        assert configdata.has_section("SECTION C")
+        assert configparserdata.has_section("SECTION-A")
+        assert configparserdata.has_section("SECTION-B")
+        assert configparserdata.has_section("SECTION C")
 
-        assert configdata.has_section("SECTION-A+")
-        assert configdata.has_section("SECTION-B+")
-        assert configdata.has_section("SECTION C+")
+        assert configparserdata.has_section("SECTION-A+")
+        assert configparserdata.has_section("SECTION-B+")
+        assert configparserdata.has_section("SECTION C+")
 
 
     def test_ConfigParserEnhanced_property_inifilepath_changed(self):
@@ -150,12 +150,12 @@ class ConfigParserEnhancedTest(TestCase):
         parser.parse_section(section)
 
         self.assertIsInstance(parser._loginfo, list)
-        self.assertIsInstance(parser._configdata, configparser.ConfigParser)
+        self.assertIsInstance(parser._configparserdata, configparser.ConfigParser)
 
         parser.inifilepath = "foobar"
 
         self.assertFalse( hasattr(parser, '_loginfo') )
-        self.assertFalse( hasattr(parser, '_configdata') )
+        self.assertFalse( hasattr(parser, '_configparserdata') )
 
         print("OK")
 
@@ -177,7 +177,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser.inifilepath = []
 
         with self.assertRaises(ValueError):
-            configdata = parser.configdata
+            configparserdata = parser.configparserdata
 
         print("OK")
 
@@ -185,7 +185,7 @@ class ConfigParserEnhancedTest(TestCase):
     def test_ConfigParserEnhanced_property_inifilepath_invalid_entry(self):
         """
         Tests what happenes if `inifilepath = []` and we try to
-        load configdata using configparser.ConfigParser.
+        load configparserdata using configparser.ConfigParser.
         """
         section = "SECTION-A"
 
@@ -200,11 +200,11 @@ class ConfigParserEnhancedTest(TestCase):
             parser.inifilepath = [ None ]
 
         # Setter will fail if we tried this but to test a
-        # check inside the `configdata` property we'll force
+        # check inside the `configparserdata` property we'll force
         # it here (whitebox testing FTW)
         parser._inifilepath = [ None ]
         with self.assertRaises(TypeError):
-            configdata = parser.configdata
+            configparserdata = parser.configparserdata
 
         print("OK")
 
@@ -302,20 +302,22 @@ class ConfigParserEnhancedTest(TestCase):
         handler_exit_list  = [ d['name'] for d in parser._loginfo if d['type']=='handler-exit']
 
         handler_entry_list_expected = [
+            "handler_initialize",
             "_handler_use",
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_finalize"
+            "handler_generic",
+            "handler_generic",
+            "handler_generic",
+            "handler_generic",
+            "handler_finalize"
         ]
         handler_exit_list_expected = [
-            "_handler_generic",
-            "_handler_generic",
-            "_handler_generic",
+            "handler_initialize",
+            "handler_generic",
+            "handler_generic",
+            "handler_generic",
             "_handler_use",
-            "_handler_generic",
-            "_handler_finalize"
+            "handler_generic",
+            "handler_finalize"
         ]
 
         self.assertListEqual(handler_entry_list, handler_entry_list_expected)
@@ -454,7 +456,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser.debug_level = 1
 
         with self.assertRaises(IOError):
-            parser.configdata
+            parser.configparserdata
 
         print("OK")
 
@@ -531,6 +533,130 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
+    def test_ConfigParserEnhanced_parser_handlerparameter_typechecks(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            def handler_generic(self, section_name, handler_parameters) -> int:
+                """
+                Redefine handler_generic so that it changes HandlerParameters
+                data_internal['processed_sections'] type to a non-set type.  This
+                should trigger a TypeError.
+                """
+                handler_parameters.data_internal['processed_sections'] = {}
+                return 0
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "SECTION-A"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        with self.assertRaises(TypeError):
+            parser.parse_section(section)
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_parser_handler_private(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that defines a custom 'private' handler.
+            """
+            def _handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        # parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "AMBIGUOUS_HANDLER_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        parser.parse_section(section)
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_parser_handler_public(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that defines a custom 'public' handler.
+            """
+            def handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        # parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "AMBIGUOUS_HANDLER_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        parser.parse_section(section)
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_parser_handler_ambiguous(self):
+        """
+        Testing some of the type-checking on HandlerParameter typechecks.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that sets up an ambiguous handler naming scheme
+            for an ``operation`` called "operation" (yeah, super creative).
+
+            This should trigger an ``AmbiguousHandlerError`` exception.
+            """
+            def handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+            def _handler_operation(self, section_name, handler_parameters) -> int:
+                return 0
+
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        # parser.exception_control_level = 5
+
+        # Test that calling parse_section will reset _loginfo
+        # (whitebox)
+        section = "AMBIGUOUS_HANDLER_TEST"
+        print("\n")
+        print("Load file  : {}".format(self._filename))
+        print("section    : {}".format(section))
+
+        with self.assertRaises(AmbiguousHandlerError):
+            parser.parse_section(section)
+
+        print("OK")
+
+
     def test_ConfigParserEnhanced_parse_section_handler_fail_11(self):
         """
         Test that we trigger the failure check if a handler returns a
@@ -574,7 +700,7 @@ class ConfigParserEnhancedTest(TestCase):
         """
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
-            def new_handler_parameters(self):
+            def _new_handler_parameters(self):
                 print("new_handler_parameters() --> {}")
                 return {}
 
@@ -725,12 +851,12 @@ class ConfigParserEnhancedTest(TestCase):
         inst = ConfigParserEnhanced.ConfigParserEnhancedData(parser)
 
         # Trigger the 'None' default option for owner (when it doesn't exist)
-        delattr(inst, '_owner')
-        new_owner = inst.owner
+        delattr(inst, '_owner_data')
+        new_owner = inst._owner
 
         # Test setting owner to something other than a ConfigParserEnhanced
         with self.assertRaises(TypeError):
-            inst.owner = None
+            inst._owner = None
 
         # Test setter for the data property.
         # - This isn't really used in our current code, but it's good to have a setter.
@@ -744,9 +870,9 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
-    def test_ConfigParserEnhanced_property_configdata_parsed(self):
+    def test_ConfigParserEnhanced_property_configparserdata_parsed(self):
         """
-        Test the accessors and lazy evaluation of the configdata_parsed
+        Test the accessors and lazy evaluation of the configparserenhanceddata
         property
         """
         section = "SECTION-A"
@@ -759,45 +885,45 @@ class ConfigParserEnhancedTest(TestCase):
         parser.debug_level = 1
         parser.exception_control_level = 1
 
-        for k,v in parser.configdata_parsed.items():
+        for k,v in parser.configparserenhanceddata.items():
             print(k,v)
 
         # iterate over items from a given section
-        for k,v in parser.configdata_parsed.items(section):
+        for k,v in parser.configparserenhanceddata.items(section):
             print(k,v)
 
         # Get the keys
-        self.assertIn("SECTION-A", parser.configdata_parsed.keys(),
-                      "Check `SECTION-A` membership in 'configdata_parsed.keys()")
+        self.assertIn("SECTION-A", parser.configparserenhanceddata.keys(),
+                      "Check `SECTION-A` membership in 'configparserenhanceddata.keys()")
 
         # Test iterator (__item__)
         print("\nTest Iterator")
-        for i in parser.configdata_parsed:
+        for i in parser.configparserenhanceddata:
             print("   ", i)
 
         # Test __getitem__
         print("\nTest __getitem__")
-        sec_b = parser.configdata_parsed["SECTION-B"]
+        sec_b = parser.configparserenhanceddata["SECTION-B"]
         print("   ", sec_b)
 
         with self.assertRaises(KeyError):
-            parser.configdata_parsed["NonExistentSection"]
+            parser.configparserenhanceddata["NonExistentSection"]
 
         # Test sections
         print("\nTest Sections")
-        for i in parser.configdata_parsed.sections():
+        for i in parser.configparserenhanceddata.sections():
             print("   ", i)
 
         # Test length - This should be the # of sections in the .ini file.
         print("\nTest __len__")
-        exp_len = 15
-        act_len = len(parser.configdata_parsed)
+        exp_len = 16
+        act_len = len(parser.configparserenhanceddata)
         self.assertEqual(exp_len, act_len,
                          "ERROR: Length returned is {} but we expected {}".format(act_len, exp_len))
 
         # Test options()
         print("\nTest options()")
-        data = parser.configdata_parsed.options("SECTION-A")
+        data = parser.configparserenhanceddata.options("SECTION-A")
         self.assertIsInstance(data, dict, "options() must return a dict")
 
         subset = {'key1': 'value1'}
@@ -813,12 +939,12 @@ class ConfigParserEnhancedTest(TestCase):
         self.assertEqual(dict(data, **subset), data)
 
         with self.assertRaises(KeyError):
-            data = parser.configdata_parsed.options("NonExistentSection")
+            data = parser.configparserenhanceddata.options("NonExistentSection")
 
 
-    def test_ConfigParserEnhanced_property_configdata_parsed_has_option(self):
+    def test_ConfigParserEnhanced_property_configparserenhanceddata_has_option(self):
         """
-        Test the accessors and lazy evaluation of the configdata_parsed
+        Test the accessors and lazy evaluation of the configparserenhanceddata
         property. The has_option needs an unparsed config structure to
         fully be checked.
         """
@@ -835,15 +961,15 @@ class ConfigParserEnhancedTest(TestCase):
 
         # test has_option()
         print("\nTest has_option(section,option)")
-        self.assertTrue( parser.configdata_parsed.has_option("SECTION-A", "key1") )
-        self.assertFalse( parser.configdata_parsed.has_option("SECTION-A", "Nonexistent Key") )
+        self.assertTrue( parser.configparserenhanceddata.has_option("SECTION-A", "key1") )
+        self.assertFalse( parser.configparserenhanceddata.has_option("SECTION-A", "Nonexistent Key") )
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_property_configdata_parsed_get(self):
+    def test_ConfigParserEnhanced_property_configparserenhanceddata_get(self):
         """
-        Test the `get` method for the configdata_parsed property.
+        Test the `get` method for the configparserenhanceddata property.
         """
         section = "SECTION-A"
 
@@ -857,31 +983,31 @@ class ConfigParserEnhancedTest(TestCase):
 
         # test get(section, option)
         print("\nTest get(section,option) - Valid Entry")
-        self.assertEqual(parser.configdata_parsed.get("SECTION-A", "key1"), "value1")
+        self.assertEqual(parser.configparserenhanceddata.get("SECTION-A", "key1"), "value1")
 
         # test get(section, option) with missing option
         print("\nTest get(section,option) - Section OK, Option Missing")
         with self.assertRaises(KeyError):
-            parser.configdata_parsed.get("SECTION-A", "nonexistentkey")
+            parser.configparserenhanceddata.get("SECTION-A", "nonexistentkey")
 
         # test get(section, option) with missing section
         print("\nTest get(section,option) - Section Missing")
         with self.assertRaises(KeyError):
-            parser.configdata_parsed.get("Nonexistent Section", "key1")
+            parser.configparserenhanceddata.get("Nonexistent Section", "key1")
 
         # Doing something evil
-        parser.configdata_parsed._owner = None
+        parser.configparserenhanceddata._owner_data = None
         with self.assertRaises(KeyError):
-            parser.configdata_parsed.get("Nonexistent Section", "key1")
+            parser.configparserenhanceddata.get("Nonexistent Section", "key1")
 
         print("OK")
 
 
-    def test_ConfigParserEnhanced_property_configdata_parsed_deptest(self):
+    def test_ConfigParserEnhanced_property_configparserenhanceddata_deptest(self):
         """
         """
         print("\n")
-        print("---[ test_ConfigParserEnhanced_property_configdata_parsed_deptest")
+        print("---[ test_ConfigParserEnhanced_property_configparserenhanceddata_deptest")
         print("Load file: {}".format(self._filename))
 
         parser = ConfigParserEnhanced(self._filename)
@@ -890,33 +1016,33 @@ class ConfigParserEnhancedTest(TestCase):
 
         print("")
         print("\n-[ DEP-TEST-A ]------------")
-        parser.configdata_parsed.items("DEP-TEST-A")
+        parser.configparserenhanceddata.items("DEP-TEST-A")
         print("\n[DEP-TEST-A]")
-        for k,v in parser.configdata_parsed.items("DEP-TEST-A"):
+        for k,v in parser.configparserenhanceddata.items("DEP-TEST-A"):
             print(k,v)
 
         print("\n-[ loginfo ]---------------")
         pprint(parser._loginfo)
 
-        self.assertEqual("value1-A", parser.configdata_parsed.get('DEP-TEST-A', 'key1'))
-        self.assertEqual("value2-A", parser.configdata_parsed.get('DEP-TEST-A', 'key2'))
+        self.assertEqual("value1-A", parser.configparserenhanceddata.get('DEP-TEST-A', 'key1'))
+        self.assertEqual("value2-A", parser.configparserenhanceddata.get('DEP-TEST-A', 'key2'))
 
         print("")
         print("\n-[ DEP-TEST-B ]------------")
-        parser.configdata_parsed.items("DEP-TEST-B")
+        parser.configparserenhanceddata.items("DEP-TEST-B")
         print("\n[DEP-TEST-B]")
-        for k,v in parser.configdata_parsed.items("DEP-TEST-B"):
+        for k,v in parser.configparserenhanceddata.items("DEP-TEST-B"):
             print(k,v)
 
         print("\n-[ loginfo ]---------------")
         parser._loginfo_print()
 
         print("\n-[ Validate ]--------------")
-        self.assertEqual("value1-A", parser.configdata_parsed.get('DEP-TEST-A', 'key1'))
-        self.assertEqual("value2-A", parser.configdata_parsed.get('DEP-TEST-A', 'key2'))
+        self.assertEqual("value1-A", parser.configparserenhanceddata.get('DEP-TEST-A', 'key1'))
+        self.assertEqual("value2-A", parser.configparserenhanceddata.get('DEP-TEST-A', 'key2'))
 
-        self.assertEqual("value1-B", parser.configdata_parsed.get('DEP-TEST-B', 'key1'))
-        self.assertEqual("value2-A", parser.configdata_parsed.get('DEP-TEST-B', 'key2'))
+        self.assertEqual("value1-B", parser.configparserenhanceddata.get('DEP-TEST-B', 'key1'))
+        self.assertEqual("value2-A", parser.configparserenhanceddata.get('DEP-TEST-B', 'key2'))
 
         print("OK")
 

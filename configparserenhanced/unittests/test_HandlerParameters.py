@@ -68,7 +68,7 @@ class HandlerParametersTest(TestCase):
 
     def test_HandlerParameters_property_section_root(self):
         """
-        Validate the parameter `section_root`
+        Validate the property `section_root`
         """
         hp = HandlerParameters()
 
@@ -85,7 +85,7 @@ class HandlerParametersTest(TestCase):
 
     def test_HandlerParameters_property_raw_option(self):
         """
-        Validate the parameter `raw_option`
+        Validate the property `raw_option`
         """
         hp = HandlerParameters()
 
@@ -115,7 +115,7 @@ class HandlerParametersTest(TestCase):
 
     def test_HandlerParameters_property_op_params(self):
         """
-        Validate the parameter `op_params`
+        Validate the property `op_params`
         """
         hp = HandlerParameters()
 
@@ -145,7 +145,7 @@ class HandlerParametersTest(TestCase):
 
     def test_HandlerParameters_property_data_shared(self):
         """
-        Validate the parameter `data_shared`
+        Validate the property `data_shared`
         """
         hp = HandlerParameters()
 
@@ -172,7 +172,7 @@ class HandlerParametersTest(TestCase):
 
     def test_HandlerParameters_property_data_internal(self):
         """
-        Validate the parameter `data_internal`
+        Validate the property `data_internal`
         """
         hp = HandlerParameters()
 
@@ -195,6 +195,45 @@ class HandlerParametersTest(TestCase):
         expected_new = {"data_internal_test": True}
         hp.data_internal = expected_new
         self.assertDictEqual(hp.data_internal, expected_new)
+        return
+
+
+    def test_HandlerParameters_property_value(self):
+        """
+        Validate the property ``value``
+        """
+        hp = HandlerParameters()
+
+        # Check default value for property `value`
+        expected = ""
+        self.assertEqual(hp.value, expected,
+                         "default `value` should be: ''".format(expected))
+
+        # Verify the type checking on the setter
+        # - Setter only allows string types to be assigned.
+        with self.assertRaises(TypeError):
+            hp.value = None
+        return
+
+
+    def test_HandlerParameters_property_handler_name(self):
+        """
+        Validate the property ``handler_name``
+        """
+        hp = HandlerParameters()
+
+        # Check default value for property `handler_name`
+        expected = ""
+        self.assertEqual(hp.handler_name, expected,
+                         "default `handler_name` should be: ''".format(expected))
+
+        # Verify the type checking on the setter
+        # - Setter only allows string types to be assigned.
+        with self.assertRaises(TypeError):
+            hp.handler_name = None
+        return
+
+
 
 
 # EOF

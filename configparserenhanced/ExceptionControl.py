@@ -82,11 +82,14 @@ class ExceptionControl(object):
         between 0 and 5. Values below 0 will be set to 0 and values
         greater than 5 are set to 5.
 
+        The default value is set to 4 (CRITICAL, SERIOUS, and MINOR
+        events will raise an exception. WARNING events will only warn)
+
         Returns:
             int: The exception_control_level value.
         """
         if not hasattr(self, '_exception_control_level'):
-            self._exception_control_level = 2
+            self._exception_control_level = 4
         return self._exception_control_level
 
 

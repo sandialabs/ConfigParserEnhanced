@@ -7,6 +7,7 @@ __version__ = "0.0.1"
 __author__  = "William C. McLendon III"
 
 
+from .ConfigParserEnhanced import AmbiguousHandlerError
 from .ConfigParserEnhanced import ConfigParserEnhanced
 
 from .Debuggable import Debuggable

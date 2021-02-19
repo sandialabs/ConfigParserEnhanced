@@ -76,23 +76,30 @@ Public Methods
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members: ConfigParserEnhancedData
+   :exclude-members: ConfigParserEnhancedData,handler_initialize,handler_finalize,handler_generic
    :special-members: __init__
 
 
-Handlers (Private)
-~~~~~~~~~~~~~~~~~~
-These handlers defined by ConfigParserEnhanced and should not
-be overridden.
+Operation Handlers (Public)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+These handlers are defined by ConfigParserEnhanced and *may be overridden by
+subclasses* to specialize parser behaviour. If you wish to do so, we recommend
+cutting and pasting the default handlers into your code and customize from
+there.
+
+.. automethod:: configparserenhanced.ConfigParserEnhanced.handler_initialize
+.. automethod:: configparserenhanced.ConfigParserEnhanced.handler_finalize
+.. automethod:: configparserenhanced.ConfigParserEnhanced.handler_generic
+
+Operation Handlers (Private)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+These handlers perform tasks internal to ConfigParserEnhanced and should
+not be overridden.
 
 .. automethod:: configparserenhanced.ConfigParserEnhanced._handler_use
-.. automethod:: configparserenhanced.ConfigParserEnhanced._handler_generic
-.. automethod:: configparserenhanced.ConfigParserEnhanced._handler_finalize
-
 
 Helpers (Private)
 ~~~~~~~~~~~~~~~~~
-
 .. automethod:: configparserenhanced.ConfigParserEnhanced._loginfo_add
 .. automethod:: configparserenhanced.ConfigParserEnhanced._loginfo_print
 
@@ -105,6 +112,18 @@ object that is customized to work in concert with ConfigParserEnhanced.
 
 This class operates using lazy-evaluation of the parser method in ConfigParserEnhanced
 to process sections when requested.
+
+The following table shows the main API and implementation differences
+between a ``ConfigParserEnhancedData`` object and a
+``configparser.ConfigParser`` object, illustrating what subset of features
+a ``ConfigParserEnhancedData`` object provides:
+
+.. csv-table:: ConfigParserEnhancedData Comparison
+   :file: tbl_configparserenhanceddata_comparison.csv
+   :header-rows: 1
+   :widths: 60,20,20
+   :align: center
+   :delim: |
 
 .. autoclass:: configparserenhanced::ConfigParserEnhanced.ConfigParserEnhancedData
    :members:
