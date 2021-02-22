@@ -224,7 +224,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                           "+" + "="*78 + "+\n"
                     raise IOError(msg)
 
-            self._configparserdata.read(self.inifilepath, encoding='utf-8')
+            try:
+                self._configparserdata.read(self.inifilepath, encoding='utf-8')
+            except configparser.DuplicateOptionError as ex:
+                message  = "ERROR: Configparser found a section with "
+                message += "two options with identical keys."
+                self.debug_message(0, message)
+                raise ex
+
 
         return self._configparserdata
 
