@@ -8,7 +8,7 @@ See: https://pypi.org/classifiers/ for classifiers
 from setuptools import setup
 
 setup(
-    name="configparser_enhanced",
+    name="configparserenhanced",
     version="0.0.1",
     description="Environment Modules / LMOD helper",
     url="https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced",
