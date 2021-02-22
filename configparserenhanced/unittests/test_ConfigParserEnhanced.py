@@ -1047,4 +1047,28 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
+    def test_ConfigParserEnhanced_configparser_IdenticalKeyError(self):
+        """
+        Tests that an exception gets fired when configparser.ConfigParser
+        encounters a section with two options that have identical key
+        values.
+        """
+        filename_bad = find_config_ini(filename="config_test_configparserenhanced_badkeys.ini")
+
+        print("\n")
+        print("Load file: {}".format(filename_bad))
+
+        parser = ConfigParserEnhanced(filename_bad)
+        parser.debug_level = 1
+        parser.exception_control_level = 0
+
+        with self.assertRaises(configparser.DuplicateOptionError):
+            data = parser.parse_section("SECTION-A")
+
+        with self.assertRaises(configparser.DuplicateOptionError):
+            data = parser.parse_section("SECTION-B")
+
+
+        print("OK")
+
 # EOF

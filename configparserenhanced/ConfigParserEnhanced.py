@@ -227,6 +227,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             try:
                 self._configparserdata.read(self.inifilepath, encoding='utf-8')
             except configparser.DuplicateOptionError as ex:
+                delattr(self, '_configparserdata')
                 message  = "ERROR: Configparser found a section with "
                 message += "two options with identical keys."
                 self.debug_message(0, message)
@@ -465,8 +466,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise KeyError(message)
 
         # Verify that we actually got a section returned. If not, raise a KeyError.
-        # - Might not be reachable but let's keep this in place for now.
         if current_section is None:
+            # This may be unreachable.
             raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
 
         # Initialize and set processed_sections
