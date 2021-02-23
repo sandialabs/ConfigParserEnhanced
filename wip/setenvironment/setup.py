@@ -9,15 +9,22 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
+import setenvironment
+
+
 with open('requirements.txt', 'r') as ifp:
     required = ifp.read().splitlines()
 
-print("Required Packages:")
-print(required)
+
+#print("Required Packages:")
+#print(required)
+#print("SetEnvironment Version")
+#print(setenvironment.__version__)
+
 
 setup(
     name="setenvironment",
-    version="0.0.1",
+    version=setenvironment.__version__,
     description="Environment Modules / LMOD helper",
     url="https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment",
     author="William McLendon",
