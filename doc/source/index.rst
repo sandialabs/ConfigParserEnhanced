@@ -14,7 +14,6 @@ Welcome to ConfigParserEnhanced's documentation!
    Debuggable
    ExceptionControl
    HandlerParameters
-   SetEnvironment
 
 
 
