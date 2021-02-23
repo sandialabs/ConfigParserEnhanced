@@ -182,8 +182,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             file that is loaded from a .ini file.
 
         Raises:
-            ValueError if the length of `self.inifilepath` is zero.
-            IOError if any of the files in `self.inifilepath` don't
+            ValueError: if the length of `self.inifilepath` is zero.
+            IOError: if any of the files in `self.inifilepath` don't
                 exist or are not files.
 
         Note:
