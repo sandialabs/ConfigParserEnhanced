@@ -16,7 +16,7 @@ print("Required Packages:")
 print(required)
 
 setup(
-    name="SetEnvironment",
+    name="setenvironment",
     version="0.0.1",
     description="Environment Modules / LMOD helper",
     url="https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment",
