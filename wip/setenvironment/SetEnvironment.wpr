@@ -1,0 +1,51 @@
+#!wing
+#!version=7.0
+##################################################################
+# Wing project file                                              #
+##################################################################
+[project attributes]
+debug.launch-configs = (2,
+                        {'launch-5Gyw4cvA0PytPLLy': ({},
+        {'buildcmd': ('project',
+                      None),
+         'env': ('project',
+                 [u'']),
+         'name': 'Python3',
+         'pyexec': ('custom',
+                    u'python3'),
+         'pypath': ('project',
+                    []),
+         'pyrunargs': ('project',
+                       '-u'),
+         'runargs': u'',
+         'rundir': ('project',
+                    u'')}),
+                         'launch-oTbM9PrtDh76KRn8': ({'shared': True},
+        {'buildcmd': ('project',
+                      None),
+         'env': ('project',
+                 [u'']),
+         'name': u'Anaconda Python3',
+         'pyexec': ('custom',
+                    u'/usr/local/anaconda3/bin/python'),
+         'pypath': ('project',
+                    []),
+         'pyrunargs': ('project',
+                       '-u'),
+         'runargs': u'',
+         'rundir': ('project',
+                    u'')})})
+proj.directory-list = [{'dirloc': loc('.'),
+                        'excludes': (),
+                        'filter': u'*',
+                        'include_hidden': False,
+                        'recursive': True,
+                        'watch_for_changes': True}]
+proj.file-type = 'shared'
+proj.launch-config = {loc('../../coding/pyExampleLib/configparser/configparser-example.py'): ('c'\
+        'ustom',
+        (u'',
+         'launch-5Gyw4cvA0PytPLLy'))}
+testing.auto-test-file-specs = (('glob',
+                                 'test_*.py'),)
+testing.test-framework = {None: ':internal pytest'}

@@ -1,0 +1,51 @@
+stages:
+  - test
+  - deploy
+
+before_script:
+  # display centos version
+  - cat /etc/issue
+
+  # Pull required packages
+  - python3 -m pip install pytest pytest-cov
+
+pytest:
+  stage: test
+  timeout: 20m
+  script:
+    - bash ./exec-reqs-install.sh
+    - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
+  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+
+sphinx-documentation:
+  stage: test
+  timeout: 20m
+  script:
+    - cd doc/
+    - python3 -m pip install -r requirements.txt
+    - bash make_html_docs.sh
+
+publish coverage:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
+    - rm -rf /home/josbrau/html_files/SetEnvironment-new/coverage
+    - mkdir -p /home/josbrau/html_files/SetEnvironment-new/coverage
+    #- mv htmlcov/* /home/josbrau/html_files/SetEnvironment-new/coverage/
+    - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironment-new/coverage/
+
+publish docs:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - cd doc/
+    - python3 -m pip install -r requirements.txt
+    - bash make_html_docs.sh
+    - rm -rf /home/josbrau/html_files/SetEnvironment-new/doc
+    - mkdir -p /home/josbrau/html_files/SetEnvironment-new/doc
+    - mv html/* /home/josbrau/html_files/SetEnvironment-new/doc/

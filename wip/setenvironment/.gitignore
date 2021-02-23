@@ -1,0 +1,26 @@
+.DS_Store
+._.DS_Store
+*~
+___*
+
+# pytest temp files
+.coverage
+*,cover
+htmlcov
+doc/html
+src
+
+# python object files
+*.pyo
+*.pyc
+__pycache__
+
+# created by setup.py
+build
+
+# testing subdir
+tests
+
+# wingide user-specific configuration file
+*.wpu
+

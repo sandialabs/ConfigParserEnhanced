@@ -1,0 +1,12 @@
+Operation,Usage,Description
+**envvar-set**,``envvar-set envvar: value``,Sets (or overwrites) an envvar.
+**envvar-append**,``envvar-append envvar: value``, Append a value to an existing envvar.
+**envvar-prepend**,``envvar-prepend envvar: value``, Prepend a value to an existing envvar.
+**envvar-remove**,``envvar-remove envvar:``, Removes all occurrences of envvar.
+**envvar-unset**, ``envvar-unset envvar:``, Unsets (removes) an envvar if it exists.
+**module-load**,``module-load module_name: version``,Load a module.
+**module-purge**,``module-purge:``,Purge all loaded modules.
+**module-remove**,``module-remove module_name:``,Removes all uses of <module_name> from actions.
+**module-swap**,``module-swap: module_old: module_new/version``,Swaps two modules.
+**module-unload**,``module-unload module_name:``,Unloads a module.
+**module-use**,``module-use: path``,Adds a path to modulefiles.
