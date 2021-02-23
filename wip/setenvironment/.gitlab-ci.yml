@@ -1,6 +1,6 @@
 stages:
   - test
-  - deploy
+  - documentation
 
 before_script:
   # display centos version
@@ -12,7 +12,7 @@ before_script:
   
   # Get ConfigParserEnhanced
   - python3 -m pip uninstall -y configparserenhanced   
-  #- python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+  - python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
   # Methods that work @ command line but not in CI.
   # - python3 -m pip install --user -r requirements.txt
 
@@ -33,19 +33,18 @@ sphinx-documentation:
     - bash make_html_docs.sh
 
 publish coverage:
-  stage: deploy
+  stage: documentation
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
     - rm -rf /home/josbrau/html_files/SetEnvironment-new/coverage
-    - mkdir -p /home/josbrau/html_files/SetEnvironment-new/coverage
-    #- mv htmlcov/* /home/josbrau/html_files/SetEnvironment-new/coverage/
+    - mkdir -p /home/josbrau/html_files/SetEnvironment-new/coverage    
     - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironment-new/coverage/
 
 publish docs:
-  stage: deploy
+  stage: documentation
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -56,3 +55,6 @@ publish docs:
     - rm -rf /home/josbrau/html_files/SetEnvironment-new/doc
     - mkdir -p /home/josbrau/html_files/SetEnvironment-new/doc
     - mv html/* /home/josbrau/html_files/SetEnvironment-new/doc/
+
+
+
