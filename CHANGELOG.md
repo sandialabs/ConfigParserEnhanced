@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 
+## [0.1.0] - 2021-02-23
+### Removed
+- Removed `SetEnvironment` into its own repository.
+- Cleaned up `setup.py` and added new helper scripts.
 
 ## [0.0.1] - 2021-02-22
 - `0.0.1` added to help SetEnvironment have a version to pull via Pip.
