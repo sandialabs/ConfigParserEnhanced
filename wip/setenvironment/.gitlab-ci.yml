@@ -10,9 +10,11 @@ before_script:
   # Pull required packages
   - python3 -m pip install pytest pytest-cov
   
-  - python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
-  #- python3 -m pip install --user git+https://gitlab+deploy-token-CI:${gitlab+deploy-token-CI}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
-  - python3 -m pip install --user -r requirements.txt
+  # Get ConfigParserEnhanced
+  - python3 -m pip uninstall -y configparserenhanced   
+  - python3 -m pip install --user git+https://gitlab+deploy-token-CI:${gitlab+deploy-token-CI}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+  # (WORKED) - python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+  # - python3 -m pip install --user -r requirements.txt
 
 pytest:
   stage: test
