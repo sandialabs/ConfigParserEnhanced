@@ -11,8 +11,11 @@ before_script:
   - python3 -m pip install pytest pytest-cov
   
   # Get ConfigParserEnhanced
+  - echo -e "----[ Uninstall ConfigParserEnhanced ]-------------------------------"
   - python3 -m pip uninstall -y configparserenhanced   
+  - echo -e "----[ Install ConfigParserEnhanced ]---------------------------------"
   - python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+  # Methods that work @ command line but not in CI.
   # - python3 -m pip install --user -r requirements.txt
 
 pytest:
