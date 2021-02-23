@@ -13,6 +13,7 @@ import configparserenhanced
 with open('requirements.txt', 'r') as ifp:
     required = ifp.read().splitlines()
 
+
 print("Required Packages:")
 print(required)
 
