@@ -8,7 +8,7 @@ from __future__ import print_function  # python 2 -> 3 compatiblity
 import os
 from pprint import pprint
 
-import configparserenhanced
+import setenvironment
 
 
 
@@ -45,7 +45,7 @@ def test_setenvironment(filename="config.ini"):
     print("filename    : {}".format(filename))
     print("")
 
-    parser = configparserenhanced.SetEnvironment(filename=filename)
+    parser = setenvironment.SetEnvironment(filename=filename)
     parser.debug_level = 1
     parser.exception_control_level = 4
 
