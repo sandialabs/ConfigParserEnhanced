@@ -9,9 +9,10 @@ before_script:
 
   # Pull required packages
   - python3 -m pip install pytest pytest-cov
-  #- python3 -m pip install --user -r requirements.txt
-  - python3 -m pip install --user --extra-index-url https://gitlab+deploy-token-CI:${gitlab+deploy-token-CI}@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironmentNew -r requirements.txt
+  
+  - python3 -m pip install --user --extra-index-url https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironmentNew -r requirements.txt
   #- python3 -m pip install --user git+https://gitlab+deploy-token-CI:${gitlab+deploy-token-CI}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+  - python3 -m pip install --user -r requirements.txt
 
 pytest:
   stage: test
