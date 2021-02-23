@@ -40,6 +40,27 @@ function message_std
 }
 
 
+#
+# message_success
+#
+function message_success()
+{
+    echo -e "${green}==============================${normal}"
+    echo -e "${green}=          SUCCESS!${normal}"
+    echo -e "${green}==============================${normal}"
+}
+
+
+#
+# message_failure
+#
+function message_failure()
+{
+    echo -e "${red}==============================${normal}"
+    echo -e "${red}=          FAILURE!${normal}"
+    echo -e "${red}==============================${normal}"
+}
+
 
 # print_centered_text
 #
