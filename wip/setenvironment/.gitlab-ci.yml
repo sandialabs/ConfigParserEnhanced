@@ -8,12 +8,13 @@ before_script:
 
   # Pull required packages
   - python3 -m pip install pytest pytest-cov
+  - python3 -m pip install --user -r requirements.txt
 
 pytest:
   stage: test
   timeout: 20m
   script:
-    - bash ./exec-reqs-install.sh
+    #- bash ./exec-reqs-install.sh
     - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
