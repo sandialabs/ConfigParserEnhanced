@@ -23,7 +23,7 @@ try:
 except ImportError:                                                                                 # pragma: no cover
     pass                                                                                            # pragma: no cover
 
-from . import ConfigParserEnhanced
+from configparserenhanced import *
 
 
 # ===================================

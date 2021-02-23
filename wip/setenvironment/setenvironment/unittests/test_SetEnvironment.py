@@ -30,9 +30,7 @@ try:
 except ImportError:
     from io import StringIO
 
-import configparser
-
-from configparserenhanced import *
+from setenvironment import *
 
 from .common import *
 

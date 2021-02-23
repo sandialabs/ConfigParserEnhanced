@@ -10,7 +10,7 @@ execute_command_checked "./exec-reqs-install.sh"
 
 printf "${yellow}"
 print_banner "Python 3"
-printf "${normal}"
+printf "${normal}\n"
 
 find . -name "__pycache__" -exec rm -rf {} \; >& /dev/null
 find . -name "*.py?" -exec rm {} \;           >& /dev/null
@@ -23,7 +23,7 @@ options=(
     --cov-report
     term-missing
     --cov-report html
-    --cov=configparserenhanced
+    --cov=setenvironment
     )
 
 
@@ -32,9 +32,13 @@ python3 -m pytest ${options[@]}
 err=$?
 echo -e ""
 if [ $err != 0 ]; then
+    printf "${red}"
     print_banner "TESTING FAILED"
+    printf "${normal}"
 else
+    printf "${green}"
     print_banner "TESTING PASSED"
+    printf "${normal}"
 fi
 echo -e ""
 
