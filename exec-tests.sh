@@ -3,11 +3,14 @@
 # Source the common helpers script.
 source scripts/common.bash
 
+
+execute_command_checked "./exec-reqs-install.sh"
+
 # add -s for verbose output
 
 printf "${yellow}"
 print_banner "Python 3"
-printf "${normal}"
+printf "${normal}\n"
 
 find . -name "__pycache__" -exec rm -rf {} \; >& /dev/null
 find . -name "*.py?" -exec rm {} \;           >& /dev/null
@@ -22,17 +25,20 @@ options=(
     --cov-report html
     --cov=configparserenhanced
     )
+
+
 python3 -m pytest ${options[@]}
+
 err=$?
 echo -e ""
 if [ $err != 0 ]; then
-    echo -e "${red}======================${normal}"
-    echo -e "${red}=== TESTING FAILED ===${normal}"
-    echo -e "${red}======================${normal}"
+    printf "${red}"
+    print_banner "TESTING FAILED"
+    printf "${normal}"
 else
-    echo -e "${green}======================${normal}"
-    echo -e "${green}=== TESTING PASSED ===${normal}"
-    echo -e "${green}======================${normal}"
+    printf "${green}"
+    print_banner "TESTING PASSED"
+    printf "${normal}"
 fi
 echo -e ""
 

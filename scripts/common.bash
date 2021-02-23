@@ -40,6 +40,27 @@ function message_std
 }
 
 
+#
+# message_success
+#
+function message_success()
+{
+    echo -e "${green}==============================${normal}"
+    echo -e "${green}=          SUCCESS!${normal}"
+    echo -e "${green}==============================${normal}"
+}
+
+
+#
+# message_failure
+#
+function message_failure()
+{
+    echo -e "${red}==============================${normal}"
+    echo -e "${red}=          FAILURE!${normal}"
+    echo -e "${red}==============================${normal}"
+}
+
 
 # print_centered_text
 #
@@ -155,6 +176,74 @@ function get_python_packages() {
     echo -e "--- ${pip_exe:?} install --user ${pip_args[@]}"
     ${pip_exe:?} install --user ${pip_args[@]}
 }
+
+
+# executable_exists
+#
+# param1: executable (with path if necessary)
+function executable_exists()
+{
+    local cmd=${1:?}
+    local output=1
+    if [ ! command -v ${cmd:?} &> /dev/null ]; then
+        output=0
+    fi
+    echo ${output:?}
+}
+
+
+# execute_command
+#
+# param1: command to execute
+function execute_command()
+{
+    local command=${1:?}
+    message_std "$ ${magenta}${command:?}${normal}"
+
+    local is_executable=$(executable_exists ${command:?})
+
+    if [[ "${is_executable}" == "1" ]]; then
+        eval ${command:?}
+        local err=$?
+        if [ $err -ne 0 ]; then
+            message_std "${red}FAILED${normal}"
+        else
+            message_std "${green}OK${normal}"
+        fi
+    else
+        message_std "${red}ERROR: command '${command:?}' is not executable"
+        message_std "${red}FAILED${normal}"
+    fi
+}
+
+
+# execute_command_checked
+#
+# param1: command to execute
+function execute_command_checked()
+{
+    local command=${1:?}
+    message_std "$ ${magenta}${command:?}${normal}"
+
+    local is_executable=$(executable_exists ${command:?})
+
+    if [[ "${is_executable}" == "1" ]]; then
+        eval ${command:?}
+        local err=$?
+        if [ $err -ne 0 ]; then
+            message_failure
+            exit $err
+        else
+            echo -e "${green}OK${normal}"
+        fi
+    else
+        print_message "${red}ERROR: command '${command:?}' is not executable"
+        print_message "${red}FAILED${normal}"
+        exit 32
+    fi
+}
+
+
 
 
 
