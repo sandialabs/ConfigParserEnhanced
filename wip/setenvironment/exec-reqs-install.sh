@@ -4,10 +4,14 @@
 # into the local user space.
 #
 
-python_exe="python3"
-
 # Source the common helpers script.
 source scripts/common.bash
+
+printf "${yellow}"
+print_banner "INSTALL REQUIRED PACKAGES"
+printf "${normal}"
+
+python_exe="python3"
 
 options=(
     -m pip
