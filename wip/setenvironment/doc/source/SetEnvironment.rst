@@ -15,13 +15,13 @@ This class implements the following new *operations* for .ini file processing:
 
 API Documentation
 -----------------
-.. automodule:: configparserenhanced.SetEnvironment
+.. automodule:: setenvironment.SetEnvironment
    :no-members:
 
 
 Public Methods
 ++++++++++++++
-.. autoclass:: configparserenhanced.SetEnvironment
+.. autoclass:: setenvironment.SetEnvironment
    :noindex:
    :members:
    :undoc-members:
@@ -47,29 +47,29 @@ Operation Handlers
 ++++++++++++++++++
 Operation handlers for .ini file processing
 
-.. automethod:: configparserenhanced.SetEnvironment.handler_finalize
+.. automethod:: setenvironment.SetEnvironment.handler_finalize
 
 Environment Variable Handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_append
-.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_prepend
-.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_remove
-.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_set
-.. automethod:: configparserenhanced.SetEnvironment.handler_envvar_unset
+.. automethod:: setenvironment.SetEnvironment.handler_envvar_append
+.. automethod:: setenvironment.SetEnvironment.handler_envvar_prepend
+.. automethod:: setenvironment.SetEnvironment.handler_envvar_remove
+.. automethod:: setenvironment.SetEnvironment.handler_envvar_set
+.. automethod:: setenvironment.SetEnvironment.handler_envvar_unset
 
 Environment Modules Handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: configparserenhanced.SetEnvironment.handler_module_load
-.. automethod:: configparserenhanced.SetEnvironment.handler_module_purge
-.. automethod:: configparserenhanced.SetEnvironment.handler_module_remove
-.. automethod:: configparserenhanced.SetEnvironment.handler_module_swap
-.. automethod:: configparserenhanced.SetEnvironment.handler_module_unload
-.. automethod:: configparserenhanced.SetEnvironment.handler_module_use
+.. automethod:: setenvironment.SetEnvironment.handler_module_load
+.. automethod:: setenvironment.SetEnvironment.handler_module_purge
+.. automethod:: setenvironment.SetEnvironment.handler_module_remove
+.. automethod:: setenvironment.SetEnvironment.handler_module_swap
+.. automethod:: setenvironment.SetEnvironment.handler_module_unload
+.. automethod:: setenvironment.SetEnvironment.handler_module_use
 
 Helpers (Private)
 +++++++++++++++++
 
-.. automethod:: configparserenhanced.SetEnvironment._helper_envvar_common
-.. automethod:: configparserenhanced.SetEnvironment._helper_module_common
+.. automethod:: setenvironment.SetEnvironment._helper_envvar_common
+.. automethod:: setenvironment.SetEnvironment._helper_module_common
 
 
