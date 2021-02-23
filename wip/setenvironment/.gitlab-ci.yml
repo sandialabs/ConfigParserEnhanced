@@ -5,7 +5,7 @@ stages:
 before_script:
   # display centos version
   - cat /etc/issue
-  - git config user.email
+  # - git config user.email
 
   # Pull required packages
   - python3 -m pip install pytest pytest-cov
