@@ -70,11 +70,14 @@ key-B1: value-B1
 
 In this example, the entry `use SECTION-A:` that is inside `[SECTION-B]` instructs the core 
 parser to recurse into `[SECTION-A]` and process it before moving on with the rest of the 
-entries in `[SECTION-B]`.  In this example, accessing
+entries in `[SECTION-B]`.  In this example the following code could be used to parse 
+`SECTION-B`:
 `ConfigParserEnhanced.configparserenhanceddata['SECTION-B']` would return the following 
 result:
 
 ```python
+>>> cpe = ConfigParserEnhanced(filename='config.ini')
+>>> cpe.configparserenhanceddata['SECTION-B']
 {
     'key-A1': 'value-A1',
     'key-A2': 'value-A2',
