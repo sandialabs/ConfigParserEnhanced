@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 
+## [0.1.1] - 2021-02-23
+### Changed
+- Brought handling of a `key:value` pair where there is no separator character (`:`, `=`) 
+  in line with how `configparser` handles these.  If they key has a separator but no value
+  then the _value_ field will get an empty string, but if there is no separator then _value_
+  will be set to `None`.  Prior to this, ConfigParserEnhanced converted _value_ to a string
+  which would cause `None` to be converted to a string: `"None"`.
+
 ## [0.1.0] - 2021-02-23
 ### Removed
 - Removed `SetEnvironment` into its own repository.
