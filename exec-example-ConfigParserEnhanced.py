@@ -67,6 +67,12 @@ def test_configparserEnhanced(filename="config.ini"):
         print("---> NO")
     print("")
 
+    section = "NOVALUE_TEST"
+    print("Get {}".format(section))
+    sec_novalue = parser.configparserenhanceddata[section]
+    print(sec_novalue)
+    print("")
+
     section = "SECTION C+"
     print("Get {}".format(section))
     sec_c = parser.configparserenhanceddata[section]

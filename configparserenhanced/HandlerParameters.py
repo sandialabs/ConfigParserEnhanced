@@ -124,7 +124,9 @@ class HandlerParameters(object):
         empty string.
 
         Returns:
-            string: containing the value from the field.
+            string: Typically this returns a string, but it can also return ``None``
+                when encountering an option from a .ini file that does not have a separator
+                character (i.e., ``key`` instead of ``key:`` or ``key=``).
         """
         if not hasattr(self, '_value'):
             self._value = ""
@@ -132,7 +134,7 @@ class HandlerParameters(object):
 
     @value.setter
     def value(self, value):
-        if not isinstance(value, (str)):
+        if not isinstance(value, (str, type(None))):
             raise TypeError("Value must be a `str` type.")
         self._value = value
         return self._value
