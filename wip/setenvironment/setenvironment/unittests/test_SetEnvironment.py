@@ -164,7 +164,7 @@ class SetEnvironmentTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = SetEnvironment(self._filename)
-        parser.debug_level = 1
+        parser.debug_level = 2
         #parser.exception_control_level = 4
 
         # parse a section

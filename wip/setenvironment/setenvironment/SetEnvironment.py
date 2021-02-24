@@ -308,7 +308,8 @@ class SetEnvironment(ConfigParserEnhanced):
         for idata in data_shared:
 
             if 'module' in idata.keys():
-                if idata['module'] != module_name and module_name not in idata['value']:
+                # Note: idata['value'] can be None in some cases
+                if (idata['module'] != module_name) and ((idata['value'] == None) or (module_name not in idata['value'])):
                     new_data_shared.append(idata)
                 else:
                     self.debug_message(1, "Removed entry:{}".format(idata))
