@@ -476,8 +476,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         for sec_k,sec_v in current_section.items():
             sec_k = str(sec_k).strip()
-            sec_v = str(sec_v).strip()
-            sec_v = sec_v.strip('"')
+
+            # sec_v should be either a string or a NoneType entry. Generally the value
+            # will be a string but if there is no 'separator' provided between the key
+            # and the value. For example if a key with no value is provided like this:
+            # `key: ` then the value field will be an empty string. If there is no colon
+            # or equals such as `key` then the value field that configparser returns would
+            # be a NoneType. To handle this we only do string operations here if sec_v is
+            # not None.
+            if sec_v is not None:
+                sec_v = str(sec_v).strip()
+                sec_v = sec_v.strip('"')
+
             handler_parameters.raw_option = (sec_k, sec_v)
             handler_parameters.value = sec_v
 

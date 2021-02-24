@@ -916,7 +916,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         # Test length - This should be the # of sections in the .ini file.
         print("\nTest __len__")
-        exp_len = 16
+        exp_len = 17
         act_len = len(parser.configparserenhanceddata)
         self.assertEqual(exp_len, act_len,
                          "ERROR: Length returned is {} but we expected {}".format(act_len, exp_len))
@@ -1068,7 +1068,49 @@ class ConfigParserEnhancedTest(TestCase):
         with self.assertRaises(configparser.DuplicateOptionError):
             data = parser.parse_section("SECTION-B")
 
+        print("OK")
+
+
+    def test_ConfigParserEnhanced_ini_NoValue(self):
+        """
+        Tests that we properly handle situations where configparser
+        returns a key with ``None`` as the value.
+
+        This can happen when we have an entry in a .ini file like this:
+
+        ```ini
+        [NOVALUE_TEST]
+        key1:
+        key2
+        key3:
+        ```
+
+        ``key1`` and ``key3`` will both have an empty string ("") as their value
+        ``key2`` will be given a ``None`` value by configparser.
+
+        ConfigParserEnhanced should match this behaviour.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 1
+        parser.exception_control_level = 0
+
+
+        expected = { 'key1': '', 'key2': None, 'key3': 'value3' }
+
+        actual = parser.configparserenhanceddata["NOVALUE_TEST"]
+
+        print("Expected Section Data:")
+        pprint(expected, indent=4, width=40)
+
+        print("Actual Section Data:")
+        pprint(actual,   indent=4, width=40)
+
+        self.assertDictEqual(expected, actual)
 
         print("OK")
+
 
 # EOF

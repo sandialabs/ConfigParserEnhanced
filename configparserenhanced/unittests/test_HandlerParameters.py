@@ -210,9 +210,18 @@ class HandlerParametersTest(TestCase):
                          "default `value` should be: ''".format(expected))
 
         # Verify the type checking on the setter
-        # - Setter only allows string types to be assigned.
+        # - Setter only allows string or None types to be assigned.
         with self.assertRaises(TypeError):
-            hp.value = None
+            hp.value = 123.456
+
+        expected = "TEST"
+        hp.value = expected
+        self.assertEqual(expected, hp.value, "value should be `{}`".format(expected))
+
+        expected = None
+        hp.value = expected
+        self.assertEqual(expected, hp.value, "value should be `{}`".format(expected))
+
         return
 
 
