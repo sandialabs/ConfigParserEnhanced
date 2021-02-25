@@ -9,13 +9,10 @@ Todo:
 :Authors:
     William C. McLendon III
 :Version: 0.0.1-alpha
-
 """
 from __future__ import print_function
 
 import os
-#import re
-#import sys
 
 try:
     # @final decorator, requires Python 3.8.x

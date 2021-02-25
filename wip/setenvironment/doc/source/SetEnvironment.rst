@@ -28,7 +28,6 @@ Public Methods
    :show-inheritance:
    :special-members: __init__
    :exclude-members:
-      handler_initialize,
       handler_finalize,
       handler_envvar_append,
       handler_envvar_prepend,
