@@ -3,7 +3,7 @@
 """
 Init script for the ConfigparserEnhanced package
 """
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__  = "William C. McLendon III"
 
 

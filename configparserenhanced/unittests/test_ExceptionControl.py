@@ -136,11 +136,14 @@ class ExceptionControlTest(TestCase):
 
         inst_testme = testme()
 
+        exception_skipped_msg_regex_01 = r"!! EXCEPTION SKIPPED"
+        exception_skipped_msg_regex_02 = r"Message\s*:"
+
         # Default exception_control_level == 4
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertIn(exception_skipped_msg_regex_01, fake_out.getvalue())
 
         with self.assertRaises(ValueError):
             inst_testme.event_minor()
@@ -180,26 +183,26 @@ class ExceptionControlTest(TestCase):
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-            self.assertIn("Message:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_02)
 
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_minor()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-            self.assertIn("Message:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_02)
 
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_serious()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-            self.assertIn("Message:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_02)
 
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_critical()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
-            self.assertIn("Message:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_02)
 
 
         # Set exception_control_level = 2 (raise CRITICAL)
@@ -207,17 +210,17 @@ class ExceptionControlTest(TestCase):
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
 
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_minor()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
 
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_serious()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
 
 
         # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
@@ -225,12 +228,12 @@ class ExceptionControlTest(TestCase):
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
 
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_minor()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
 
         with self.assertRaises(ValueError):
             inst_testme.event_serious()
@@ -244,7 +247,7 @@ class ExceptionControlTest(TestCase):
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
 
         with self.assertRaises(ValueError):
             inst_testme.event_minor()
@@ -278,7 +281,7 @@ class ExceptionControlTest(TestCase):
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
-            self.assertIn("EXCEPTION SKIPPED:", fake_out.getvalue())
+            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
 
         with self.assertRaises(ValueError):
             inst_testme.event_minor()

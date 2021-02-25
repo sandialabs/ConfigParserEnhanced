@@ -23,9 +23,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 
+## [0.1.2] - 2021-02-24
+### Changed
+- Fixed issue in the formatting of the `ExceptionControl` method `exception_control_event`
+  where events are printed to the console rather than raising an exception. The message
+  now properly prints out the _call stack_ to the location where `exception_control_event`
+  was called from. The warning message formatting was changed slightly as well to add
+  the characters `!! ` as a prefix to all the lines in the message.
+
 ## [0.1.1] - 2021-02-23
 ### Changed
-- Brought handling of a `key:value` pair where there is no separator character (`:`, `=`) 
+- Brought handling of a `key:value` pair where there is no separator character (`:`, `=`)
   in line with how `configparser` handles these.  If they key has a separator but no value
   then the _value_ field will get an empty string, but if there is no separator then _value_
   will be set to `None`.  Prior to this, ConfigParserEnhanced converted _value_ to a string
