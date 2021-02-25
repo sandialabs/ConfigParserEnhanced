@@ -161,18 +161,25 @@ class ExceptionControl(object):
             try:
                 raise exception_type
             except exception_type as ex:
-                print("="*60)
-                print("EXCEPTION SKIPPED: {}".format(exception_type.__name__))
+                print("!! " + "="*80)
+                print("!! EXCEPTION SKIPPED")
+                print("!! Type    : {}".format(exception_type.__name__))
                 if message != None:
-                    print("Message: {}".format(message))
-                print("Traceback:")
-                traceback.print_tb(ex.__traceback__)
-                # Todo: We need to get the full traceback / stack trace information to print
-                #       here. This command just gives the 'last' entry, which is this spot...
-                #       which doesn't convey where exactly our actual error came from. :/
+                    message = message.replace("\n", "\n!!         : ")
+                    print("!! Message : {}".format(message))
 
-                print("Increase `exception_control_level` to {} to raise this exception.".format(req_exception_control_level))
-                print("="*60)
+                print("!!")
+                print("!! Call Stack:")
+                # Ignore the last entry from the call stack since that is _this_ method.
+                # and it's the _caller_ that we care about for the call stack in reporting.
+                for line in traceback.format_stack()[:-1]:
+                    line = line.strip()
+                    line = line.replace("\n", "\n!! ")
+                    print("!! {}".format(line.strip()))
+
+                print("!!")
+                print("!! Increase `exception_control_level` to {} to raise this exception.".format(req_exception_control_level))
+                print("!! " + "="*80)
                 sys.stdout.flush()
 
         return

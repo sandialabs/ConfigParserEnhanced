@@ -6,6 +6,7 @@ Example app for ConfigParserEnhanced.
 from __future__ import print_function  # python 2 -> 3 compatiblity
 
 import os
+import sys
 
 from configparserenhanced import ConfigParserEnhanced
 
@@ -51,7 +52,6 @@ def test_configparserEnhanced(filename="config.ini"):
     section = "SECTION-A+"
     section = "SECTION C+"
     #section = "OPERAND_TEST"
-
 
     #
     # Check if 'key 4' is a member of this section in the basic configparserenhanceddata
@@ -105,6 +105,13 @@ def test_configparserEnhanced(filename="config.ini"):
 
 
 def experimental(filename="config.ini"):
+
+    # This is a silly test to try out some changes to ECE.
+    # parser = ConfigParserEnhanced(filename=filename)
+    # parser.debug_level = 1
+    # parser.exception_control_level = 4
+    # parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!")
+    # sys.exit(0)
 
     return
 
