@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-Todo: 
+Todo:
     Fill in file-level docstring
-    Clean up docstrings
 """
 from __future__ import print_function
 
@@ -99,7 +98,7 @@ class HandlerParameters(object):
         ``op_params`` will contain the tuple ``("operation", "parameter")``.
         Generally, the first entry (the operation) will always be a string but the
         second parameter might be a ``NoneType`` in some cases.
-      
+
         Returns:
             tuple: A tuple ``(op1, op2)`` containing the operations extracted from
             the current operation.

@@ -119,12 +119,13 @@ class ExceptionControl(object):
             message (str): If the exception gets triggered, what message
                 should we pass along when it gets raised?
         """
+
         def _is_raisable(exception):
             """Helper function: determine if an object is 'raiseable'.
 
             To determine if an object is something that can be raised via ``raise``,
             you must do something more than just check if something inherits from
-            :class:`Exception`. 
+            :class:`Exception`.
 
             This function determines if an object *can be raised*.
 
@@ -132,7 +133,7 @@ class ExceptionControl(object):
                 exception (object): An object we wish to test if it can be **raised**.
 
             Returns:
-                bool: True if ``exception`` can be raised via ``raise exception(message)``.            
+                bool: True if ``exception`` can be raised via ``raise exception(message)``.
             """
             try:
                 raise exception

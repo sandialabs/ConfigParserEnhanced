@@ -80,7 +80,7 @@ class AmbiguousHandlerError(Exception):
         next -- attempted new state
         message -- explanation of why the specific transition is not allowed
     """
-    pass
+    pass # Does this need to be implemented?
 
 
 
@@ -97,7 +97,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     extended processing of the information provided in a ``.ini`` file.
 
     See Also:
-        - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`_
+        - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`
     """
     def __init__(self, filename):
         """Constructor
@@ -189,8 +189,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Note:
             Subclasses should not override this.
 
+<<<<<<< HEAD
         See Also:
             - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`_
+=======
+        .. configparser reference:
+            https://docs.python.org/3/library/configparser.html
         """
         if not hasattr(self, '_configparserdata'):
             self._configparserdata = configparser.ConfigParser(allow_no_value=True)
@@ -294,7 +298,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if section == "":
             raise ValueError("`section` cannot be empty.")
 
-        # Clear out loginfo from any previous runs.
+        # If a previous run generated _loginfo, clear it before this run.
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
@@ -309,23 +313,35 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def enter_handler(self, handler_parameters):
-        """
-        Operations to be performed when entering a handler.
+        """General tasks to do when entering a handler
+
+        This executes some general operations that should be executed when entering
+        a handler. Generally, these are just logging and console messages for
+        debugging.
 
         Args:
             handler_parameters (HandlerParameters): The parameters passed to
                 the handler.
         """
         handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console # Note that this line was only used in handler_finalize() below.  Should it be in all of them?
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+        self.debug_message(1, "Enter handler    : {}".format(handler_name))                         # Console
+        self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(2, "--> op_params    : {}".format(handler_parameters.op_params))         # Console
+        self.debug_message(2, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(3, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
 
+        self._loginfo_add('handler-entry', {'name': handler_name,                                   # Logging
+                                            'entry': handler_parameters.raw_option,                 # Logging
+                                            'parameters': handler_parameters})                      # Logging
+        return
 
 
     def exit_handler(self, handler_parameters):
-        """
-        Operations to be performed when exiting a handler.
+        """General tasks to do when entering a handler
+
+        This executes some general operations that should be executed when entering
+        a handler. Generally, these are just logging and console messages for
+        debugging.
 
         Args:
             handler_parameters (HandlerParameters): The parameters passed to
@@ -333,8 +349,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
-
+        self._loginfo_add('handler-exit', {'name': handler_name,                                    # Logging
+                                           'entry': handler_parameters.raw_option,                  # Logging
+                                           'parameters': handler_parameters})                       # Logging
+        return
 
 
     def handler_generic(self, section_name, handler_parameters) -> int:
@@ -355,6 +373,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             * > 10  : An unknown failure occurred (SERIOUS)
         """
         self.enter_handler(handler_parameters)
+        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))
 
         # -----[ Handler Content Start ]-------------------
 
@@ -462,13 +481,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if handler_parameters is None:
             handler_parameters = self._new_handler_parameters()
 
+            # check that we got the right data structure from _new_handler_parameters
+            # in case someone overrides this later on.
             if not isinstance(handler_parameters, (HandlerParameters)):
                 raise TypeError("handler_parameters must be of type `HandlerParameters` or a derivitive.")
 
             handler_parameters.section_root = section_name
-            handler_parameters.data_shared      # initializes default (lazy eval, not necessary)
-            handler_parameters.data_internal    # initializes default (lazy eval, not necessary)
-            handler_parameters.data_internal['processed_sections'] = set()
+#            handler_parameters.data_shared      # initializes default (lazy eval, not necessary)
+#            handler_parameters.data_internal    # initializes default (lazy eval, not necessary)
+#            handler_parameters.data_internal['processed_sections'] = set()
 
             # Pitfall: Only add 'sections_checked' for the _root_ node
             #          because configparserenhanceddata recurses through and we
@@ -476,12 +497,17 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #          of the fully parsed entry from the the root section
             #          of the search only.
             self.configparserenhanceddata._sections_checked.add(section_name)
+        else:
+            # if we got a handler_parameters handed to us (i.e., recursion)
+            # we should make a deep-copy of it and only preserve the internal and
+            # shared state so that we don't change this in a way that affects
+            # the caller's state.
+            handler_parameters = self._new_handler_parameters(handler_parameters)
 
         # Execute _handler_initialize to add a pre-processing step.
         if initialize and section_name == handler_parameters.section_root:
-            handler_initialize_params = HandlerParameters()
+            handler_initialize_params = self._new_handler_parameters(handler_parameters)
             handler_initialize_params.handler_name = "handler_initialize"
-            handler_initialize_params.data_shared  = handler_parameters.data_shared
             handler_rval = self.handler_initialize(section_name, handler_initialize_params)
             self._check_handler_rval("handler_initialize", handler_rval)
 
@@ -519,7 +545,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 sec_v = str(sec_v).strip()
                 sec_v = sec_v.strip('"')
 
-            handler_parameters.raw_option = (sec_k, sec_v)
+            handler_parameters.raw_option = (sec_k, sec_v) # Would it be better to add a key() property to handler_parameters in place of raw_option?
             handler_parameters.value = sec_v
 
             self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
@@ -578,9 +604,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # If we're exiting recursion from the root node and and finalize is
         # enabled, we call the finalize handler.
         if finalize and section_name == handler_parameters.section_root:
-            handler_finalize_params = HandlerParameters()
+            handler_finalize_params = self._new_handler_parameters(handler_parameters)
             handler_finalize_params.handler_name = "handler_finalize"
-            handler_finalize_params.data_shared  = handler_parameters.data_shared
             handler_rval = self.handler_finalize(section_name, handler_finalize_params)
             self._check_handler_rval("handler_finalize", handler_rval)
 
@@ -614,18 +639,33 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return None
 
 
-    def _new_handler_parameters(self) -> HandlerParameters:
+    def _new_handler_parameters(self, handler_parameters=None) -> HandlerParameters:
         """Generate a new :class:`~configparserenhanced.HandlerParameters` object.
 
         This is called inside the parser to generate :class:`HandlerParameters`.
         If subclasses extend the :class:`~configparserenhanced.HandlerParameters`
         class, this can be overridden.
 
+        Args:
+            handler_parameters: an existing ``HandlerParameters`` object to copy the
+                *persistent* state over from (i.e., ``data_shared``, ``data_internal``)
+                for continuity in the new object.
+
         Returns:
             :class:`~configparserenhanced.HandlerParameters` object.
         """
-        params = HandlerParameters()
-        return params
+        new_handler_parameters = HandlerParameters()
+        #new_handler_parameters.data_shared         # should be lazy eval generated and not needed
+        #new_handler_parameters.data_internal       # should be lazy eval generated and not needed
+        new_handler_parameters.data_internal['processed_sections'] = set()
+
+        # Copy the 'persistent' state from the old handler_parameters object.
+        if handler_parameters != None:
+            new_handler_parameters.data_internal = handler_parameters.data_internal
+            new_handler_parameters.data_shared   = handler_parameters.data_shared
+            new_handler_parameters.section_root  = handler_parameters.section_root
+
+        return new_handler_parameters
 
 
     @property
@@ -652,6 +692,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             This should not be overridden unless you *really* know what you're
             doing since it'll probably also break the parser. Changing this could
             cascade into a lot of changes.
+
+        See Also:
+            - `regex tester <https://regexr.com/>` A useful REGEX tester.
         """
         if not hasattr(self, '_regex_op_splitter_value'):
             # This is the regex op splitter to extract op1 and op2.  This is
@@ -682,7 +725,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #         envvar-prepend PATH B: /another/path/to/prepend
             #     In both cases, op1 = 'envvar-prepend' and op2 = 'PATH' but the addition of the
             #     'A' and 'B' will differentiate these keys from the ConfigParser's perspective.
-            #  - Note: This comment information should find its way into the docs sometime.              # Where do we want to put it?  It looks like these private methods don't show up in the docs.
             #regex_string = r"^([\w\d\-_]+) ?('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
             regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
             #                  ^^^^^^^^^^    ^^^^^^^^^^^^^    ^^^^^^^^^^
@@ -751,7 +793,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         output = None
 
         # op2 matches group 2 or 3 depending on whether or not there were quotes.
-        # (there are 4 groups) # Are there?
+        # (there are 4 groups)
         if regex_match.groups()[2]:
             output = str(regex_match.groups()[2]).strip()
         elif regex_match.groups()[3]:
@@ -866,12 +908,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             import it: `from typing import final`.
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
-        op1,op2      = handler_parameters.op_params
         entry        = handler_parameters.raw_option
         handler_name = handler_parameters.handler_name
+        op1,op2      = handler_parameters.op_params
 
-        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
-        self.debug_message(1, "Enter handler: {} ({} -> {})".format(handler_name,section_name, op2))# Console
+        self.enter_handler(handler_parameters)
 
         if op2 not in handler_parameters.data_internal['processed_sections']:
             self._parse_section_r(op2, handler_parameters, finalize=False)
@@ -883,10 +924,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             message += "- cannot load [{}] from [{}].".format(op2, section_name)
             self.exception_control_event("WARNING", ValueError, message)
 
-            return 0
-
-        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
-        self.debug_message(1, "Exit handler: {} ({} -> {})".format(handler_name,section_name, op2)) # Console
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -921,6 +959,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             entry['type'] = typeinfo
 
             self._loginfo.append(entry)
+
         return
 
 
@@ -1052,7 +1091,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
 
 
-        def __init__(self, owner=None): # Do we want docstrings on the methods in this inner class?
+        def __init__(self, owner=None):
             self._owner = owner
             self._set_owner_options()
 
