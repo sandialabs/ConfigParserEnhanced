@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ -e html ]; then
+    rm -rf html
+fi
+
 sphinx-build -b html source/ html/
 
 err=$?
