@@ -107,11 +107,12 @@ def test_configparserEnhanced(filename="config.ini"):
 def experimental(filename="config.ini"):
 
     # This is a silly test to try out some changes to ECE.
-    # parser = ConfigParserEnhanced(filename=filename)
-    # parser.debug_level = 1
-    # parser.exception_control_level = 4
-    # parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!")
-    # sys.exit(0)
+    #if True:
+    #    parser = ConfigParserEnhanced(filename=filename)
+    #    parser.debug_level = 1
+    #    parser.exception_control_level = 4
+    #    parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!")
+    #    sys.exit(0)
 
     return
 

@@ -163,10 +163,11 @@ class ExceptionControl(object):
             except exception_type as ex:
                 print("!! " + "="*80)
                 print("!! EXCEPTION SKIPPED")
-                print("!! Type    : {}".format(exception_type.__name__))
+                print("!! Event Type : {}".format(event_type))
+                print("!! Exception  : {}".format(exception_type.__name__))
                 if message != None:
-                    message = message.replace("\n", "\n!!         : ")
-                    print("!! Message : {}".format(message))
+                    message = message.replace("\n", "\n!!            : ")
+                    print("!! Message    : {}".format(message))
 
                 print("!!")
                 print("!! Call Stack:")
