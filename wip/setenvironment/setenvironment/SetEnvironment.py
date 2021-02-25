@@ -299,7 +299,9 @@ class SetEnvironment(ConfigParserEnhanced):
         data_shared = handler_parameters.data_shared['setenvironment']
         module_name = handler_parameters.op_params[1]
 
-        # do it all in a lambda? Look ma, I did it in one line that nobody can read.
+        # do it all in a lambda? Look ma, I did it all in "one line" that nobody can read.
+        # yeah, let's not do this. Keeping the comment here though until I can capture this
+        # in a snippet on Gitlab or something ;)
         #tmp_shared = list(filter(lambda x:
         #    (('module' in x.keys()) and (x['module'] != module_name) and (module_name not in x['value'])) or
         #     ('module' not in x.keys()), data_shared))
