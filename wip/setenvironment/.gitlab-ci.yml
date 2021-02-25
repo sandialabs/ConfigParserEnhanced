@@ -14,6 +14,8 @@ before_script:
   # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
   #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
   - python3 -m pip uninstall -y configparserenhanced
+  # make sure this wasn't installed somewhere?
+  - python3 -m pip uninstall -y setenvironment
   - python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
   # Methods that work on the command line but not in CI.
   # - python3 -m pip install --user -r requirements.txt
