@@ -26,7 +26,6 @@ def find_config_ini(filename="config.ini", rootpath="." ):
     Returns:
         String containing the path to the file if it was found. If a matching filename is not
         found then `None` is returned.
-
     """
     output = None
     for dirpath,dirnames,filename_list in os.walk(rootpath):
@@ -36,6 +35,20 @@ def find_config_ini(filename="config.ini", rootpath="." ):
     if output is None:
         raise FileNotFoundError("Unable to find {} in {}".format(filename, os.getcwd()))  # pragma: no cover
     return output
+
+
+
+def print_section(section_name):
+    """
+    Get and print a section from the ``configparserenhanceddata``.
+
+    Args:
+        section_name (str): The name of the section to be printed.
+    """
+    print("Get {}".format(section_name))
+    section = parser.configparserenhanceddata[section_name]
+    print(section)
+    print("")
 
 
 
@@ -67,23 +80,9 @@ def test_configparserEnhanced(filename="config.ini"):
         print("---> NO")
     print("")
 
-    section = "NOVALUE_TEST"
-    print("Get {}".format(section))
-    sec_novalue = parser.configparserenhanceddata[section]
-    print(sec_novalue)
-    print("")
-
-    section = "SECTION C+"
-    print("Get {}".format(section))
-    sec_c = parser.configparserenhanceddata[section]
-    print(sec_c)
-    print("")
-
-    section = "SECTION-A"
-    print("Get {}".format(section))
-    sec_a = parser.configparserenhanceddata["SECTION-A"]
-    print(sec_a)
-    print("")
+    print_section("NOVALUE_TEST")
+    print_section("SECTION C+")
+    print_section("SECTION-A")
 
     print("Loop over items in parser.configparserenhanceddata")
     for section,options in parser.configparserenhanceddata.items():
@@ -104,17 +103,17 @@ def test_configparserEnhanced(filename="config.ini"):
 
 
 
-def experimental(filename="config.ini"):
-
-    # This is a silly test to try out some changes to ECE.
-    #if True:
-    #    parser = ConfigParserEnhanced(filename=filename)
-    #    parser.debug_level = 1
-    #    parser.exception_control_level = 4
-    #    parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!")
-    #    sys.exit(0)
-
-    return
+def experimental(filename="config.ini"):                                                   # Should this be removed?
+                                                                                           #
+    # This is a silly test to try out some changes to ECE.                                 #
+    #if True:                                                                              #
+    #    parser = ConfigParserEnhanced(filename=filename)                                  #
+    #    parser.debug_level = 1                                                            #
+    #    parser.exception_control_level = 4                                                #
+    #    parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!") #
+    #    sys.exit(0)                                                                       #
+                                                                                           #
+    return                                                                                 #
 
 
 
@@ -125,7 +124,7 @@ def main():
     fname_ini = "config_test_configparserenhanced.ini"
     fpath_ini = find_config_ini(filename=fname_ini)
 
-    experimental(filename=fpath_ini)
+    experimental(filename=fpath_ini) # Should this be removed?
 
     test_configparserEnhanced(filename=fpath_ini)
 
