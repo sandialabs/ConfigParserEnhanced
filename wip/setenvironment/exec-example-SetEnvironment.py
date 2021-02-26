@@ -40,8 +40,6 @@ def find_config_ini(filename="config.ini", rootpath="." ):
 
 
 def test_setenvironment(filename="config.ini"):
-
-
     print("filename    : {}".format(filename))
     print("")
 
@@ -49,11 +47,19 @@ def test_setenvironment(filename="config.ini"):
     parser.debug_level = 1
     parser.exception_control_level = 4
 
-    #parse_section(parser, "CONFIG_A")
-    parse_section(parser, "CONFIG_B")
+    parse_section(parser, "CONFIG_A+")     # ENVVARS + USE
+    #parse_section(parser, "CONFIG_B+")     # MODULES + USE
+    #parse_section(parser, "CONFIG_A")      # ENVVARS ONLY
+    #parse_section(parser, "CONFIG_B")      # MODULES ONLY
 
     print("")
-    parser.print_actions()
+    parser.pretty_print_actions()
+
+    parser.apply()
+
+    envvar_filter=["TEST_SETENVIRONMENT_", "FOO", "BAR", "BAZ"]
+
+    parser.pretty_print_envvars(envvar_filter, True)
 
     return
 

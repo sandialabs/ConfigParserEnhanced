@@ -11,6 +11,7 @@ Welcome to SetEnvironment's documentation!
    :caption: Contents:
 
    SetEnvironment
+   ModuleHelper
 
 
 
