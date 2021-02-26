@@ -80,9 +80,6 @@ class Debuggable(object):
             useprefix (bool): If enabled and ``debug_level > 0``, then a prefix
                 of ``[D-{debug_level}]`` will be prepended to the message to
                 indicate the ``debug_level`` that triggers this message.
-
-        Returns: # Do we need this here?
-            None # Historically I think I've seen it omitted if the function doesn't return anything.
         """
         if self.debug_level >= debug_level:
             if debug_level > 0:
