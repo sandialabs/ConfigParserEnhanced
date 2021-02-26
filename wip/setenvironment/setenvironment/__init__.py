@@ -3,8 +3,7 @@
 """
 Init script for the SetEnvironment package
 """
-__version__ = "0.0.1"
-__author__  = "William C. McLendon III"
+from .version import __version__
 
 from .SetEnvironment import SetEnvironment
 

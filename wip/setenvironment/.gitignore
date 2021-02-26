@@ -9,6 +9,7 @@ ___*
 htmlcov
 doc/html
 src
+dist
 
 # python object files
 *.pyo

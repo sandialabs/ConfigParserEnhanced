@@ -9,22 +9,16 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-import setenvironment
+from setenvironment import __version__ as setenvironment_version
 
 
 with open('requirements.txt', 'r') as ifp:
     required = ifp.read().splitlines()
 
 
-#print("Required Packages:")
-#print(required)
-#print("SetEnvironment Version")
-#print(setenvironment.__version__)
-
-
 setup(
     name="setenvironment",
-    version=setenvironment.__version__,
+    version=setenvironment_version,
     description="Environment Modules / LMOD helper",
     url="https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment",
     author="William McLendon",
@@ -33,11 +27,9 @@ setup(
     install_requires=required,
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Intended Audience :: Devops',
+        'Intended Audience :: DevOps',
+        'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3 :: Only',
         ],
     )

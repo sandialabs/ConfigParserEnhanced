@@ -8,4 +8,5 @@ find . -name "._.DS_Store" -exec rm {} \;
 rm -rf build
 rm -rf tests/htmlcov
 rm -rf doc/html
+rm -rf dist
 
