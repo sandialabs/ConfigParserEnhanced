@@ -16,10 +16,10 @@ from unittest import TestCase
 
 # Coverage will always miss one of these depending on the system
 # and what is available.
-try:                                                                            # pragma: no cover
-    import unittest.mock as mock                                                # pragma: no cover
-except:                                                                         # pragma: no cover
-    import mock                                                                 # pragma: no cover
+try:                                                                                                # pragma: no cover
+    import unittest.mock as mock                                                                    # pragma: no cover
+except:                                                                                             # pragma: no cover
+    import mock                                                                                     # pragma: no cover
 
 from mock import Mock
 from mock import MagicMock
@@ -76,6 +76,31 @@ class SetEnvironmentTest(TestCase):
 
         This test doesn't really validate any output -- it just runs a basic check.
         """
+        section = "CONFIG_A+"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+        #parser.exception_control_level = 4
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_load_envvars_sec(self):
+        """
+        Load just the section that contains the ENVVAR commands.
+        """
         section = "CONFIG_A"
 
         print("\n")
@@ -91,16 +116,42 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.print_actions()
+        parser.pretty_print_actions()
 
         print("OK")
+        return
+
+
+    def test_SetEnvironment_load_modules_sec(self):
+        """
+        Load just the section that contains the MODULE commands.
+        """
+        section = "CONFIG_B"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+        #parser.exception_control_level = 4
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        print("OK")
+        return
 
 
     def test_SetEnvironment_property_actions_default(self):
         """
         Test the ``actions`` property default value.
         """
-        section = "CONFIG_A"
+        section = "CONFIG_A+"
 
         print("\n")
         print("Load file: {}".format(self._filename))
@@ -124,7 +175,7 @@ class SetEnvironmentTest(TestCase):
         """
         Test the ``actions`` property setter
         """
-        section = "CONFIG_A"
+        section = "CONFIG_A+"
 
         print("\n")
         print("Load file: {}".format(self._filename))
@@ -148,7 +199,7 @@ class SetEnvironmentTest(TestCase):
         print("OK")
 
 
-    def test_SetEnvironment_method_print_actions_coverage_01(self):
+    def test_SetEnvironment_method_print_actions(self):
         """
         Coverage check in actions print_actions
 
@@ -157,7 +208,7 @@ class SetEnvironmentTest(TestCase):
         Todo: add a value check to the output at some point. For now, it doesn't make
               sense due to ongoing development.
         """
-        section = "CONFIG_A"
+        section = "CONFIG_A+"
 
         print("\n")
         print("Load file: {}".format(self._filename))
@@ -175,7 +226,7 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.print_actions()
+        parser.pretty_print_actions()
 
         print("OK")
 
@@ -212,6 +263,60 @@ class SetEnvironmentTest(TestCase):
         self.assertListEqual(actions_expected, parser.actions)
 
         print("OK")
+
+
+    def test_SetEnvironment_method_pretty_print_envvars(self):
+        """
+
+        """
+        section = "CONFIG_A"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+
+        #parser.exception_control_level = 4
+        print("")
+        envvar_include_filter = [
+            "SETENVIRONMENT_TEST_"
+            ]
+
+        os.environ["SETENVIRONMENT_TEST_ENVVAR_001"]   = "foobar"
+        os.environ["SETENVIRONMENT_HIDDEN_ENVVAR_001"] = "baz"
+
+        with patch('sys.stdout', new=StringIO()) as m_stdout:
+            parser.pretty_print_envvars(envvar_filter=envvar_include_filter)
+            self.assertIn("SETENVIRONMENT_TEST_ENVVAR_001 = foobar", m_stdout.getvalue())
+            self.assertIn("SETENVIRONMENT_HIDDEN_ENVVAR_001", m_stdout.getvalue())
+            self.assertNotIn("SETENVIRONMENT_HIDDEN_ENVVAR_001 = baz", m_stdout.getvalue())
+
+        # Filtered + keys_only should print out only the one key
+        with patch('sys.stdout', new=StringIO()) as m_stdout:
+            parser.pretty_print_envvars(envvar_filter=envvar_include_filter, filtered_keys_only=True)
+            self.assertIn("SETENVIRONMENT_TEST_ENVVAR_001 = foobar", m_stdout.getvalue())
+            self.assertNotIn("SETENVIRONMENT_HIDDEN", m_stdout.getvalue())
+
+        # No options should print all envvars + values
+        with patch('sys.stdout', new=StringIO()) as m_stdout:
+            parser.pretty_print_envvars()
+            self.assertIn("SETENVIRONMENT_TEST", m_stdout.getvalue())
+            self.assertIn("SETENVIRONMENT_HIDDEN", m_stdout.getvalue())
+
+        # No filter but we say show filtered keys only should result in
+        # print all keys + values.
+        with patch('sys.stdout', new=StringIO()) as m_stdout:
+            parser.pretty_print_envvars(filtered_keys_only=True)
+            self.assertIn("SETENVIRONMENT_TEST", m_stdout.getvalue())
+            self.assertIn("SETENVIRONMENT_HIDDEN", m_stdout.getvalue())
+
+        # cleanup
+        del os.environ["SETENVIRONMENT_TEST_ENVVAR_001"]
+        del os.environ["SETENVIRONMENT_HIDDEN_ENVVAR_001"]
+
+        return
 
 
 # EOF

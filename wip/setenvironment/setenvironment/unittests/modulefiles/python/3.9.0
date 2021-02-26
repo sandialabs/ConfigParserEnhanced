@@ -1,0 +1,8 @@
+#%Module1.0
+
+set name    PYTHON
+set version 3.9.0
+
+setenv TEST_SETENVIRONMENT_${name}_VER  $version
+
+
