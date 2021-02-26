@@ -118,13 +118,21 @@ class ExceptionControl(object):
                 (or a derivitive) type.
             message (str): If the exception gets triggered, what message
                 should we pass along when it gets raised?
-
-        Returns: # Remove?
-            None #
         """
         def _is_raisable(exception):
-            """
-            Inner helper function # Can I get some clarity on what this function is doing?
+            """Helper function: determine if an object is 'raiseable'
+
+            To determine if an object is something that can be raised via ``raise`` 
+            you must do something more than just check if something inherits from
+            :class:`Exception`. 
+
+            This function determines if an object *can be raised*.
+
+            Args:
+                exception (object): An object we wish to test if it can be **raised**.
+
+            Returns:
+                boolean: true if ``exception`` can be raised via ``raise exception(message)``.            
             """
             try:
                 raise exception
