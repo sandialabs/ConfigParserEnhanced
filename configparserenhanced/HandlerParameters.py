@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-Todo:                            # Do this sometime.
-    Fill in file-level docstring #
-    Clean up docstrings          #
+Todo: 
+    Fill in file-level docstring
+    Clean up docstrings
 """
 from __future__ import print_function
 
@@ -87,8 +87,20 @@ class HandlerParameters(object):
 
     @property
     def op_params(self) -> tuple: # What's the difference between this and raw_params?
-        """
-        Operation parameters for this handler. This must be a tuple of length 2.
+        """Processed operation and parameter extracted from an option key.
+
+        Processed operation, parameter pair for this option if it is processed
+        as a command that has an associated *handler*. For example, the following
+        ``.ini`` file snippet:
+
+            [section]
+            operation parameter uniquestr: value
+
+        ``op_params`` will contain the tuple ``("operation", "parameter")``.
+        Generally, the first entry (the operation) will always be a string but the
+        second parameter might be a ``NoneType`` in some cases.
+      
+        This must be a tuple of length 2.
 
         Returns:
             tuple: A tuple ``(op1, op2)`` containing the operations extracted from
