@@ -31,6 +31,7 @@ desired environment.
 from __future__ import print_function
 
 import os
+import shutil
 import subprocess
 import sys
 
@@ -115,7 +116,10 @@ except ImportError:
             if modulecmd is None:
                 raise FileNotFoundError("Unable to find modulecmd")          # pragma: no cover
         except:
-            modulecmd = "/usr/bin/modulecmd"
+            modulecmd = shutil.which("modulecmd")
+
+        if modulecmd is None:
+            raise FileNotFoundError("Unable to find modulecmd")
 
         numArgs = len(arguments)
 

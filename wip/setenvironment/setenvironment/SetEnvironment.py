@@ -22,6 +22,7 @@ except ImportError:                                                             
     pass                                                                                            # pragma: no cover
 
 from configparserenhanced import *
+import pathlib
 
 from . import ModuleHelper
 
@@ -727,6 +728,9 @@ class SetEnvironment(ConfigParserEnhanced):
             self.debug_message(3, "envvar :: del {}".format(envvar_name))
 
         else:
+            # This is reachable if someone creates a new handler for
+            # an envvar-<action> but does not update this if/elif
+            # case statement.
             raise ValueError("Unknown envvar operation: {}".format(operation))
 
         return 0
@@ -785,6 +789,11 @@ class SetEnvironment(ConfigParserEnhanced):
             rval = ModuleHelper.module("swap", module_old, module_new)
 
         elif operation == "module-use":
+            # Check the path existence for a `module use`. This could be moved to ModuleHelper later?
+            if not pathlib.Path(module_value).exists():
+                msg = "Requested path `{}` for `module use` does not exist.".format(module_value)
+                self.exception_control_event("CRITICAL", FileNotFoundError, msg)
+
             rval = ModuleHelper.module("use", module_value)
 
         elif operation == "module-purge":

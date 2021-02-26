@@ -319,4 +319,186 @@ class SetEnvironmentTest(TestCase):
         return
 
 
+    def test_SetEnvironment_method_apply_envvar_test(self):
+        """
+        """
+        section = "CONFIG_A"   # envvars
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        # Apply the actions
+        parser.apply()
+
+        self.assertTrue("BAR" in os.environ.keys())
+        self.assertEqual("foo", os.environ["BAR"])
+
+        parser.pretty_print_envvars(["BAR"], True)
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_module_test(self):
+        """
+        """
+        section = "CONFIG_B"   # envvars
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        # Apply the actions
+        parser.apply()
+
+        envvar_truth = [
+            ("TEST_SETENVIRONMENT_GCC_VER", "7.3.0")
+        ]
+        for ienvvar_name,ienvvar_val in envvar_truth:
+            self.assertTrue(ienvvar_name in os.environ.keys())
+            self.assertEqual(ienvvar_val, os.environ[ienvvar_name])
+
+        print("")
+        envvar_filter = ["TEST_SETENVIRONMENT_"]
+        parser.pretty_print_envvars(envvar_filter, True)
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_module_use_badpath(self):
+        """
+        Test that a `module use <badpath>` will trigger an
+        appropriate exception.
+        """
+        section = "MODULE_USE_BADPATH"   # envvars
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions
+        print("")
+        parser.pretty_print_actions()
+
+        # Apply the actions
+        with self.assertRaises(FileNotFoundError):
+            parser.apply()
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_envvar_expansion(self):
+        """
+        Tests that an envvar expansion will properly be executed
+        during ``apply()``. Uses the following ``.ini`` file section:
+
+            [ENVVAR_VAR_EXPANSION]
+            envvar-set ENVVAR_PARAM_01 : "AAA"
+            envvar-set ENVVAR_PARAM_02 : "B${ENVVAR_PARAM_01}B"
+
+        The expected result should be:
+        - ``ENVVAR_PARAM_01`` = "AAA"
+        - ``ENVVAR_PARAM_02`` = "BAAAB"
+
+        """
+        section = "ENVVAR_VAR_EXPANSION"   # envvars
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions
+        print("")
+        parser.pretty_print_actions()
+
+        # Apply the actions
+        parser.apply()
+
+        envvar_truth = [
+            ("ENVVAR_PARAM_01", "AAA"),
+            ("ENVVAR_PARAM_02", "BAAAB")
+        ]
+        for ienvvar_name,ienvvar_val in envvar_truth:
+            self.assertTrue(ienvvar_name in os.environ.keys())
+            self.assertEqual(ienvvar_val, os.environ[ienvvar_name])
+
+        print("")
+        envvar_filter = ["ENVVAR_PARAM_"]
+        parser.pretty_print_envvars(envvar_filter, True)
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_envvar_expansion_missing(self):
+        """
+        Tests that an envvar expansion will properly handle a missing envvar
+        during expansion. The following .ini section is used to test this:
+
+            [ENVVAR_VAR_EXPANSION_BAD]
+            envvar-set ENVVAR_PARAM_01 : "B${ENVVAR_PARAM_MISSING}B"
+
+        This should cause a ``KeyError`` to be raised during ``apply()``
+        """
+        section = "ENVVAR_VAR_EXPANSION_BAD"   # envvars
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions
+        print("")
+        parser.pretty_print_actions()
+
+        # Apply the actions
+        with self.assertRaises(KeyError):
+            parser.apply()
+
+        print("OK")
+        return
+
+
 # EOF
+
+
