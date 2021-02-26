@@ -25,3 +25,4 @@ tests
 # wingide user-specific configuration file
 *.wpu
 
+poetry.lock
