@@ -50,5 +50,3 @@ proj.file-type = 'shared'
 proj.main-file = loc('exec-example-ConfigParserEnhanced.py')
 testing.auto-test-file-specs = (('glob',
                                  'unittests/test_*.py'),)
-
-Is this file something that should be ignored in .gitignore?
