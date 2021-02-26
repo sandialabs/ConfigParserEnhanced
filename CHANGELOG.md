@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - ConfigParserEnhanced is currently _alpha_ and has many changes occurring.
+- Deprecating `setup.py` for `pyproject.toml`
+- Moved `__version__` string to a new file, `version.py`
 
 ### Added
 ### Changed
