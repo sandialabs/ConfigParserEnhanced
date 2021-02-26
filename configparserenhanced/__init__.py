@@ -3,9 +3,7 @@
 """
 Init script for the ConfigparserEnhanced package
 """
-__version__ = "0.1.2"
-__author__  = "William C. McLendon III"
-
+from .version import __version__
 
 from .ConfigParserEnhanced import AmbiguousHandlerError
 from .ConfigParserEnhanced import ConfigParserEnhanced
