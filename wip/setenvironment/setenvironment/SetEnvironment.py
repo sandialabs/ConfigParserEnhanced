@@ -92,6 +92,7 @@ class SetEnvironment(ConfigParserEnhanced):
     #   P U B L I C   M E T H O D S
     # ------------------------------
 
+
     def pretty_print_actions(self):
         """
         This is a stub-in function (WIP)
@@ -501,6 +502,7 @@ class SetEnvironment(ConfigParserEnhanced):
         self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
         self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
         return 0
+
 
     # ---------------
     #  H E L P E R S
