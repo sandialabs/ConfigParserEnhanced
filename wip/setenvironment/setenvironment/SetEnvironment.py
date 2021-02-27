@@ -214,7 +214,6 @@ class SetEnvironment(ConfigParserEnhanced):
             rval  = 0
             op    = iaction['op']
             value = iaction['value']
-            param = None
 
             if 'envvar' in iaction.keys():
                 rval = self._apply_envvar(op, envvar_name=iaction['envvar'], envvar_value=value)
@@ -804,7 +803,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         if rval != 0:
             message = "MODULE operation {} failed with {} rval.".format(operation, rval)
-            self.exception_control_event("CRITICAL", Exception, message)
+            self.exception_control_event("CRITICAL", RuntimeError, message)
 
         return rval
 

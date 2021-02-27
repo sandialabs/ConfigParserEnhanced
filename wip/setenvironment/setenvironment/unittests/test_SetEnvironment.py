@@ -52,6 +52,74 @@ from .common import *
 
 
 
+class mock_popen(object):
+    """
+    Abstract base class for popen mock
+    """
+    def __init__(self, cmd, stdout=None, stderr=None):
+        print("mock_popen> {}".format(cmd))
+        self.stdout = stdout
+        self.stderr = stderr
+        self.returncode = None
+
+    def communicate(self):
+        print("mock_popen> communicate()")
+        stdout = b"os.environ['__foobar__'] ='baz'\ndel os.environ['__foobar__']"
+        stderr = b"stderr=1"
+        self.returncode = 0
+        return (stdout,stderr)
+
+
+
+class mock_popen_status_ok(mock_popen):
+    """
+    Specialization of popen mock that will return with success.
+    """
+    def __init__(self, cmd, stdout=None, stderr=None):
+        super(mock_popen_status_ok, self).__init__(cmd,stdout,stderr)
+
+
+
+class mock_popen_status_error_rc0(mock_popen):
+    """
+    Specialization of popen mock.
+
+    Simulates the results from a modulecmd operation that had
+    an error loading a module (maybe not found). Modulecmd will tend
+    to have a message like "ERROR: could not load module" in its stderr
+    field but it will generally return an exit status of 0.
+    """
+    def __init__(self, cmd, stdout=None, stderr=None):
+        super(mock_popen_status_error_rc0, self).__init__(cmd,stdout,stderr)
+
+    def communicate(self):
+        print("mock_popen> communicate()")
+        stdout = b"_mlstatus = False\n"
+        stderr = b"ERROR: Unable to locate a modulefile for 'gcc/1.2.3'\n"
+        self.returncode = 0
+        return (stdout,stderr)
+
+
+
+class mock_popen_status_error_rc1(mock_popen):
+    """
+    Specialization of popen mock that will return with error.
+
+    Test the condition where modulecmd returned a status of 1 and
+    has `ERROR:` in its stderr field.
+    """
+    def __init__(self, cmd, stdout=None, stderr=None):
+        super(mock_popen_status_error_rc1, self).__init__(cmd,stdout,stderr)
+
+    def communicate(self):
+        print("mock_popen> communicate()")
+        stdout = b"_mlstatus = False\n"
+        stderr = b"ERROR: Unable to locate a modulefile for 'gcc/1.2.3'\n"
+        self.returncode = 1
+        return (stdout,stderr)
+
+
+
 #===============================================================================
 #
 # Tests
@@ -392,7 +460,7 @@ class SetEnvironmentTest(TestCase):
         Test that a `module use <badpath>` will trigger an
         appropriate exception.
         """
-        section = "MODULE_USE_BADPATH"   # envvars
+        section = "MODULE_USE_BADPATH"
 
         print("\n")
         print("Load file: {}".format(self._filename))
@@ -411,6 +479,52 @@ class SetEnvironmentTest(TestCase):
         # Apply the actions
         with self.assertRaises(FileNotFoundError):
             parser.apply()
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_module_load_noexist(self):
+        """
+        Test that we correctly deal with module loads that fail
+        because the module didn't exist.
+
+        This might not really easily be testable because applications
+        like ``modulecmd`` and ``lmod`` tend to "fail gracefully" without
+        returning a nonzero status code.
+
+        This kind of stuff is why we might want to roll our own wrapper
+        to those commands someday that is better than what we currently
+        have in ModuleHelper.
+        """
+        section = "MODULE_LOAD_NOEXIST"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions
+        print("")
+        parser.pretty_print_actions()
+
+        # Apply the actions but use our popen mock routine that emulates
+        # a bad output.
+        with self.assertRaises(RuntimeError):
+
+            # Patch in our version of Popen which will emulate what a 'module load'
+            # of a missing module will return. This is for consistency because it
+            # seems modulecmd does slightly different things across different
+            # platforms.
+            # This should ensure that we take the 'right' path in ModuleHelper.module
+            # that we want to test here and trigger the RuntimeError.
+            with patch('subprocess.Popen', side_effect=mock_popen_status_error_rc0):
+                parser.apply()
 
         print("OK")
         return
@@ -461,6 +575,101 @@ class SetEnvironmentTest(TestCase):
         envvar_filter = ["ENVVAR_PARAM_"]
         parser.pretty_print_envvars(envvar_filter, True)
 
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_envvar_parameter_check(self):
+        """
+        Test the ``_apply_envvar()`` method's type checking of parameters.
+        """
+        section = "ENVVAR_VAR_EXPANSION"   # envvars
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 1
+
+        # Test #1 : TypeError should be raised if operation is not a str type.
+        operation    = None
+        envvar_name  = "FOO"
+        envvar_value = "BAR"
+        with self.assertRaises(TypeError):
+            parser._apply_envvar(operation, envvar_name, envvar_value)
+
+        # Test #2 : TypeError should be raised if envvar_name is not a str type.
+        operation    = "envvar-set"
+        envvar_name  = None
+        envvar_value = "BAR"
+        with self.assertRaises(TypeError):
+            parser._apply_envvar(operation, envvar_name, envvar_value)
+
+        # Test #3 : TypeError should be raised if envvar_value is not a str or None type.
+        operation    = "envvar-set"
+        envvar_name  = "FOO"
+        envvar_value = 12345
+        with self.assertRaises(TypeError):
+            parser._apply_envvar(operation, envvar_name, envvar_value)
+
+        # Test #4 : A ValueError will be raised if an unknown operation is given.
+        operation    = "envvar-unknown"
+        envvar_name  = "FOO"
+        envvar_value = "BAR"
+        with self.assertRaises(ValueError):
+            parser._apply_envvar(operation, envvar_name, envvar_value)
+
+
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_module_parameter_check(self):
+        """
+        Test the ``_apply_module()`` method's type checking of parameters.
+        """
+        section = "MODULE_LOAD_OK"   # envvars
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        # Test #1 : TypeError should be raised if operation is not a str type.
+        operation    = None
+        module_name  = "gcc"
+        module_value = "7.3.0"
+        with self.assertRaises(TypeError):
+            with patch('subprocess.Popen', side_effect=mock_popen_status_ok):
+                parser._apply_module(operation, module_name, module_value)
+
+        # Test #2 : TypeError should be raised if envvar_name is not a str or None type.
+        operation    = "module-load"
+        module_name  = 12345
+        module_value = "7.3.0"
+        with self.assertRaises(TypeError):
+            with patch('subprocess.Popen', side_effect=mock_popen_status_ok):
+                parser._apply_module(operation, module_name, module_value)
+
+        # Test #3 : TypeError should be raised if envvar_value is not a str or None type.
+        operation    = "module-load"
+        module_name  = "gcc"
+        module_value = 12345
+        with self.assertRaises(TypeError):
+            with patch('subprocess.Popen', side_effect=mock_popen_status_ok):
+                parser._apply_module(operation, module_name, module_value)
+
+        # Test #4 : ValueError is raised if an unknown module operation is provided.
+        operation    = "module-undefined"
+        module_name  = "gcc"
+        module_value = "7.3.0"
+        with self.assertRaises(ValueError):
+            with patch('subprocess.Popen', side_effect=mock_popen_status_ok):
+                parser._apply_module(operation, module_name, module_value)
         print("OK")
         return
 

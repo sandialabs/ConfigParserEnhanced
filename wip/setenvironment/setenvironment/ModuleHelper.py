@@ -144,16 +144,16 @@ except ImportError:
 
         stderr_ok = True
         if "ERROR:" in stderr:
-            print("")
-            print("An error occurred in modulecmd:")
-            print("")
+            print("!!")
+            print("!! An error occurred in modulecmd:")
+            print("!!")
             stderr_ok = False
             errcode = 1
 
         if stderr_ok and errcode != 0:
-            print("")
-            print("Failed to execute the module command: {}".format(" ".join(cmd[2:])))
-            print("- Returned {} exit status.".format(errcode))
+            print("!!")
+            print("!! Failed to execute the module command: {}".format(" ".join(cmd[2:])))
+            print("!! - Returned {} exit status.".format(errcode))
 
         if stderr_ok and errcode == 0:
             try:
@@ -163,22 +163,29 @@ except ImportError:
                 # Check for _mlstatus = True/False (set by some versions of modulecmd)
                 if "_mlstatus" in locals():
                     if locals()["_mlstatus"] == False:
-                        print("")
-                        print("modulecmd set _mlstatus == False, command failed")
-                        print("")
+                        print("!!")
+                        print("!! modulecmd set _mlstatus == False, command failed")
+                        print("!!")
                         errcode = 1
 
             except BaseException as error:
-                print("")
-                print("An ERROR occurred during execution of module commands")
-                print("")
+                print("!!")
+                print("!! An ERROR occurred during execution of module commands")
+                print("!!")
                 raise error
 
         if errcode != 0:
-            print("")
-            print("[module output start]\n{}\n[module output end]".format(output))
-            print("[module stderr start]\n{}\n[module stderr end]".format(stderr))
-            print("")
+            msg_output = output.strip().replace("\n", "\n!! ")
+            print("!!")
+            print("!! [module output start]")
+            print("!! {}".format(msg_output))
+            print("!! [module output end]")
+            print("!! ")
+            msg_stderr = stderr.strip().replace("\n", "\n!! ")
+            print("!! [module stderr start]")
+            print("!! {}".format(msg_stderr))
+            print("!! [module stderr end]")
+            print("!!")
             sys.stdout.flush()
 
         # Uncomment this if we want to throw an error rather than exit with nonzero code
