@@ -14,6 +14,7 @@ pytest:
   timeout: 20m
   script:
     - python3 -m pytest --cov=configparserenhanced --cov-report html --cov-report term
+    - python3 ./exec-example-ConfigParserEnhanced.py
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 sphinx-documentation:

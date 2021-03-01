@@ -38,7 +38,7 @@ def find_config_ini(filename="config.ini", rootpath="." ):
 
 
 
-def print_section(section_name):
+def print_section(parser, section_name):
     """
     Get and print a section from the ``configparserenhanceddata``.
 
@@ -80,9 +80,9 @@ def test_configparserEnhanced(filename="config.ini"):
         print("---> NO")
     print("")
 
-    print_section("NOVALUE_TEST")
-    print_section("SECTION C+")
-    print_section("SECTION-A")
+    print_section(parser, "NOVALUE_TEST")
+    print_section(parser, "SECTION C+")
+    print_section(parser, "SECTION-A")
 
     print("Loop over items in parser.configparserenhanceddata")
     for section,options in parser.configparserenhanceddata.items():

@@ -112,7 +112,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.inifilepath = filename
 
 
-
     # -----------------------
     #   P R O P E R T I E S
     # -----------------------
@@ -242,10 +241,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     def configparserenhanceddata(self):
         """Enhanced ``configparserdata`` ``.ini`` file information data.
 
-        This *property* returns a *parsed* representation of the ``configparserdata`` that would
-        be loaded from our ``.ini`` file. The data in this will return the contents of a
-        section plus its parsed results. For example, if we have this in our ``.ini``
-        file:
+        This *property* returns a *parsed* representation of the ``configparserdata``
+        that would be loaded from our ``.ini`` file. The data in this will return the
+        contents of a section plus its parsed results. For example, if we have this
+        in our ``.ini`` file:
 
         .. code-block:: ini
 
@@ -282,10 +281,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return self._configparserenhanceddata
 
 
-
-    # --------------------
-    #   P A R S E R
-    # --------------------
+    # -------------------------------------
+    #   P A R S E R   P U B L I C   A P I
+    # -------------------------------------
 
 
     def parse_section(self, section, initialize=True, finalize=True):
@@ -314,7 +312,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
 
         return result
-
 
 
     # ---------------------------------
@@ -456,10 +453,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return 0
 
 
-
-    # -------------------------------
-    #   P A R S E R   H E L P E R S
-    # -------------------------------
+    # ---------------------------------------------------
+    #   P A R S E R   H E L P E R S   ( P R I V A T E )
+    # ---------------------------------------------------
 
 
     def _parse_section_r(self, section_name, handler_parameters=None, initialize=True, finalize=True):
@@ -562,11 +558,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_rval = 0
 
             if regex_op_splitter_m is None:
-                # Update configparserenhanceddata.
-                self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
-
                 # Call generic_handler if the option key did not expand to an 'operation'.
-                self._launch_handler_generic(section_name, handler_parameters, sec_k, sec_v)
+                handler_rval = self._launch_handler_generic(section_name,
+                                                            handler_parameters,
+                                                            sec_k,
+                                                            sec_v)
 
             else:
                 # If we have a regex match, process the operation code and launch the
@@ -594,7 +590,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
                     # Call generic_handler if no operation handler is found.
-                    self._launch_handler_generic(section_name, handler_parameters, sec_k, sec_v)
+                    handler_rval = self._launch_handler_generic(section_name,
+                                                                handler_parameters,
+                                                                sec_k,
+                                                                sec_v)
 
             # Check the return code from the handler.
             self._check_handler_rval(handler_parameters.handler_name, handler_rval)
@@ -921,10 +920,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-
-    # -----------------------------------
-    #   P R I V A T E   H A N D L E R S
-    # -----------------------------------
+    # ---------------------------------------
+    #   H A N D L E R S   ( P R I V A T E )
+    # ---------------------------------------
 
 
     def _handler_use(self, section_name, handler_parameters) -> int:
@@ -968,10 +966,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return 0
 
 
-
-    # -----------------
-    #   H E L P E R S
-    # -----------------
+    # -------------------------------------
+    #   H E L P E R S   ( P R I V A T E )
+    # -------------------------------------
 
 
     def _loginfo_add(self, typeinfo, entry) -> None:
@@ -1044,7 +1041,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     # ===========================================================
-    #  I N N E R   C L A S S E S
+    #  I N N E R   C L A S S ( E S )
     # ===========================================================
 
 
