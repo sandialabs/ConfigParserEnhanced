@@ -112,6 +112,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.inifilepath = filename
 
 
+
     # -----------------------
     #   P R O P E R T I E S
     # -----------------------
@@ -242,7 +243,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def configparserenhanceddata(self):
-        """Enhanced ``configparserdata`` ``.ini`` file information (unhandled key-value pairs). # I'm not sure what you mean by "unhandled" here.
+        """Enhanced ``configparserdata`` ``.ini`` file information data.
 
         This *property* returns a *parsed* representation of the ``configparserdata`` that would
         be loaded from our ``.ini`` file. The data in this will return the contents of a
@@ -261,7 +262,17 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Extracting the data from 'SEC B' would result the contents of 'SEC B' + 'SEC A':
 
             >>> ConfigParserEnhancedObj.configparserenhanceddata["SEC B"]
-            { 'key A1': 'value A1', 'key B1': 'value B1' }
+            {
+                'key A1': 'value A1',
+                'key B1': 'value B1'
+            }
+
+        Options that resolve to a format matching an operation
+        (``operation parameter : value``) what *also* have a handler
+        defined (i.e, the operation is "handled") will **not** be included
+        in the data of a section. This is shown in the example above where
+        the ``use 'SEC A':`` option in ``[SEC B]`` is not included in
+        ``configparserenhanceddata["SEC B"]`` after processing.
 
         Returns:
             :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData`
@@ -272,6 +283,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if not hasattr(self, '_configparserenhanceddata'):
             self._configparserenhanceddata = self.ConfigParserEnhancedData(owner=self)
         return self._configparserenhanceddata
+
 
 
     # --------------------
@@ -305,6 +317,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
 
         return result
+
 
 
     # ---------------------------------
@@ -434,10 +447,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             * 0     : SUCCESS
             * [1-10]: Reserved for future use (WARNING)
             * > 10  : An unknown failure occurred (SERIOUS)
-
-        Todo:
-            Test that we really only call this once at the end of recursion, # Is this test implemented yet?
-            even when having multiple 'use' entries.                         #
         """
         self.enter_handler(handler_parameters)
 
@@ -448,6 +457,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         self.exit_handler(handler_parameters)
         return 0
+
 
 
     # -------------------------------
@@ -487,9 +497,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 raise TypeError("handler_parameters must be of type `HandlerParameters` or a derivitive.")
 
             handler_parameters.section_root = section_name
-#            handler_parameters.data_shared      # initializes default (lazy eval, not necessary)
-#            handler_parameters.data_internal    # initializes default (lazy eval, not necessary)
-#            handler_parameters.data_internal['processed_sections'] = set()
 
             # Pitfall: Only add 'sections_checked' for the _root_ node
             #          because configparserenhanceddata recurses through and we
@@ -562,9 +569,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
 
                 # Call generic_handler if the option key did not expand to an 'operation'.
-                self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
-                handler_parameters.handler_name = "handler_generic"
-                handler_rval = self.handler_generic(section_name, handler_parameters)
+                self._launch_handler_generic(section_name, handler_parameters, sec_k, sec_v)
 
             else:
                 # If we have a regex match, process the operation code and launch the
@@ -591,12 +596,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     handler_parameters.handler_name = handler_name
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
-                    # Update configparserenhanceddata.
-                    self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
-
                     # Call generic_handler if no operation handler is found.
-                    handler_parameters.handler_name = "handler_generic"
-                    handler_rval = self.handler_generic(section_name, handler_parameters)
+                    self._launch_handler_generic(section_name, handler_parameters, sec_k, sec_v)
 
             # Check the return code from the handler.
             self._check_handler_rval(handler_parameters.handler_name, handler_rval)
@@ -880,6 +881,32 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.exception_control_event("SERIOUS", RuntimeError,
                                          "Handler `{}` returned {}".format(handler_name, handler_rval))
         return
+
+
+    def _launch_handler_generic(self, section_name, handler_parameters, sec_k, sec_v) -> int:
+        """Launcher for ``handler_generic()``
+
+        ``handler_generic()`` is called in two places inside the recursive parser.
+        1. It is called when the ``key:value`` pair in an option does not parse out
+           to ``operation`` and ``parameter`` fields.
+        2. It is called when the ``key:value`` pair in an option does parse to
+           an ``operation`` and a ``parameter`` field, but there are no handlers
+           defined for the ``operation``.
+
+        This helper just manages the call in both places so thay're done the same way.
+
+        Returns:
+            int: Returns the output value from ``handler_generic()``
+        """
+        output = 0
+
+        self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
+
+        handler_parameters.handler_name = "handler_generic"
+        output = self.handler_generic(section_name, handler_parameters)
+
+        return output
+
 
 
     # -----------------------------------
