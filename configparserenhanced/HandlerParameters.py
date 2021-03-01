@@ -86,11 +86,11 @@ class HandlerParameters(object):
         return self._raw_option
 
     @property
-    def op_params(self) -> tuple: # What's the difference between this and raw_params?
+    def op_params(self) -> tuple:
         """Processed operation and parameter extracted from an option key.
 
         Processed operation, parameter pair for this option if it is processed
-        as a command that has an associated *handler*. For example, the following
+        as a command that has an associated *handler*. For example, in the following
         ``.ini`` file snippet:
 
             [section]
@@ -100,8 +100,6 @@ class HandlerParameters(object):
         Generally, the first entry (the operation) will always be a string but the
         second parameter might be a ``NoneType`` in some cases.
       
-        This must be a tuple of length 2.
-
         Returns:
             tuple: A tuple ``(op1, op2)`` containing the operations extracted from
             the current operation.

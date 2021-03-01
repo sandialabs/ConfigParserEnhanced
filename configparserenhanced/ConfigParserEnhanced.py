@@ -80,7 +80,7 @@ class AmbiguousHandlerError(Exception):
         next -- attempted new state
         message -- explanation of why the specific transition is not allowed
     """
-    pass # Does this need to be implemented?
+    pass
 
 
 
@@ -98,8 +98,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     See Also:
         - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`_
-        - `docstrings style guide <https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html>`_ # Are these needed here?
-        - `regex tester <https://regexr.com/>`_                                                                 #
     """
     def __init__(self, filename):
         """Constructor
@@ -191,8 +189,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Note:
             Subclasses should not override this.
 
-        .. configparser reference:                              # Should this be removed?
-            https://docs.python.org/3/library/configparser.html # Or maybe switched to a .. seealso:: ?
+        See Also:
+            - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`_
         """
         if not hasattr(self, '_configparserdata'):
             self._configparserdata = configparser.ConfigParser(allow_no_value=True)
@@ -296,7 +294,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if section == "":
             raise ValueError("`section` cannot be empty.")
 
-        # Clear out loginfo from any previous run(s).
+        # Clear out loginfo from any previous runs.
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
@@ -371,7 +369,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """Initialize a recursive parse search.
 
         This handler is called at the start of a recursive search of the
-        ```.ini``` structure. Subclasses can override this method to perform setup
+        ``.ini`` structure. Subclasses can override this method to perform setup
         actions at the start of a search.
 
         Args:
@@ -521,7 +519,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 sec_v = str(sec_v).strip()
                 sec_v = sec_v.strip('"')
 
-            handler_parameters.raw_option = (sec_k, sec_v) # Would it be better to add a key() property to handler_parameters in place of raw_option?
+            handler_parameters.raw_option = (sec_k, sec_v)
             handler_parameters.value = sec_v
 
             self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
@@ -534,13 +532,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_rval = 0
 
             if regex_op_splitter_m is None:
-                # Update configparserenhanceddata.                                                            # How does this...
-                self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)              #
-                                                                                                              #
-                # Call generic_handler if the option key did not expand to an 'operation'.                    #
-                self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console #
-                handler_parameters.handler_name = "handler_generic"                                           #
-                handler_rval = self.handler_generic(section_name, handler_parameters)                         #
+                # Update configparserenhanceddata.
+                self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
+
+                # Call generic_handler if the option key did not expand to an 'operation'.
+                self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
+                handler_parameters.handler_name = "handler_generic"
+                handler_rval = self.handler_generic(section_name, handler_parameters)
 
             else:
                 # If we have a regex match, process the operation code and launch the
@@ -567,12 +565,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     handler_parameters.handler_name = handler_name
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
-                    # Update configparserenhanceddata.                                                        # differ from this?
-                    self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)          #
-                                                                                                              # Should we Uncle Bob this into
-                    # Call generic_handler if no operation handler is found.                                  # a three-line function that
-                    handler_parameters.handler_name = "handler_generic"                                       # gets called in two places?
-                    handler_rval = self.handler_generic(section_name, handler_parameters)                     #
+                    # Update configparserenhanceddata.
+                    self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
+
+                    # Call generic_handler if no operation handler is found.
+                    handler_parameters.handler_name = "handler_generic"
+                    handler_rval = self.handler_generic(section_name, handler_parameters)
 
             # Check the return code from the handler.
             self._check_handler_rval(handler_parameters.handler_name, handler_rval)
@@ -784,9 +782,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             * ``handler_name`` is a string.
             * ``handler_method`` is either a reference to the handler method
               if it exists, or None if it does not exist.
-
-        Todo:
-            * Update docstrings for this. # What else needs updating?
         """
         if not isinstance(operation, (str)):
             # This is probably not reachable. Add a '# pragma: no cover' ?
@@ -826,9 +821,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Args:
             handler_name (string): The name of the handler.
             handler_rval (int): The return value from a handler being processed.
-
-        Returns: # Remove?
-            None #
 
         Raises:
             RuntimeError: If ``handler_rval > 0`` and the ``exception_control_level``
@@ -891,7 +883,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             message += "- cannot load [{}] from [{}].".format(op2, section_name)
             self.exception_control_event("WARNING", ValueError, message)
 
-            return 0 # Should this be > 0 to indicate the cycle is a failure?
+            return 0
 
         self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
         self.debug_message(1, "Exit handler: {} ({} -> {})".format(handler_name,section_name, op2)) # Console
@@ -914,10 +906,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             entry (dict): A dictionary containing log information that we're appending.
                 At minimum it should have: ``{ type: typestring }``.
 
-        Returns:    # Remove?
-            Nothing #
-
-
         Todo:
             Once we can use Python 3.8 in our environments, we can use the @final decorator
             to mark this as something that should not be overridden. We also have to
@@ -933,8 +921,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             entry['type'] = typeinfo
 
             self._loginfo.append(entry)
-        else:    # Remove?
-            pass #
         return
 
 

@@ -103,17 +103,17 @@ def test_configparserEnhanced(filename="config.ini"):
 
 
 
-def experimental(filename="config.ini"):                                                   # Should this be removed?
-                                                                                           #
-    # This is a silly test to try out some changes to ECE.                                 #
-    #if True:                                                                              #
-    #    parser = ConfigParserEnhanced(filename=filename)                                  #
-    #    parser.debug_level = 1                                                            #
-    #    parser.exception_control_level = 4                                                #
-    #    parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!") #
-    #    sys.exit(0)                                                                       #
-                                                                                           #
-    return                                                                                 #
+def experimental(filename="config.ini"):
+
+    # This is a silly test to try out some changes to ECE.
+    #if True:
+    #    parser = ConfigParserEnhanced(filename=filename)
+    #    parser.debug_level = 1
+    #    parser.exception_control_level = 4
+    #    parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!")
+    #    sys.exit(0)
+
+    return
 
 
 
@@ -124,7 +124,7 @@ def main():
     fname_ini = "config_test_configparserenhanced.ini"
     fpath_ini = find_config_ini(filename=fname_ini)
 
-    experimental(filename=fpath_ini) # Should this be removed?
+    experimental(filename=fpath_ini)
 
     test_configparserEnhanced(filename=fpath_ini)
 
