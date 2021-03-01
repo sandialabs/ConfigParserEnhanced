@@ -4,6 +4,7 @@ version = "0.1.2"
 description = "A .ini file processing tool that extends configparser to add processing triggers to options."
 authors = [
     "William McLendon <wcmclen@sandia.gov>"
+    "Jason M. Gates <jmgate@sandia.gov>"
 ]
 readme = "README.md"
 documentation = "http://10.202.35.89:8080/ConfigParserEnhanced/doc/index.html"

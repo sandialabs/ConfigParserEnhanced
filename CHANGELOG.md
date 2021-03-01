@@ -16,14 +16,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased]
-- ConfigParserEnhanced is currently _alpha_ and has many changes occurring.
-- Deprecating `setup.py` for `pyproject.toml`
-- Moved `__version__` string to a new file, `version.py`
-
 ### Added
 ### Changed
 ### Deprecated
 ### Removed
+### Fixed
+### Security
+
+
+
+## [0.1.3] - 2021-03-01
+- ConfigParserEnhanced is currently _alpha_ and has many changes occurring.
+
+### Added
+- Added `enter_handler()` method to `ConfigParserEnhanced`.
+  This should be called immediately upon entry to a handler to provide
+  logging information that can be useful when debugging.
+  This is in the public api -- not that we encourage a subclass to modify
+  it much but we encourage subclasses to use it in their custom handlers.
+- Added `exit_handler()` method to `ConfigParserEnhanced`
+  This should be called just before a handler exits to provide
+  logging and information that can be useful when debugging.
+  This is in the public api -- not that we encourage a subclass to modify
+  it much but we encourage subclasses to use it in their custom handlers.
+- Added `_launch_handler_generic` method to `ConfigParserEnhanced` which
+  is a wrapper to launching `handler_generic`. This handles launching
+  the generic handler and updating the `configparserenhanceddata` structure.
+  - This was also useful because we launch the generic handler from two
+    places in the parser.
+
+
+### Changed
+- Moved `__version__` string to a new file, `version.py`
+- Replaced `setup.py` with `pyproject.toml`
+  - Generated using the *poetry* package (`python3 -m pip install --user poetry`).
+- Updated `ConfigParserEnahanced._new_handler_parameters` to create a 'new'
+  `HandlerParameters` object when called that copies in the `data_shared` and
+  `data_internal` references from the caller but creates new entries for the
+  other pieces. This fixed a bug in recursion of `use <section>` entries where
+  the handler that is called would overwrite parts of `handler_parameters` which,
+  as a side effect, would change the state to the caller in the recursion.
+  - Modified the API to `_new_handler_parameters`
+  - Added
+
+### Deprecated
+
+### Removed
+
+
 
 ## [0.1.2] - 2021-02-24
 ### Changed
@@ -33,6 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was called from. The warning message formatting was changed slightly as well to add
   the characters `!! ` as a prefix to all the lines in the message.
 
+
+
 ## [0.1.1] - 2021-02-23
 ### Changed
 - Brought handling of a `key:value` pair where there is no separator character (`:`, `=`)
@@ -41,10 +83,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   will be set to `None`.  Prior to this, ConfigParserEnhanced converted _value_ to a string
   which would cause `None` to be converted to a string: `"None"`.
 
+
+
 ## [0.1.0] - 2021-02-23
 ### Removed
 - Removed `SetEnvironment` into its own repository.
 - Cleaned up `setup.py` and added new helper scripts.
+
+
 
 ## [0.0.1] - 2021-02-22
 - `0.0.1` added to help SetEnvironment have a version to pull via Pip.

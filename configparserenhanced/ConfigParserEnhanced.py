@@ -42,7 +42,8 @@ Todo:
 
 :Authors:
     William C. McLendon III
-:Version: 0.1.2
+    Jason M. Gates
+:Version: 0.1.3
 
 """
 from __future__ import print_function
@@ -499,9 +500,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.configparserenhanceddata._sections_checked.add(section_name)
         else:
             # if we got a handler_parameters handed to us (i.e., recursion)
-            # we should make a deep-copy of it and only preserve the internal and
-            # shared state so that we don't change this in a way that affects
-            # the caller's state.
+            # we should make a new HandlerParameters object and copy references
+            # of the parts that need to be updated by all levels of recursion
+            # but not allow side-effects to modify the other entries that are
+            # relevant to the caller's scope.
             handler_parameters = self._new_handler_parameters(handler_parameters)
 
         # Execute _handler_initialize to add a pre-processing step.
@@ -652,8 +654,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             :class:`~configparserenhanced.HandlerParameters` object.
         """
         new_handler_parameters = HandlerParameters()
-        #new_handler_parameters.data_shared         # should be lazy eval generated and not needed
-        #new_handler_parameters.data_internal       # should be lazy eval generated and not needed
         new_handler_parameters.data_internal['processed_sections'] = set()
 
         # Copy the 'persistent' state from the old handler_parameters object.
