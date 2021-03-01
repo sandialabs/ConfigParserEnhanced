@@ -190,12 +190,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Note:
             Subclasses should not override this.
 
-<<<<<<< HEAD
         See Also:
-            - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`_
-=======
-        .. configparser reference:
-            https://docs.python.org/3/library/configparser.html
+            - Python library: `configparser <https://docs.python.org/3/library/configparser.html>`_
+              reference and user-guide.
         """
         if not hasattr(self, '_configparserdata'):
             self._configparserdata = configparser.ConfigParser(allow_no_value=True)
