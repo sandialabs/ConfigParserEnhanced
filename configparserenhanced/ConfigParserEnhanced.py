@@ -677,10 +677,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         We provide this as a property in case a subclass needs to override it.
 
-        Warning: There be dragons here!
-        This is only something you should do if you *really* understand the
+        **Warning: There be dragons here!**
+
+        This is only something you should do if you **really** understand the
         core parser engine. If this is changed significantly, you will likely also
         need to override the following methods too:
+
+        This function is tasked with generating the regular expression
+        that parses out the *key* field of a ``configparser`` option
+        into ``<operation> <parameter>`` fields that are used by *handlers*.
 
         * :meth:`~ConfigParserEnhanced.get_op1_from_regex_match()`
         * :meth:`~ConfigParserEnhanced.get_op2_from_regex_match()`
@@ -703,35 +708,46 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # - The goal is to capture op1 and op2 into groups from a regex match.
             # - op1 will always be captured by group1. We only allow this to be letters,
             #   numbers, dashes, or underscores.
-            #   - No spaces are ever allowed for op1 because this will get mapped to a handler method
-            #     name of the form `_handler_{op1}()`
+            #   - No spaces are ever allowed for op1 because this will get mapped to a
+            #     handler method name of the form `_handler_{op1}()`
             # - op2 is captured by group 2 or 3
             #   - group2 if op2 is single-quoted (i.e., 'op 2' or 'op2' or 'op-2')
             #   - group3 if op2 is not quoted.
-            # - op2 is just a string that gets passed down to the handler function so we will
-            #   let this include spaces, but if you do include spaces it _must_ be single quoted
-            #   otherwise we treat everything after the space as 'extra' stuff.
-            #   - This 'extra' stuff is discarded by ConfigParserEnhanced so that it can be used
-            #     to differentiate multiple commands in a section from one another that might otherwise
-            #     map to the same key. Note, in a normal `ConfigParser` `.ini` file each section is
-            #     a list of key:value pairs. The keys must be unique but that can be problematic
+            # - op2 is just a string that gets passed down to the handler function
+            #   so we will let this include spaces, but if you do include spaces it
+            #   _must_ be single quoted otherwise we treat everything after the
+            #   space as 'extra' stuff.
+            #   - This 'extra' stuff is discarded by ConfigParserEnhanced so that
+            #     it can be used to differentiate multiple commands in a section
+            #     from one another that might otherwise map to the same key. Note,
+            #     in a normal `ConfigParser` `.ini` file each section is a list of
+            #     key:value pairs. The keys must be unique but that can be problematic
             #     if we're implementing a simple parsed language on top of it.
             #     For example, if we're setting envvars and wanted multiple entries for PATH:
+            #
             #         envvar-prepend PATH: /something/to/prepend/to/path
             #         envvar-prepend PATH: /another/path/to/prepend
-            #     Here, the keys would be invalid for configparser because they're identical.
-            #     By allowing 'extra' entries after op2 we can allow a user to make each one unique.
-            #     So our example above could be changed to:
+            #
+            #     Here, the keys would be invalid for configparser because
+            #     they're identical. By allowing 'extra' entries after op2
+            #     we can allow a user to make each one unique. So our example
+            #     above could be changed to:
+            #
             #         envvar-prepend PATH A: /something/to/prepend/to/path
             #         envvar-prepend PATH B: /another/path/to/prepend
-            #     In both cases, op1 = 'envvar-prepend' and op2 = 'PATH' but the addition of the
-            #     'A' and 'B' will differentiate these keys from the ConfigParser's perspective.
-            #regex_string = r"^([\w\d\-_]+) ?('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
+            #
+            #     In both cases, op1 = 'envvar-prepend' and op2 = 'PATH' but the
+            #     addition of the 'A' and 'B' will differentiate these keys from
+            #     the ConfigParser's perspective.
+
             regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
             #                  ^^^^^^^^^^    ^^^^^^^^^^^^^    ^^^^^^^^^^
             #                      \              \                \-- op2 : group 3
             #                       \              \--- op2 : group 2
             #                        \--- op1 : group 1
+            #
+            # Note: group 0 is the _full_ match
+            #
             self._regex_op_splitter_value = re.compile(regex_string)
 
         return self._regex_op_splitter_value
