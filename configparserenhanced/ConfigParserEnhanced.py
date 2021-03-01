@@ -41,7 +41,7 @@ Todo:
 
 :Authors:
     William C. McLendon III
-:Version: 0.0.1-alpha
+:Version: 0.1.2
 
 """
 from __future__ import print_function
