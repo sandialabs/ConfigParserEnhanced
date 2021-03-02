@@ -19,6 +19,7 @@ pytest:
 
 install:
   stage: test
+  needs: [pytest]
   timeout: 20m
   script:
     - python3 -m pip install --user .
@@ -26,6 +27,7 @@ install:
 
 sphinx-documentation:
   stage: test
+  needs: [install]
   timeout: 20m
   script:
     - cd doc/
@@ -34,6 +36,7 @@ sphinx-documentation:
 
 publish coverage:
   stage: docs
+  needs: [pytest]
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -46,6 +49,7 @@ publish coverage:
 
 publish docs:
   stage: docs
+  needs: [pytest]
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
