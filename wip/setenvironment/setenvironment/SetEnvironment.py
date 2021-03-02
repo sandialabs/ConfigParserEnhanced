@@ -275,9 +275,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         return self._helper_envvar_common(section_name, handler_parameters)
 
@@ -296,9 +297,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         return self._helper_envvar_common(section_name, handler_parameters)
 
@@ -310,9 +312,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         return self._helper_envvar_common(section_name, handler_parameters)
 
@@ -325,9 +328,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         self.enter_handler(handler_parameters)
 
@@ -360,9 +364,9 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
         """
         return self._helper_envvar_common(section_name, handler_parameters)
 
@@ -377,9 +381,9 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
         """
         return self._helper_module_common(section_name, handler_parameters)
 
@@ -394,9 +398,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         return self._helper_module_common(section_name, handler_parameters)
 
@@ -413,9 +418,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         self.enter_handler(handler_parameters)
 
@@ -459,9 +465,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         return self._helper_module_common(section_name, handler_parameters)
 
@@ -476,9 +483,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         return self._helper_module_common(section_name, handler_parameters)
 
@@ -493,9 +501,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
         """
         return self._helper_module_common(section_name, handler_parameters)
 
@@ -505,9 +514,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+
 
         Todo:
             Implement the 'cleanup' portion of finalize. See inline comment(s).
@@ -562,9 +572,9 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
         """
         self.enter_handler(handler_parameters)
 
@@ -620,9 +630,9 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             integer: An integer value indicating if the handler was successful.
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
         """
         self.enter_handler(handler_parameters)
 
