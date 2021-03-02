@@ -1,6 +1,6 @@
 stages:
   - test
-  - deploy
+  - docs
 
 before_script:
   # display centos version
@@ -17,6 +17,13 @@ pytest:
     - python3 ./exec-example-ConfigParserEnhanced.py
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
+install:
+  stage: test
+  timeout: 20m
+  script:
+    - python3 -m pip install --user .
+    - python3 -m pip uninstall -y configparserenhanced
+
 sphinx-documentation:
   stage: test
   timeout: 20m
@@ -26,7 +33,7 @@ sphinx-documentation:
     - bash make_html_docs.sh
 
 publish coverage:
-  stage: deploy
+  stage: docs
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -38,7 +45,7 @@ publish coverage:
     - mv tests/htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
 
 publish docs:
-  stage: deploy
+  stage: docs
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
