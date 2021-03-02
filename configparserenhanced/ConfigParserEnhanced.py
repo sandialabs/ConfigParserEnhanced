@@ -81,7 +81,7 @@ class AmbiguousHandlerError(Exception):
         next -- attempted new state
         message -- explanation of why the specific transition is not allowed
     """
-    pass # Does this need to be implemented?
+    pass
 
 
 
@@ -485,7 +485,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if handler_parameters is None:
             handler_parameters = self._new_handler_parameters()
 
-            # check that we got the right data structure from _new_handler_parameters
+            # Check that we got the right data structure from _new_handler_parameters
             # in case someone overrides this later on.
             if not isinstance(handler_parameters, (HandlerParameters)):
                 raise TypeError("handler_parameters must be of type `HandlerParameters` or a derivitive.")
@@ -499,7 +499,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #          of the search only.
             self.configparserenhanceddata._sections_checked.add(section_name)
         else:
-            # if we got a handler_parameters handed to us (i.e., recursion)
+            # If we got a handler_parameters handed to us (i.e., recursion)
             # we should make a new HandlerParameters object and copy references
             # of the parts that need to be updated by all levels of recursion
             # but not allow side-effects to modify the other entries that are
@@ -547,7 +547,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 sec_v = str(sec_v).strip()
                 sec_v = sec_v.strip('"')
 
-            handler_parameters.raw_option = (sec_k, sec_v) # Would it be better to add a key() property to handler_parameters in place of raw_option?
+            handler_parameters.raw_option = (sec_k, sec_v)
             handler_parameters.value = sec_v
 
             self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
@@ -743,7 +743,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #                        \--- op1 : group 1
             #
             # Note: group 0 is the _full_ match
-            #
             self._regex_op_splitter_value = re.compile(regex_string)
 
         return self._regex_op_splitter_value
@@ -768,7 +767,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         m = self._regex_op_splitter.match(text)
 
-        # Sanity checks: Change match to None if we fail
+        # Sanity checks: Change match to None if we fail.
         if m != None:
             if m.groups()[0] != text.split()[0]:
                 m = None

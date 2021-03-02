@@ -145,7 +145,7 @@ class ExceptionControl(object):
                 elif exc_type is TypeError:
                     return False                                                                    # pragma: no cover
                 else:
-                    # re-raise other exceptions such as KeyboardInterrupt, etc.
+                    # Re-raise other exceptions such as KeyboardInterrupt, etc.
                     raise                                                                           # pragma: no cover
 
         event_type = str(event_type).upper()

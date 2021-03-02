@@ -1116,7 +1116,7 @@ class ConfigParserEnhancedTest(TestCase):
     def test_ConfigParserEnhanced_test_key_variants(self):
         """
         Test some key variants for unhandled sections (i.e., generic_handler)
-        items and make sure we git the right thing.
+        items and make sure we get the right thing.
         """
         section = "KEY_VARIANT_TEST"
 
