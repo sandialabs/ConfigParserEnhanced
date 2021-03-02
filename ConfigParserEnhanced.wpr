@@ -41,9 +41,9 @@ console.toolbox = [{'autosave': False,
                     'shared': False,
                     'title': 'Generate Docs '}]
 proj.directory-list = [{'dirloc': loc('.'),
-                        'excludes': (),
+                        'excludes': (".git", ".coverage", ".pytest_cache"),
                         'filter': u'*',
-                        'include_hidden': False,
+                        'include_hidden': True,
                         'recursive': True,
                         'watch_for_changes': True}]
 proj.file-type = 'shared'
