@@ -41,8 +41,8 @@ Todo:
     but it's better than nothing.
 
 :Authors:
-    William C. McLendon III
-    Jason M. Gates
+    William C. McLendon III <wcmclen@sandia.gov>
+    Jason M. Gates <jmgate@sandia.gov>
 :Version: 0.1.3
 
 """
