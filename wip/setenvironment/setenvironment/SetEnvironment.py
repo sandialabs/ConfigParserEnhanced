@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-SetEnvironment module documentation goes here.
+SetEnvironment Utility for environment vars and modules.
+
+
 
 Todo:
-    Document me!
+    Fill in the docstring for this file.
 
 :Authors:
-    William C. McLendon III
-:Version: 0.0.1-alpha
+    - William C. McLendon III <wcmclen@sandia.gov>
+
+:Version: 0.0.1
 """
 from __future__ import print_function
 
