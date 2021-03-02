@@ -916,7 +916,7 @@ class ConfigParserEnhancedTest(TestCase):
 
         # Test length - This should be the # of sections in the .ini file.
         print("\nTest __len__")
-        exp_len = 17
+        exp_len = 18
         act_len = len(parser.configparserenhanceddata)
         self.assertEqual(exp_len, act_len,
                          "ERROR: Length returned is {} but we expected {}".format(act_len, exp_len))
@@ -1113,4 +1113,44 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
+    def test_ConfigParserEnhanced_test_key_variants(self):
+        """
+        Test some key variants for unhandled sections (i.e., generic_handler)
+        items and make sure we get the right thing.
+        """
+        section = "KEY_VARIANT_TEST"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 0
+        parser.exception_control_level = 0
+
+        data_actual   = parser.configparserenhanceddata["KEY_VARIANT_TEST"]
+
+        data_expected = {
+            "key1"         : "value1",
+            "key two"      : "value two",
+            "key 'three A'": "value string",
+            "key four"     : "",
+            "key five"     : None
+        }
+
+        print("")
+        print("Data Expected:")
+        pprint(data_expected)
+        print("")
+        print("Data Actual:")
+        pprint(data_actual)
+        print("")
+
+        self.assertDictEqual(data_expected, data_actual, "Expected vs. Actual lists do not match.")
+
+
+        print("OK")
+
+
 # EOF
+

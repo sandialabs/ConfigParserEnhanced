@@ -5,21 +5,21 @@
 ConfigParserEnhanced
 ====================
 
-The ConfigParserEnhanced provides extended functionality for the configparser module. This class attempts to satisfy the following goals:
+`ConfigParserEnhanced` (CPE) provides extended functionality for the `ConfigParser` module. This class attempts to satisfy the following goals:
 
-1. Provide a framework to embed extended ‘parsing’ into Config.ini style files with customizable
-   _handlers_ that allows 'commands' to be embedded into the key-value structure of a typical .ini
+1. Provide a framework to embed extended ‘parsing’ into `Config.ini` style files with customizable
+   _handlers_ that allow 'commands' to be embedded into the key-value structure of typical `.ini`
    file options.
-2. Enable chaining of `[SECTIONS]` within a single .ini file which using the parsing capability noted in (1).
-3. Provide an extensible capability. We intend ConfigParserEnhanced to be used as a base class for other 
-  tools so that subclasses can add additional handlers for new ‘operations’ which can be used by the parser.
+2. Enable chaining of `[SECTIONS]` within a single `.ini` file, which uses the parsing capability noted in (1).
+3. Provide an extensible capability. We intend CPE to be used as a base class for other 
+   tools so that subclasses can add additional handlers for new ‘operations’ which can be used by the parser.
 
-Configuration .ini File Enhancements
-====================================
-ConfigParserEnhanced allows `.ini` files to be augmented to embed commands into the key:value 
+Configuration `.ini` File Enhancements
+======================================
+CPE allows `.ini` files to be augmented to embed commands into the `key: value`
 structure of options within a section.  
 
-_Normal_ .ini files might have a structure that looks like this:
+_Normal_ `.ini` files might have a structure that looks like this:
 
 ```ini
 [SECTION NAME]
@@ -28,8 +28,8 @@ key2: value2
 key4: value3
 ```
 
-ConfigParserEnhanced (CPE) augments this by allowing the **keys** to be used to embed _operations_. 
-To enable this, CPE attempts to split a key into three pieces, an _operation_, a _parameter_ and add
+CPE augments this by allowing the **keys** to be used to embed _operations_.
+To enable this, CPE attempts to split a key into three pieces, an _operation_, a _parameter_, and
 an optional _uniqueifier_ string.  An option can have an operation extracted as 
 `<operation> <parameter> [uniquestr]: value` for example:
 
@@ -43,15 +43,14 @@ key2: value2
 key3: value3
 ```
 
-Note: The `[uniquestr]` is optional and we can use it to prevent certain duplicate-key errors from the 
-underlying `configparser` parser which requires that each section must have no duplicate 'key' 
-fields.
+> **Note:** The `[uniquestr]` is optional and we can use it to prevent certain duplicate key errors from the 
+> underlying `ConfigParser` which requires that each section must have no duplicate 'key' fields.
 
 When the CPE parser successfully identifies a potential _operation_, it will attempt to find a _handler_ 
-method named as `_handler_<operation>()` or `handler_<operation>()` and if one exists then we will execute
+method named as `_handler_<operation>()` or `handler_<operation>()`, and if one exists then it will execute
 that handler with the detected parameter (if any) and value (if any) from that entry.
 
-New handlers can be added by creating a subclass of ConfigParserEnhanced and adding new handlers.
+New handlers can be added by creating a subclass of CPE and then adding the new handlers to the subclass.
 
 Operations
 ==========
@@ -68,14 +67,14 @@ key-A2: value-A2
 key-A3: value-A3
 
 [SECTION-B]
-use SECTION-A:
+use SECTION-A
 key-B1: value-B1
 ```
 
-In this example, the entry `use SECTION-A:` that is inside `[SECTION-B]` instructs the core 
+In this example, the entry `use SECTION-A` that is inside `[SECTION-B]` instructs the core 
 parser to recurse into `[SECTION-A]` and process it before moving on with the rest of the 
 entries in `[SECTION-B]`.  In this example the following code could be used to parse 
-`SECTION-B`:
+`SECTION-B`.
 `ConfigParserEnhanced.configparserenhanceddata['SECTION-B']` would return the following 
 result:
 
@@ -96,6 +95,6 @@ See the [CHANGELOG](CHANGELOG.md) for information on changes.
 
 Links
 =====
-Additional documentation can be found [here][1]
+Additional documentation can be found [here][1].
 
 [1]: http://10.202.35.89:8080/ConfigParserEnhanced/doc/index.html

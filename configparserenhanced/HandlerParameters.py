@@ -3,7 +3,6 @@
 """
 Todo:
     Fill in file-level docstring
-    Clean up docstrings
 """
 from __future__ import print_function
 
@@ -27,7 +26,7 @@ except ImportError:                                                             
 
 
 class HandlerParameters(object):
-    """Contains the set of parameters that we pass to Handlers.
+    """Contains the set of parameters that we pass to *handlers*.
     """
     def __init__(self):
         pass
@@ -37,14 +36,14 @@ class HandlerParameters(object):
         """Name of the *root* section in section parsing.
 
         This contains the *root* section when recursively parsing
-        sections in a .ini file by :class:`~.ConfigParserEnhanced`.
+        sections in a ``.ini`` file by :class:`~configparserenhanced.ConfigParserEnhanced`.
 
         Returns:
-            string: A string containing the *root* section name.
+            str: A string containing the *root* section name.
 
         Raises:
-            TypeError: if the setter fails to convert the assigned value
-            to a string object.
+            TypeError: If the setter fails to convert the assigned value
+                to a string object.
         """
         if not hasattr(self, '_section_root'):
             self._section_root = None
@@ -59,19 +58,18 @@ class HandlerParameters(object):
 
     @property
     def raw_option(self) -> tuple:
-        """Raw copy of the ``(key:value)`` pair from current option.
+        """Raw copy of the ``key: value`` pair from current option.
 
-        This contains a copy of the ``key:value`` pair for the current
+        This contains a copy of the ``key: value`` pair for the current
         option without editing as a *tuple*.
 
         Returns:
             tuple: A tuple containing the ``key`` and ``value``
             pairs from the current *option* being processed.
-            The tuple must be of length=2.
 
         Raises:
-            TypeError: if the value isn't a tuple.
-            ValueError: if the value is a tuple len != 2.
+            TypeError: If the value isn't a tuple.
+            ValueError: If the value is a tuple with length other than 2.
         """
         if not hasattr(self, '_raw_option'):
             self._raw_option = (None, None)
@@ -82,23 +80,32 @@ class HandlerParameters(object):
         if not isinstance(value, tuple):
             raise TypeError("raw_option must be a tuple.")
         if len(value) != 2:
-            raise ValueError("raw_option must have 2 entries")
+            raise ValueError("raw_option must have 2 entries.")
         self._raw_option = value
         return self._raw_option
 
     @property
     def op_params(self) -> tuple:
-        """
-        Operation parameters for this handler. This must be a tuple of length 2.
+        """Processed operation and parameter extracted from an option key.
+
+        Processed operation, parameter pair for this option if it is processed
+        as a command that has an associated *handler*. For example, in the following
+        ``.ini`` file snippet:
+
+            [section]
+            operation parameter uniquestr: value
+
+        ``op_params`` will contain the tuple ``("operation", "parameter")``.
+        Generally, the first entry (the operation) will always be a string but the
+        second parameter might be a ``NoneType`` in some cases.
 
         Returns:
-            tuple: A tuple containing the operations extracted from
-                the current operation. This will be ``(op1, op2)``.
-                The tuple must be of length=2.
+            tuple: A tuple ``(op1, op2)`` containing the operations extracted from
+            the current operation.
 
         Raises:
-            TypeError: if the value isn't a tuple.
-            ValueError: if the value is a tuple len != 2.
+            TypeError: If the value isn't a tuple.
+            ValueError: If the value is a tuple with length other than 2.
         """
         if not hasattr(self, '_op_params'):
             self._op_params = (None, None)
@@ -109,7 +116,7 @@ class HandlerParameters(object):
         if not isinstance(value, tuple):
             raise TypeError("op_params must be a tuple.")
         if len(value) != 2:
-            raise ValueError("op_params must have 2 entries")
+            raise ValueError("op_params must have 2 entries.")
         self._op_params = value
         return self._op_params
 
@@ -117,16 +124,16 @@ class HandlerParameters(object):
     def value(self) -> str:
         """The value vield of an option.
 
-        This is the *value* field from a given option form a .ini
+        This is the *value* field from a given option from a ``.ini``
         file of the form: ``key: value``.
 
-        If there was no value provided then this should return an
+        If there was no value provided, then this should return an
         empty string.
 
         Returns:
-            string: Typically this returns a string, but it can also return ``None``
-                when encountering an option from a .ini file that does not have a separator
-                character (i.e., ``key`` instead of ``key:`` or ``key=``).
+            str: Typically this returns a string, but it can also return ``None``
+            when encountering an option from a ``.ini`` file that does not have a separator
+            character (i.e., ``key`` instead of ``key:`` or ``key=``).
         """
         if not hasattr(self, '_value'):
             self._value = ""
@@ -149,10 +156,10 @@ class HandlerParameters(object):
 
         Returns:
             dict: A dictionary containing the *shared* workspace sent to the handlers in
-            :class:`~configparserenhanced.ConfigParserEnhanced`
+            :class:`~configparserenhanced.ConfigParserEnhanced`.
 
         Raises:
-            TypeError: if the type is not a ``dict`` during assignment.
+            TypeError: If the type is not a ``dict`` during assignment.
         """
         if not hasattr(self, '_data_shared'):
             self._data_shared = {}
@@ -175,13 +182,13 @@ class HandlerParameters(object):
 
         Information such as *previously visited sections* during
         recursion is used to prevent infinite loops if there are
-        cycles present in the ``use <section>:`` entries.
+        cycles present in the ``use <section>`` entries.
 
         Returns:
             dict: A dictionary containing the internal state information for the parser.
 
         Raises:
-            TypeError: if assignment is attempted by a value
+            TypeError: If assignment is attempted by a value
                 that is not a ``dict`` type.
         """
         if not hasattr(self, '_data_internal'):
@@ -200,7 +207,7 @@ class HandlerParameters(object):
         """The handler name for a given operation.
 
         Returns:
-            string: containing the value from the field.
+            str: The value from the field.
         """
         if not hasattr(self, '_handler_name'):
             self._handler_name = ""
@@ -209,6 +216,6 @@ class HandlerParameters(object):
     @handler_name.setter
     def handler_name(self, handler_name):
         if not isinstance(handler_name, (str)):
-            raise TypeError("handler_name must be a `str` type.")
+            raise TypeError("handler_name must be a str type.")
         self._handler_name = handler_name
         return self._handler_name

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-The ConfigParserEnhanced provides extended functionality for the `configparser`
-module. This class enables configurable parsing of .ini files by splitting
+The :class:`~configparserenhanced.ConfigParserEnhanced` provides extended functionality for the :class:`~configparser.ConfigParser`
+module. This class enables configurable parsing of ``.ini`` files by splitting
 the **key** portion of an option in a configuration section into an **operation**
-and a **parameter**.  For example, given this .ini file:
-
+and a **parameter**.  For example, given this ``.ini`` file:
 
 .. code-block:: ini
     :linenos:
@@ -15,23 +14,25 @@ and a **parameter**.  For example, given this .ini file:
     operation parameter: optional value
     operation parameter uniquestr: optional value
 
-The built-in parser will process each OPTION (``key:value`` pairs)
+The built-in parser will process each OPTION (``key: value`` pairs)
 in-order within a SECTION. During the parsing process we attempt to
 split the *key* field into two pieces consisting of an *operation*
 and a *parameter*.
 
 If there is a **handler method** associated with the **operation**
-field that is extracted then the parser will call that handler.
+field that is extracted, then the parser will call that handler.
 Handlers are added as methods named like ``_handler_<operation>()``
+(with or without the leading underscore, which denotes a method not intended
+to be overriden by subclasses)
 and will be called if they exist.  For example, if the **operation**
 field resolves to ``use``, then the parser looks for a method called
 ``_handler_use()``.
 
 If the handler exists, then it is invoked. Otherwise the parser treats
-the OPTION field as a generic **key:value** pair as normal.
+the OPTION field as a generic ``key: value`` pair as normal.
 
 In this way, we can customize our processing by subclassing
-ConfigParserEnhanced and defining our own handler methods.
+:class:`~configparserenhanced.ConfigParserEnhanced` and defining our own handler methods.
 
 Todo:
     Determine if we can use the @final decorators (requires Python 3.8).
@@ -40,8 +41,10 @@ Todo:
     but it's better than nothing.
 
 :Authors:
-    William C. McLendon III
-:Version: 0.1.2
+    - William C. McLendon III <wcmclen@sandia.gov>
+    - Jason M. Gates <jmgate@sandia.gov>
+
+:Version: 0.1.3
 
 """
 from __future__ import print_function
@@ -90,24 +93,22 @@ class AmbiguousHandlerError(Exception):
 
 
 class ConfigParserEnhanced(Debuggable, ExceptionControl):
-    """An enhanced .ini file parser built using configparser.
+    """An enhanced ``.ini`` file parser built using :class:`ConfigParser`.
 
-    Provides an enhanced version of the ``configparser`` module which enables some
+    Provides an enhanced version of the :class:`ConfigParser` module, which enables some
     extended processing of the information provided in a ``.ini`` file.
 
     See Also:
-        - `configparser reference <https://docs.python.org/3/library/configparser.html>`_
-        - `docstrings style guide <https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html>`_
-        - `regex tester <https://regexr.com/>`_
+        - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`
     """
     def __init__(self, filename):
         """Constructor
 
         Args:
-            filename (str,Path,list): The .ini file or files to be loaded. If a string
-                or Path is provided then we load only the one file. A *list* of strings
-                or Paths can also be provided which will be loaded by *configparser*'s
-                `read <https://docs.python.org/3/library/configparser.html#configparser.ConfigParser.read>`_
+            filename (str,Path,list): The ``.ini`` file or files to be loaded. If a ``str``
+                or ``Path`` is provided then we load only the one file. A ``list`` of strings
+                or ``Path`` s can also be provided, which will be loaded by :class:`ConfigParser`'s
+                `read() <https://docs.python.org/3/library/configparser.html#configparser.ConfigParser.read>`_
                 method.
         """
         self.inifilepath = filename
@@ -120,20 +121,21 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def inifilepath(self) -> list:
-        """list: provides access to the path to the .ini file (or files)
+        """Provides access to the path to the ``.ini`` file (or files).
 
-        inifilepath can be set to one of these things:
-        1. a `str` contining a path to a .ini file.
-        2. a `pathlib.Path` object pointing to a .ini file.
-        3. a `list` of one or more of (1) or (2).
+        ``inifilepath`` can be set to one of these things:
 
-        entries in the list will be converted to pathlib.Path objects.
+        1. A ``str`` contining a path to a ``.ini`` file.
+        2. A ``pathlib.Path`` object pointing to a ``.ini`` file.
+        3. A ``list`` of one or more of (1) or (2).
+
+        Entries in the list will be converted to ``pathlib.Path`` objects.
 
         Returns:
-            A `list` containing the .ini files that will be processed.
+            list: A ``list`` containing the ``.ini`` files that will be processed.
 
         Note:
-            Subclass(es) should not override this.
+            Subclasses should not override this.
         """
         if not hasattr(self, '_inifilepath'):
             raise ValueError("ERROR: The filename has not been specified yet.")
@@ -145,7 +147,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if not isinstance(value, (str,Path,list)):
             raise TypeError("ERROR: .ini filename must be a `str`, a `Path` or a `list` of either.")
 
-        # if we have already loaded a .ini file, we should reset the data
+        # If we have already loaded a .ini file, we should reset the data
         # structure. Delete any lazy-created properties, etc.
         if hasattr(self, '_inifilepath'):
             if hasattr(self, '_configparserdata'):
@@ -172,30 +174,31 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     @property
     def configparserdata(self) -> configparser.ConfigParser:
-        """The raw results to a vanilla configparser processed .ini file.
+        """The raw results to a vanilla :class:`ConfigParser`-processed ``.ini`` file.
 
         This property is lazy-evaluated and will be processed the first time it is
         accessed.
 
         Returns:
-            configparser.ConfigParser object containing the contents of the configuration
-            file that is loaded from a .ini file.
+            ConfigParser:  The object containing the contents of the loaded
+            ``.ini`` file.
 
         Raises:
-            ValueError: if the length of `self.inifilepath` is zero.
-            IOError: if any of the files in `self.inifilepath` don't
+            ValueError: If the length of ``self.inifilepath`` is zero.
+            IOError: If any of the files in ``self.inifilepath`` don't
                 exist or are not files.
 
         Note:
-            Subclass(es) should not override this.
+            Subclasses should not override this.
 
-        .. configparser reference:
-            https://docs.python.org/3/library/configparser.html
+        See Also:
+            - Python library: `configparser <https://docs.python.org/3/library/configparser.html>`_
+              reference and user-guide.
         """
         if not hasattr(self, '_configparserdata'):
             self._configparserdata = configparser.ConfigParser(allow_no_value=True)
 
-            # prevent ConfigParser from lowercasing the keys
+            # Prevent ConfigParser from lowercasing the keys.
             self._configparserdata.optionxform = str
 
             # configparser.ConfigParser.read() will not fail if it doesn't read the
@@ -208,7 +211,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             for inifilepath_i in self.inifilepath:
 
                 # Sanity type check here -- we'd throw on the .exists() and .is_file()
-                # methods below if the entry isn't a Path object, but the erorr might
+                # methods below if the entry isn't a Path object, but the error might
                 # be cryptic. This will throw a more explicit error.
                 # This should never happen if the users set things up through the
                 # property interface.
@@ -233,18 +236,17 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.debug_message(0, message)
                 raise ex
 
-
         return self._configparserdata
 
 
     @property
     def configparserenhanceddata(self):
-        """Enhanced configdata .ini file information (unhandled key-value pairs).
+        """Enhanced ``configparserdata`` ``.ini`` file information data.
 
-        This *property* returns a *parsed* representation of the configparserdata that would
-        be loaded from our .ini file. The data in this will return the contents of a
-        section plus its parsed results. For example, if we have this in our .ini
-        file:
+        This *property* returns a *parsed* representation of the ``configparserdata``
+        that would be loaded from our ``.ini`` file. The data in this will return the
+        contents of a section plus its parsed results. For example, if we have this
+        in our ``.ini`` file:
 
         .. code-block:: ini
 
@@ -258,22 +260,32 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Extracting the data from 'SEC B' would result the contents of 'SEC B' + 'SEC A':
 
             >>> ConfigParserEnhancedObj.configparserenhanceddata["SEC B"]
-            { 'key A1': 'value A1', 'key B1': 'value B1' }
+            {
+                'key A1': 'value A1',
+                'key B1': 'value B1'
+            }
+
+        Options that resolve to a format matching an operation
+        (``operation parameter : value``) what *also* have a handler
+        defined (i.e, the operation is "handled") will **not** be included
+        in the data of a section. This is shown in the example above where
+        the ``use 'SEC A':`` option in ``[SEC B]`` is not included in
+        ``configparserenhanceddata["SEC B"]`` after processing.
 
         Returns:
             :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData`
 
         Note:
-            Subclass(es) should not override this.
+            Subclasses should not override this.
         """
         if not hasattr(self, '_configparserenhanceddata'):
             self._configparserenhanceddata = self.ConfigParserEnhancedData(owner=self)
         return self._configparserenhanceddata
 
 
-    # --------------------
-    #   P A R S E R
-    # --------------------
+    # -------------------------------------
+    #   P A R S E R   P U B L I C   A P I
+    # -------------------------------------
 
 
     def parse_section(self, section, initialize=True, finalize=True):
@@ -281,13 +293,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Args:
             section (str): The section name that will be parsed and retrieved.
-            initialize (bool): If True then ``handler_initialize()`` will be executed
-                at the start of the search. Default = True
-            finalize (bool): If True then ``handler_finalize()`` will be executed
-                at the end of the search. Default = True
+            initialize (bool): If True then :meth:`handler_initialize()` will be executed
+                at the start of the search.
+            finalize (bool): If True then :meth:`handler_finalize()` will be executed
+                at the end of the search.
         Returns:
             :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
-            Unless HandlerParameters is changed, this wil be a ``dict`` type.
+            Unless :class:`~.HandlerParameters` is changed, this wil be a ``dict`` type.
         """
         if not isinstance(section, str):
             raise TypeError("`section` must be a string type.")
@@ -295,7 +307,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if section == "":
             raise ValueError("`section` cannot be empty.")
 
-        # clear out loginfo from any previous run(s)
+        # If a previous run generated _loginfo, clear it before this run.
         if hasattr(self, '_loginfo'):
             delattr(self, '_loginfo')
 
@@ -309,29 +321,75 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # ---------------------------------
 
 
-    def handler_generic(self, section_name, handler_parameters) -> int:
-        """Handler for non-operation key:value pairs
+    def enter_handler(self, handler_parameters):
+        """General tasks to do when entering a handler
 
-        A generic handler - this handler processes all _optons_ in a .ini
-        file section that do not have an operation handler defined for them.
+        This executes some general operations that should be executed when entering
+        a handler. Generally, these are just logging and console messages for
+        debugging.
 
-        Returns:
-            integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+        Args:
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
         """
         handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+        self.debug_message(1, "Enter handler    : {}".format(handler_name))                         # Console
+        self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(2, "--> op_params    : {}".format(handler_parameters.op_params))         # Console
+        self.debug_message(2, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(3, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
+
+        self._loginfo_add('handler-entry', {'name': handler_name,                                   # Logging
+                                            'entry': handler_parameters.raw_option,                 # Logging
+                                            'parameters': handler_parameters})                      # Logging
+        return
+
+
+    def exit_handler(self, handler_parameters):
+        """General tasks to do when entering a handler
+
+        This executes some general operations that should be executed when entering
+        a handler. Generally, these are just logging and console messages for
+        debugging.
+
+        Args:
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+        """
+        handler_name = handler_parameters.handler_name
+        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self._loginfo_add('handler-exit', {'name': handler_name,                                    # Logging
+                                           'entry': handler_parameters.raw_option,                  # Logging
+                                           'parameters': handler_parameters})                       # Logging
+        return
+
+
+    def handler_generic(self, section_name, handler_parameters) -> int:
+        """Handler for non-operation ``key: value`` pairs.
+
+        A generic handler that processes all *optons* in a ``.ini``
+        file section that do not have an operation handler defined for them.
+
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+
+        Returns:
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (SERIOUS)
+        """
+        self.enter_handler(handler_parameters)
+        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))
 
         # -----[ Handler Content Start ]-------------------
 
 
         # -----[ Handler Content End ]---------------------
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -339,27 +397,28 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """Initialize a recursive parse search.
 
         This handler is called at the start of a recursive search of the
-        .ini structure. Subclasses can override this method to perform setup
+        ``.ini`` structure. Subclasses can override this method to perform setup
         actions at the start of a search.
 
-        Returns:
-            integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
-        """
-        handler_name = handler_parameters.handler_name
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
 
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+        Returns:
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (SERIOUS)
+        """
+        self.enter_handler(handler_parameters)
 
         # -----[ Handler Content Start ]-------------------
 
 
         # -----[ Handler Content End ]---------------------
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -367,43 +426,38 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """Finalize a recursive parse search.
 
         This handler is called at the end of a search and can be used
-        to *finalize* processing of config.ini sections or save / cache
+        to *finalize* processing of ``.ini`` sections or save/cache
         data from the search that other handlers added to
         ``handler_parameters.data_shared``.
+
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
 
         For this handler, the ``handler_parameters`` entries will only populate
         the ``handler_name`` and ``data_shared`` properties.
 
-
         Returns:
-            integer value
-                0     : SUCCESS
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
-
-        Todo:
-            Test that we really only call this once at the end of recursion,
-            even when having multiple 'use' entries.
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (SERIOUS)
         """
-        handler_name = handler_parameters.handler_name
-
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+        self.enter_handler(handler_parameters)
 
         # -----[ Handler Content Start ]-------------------
 
 
         # -----[ Handler Content End ]---------------------
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
-    # -------------------------------
-    #   P A R S E R   H E L P E R S
-    # -------------------------------
+    # ---------------------------------------------------
+    #   P A R S E R   H E L P E R S   ( P R I V A T E )
+    # ---------------------------------------------------
 
 
     def _parse_section_r(self, section_name, handler_parameters=None, initialize=True, finalize=True):
@@ -412,12 +466,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         This is the main heavy lifter of the parser.
 
         Args:
-            section_name (str):
-            handler_parameters (object):
-            initialize (bool): If enabled _and_ this level of recursion is the ROOT
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+            initialize (bool): If enabled *and* this level of recursion is the *root*
                 level then we will call ``handler_initialize()`` to do some preprocessing
                 activities.
-            finalize (bool): If enabled _and_ this level of recursion is the ROOT
+            finalize (bool): If enabled *and* this level of recursion is the *root*
                 level then we will call ``handler_finalize()`` to wrap up the
                 recursion.
 
@@ -427,17 +482,16 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if section_name == None:
             raise TypeError("ERROR: a section name must not be None.")
 
-        # initialize handler_parameters if not currently set up.
+        # Initialize handler_parameters if not currently set up.
         if handler_parameters is None:
             handler_parameters = self._new_handler_parameters()
 
+            # Check that we got the right data structure from _new_handler_parameters
+            # in case someone overrides this later on.
             if not isinstance(handler_parameters, (HandlerParameters)):
-                raise TypeError("handler_parameters must be `HandlerParameters` or a derivitive.")
+                raise TypeError("handler_parameters must be of type `HandlerParameters` or a derivitive.")
 
             handler_parameters.section_root = section_name
-            handler_parameters.data_shared      # initializes default (lazy eval, not necessary)
-            handler_parameters.data_internal    # initializes default (lazy eval, not necessary)
-            handler_parameters.data_internal['processed_sections'] = set()
 
             # Pitfall: Only add 'sections_checked' for the _root_ node
             #          because configparserenhanceddata recurses through and we
@@ -445,12 +499,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #          of the fully parsed entry from the the root section
             #          of the search only.
             self.configparserenhanceddata._sections_checked.add(section_name)
+        else:
+            # If we got a handler_parameters handed to us (i.e., recursion)
+            # we should make a new HandlerParameters object and copy references
+            # of the parts that need to be updated by all levels of recursion
+            # but not allow side-effects to modify the other entries that are
+            # relevant to the caller's scope.
+            handler_parameters = self._new_handler_parameters(handler_parameters)
 
         # Execute _handler_initialize to add a pre-processing step.
         if initialize and section_name == handler_parameters.section_root:
-            handler_initialize_params = HandlerParameters()
+            handler_initialize_params = self._new_handler_parameters(handler_parameters)
             handler_initialize_params.handler_name = "handler_initialize"
-            handler_initialize_params.data_shared  = handler_parameters.data_shared
             handler_rval = self.handler_initialize(section_name, handler_initialize_params)
             self._check_handler_rval("handler_initialize", handler_rval)
 
@@ -462,28 +522,28 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         try:
             current_section = self.configparserdata[section_name]
         except KeyError:
-            message = "ERROR: No section named `{}` was found in the configuration file.".format(section_name)
+            message = "ERROR: No section named `{}` was found in the configuration file {}.".format(section_name, self.inifilepath)
             raise KeyError(message)
 
         # Verify that we actually got a section returned. If not, raise a KeyError.
         if current_section is None:
             # This may be unreachable.
-            raise Exception("ERROR: Unable to load section `{}` for unknown reason.".format(section_name))
+            raise Exception("ERROR: Unable to load section `{}` for an unknown reason.".format(section_name))
 
-        # Initialize and set processed_sections
+        # Initialize and set processed_sections.
         self._validate_handlerparameters(handler_parameters)
         handler_parameters.data_internal['processed_sections'].add(section_name)
 
         for sec_k,sec_v in current_section.items():
             sec_k = str(sec_k).strip()
 
-            # sec_v should be either a string or a NoneType entry. Generally the value
-            # will be a string but if there is no 'separator' provided between the key
-            # and the value. For example if a key with no value is provided like this:
-            # `key: ` then the value field will be an empty string. If there is no colon
-            # or equals such as `key` then the value field that configparser returns would
-            # be a NoneType. To handle this we only do string operations here if sec_v is
-            # not None.
+            # sec_v should be either a string or a NoneType entry. In the
+            # general case of either `key: value` or `key = value`, the value
+            # will be a string.  If the user specified `key:` (that is, with a
+            # separator, but without a value), then the value is the empty
+            # string "".  If the user omits the separator *and* the value,
+            # e.g., by specifying only `key`, then the value will be a
+            # NoneType.
             if sec_v is not None:
                 sec_v = str(sec_v).strip()
                 sec_v = sec_v.strip('"')
@@ -494,20 +554,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
             self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
 
-            # Extract operation parameters (op1, op2) using the regex matcher
+            # Extract the operation parameters (op1, op2) using the regex matcher.
             regex_op_splitter_m = self._regex_op_matcher(sec_k)
 
-            # initialze handler return value.
+            # Initialze the handler return value.
             handler_rval = 0
 
             if regex_op_splitter_m is None:
-                # Update configparserenhanceddata
-                self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
-
-                # Call generic_handler if option key did not expand to an 'operation'.
-                self.debug_message(5, "Option regex did not find 'operation(s)'.")                  # Console
-                handler_parameters.handler_name = "handler_generic"
-                handler_rval = self.handler_generic(section_name, handler_parameters)
+                # Call generic_handler if the option key did not expand to an 'operation'.
+                handler_rval = self._launch_handler_generic(section_name,
+                                                            handler_parameters,
+                                                            sec_k,
+                                                            sec_v)
 
             else:
                 # If we have a regex match, process the operation code and launch the
@@ -525,7 +583,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.debug_message(2, "- op2: {}".format(op2))                                      # Console
                 self.debug_message(2, "- val: {}".format(handler_parameters.value))                 # Console
 
-                # Generate handler name and check if we have one defined.
+                # Generate the handler name and check if we have one defined.
                 handler_name,ophandler_f = self._locate_handler_method(op1)
 
                 # Call the appropriate 'handler' for this entry.
@@ -534,27 +592,25 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     handler_parameters.handler_name = handler_name
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
-                    # Update configparserenhanceddata
-                    self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
+                    # Call generic_handler if no operation handler is found.
+                    handler_rval = self._launch_handler_generic(section_name,
+                                                                handler_parameters,
+                                                                sec_k,
+                                                                sec_v)
 
-                    # Call generic_handler if no operation handler found.
-                    handler_parameters.handler_name = "handler_generic"
-                    handler_rval = self.handler_generic(section_name, handler_parameters)
-
-            # Check the return code from the handler
+            # Check the return code from the handler.
             self._check_handler_rval(handler_parameters.handler_name, handler_rval)
 
         # If we're exiting recursion from the root node and and finalize is
         # enabled, we call the finalize handler.
         if finalize and section_name == handler_parameters.section_root:
-            handler_finalize_params = HandlerParameters()
+            handler_finalize_params = self._new_handler_parameters(handler_parameters)
             handler_finalize_params.handler_name = "handler_finalize"
-            handler_finalize_params.data_shared  = handler_parameters.data_shared
             handler_rval = self.handler_finalize(section_name, handler_finalize_params)
             self._check_handler_rval("handler_finalize", handler_rval)
 
         # Remove the section from the `processed_sections` field when we exit.
-        # - This properly enables a true DFS of `use` links.
+        # - This properly enables a true depth-first search of `use` links.
         self._validate_handlerparameters(handler_parameters)
         handler_parameters.data_internal['processed_sections'].remove(section_name)
 
@@ -565,51 +621,68 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def _validate_handlerparameters(self, handler_parameters):
-        """Check HandlerParameters
+        """Check :class:`HandlerParameters`.
 
-        Check the handler_parameters object that's being passed around
-        to the handlers to very that items in it have the proper type(s).
+        Check the ``handler_parameters`` object that's being passed around
+        to the handlers to verify that items in it have the proper types.
 
         Raises:
             TypeError: Raises a ``TypeError`` if
                 ``handler_parameters.data_internal['processed_sections']`` is not a ``set``
                 type.
         """
-        # Check that `data_internal['processed_sections']` is a `set` type.
         if not isinstance(handler_parameters.data_internal['processed_sections'], set):
             message = "`handler_parameters.data_internal['processed_sections']` " + \
-                      "must be a `set()` type."
+                      "must be a `set` type."
             raise TypeError(message)
 
         return None
 
 
-    def _new_handler_parameters(self) -> HandlerParameters:
+    def _new_handler_parameters(self, handler_parameters=None) -> HandlerParameters:
         """Generate a new :class:`~configparserenhanced.HandlerParameters` object.
 
-        This is called inside the parser to generate HandlerParameters.
+        This is called inside the parser to generate :class:`HandlerParameters`.
         If subclasses extend the :class:`~configparserenhanced.HandlerParameters`
         class, this can be overridden.
+
+        Args:
+            handler_parameters: an existing ``HandlerParameters`` object to copy the
+                *persistent* state over from (i.e., ``data_shared``, ``data_internal``)
+                for continuity in the new object.
 
         Returns:
             :class:`~configparserenhanced.HandlerParameters` object.
         """
-        params = HandlerParameters()
-        return params
+        new_handler_parameters = HandlerParameters()
+        new_handler_parameters.data_internal['processed_sections'] = set()
+
+        # Copy the 'persistent' state from the old handler_parameters object.
+        if handler_parameters != None:
+            new_handler_parameters.data_internal = handler_parameters.data_internal
+            new_handler_parameters.data_shared   = handler_parameters.data_shared
+            new_handler_parameters.section_root  = handler_parameters.section_root
+
+        return new_handler_parameters
 
 
     @property
     def _regex_op_splitter(self) -> re.Pattern:
-        """re.Pattern: Regular expression based key splitter to op(param) pairs.
+        """Regular expression-based key splitter to op(param) pairs.
 
         This parameter stores the regex used to match operation lines in the parser.
 
         We provide this as a property in case a subclass needs to override it.
 
-        Warning: There be dragons here!
-        This is only something you should do if you _really_ understand the
+        **Warning: There be dragons here!**
+
+        This is only something you should do if you **really** understand the
         core parser engine. If this is changed significantly, you will likely also
         need to override the following methods too:
+
+        This function is tasked with generating the regular expression
+        that parses out the *key* field of a ``configparser`` option
+        into ``<operation> <parameter>`` fields that are used by *handlers*.
 
         * :meth:`~ConfigParserEnhanced.get_op1_from_regex_match()`
         * :meth:`~ConfigParserEnhanced.get_op2_from_regex_match()`
@@ -619,46 +692,58 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             re.Pattern: A compiled regular expression pattern.
 
         Note:
-            This should not be overridden unless you _really_ know what you're
+            This should not be overridden unless you *really* know what you're
             doing since it'll probably also break the parser. Changing this could
             cascade into a lot of changes.
+
+        See Also:
+            - `regex tester <https://regexr.com/>` A useful REGEX tester.
         """
         if not hasattr(self, '_regex_op_splitter_value'):
-            # regex op splitter to extract op1 and op2, this is pretty complicated so here's the
-            # deets:
+            # This is the regex op splitter to extract op1 and op2.  This is
+            # pretty complicated, so here are the details:
             # - The goal is to capture op1 and op2 into groups from a regex match.
             # - op1 will always be captured by group1. We only allow this to be letters,
             #   numbers, dashes, or underscores.
-            #   - No spaces are ever allowed for op1 because this will get mapped to a handler method
-            #     name of the form `_handler_{op1}()`
+            #   - No spaces are ever allowed for op1 because this will get mapped to a
+            #     handler method name of the form `_handler_{op1}()`
             # - op2 is captured by group 2 or 3
             #   - group2 if op2 is single-quoted (i.e., 'op 2' or 'op2' or 'op-2')
             #   - group3 if op2 is not quoted.
-            # - op2 is just a string that gets passed down to the handler function so we will
-            #   let this include spaces, but if you do include spaces it _must_ be single quoted
-            #   otherwise we treat everything after the space as 'extra' stuff.
-            #   - This 'extra' stuff is discarded by ConfigParserEnhanced so that it can be used
-            #     to differentiate multiple commands in a section from one another that might otherwise
-            #     map to the same key. Note, in a normal `configparser` `.ini` file each section is
-            #     a list of key:value pairs. The keys must be unique but that can be problematic
+            # - op2 is just a string that gets passed down to the handler function
+            #   so we will let this include spaces, but if you do include spaces it
+            #   _must_ be single quoted otherwise we treat everything after the
+            #   space as 'extra' stuff.
+            #   - This 'extra' stuff is discarded by ConfigParserEnhanced so that
+            #     it can be used to differentiate multiple commands in a section
+            #     from one another that might otherwise map to the same key. Note,
+            #     in a normal `ConfigParser` `.ini` file each section is a list of
+            #     key:value pairs. The keys must be unique but that can be problematic
             #     if we're implementing a simple parsed language on top of it.
             #     For example, if we're setting envvars and wanted multiple entries for PATH:
+            #
             #         envvar-prepend PATH: /something/to/prepend/to/path
             #         envvar-prepend PATH: /another/path/to/prepend
-            #     Here, the keys would be invalid for configparser because they're identical.
-            #     By allowing 'extra' entries after op2 we can allow a user to make each one unique.
-            #     So our example above could be changed to:
+            #
+            #     Here, the keys would be invalid for configparser because
+            #     they're identical. By allowing 'extra' entries after op2
+            #     we can allow a user to make each one unique. So our example
+            #     above could be changed to:
+            #
             #         envvar-prepend PATH A: /something/to/prepend/to/path
             #         envvar-prepend PATH B: /another/path/to/prepend
-            #     In both cases, op1 = 'envvar-prepend' and op2 = 'PATH' but the addition of the
-            #     'A' and 'B' will differentiate these keys from the configparser's perspective.
-            #  - Note: This comment information should find its way into the docs sometime.
-            #regex_string = r"^([\w\d\-_]+) ?('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
+            #
+            #     In both cases, op1 = 'envvar-prepend' and op2 = 'PATH' but the
+            #     addition of the 'A' and 'B' will differentiate these keys from
+            #     the ConfigParser's perspective.
+
             regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
             #                  ^^^^^^^^^^    ^^^^^^^^^^^^^    ^^^^^^^^^^
-            #                      \              \                \-- op3 : group 3
+            #                      \              \                \-- op2 : group 3
             #                       \              \--- op2 : group 2
             #                        \--- op1 : group 1
+            #
+            # Note: group 0 is the _full_ match
             self._regex_op_splitter_value = re.compile(regex_string)
 
         return self._regex_op_splitter_value
@@ -668,22 +753,22 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """Execute the regex match operation for operations.
 
         Executes the regex match operation using the regex returned by
-        :class:`~ConfigParserEnhanced.regex_op_splitter`.
+        :meth:`~ConfigParserEnhanced._regex_op_splitter`.
 
         This method adds the ability to add in extra checks for sanity
-        that can be inserted into the parser. If the results of the match
+        that can be inserted into the parser. If the result of the match
         fails the extra scrutiny, then return None.
 
         Args:
             text (str): The string in which we're searching.
 
         Returns:
-            Regex match if one exists and we pass any sanity checks that are
+            re.Match: If one exists and we pass any sanity checks that are
             added to this method.
         """
         m = self._regex_op_splitter.match(text)
 
-        # Sanity checks: Change match to None if we fail
+        # Sanity checks: Change match to None if we fail.
         if m != None:
             if m.groups()[0] != text.split()[0]:
                 m = None
@@ -694,15 +779,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """Extracts op1 from the regular expression match groups.
 
         Args:
-            regex_match (object): A `re.match()` object.
+            regex_match (re.Match): The regex match object.
 
         Returns:
-            String containing the op1 parameter, formatted properly for use
+            str: The op1 parameter, formatted properly for use
             as part of a handler name.
 
         Note:
-            op1 must be a string that could be used in a method name since this gets
-            used by the parser to call a function of the pattern `_handler_{op1}`
+            op1 must be a string that could be used in a method name, since this gets
+            used by the parser to call a function of the pattern ``_handler_{op1}()``.
         """
         output = str(regex_match.groups()[0])
         output = output.strip()
@@ -713,7 +798,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """Extracts op2 from the regular expression match groups.
 
         Args:
-            regex_match (object): A `re.match()` object.
+            regex_match (re.Match): The regex match object.
 
         Returns:
             String containing the op2 parameter or None if one doesn't exist.
@@ -731,14 +816,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def _locate_handler_method(self, operation) -> str:
-        """Confgert op1 to handler name and get ref to handler.
+        """Convert op1 to a handler name and get the reference to the handler.
 
         This method converts the *operation* parameter (op1) to a
         handler name and searches for the existence of a matching
         method.
 
         Handlers may be of the format: ``_handler_<operation>`` for
-        internal / private handlers (that should not be overridden)
+        internal/private handlers (that should not be overridden)
         or ``handler_<operation>`` for handlers that are considered
         fair game for subclasses to override and customize.
 
@@ -749,12 +834,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Returns:
             tuple: A tuple containing the ``(handler_name, handler_method)``.
-                ``handler_name`` is a string.
-                ``handler_method`` is either a reference to the handler method
-                if it exists, or None if it does not exist.
-
-        Todo:
-            * Update docstrings for this.
+            * ``handler_name`` is a string.
+            * ``handler_method`` is either a reference to the handler method
+              if it exists, or None if it does not exist.
         """
         if not isinstance(operation, (str)):
             # This is probably not reachable. Add a '# pragma: no cover' ?
@@ -793,14 +875,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Args:
             handler_name (string): The name of the handler.
-            handler_rval (int): The return value from a handler to be processed.
-
-        Returns:
-            None
+            handler_rval (int): The return value from a handler being processed.
 
         Raises:
-            RuntimeError might be raised if handler_rval is > 0 and the exception_control_level
-                is high enough depending onthe value of handler_rval.
+            RuntimeError: If ``handler_rval > 0`` and the ``exception_control_level``
+                is high enough, depending on the value of ``handler_rval``.
         """
         if handler_rval == 0:
             pass
@@ -816,9 +895,34 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return
 
 
-    # -----------------------------------
-    #   P R I V A T E   H A N D L E R S
-    # -----------------------------------
+    def _launch_handler_generic(self, section_name, handler_parameters, sec_k, sec_v) -> int:
+        """Launcher for ``handler_generic()``
+
+        ``handler_generic()`` is called in two places inside the recursive parser.
+        1. It is called when the ``key:value`` pair in an option does not parse out
+           to ``operation`` and ``parameter`` fields.
+        2. It is called when the ``key:value`` pair in an option does parse to
+           an ``operation`` and a ``parameter`` field, but there are no handlers
+           defined for the ``operation``.
+
+        This helper just manages the call in both places so thay're done the same way.
+
+        Returns:
+            int: Returns the output value from ``handler_generic()``
+        """
+        output = 0
+
+        self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
+
+        handler_parameters.handler_name = "handler_generic"
+        output = self.handler_generic(section_name, handler_parameters)
+
+        return output
+
+
+    # ---------------------------------------
+    #   H A N D L E R S   ( P R I V A T E )
+    # ---------------------------------------
 
 
     def _handler_use(self, section_name, handler_parameters) -> int:
@@ -827,32 +931,26 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         our parser.
 
         Args:
-            section_name (str): The section name of the current _section_ we're processing.
-            op1 (str): The first operation parameter
-                       (i.e., `use` if the full key is `use section_name`)
-            op2 (str): The second operation parameter
-                       (i.e., `section_name` if the full key is `use section_name`)
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters for the current operation.
 
         Returns:
-            integer value
-                0     : QAPLA'
-                [1-10]: Reserved for future use (WARNING)
-                > 10  : An unknown failure occurred (SERIOUS)
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (SERIOUS)
 
         Todo:
             Once we can use Python 3.8 in our environments, we can use the @final decorator
             to mark this as something that should not be overridden. We also have to
-            import it: `from typing import final`
-
-        See Also:
+            import it: `from typing import final`.
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
-        op1,op2      = handler_parameters.op_params
         entry        = handler_parameters.raw_option
         handler_name = handler_parameters.handler_name
+        op1,op2      = handler_parameters.op_params
 
-        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
-        self.debug_message(1, "Enter handler: {} ({} -> {})".format(handler_name,section_name, op2))# Console
+        self.enter_handler(handler_parameters)
 
         if op2 not in handler_parameters.data_internal['processed_sections']:
             self._parse_section_r(op2, handler_parameters, finalize=False)
@@ -860,43 +958,33 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._loginfo_add('cycle-detected', {'sec-src': section_name, 'sec-dst': op1})          # Logging
             self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})               # Logging
 
-            message  = "Detected a cycle in `use` dependencies in .ini file.\n"
+            message  = "Detected a cycle in `use` dependencies in .ini file {}.\n".format(self.inifilepath)
             message += "- cannot load [{}] from [{}].".format(op2, section_name)
             self.exception_control_event("WARNING", ValueError, message)
 
-            return 0
-
-        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
-        self.debug_message(1, "Exit handler: {} ({} -> {})".format(handler_name,section_name, op2)) # Console
+        self.exit_handler(handler_parameters)
         return 0
 
 
-
-    # -----------------
-    #   H E L P E R S
-    # -----------------
+    # -------------------------------------
+    #   H E L P E R S   ( P R I V A T E )
+    # -------------------------------------
 
 
     def _loginfo_add(self, typeinfo, entry) -> None:
         """
-        If in debug mode, we can use this to log operations.
-        Appends to _loginfo
+        If in debug mode, we can use this to log operations by appending to ``_loginfo``.
 
         Args:
-            typeinfo (str): What kind of operation is this. This generates the
-                           'type' entry in the loginfo dict. (Required)
+            typeinfo (str): The kind of operation this is. This generates the
+                'type' entry in the ``_loginfo`` dict. (Required)
             entry (dict): A dictionary containing log information that we're appending.
-                          At minimum it should have: `type: typestring`.
-
-        Returns:
-            Nothing
-
+                At minimum it should have: ``{ type: typestring }``.
 
         Todo:
             Once we can use Python 3.8 in our environments, we can use the @final decorator
             to mark this as something that should not be overridden. We also have to
-            import it: `from typing import final`
-
+            import it: `from typing import final`.
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if not hasattr(self, '_loginfo'):
@@ -904,24 +992,22 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if self.debug_level > 0:
             if not isinstance(entry, dict):
-                raise TypeError("entry should be a dictionary type.")
+                raise TypeError("Entry should be a `dict` type.")
             entry['type'] = typeinfo
 
             self._loginfo.append(entry)
-        else:
-            pass
+
         return
 
 
     def _loginfo_print(self, pretty=True) -> None:
         """
-        This is a helper to pretty-print the loginfo object
+        This is a helper to pretty-print the ``_loginfo`` object.
 
         Todo:
             Once we can use Python 3.8 in our environments, we can use the @final decorator
             to mark this as something that should not be overridden. We also have to
-            import it: `from typing import final`
-
+            import it: `from typing import final`.
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
         if pretty:
@@ -939,10 +1025,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
                 for key in special_keys:
                     if key in entry.keys():
-                        if key != special_keys[0]:
-                            line = "--> {} : {} ".format(key.ljust(len_max_key), entry[key])
-                        else:
-                            line = "{} : {} ".format(key.ljust(len_max_key+4), entry[key])
+                        line = ("--> " if key != special_keys[0] else "    ")
+                        line += "{} : {} ".format(key.ljust(len_max_key), entry[key])
                         self.debug_message(1, line)
 
                 for k,v in entry.items():
@@ -957,7 +1041,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     # ===========================================================
-    #  I N N E R   C L A S S E S
+    #  I N N E R   C L A S S ( E S )
     # ===========================================================
 
 
@@ -965,13 +1049,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """ConfigParserEnhancedData
 
         This class is intended to serve as a *lite* analog to
-        ``configparser.ConfigParser`` to provide a similar result but with
-        the :class:`~ConfigParserEnhanced` class's ability to parse .ini files and
-        follow entries that implement a ``use <section name>:`` rule. In
-        this case, when a section parses through we will return sections with
+        :class:`ConfigParser` to provide a similar result but with
+        the :class:`~ConfigParserEnhanced` class's ability to parse ``.ini`` files and
+        follow entries that implement a ``use <section name>`` rule. In
+        this case, when a section parses through, we will return sections with
         all options that *were not* handled by some handler.
 
-        For example, if we have this .ini file:
+        For example, if we have this ``.ini`` file:
 
         .. code-block:: ini
 
@@ -981,10 +1065,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             [SEC B]
             opt1: value1-B
-            use 'SEC A':
+            use 'SEC A'
 
             [SEC C]
-            use 'SEC A':
+            use 'SEC A'
             opt1: value1-C
 
         and we pull the ``SEC B`` data from it using, say, ``options("SEC B")``,
@@ -1002,14 +1086,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             [SEC C]
             opt1: value1-C
-            opt2: value1-A
+            opt2: value2-A
 
-        Since the recursion of the ``use`` operations is a DFS, when there are
+        Since the recursion of the ``use`` operations is a depth-first search, when there are
         entries with the same keys, then the 'last one visited' will win.
 
-        When we parse a particular section this object the result for a given
-        section name is union of all options in the transitive closure of the
-        DAG generated by the `use` operations. For example:
+        When we parse a particular section, the result for a given
+        section name is the union of all options in the transitive closure of the
+        directed acyclic graph generated by the ``use`` operations. For example:
 
         .. code-block:: ini
 
@@ -1019,7 +1103,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             opt2: value2-A
 
             [SEC B]
-            use 'SEC A':
+            use 'SEC A'
             opt1: value1-B
 
         The results of ``options('SEC A')`` and ``options('SEC B)`` will be different:
@@ -1039,7 +1123,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             contains a 'hook' back to the instance of :class:`~ConfigParserEnhanced` in
             in which this entry exists. This allows us to access the owner's
             state so we can implement our lazy-evaluation and caching schemes. When
-            an intance of ConfigParserEnhanced accesses a section via the ``configparserenhanceddata``
+            an intance of :class:`ConfigParserEnhanced` accesses a section via the ``configparserenhanceddata``
             property, the parser will be invoked on this section to generate the result.
         """
 
@@ -1075,8 +1159,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             output = None
             if section is None:
-                for seci in section_list:
-                    self._parse_owner_section(seci)
+                for sec_i in section_list:
+                    self._parse_owner_section(sec_i)
                 output = self.data.items()
             else:
                 output = self.options(section).items()
@@ -1131,7 +1215,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         def get(self, section, option):
             """
-            Get a section/option pair if it exists. If we have not
+            Get a section/option pair, if it exists. If we have not
             parsed the section yet, we should run the parser to
             fully get the key data.
             """
@@ -1164,12 +1248,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         def set(self, section, option, value):
             """
-            Directly set an option. If the section is missing we create an empty one.
+            Directly set an option. If the section is missing, we create an empty one.
             """
             if not self.has_section(section):
                 self.add_section(section)
 
-            # Note: we overwrite the option, even if it's already there.
+            # Note: We overwrite the option, even if it's already there.
             self.data[section][option] = value
             return self.data[section][option]
 
@@ -1211,13 +1295,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         def _parse_owner_section(self, section):
             """
-            Parse the section from the owner class
+            Parse the section from the owner class.
             """
             if self._owner != None:
                 self._set_owner_options()
                 self._sections_checked.add(section)
                 self._owner.parse_section(section, initialize=False, finalize=False)
-
-
-
-# EOF
