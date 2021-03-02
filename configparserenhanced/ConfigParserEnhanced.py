@@ -534,6 +534,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_handlerparameters(handler_parameters)
         handler_parameters.data_internal['processed_sections'].add(section_name)
 
+        # Todo: add an 'empty' section to configparserenhanceddata here
+        #       if the section doesn't exist (needs a new function to
+        #       configparserenhanceddata I think)
+        #       This is to handle the case where we access data through
+        #       the configparserenhanceddata[section] getter (__getitem__)
+        #       and the section in question _only_ has operations (i.e., no generic handlers)
+
         for sec_k,sec_v in current_section.items():
             sec_k = str(sec_k).strip()
 
@@ -1191,11 +1198,23 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
         def has_section(self, section):
-            if self._owner != None and section not in self._sections_checked:
-                try:
-                    self._parse_owner_section(section)
-                except KeyError:
-                    pass
+
+            # If we have an owner (we should)
+            if self._owner != None:
+                # If this section exists...
+                if self._owner.configparserdata.has_section(section):
+                    # if we haven't already checked it then parse it.
+                    if section not in self._sections_checked:
+                        try:
+                            self._parse_owner_section(section)
+                        except KeyError:
+                            pass
+
+                    # if the section came back empty (i.e., no generic actions)
+                    # then add an empty section.
+                    if section not in self.data.keys():
+                        self._add_empty_section(section)
+
             return section in self.data.keys()
 
 
@@ -1243,7 +1262,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             Directly add a new section, if it does not exist.
             """
             if not self.has_section(section):
-                self.data[section] = {}
+                self._add_empty_section(section)
 
 
         def set(self, section, option, value):
@@ -1301,3 +1320,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._set_owner_options()
                 self._sections_checked.add(section)
                 self._owner.parse_section(section, initialize=False, finalize=False)
+            return
+
+
+        def _add_empty_section(self, section):
+            if section not in self.data.keys():
+                self.data[section] = {}
+
+
