@@ -103,17 +103,21 @@ def test_configparserEnhanced(filename="config.ini"):
 
 
 
-def experimental(filename="config.ini"):                                                   # Should this be removed?
-                                                                                           #
-    # This is a silly test to try out some changes to ECE.                                 #
-    #if True:                                                                              #
-    #    parser = ConfigParserEnhanced(filename=filename)                                  #
-    #    parser.debug_level = 1                                                            #
-    #    parser.exception_control_level = 4                                                #
-    #    parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!") #
-    #    sys.exit(0)                                                                       #
-                                                                                           #
-    return                                                                                 #
+def experimental(filename="config.ini"):
+    """
+    A catch-all functionf or experimental stuff we're testing out. This
+    gets called before the main 'example' routine.
+    """
+
+    # This is a silly test to try out some changes to ECE.
+    #if True:
+    #    parser = ConfigParserEnhanced(filename=filename)
+    #    parser.debug_level = 1
+    #    parser.exception_control_level = 4
+    #    parser.exception_control_event("WARNING", ValueError, "this is a test\nmesssge!")
+    #    sys.exit(0)
+
+    return
 
 
 
