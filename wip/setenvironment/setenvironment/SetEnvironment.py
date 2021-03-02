@@ -49,6 +49,9 @@ class SetEnvironment(ConfigParserEnhanced):
     - **module** operations such as *environment modules* and *lmod*
     - **environment variable** operations.
 
+    Todo:
+        Add docstrings to functions and handlers.
+
     .. configparser reference:
         https://docs.python.org/3/library/configparser.html
     .. docstrings style reference:
@@ -94,11 +97,29 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def pretty_print_actions(self):
-        """
-        This is a stub-in function (WIP)
+        """Pretty print the list of actions that ``apply()`` would execute.
 
-        Todo:
-            Replace this or document it :p
+        This is a helper function that will print out a listing of the actions
+        that will be executed when ``apply()`` is called.
+
+        For example, output might look like:
+
+            >>> setenvobj.pretty_print_actins()
+            Actions
+            =======
+            --> envvar-set     : FOO="bar"
+            --> envvar-append  : FOO="${FOO}:baz"
+            --> envvar-prepend : FOO="foo:${FOO}"
+            --> envvar-set     : BAR="foo"
+            --> envvar-unset   : FOO
+            --> module-purge   :
+            --> module-use     : setenvironment/unittests/modulefiles
+            --> module-load    : gcc/4.8.4
+            --> module-load    : boost/1.10.1
+            --> module-load    : gcc/4.8.4
+            --> module-unload  : boost
+            --> module-swap    : gcc gcc/7.3.0
+
         """
         print("Actions")
         print("=======")
@@ -146,6 +167,21 @@ class SetEnvironment(ConfigParserEnhanced):
 
         If we set filtered_keys_only to True then we ONLY print out envvars that
         matched envvar_filter.
+
+        Example:
+
+            >>> envvar_filter=["TEST_SETENVIRONMENT_", "FOO", "BAR", "BAZ"]
+            >>> parser.pretty_print_envvars(envvar_filter, True)
+            +====================================================================+
+            |   P R I N T   E N V I R O N M E N T   V A R S
+            +====================================================================+
+            [envvar]: BAR = foo
+            [envvar]: TEST_SETENVIRONMENT_GCC_VER = 7.3.0
+            >>>
+
+        In this case, we only printed out environment variables that contained
+        either ``TEST_SETENVIRONMENT_``, ``FOO``, ``BAR`` or ``BAZ`` in the *name* of
+        the environment variable and nothing else.
 
         Arguments:
             envvar_filter (list): a list of keys to print out the value.
@@ -293,11 +329,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 [1-10]: Reserved for future use (WARNING)
                 > 10  : An unknown failure occurred (SERIOUS)
         """
-        entry = handler_parameters.raw_option
-        handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(2, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
+        self.enter_handler(handler_parameters)
 
         # -----[ Handler Content Start ]-------------------
         data_shared = handler_parameters.data_shared['setenvironment']
@@ -310,15 +342,14 @@ class SetEnvironment(ConfigParserEnhanced):
                 if idata['envvar'] != envvar_name:
                     new_data_shared.append(idata)
                 else:
-                    self.debug_message(1, "Removed entry:{}".format(idata))
+                    self.debug_message(1, "Removed entry:{}".format(idata))                         # Console
             else:
                 new_data_shared.append(idata)
 
         handler_parameters.data_shared['setenvironment'] = new_data_shared
         # -----[ Handler Content End ]-------------------
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -386,11 +417,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 [1-10]: Reserved for future use (WARNING)
                 > 10  : An unknown failure occurred (SERIOUS)
         """
-        entry = handler_parameters.raw_option
-        handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(2, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
+        self.enter_handler(handler_parameters)
 
         # -----[ Handler Content Start ]-------------------
         data_shared = handler_parameters.data_shared['setenvironment']
@@ -411,15 +438,14 @@ class SetEnvironment(ConfigParserEnhanced):
                 if (idata['module'] != module_name) and ((idata['value'] == None) or (module_name not in idata['value'])):
                     new_data_shared.append(idata)
                 else:
-                    self.debug_message(1, "Removed entry:{}".format(idata))
+                    self.debug_message(1, "Removed entry:{}".format(idata))                         # Console
             else:
                 new_data_shared.append(idata)
 
         handler_parameters.data_shared['setenvironment'] = new_data_shared
         # -----[ Handler Content End ]-------------------
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -540,12 +566,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 [1-10]: Reserved for future use (WARNING)
                 > 10  : An unknown failure occurred (SERIOUS)
         """
-        entry = handler_parameters.raw_option
-        handler_name = handler_parameters.handler_name
-
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(2, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
+        self.enter_handler(handler_parameters)
 
         operation_ref    = handler_parameters.op_params[0]
         envvar_name_ref  = handler_parameters.op_params[1]
@@ -566,8 +587,7 @@ class SetEnvironment(ConfigParserEnhanced):
         self.debug_message(3, "    {}".format(action))                                              # Console
         data_shared_actions_ref.append(action)
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -604,12 +624,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 [1-10]: Reserved for future use (WARNING)
                 > 10  : An unknown failure occurred (SERIOUS)
         """
-        entry = handler_parameters.raw_option
-        handler_name = handler_parameters.handler_name
-
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(2, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name, 'entry': entry})                  # Logging
+        self.enter_handler(handler_parameters)
 
         operation_ref    = handler_parameters.op_params[0]
         module_name_ref  = handler_parameters.op_params[1]
@@ -626,12 +641,11 @@ class SetEnvironment(ConfigParserEnhanced):
                   'value' : module_value_ref
                  }
 
-        self.debug_message(3, "--> Append to 'setenvironment' action list:")
-        self.debug_message(3, "    {}".format(action))
+        self.debug_message(3, "--> Append to 'setenvironment' action list:")                        # Console
+        self.debug_message(3, "    {}".format(action))                                              # Console
         data_shared_actions_ref.append(action)
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})                   # Logging
+        self.enter_handler(handler_parameters)
         return 0
 
 

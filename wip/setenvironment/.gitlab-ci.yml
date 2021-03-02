@@ -1,6 +1,8 @@
 stages:
   - test
-  - documentation
+  - deploy
+  - make_docs
+  - publish
 
 before_script:
   # display centos version
@@ -28,8 +30,15 @@ pytest:
     - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
+install:
+  stage: deploy
+  needs: [pytest]
+  script:
+    - python3 -m pip install --user .
+    - python3 -m pip uninstall -y setenvironment
+
 sphinx-documentation:
-  stage: test
+  stage: make_docs
   timeout: 20m
   script:
     - cd doc/
@@ -37,7 +46,7 @@ sphinx-documentation:
     - bash make_html_docs.sh
 
 publish coverage:
-  stage: documentation
+  stage: publish
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
@@ -48,7 +57,7 @@ publish coverage:
     - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironmentNew/coverage/
 
 publish docs:
-  stage: documentation
+  stage: publish
   timeout: 20m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
