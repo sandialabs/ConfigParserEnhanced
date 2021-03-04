@@ -25,6 +25,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.1.4] - 2021-03-04
+### Added
+- New *property* to `ConfigParserEnhanced`: `parse_section_last_result`.
+  This property gives access to the results from the _last_ call to
+  `parse_section()`.
+### Changed
+- `ConfigParserEnhanced.__init__` signature changed. The `filename` parameter
+  is now optional at construction time. It can be still be set via the `inifilepath`
+  property.
+- Parses of sections kicked off via the inner class `ConfigParserEnhancedData`
+  such as `parser.configparserenhanceddata[section]` will no longer
+  tell `parse_section` to skip calling `handler_initialize` and `handler_finalize`.
+  The output of this call won't change, but this will affect the state of
+  `handler_parameters.data_shared`,  and what is returned by `parse_section_last_result`.
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
+
 ## [0.1.3] - 2021-03-01
 - ConfigParserEnhanced is currently _alpha_ and has many changes occurring.
 

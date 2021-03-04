@@ -31,6 +31,7 @@ class HandlerParameters(object):
     def __init__(self):
         pass
 
+
     @property
     def section_root(self) -> str:
         """Name of the *root* section in section parsing.
@@ -49,12 +50,14 @@ class HandlerParameters(object):
             self._section_root = None
         return self._section_root
 
+
     @section_root.setter
     def section_root(self, value) -> str:
         if not isinstance(value, (str)):
             raise TypeError("String conversion failed for {}".format(value))
         self._section_root = value
         return self._section_root
+
 
     @property
     def raw_option(self) -> tuple:
@@ -75,6 +78,7 @@ class HandlerParameters(object):
             self._raw_option = (None, None)
         return self._raw_option
 
+
     @raw_option.setter
     def raw_option(self, value) -> tuple:
         if not isinstance(value, tuple):
@@ -83,6 +87,7 @@ class HandlerParameters(object):
             raise ValueError("raw_option must have 2 entries.")
         self._raw_option = value
         return self._raw_option
+
 
     @property
     def op_params(self) -> tuple:
@@ -111,6 +116,7 @@ class HandlerParameters(object):
             self._op_params = (None, None)
         return self._op_params
 
+
     @op_params.setter
     def op_params(self, value) -> tuple:
         if not isinstance(value, tuple):
@@ -119,6 +125,7 @@ class HandlerParameters(object):
             raise ValueError("op_params must have 2 entries.")
         self._op_params = value
         return self._op_params
+
 
     @property
     def value(self) -> str:
@@ -139,12 +146,14 @@ class HandlerParameters(object):
             self._value = ""
         return self._value
 
+
     @value.setter
     def value(self, value):
         if not isinstance(value, (str, type(None))):
             raise TypeError("Value must be a `str` type.")
         self._value = value
         return self._value
+
 
     @property
     def data_shared(self) -> dict:
@@ -165,12 +174,14 @@ class HandlerParameters(object):
             self._data_shared = {}
         return self._data_shared
 
+
     @data_shared.setter
     def data_shared(self, value) -> dict:
         if not isinstance(value, (dict)):
             raise TypeError("data_shared must be a dict type.")
         self._data_shared = value
         return self._data_shared
+
 
     @property
     def data_internal(self) -> dict:
@@ -195,12 +206,14 @@ class HandlerParameters(object):
             self._data_internal = {}
         return self._data_internal
 
+
     @data_internal.setter
     def data_internal(self, value) -> dict:
         if not isinstance(value, (dict)):
             raise TypeError("data_internal must be a dict type.")
         self._data_internal = value
         return self._data_internal
+
 
     @property
     def handler_name(self) -> str:
@@ -213,9 +226,13 @@ class HandlerParameters(object):
             self._handler_name = ""
         return self._handler_name
 
+
     @handler_name.setter
     def handler_name(self, handler_name):
         if not isinstance(handler_name, (str)):
             raise TypeError("handler_name must be a str type.")
         self._handler_name = handler_name
         return self._handler_name
+
+
+# EOF
