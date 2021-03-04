@@ -60,8 +60,9 @@ class SetEnvironment(ConfigParserEnhanced):
     .. docstrings style reference:
         https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html
     """
-    def __init__(self, filename):
-        self.inifilepath = filename
+    def __init__(self, filename=None):
+        if filename is not None:
+            self.inifilepath = filename
 
 
     # -----------------------
@@ -74,7 +75,17 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         The *actions* property contains the list of actions generated for
         the most recent section that has been parsed. This is overwritten when
-        we execute a new parse.
+        we execute a new parse. An example of the structure of this object is:
+
+        .. code-block:: python
+            :linenos:
+
+            [
+                {'op': 'envvar-set',     'envvar': 'FOO', 'value': 'bar'},
+                {'op': 'envvar-append',  'envvar': 'FOO', 'value': 'baz'},
+                {'op': 'envvar-prepend', 'envvar': 'FOO', 'value': 'foo'}
+            ]
+
 
         Returns:
             list: A *list* containing the sequence of actions that
@@ -198,11 +209,6 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             int 0
-
-        Todo:
-            This could probably be moved outside of this class since it's not
-            really directly relevant to the environment setting stuff. Perhaps
-            if we develop some soft of 'helpers' or 'utilities' module sometime.
         """
         if envvar_filter is not None:
             assert isinstance(envvar_filter, list)
@@ -334,7 +340,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - 0     : SUCCESS
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
-
         """
         self.enter_handler(handler_parameters)
 
@@ -520,26 +525,13 @@ class SetEnvironment(ConfigParserEnhanced):
                 - 0     : SUCCESS
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
-
-
-        Todo:
-            Implement the 'cleanup' portion of finalize. See inline comment(s).
         """
-        handler_name = handler_parameters.handler_name
+        self.enter_handler(handler_parameters)
 
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
-
-        # Save out the results into the 'actions' list for the class.
+        # Save the results into the 'actions' property
         self.actions = handler_parameters.data_shared["setenvironment"]
 
-        # Todo:
-        # Invoke a cleanup step here to curate the list of actions.
-        # primarily, this means handle things like the 'remove' operations.
-
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -668,6 +660,27 @@ class SetEnvironment(ConfigParserEnhanced):
         of BASH shell environment vars (i.e., "${foobar}") and replace them with
         the actual environment variables.
 
+        This looks like a bash variable expansion, it is not bash and
+        we do not support expanding all forms of `bash` variables. For example,
+        bash variables that look like ``$foo`` which don't have the enclosing ``{``
+        and ``}`` braces can introduce unexpected results. For example:
+
+        :: code-block: bash
+            :linenos:
+
+            $ export var1=AAA
+            $ export var2=B$var1B
+            $ export var3=B${var1}B
+
+        In this case, setting ``var2`` will likely fail because bash think you're
+        appending the contents of ``$var1B`` to the end of ``B``, or if there is
+        a ``$var1B`` that exists it would append that to ``B`` which might not be
+        the desired result if you wanted output like what ``var3`` will get
+        (``BAAAB``).
+
+        Because of this, we only support the more *explicit* nature of requiring
+        expansion to be performed within curly braces.
+
         Returns:
              A string that contains the contents of any `${ENVVAR}` entries expanded
              inline into the string.
@@ -676,7 +689,7 @@ class SetEnvironment(ConfigParserEnhanced):
              KeyError: Required environment variable does not exist.
 
         Todo:
-            Test this.
+            - Verify this is tested.
         """
         regexp = re.compile(r"(\$\{(\S*)\})")
         string_out = string_in
@@ -739,6 +752,7 @@ class SetEnvironment(ConfigParserEnhanced):
             os.environ[envvar_name] = envvar_value
             self.debug_message(3, "envvar :: {} = {}".format(envvar_name, envvar_value))
 
+        # Todo: update documentation to note that we use `os.pathsep` for the separator
         elif operation == "envvar-append":
             _tmp = envvar_value_old + [ envvar_value ]
             newval = os.pathsep.join(_tmp)
@@ -837,4 +851,6 @@ class SetEnvironment(ConfigParserEnhanced):
         return rval
 
 
+
 # EOF
+

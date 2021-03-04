@@ -138,7 +138,7 @@ class SetEnvironmentTest(TestCase):
         self._filename = find_config_ini(filename="config_test_setenvironment.ini")
 
 
-    def test_SetEnvironment_basic(self):
+    def test_SetEnvironment_Template(self):
         """
         Basic template test for SetEnvironment.
 
@@ -151,8 +151,9 @@ class SetEnvironmentTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = SetEnvironment(self._filename)
-        parser.debug_level = 1
-        #parser.exception_control_level = 4
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
 
         # parse a section
         data = parser.parse_section(section)
@@ -160,6 +161,8 @@ class SetEnvironmentTest(TestCase):
         # Pretty print the actions (unchecked)
         print("")
         parser.pretty_print_actions()
+
+        print("-----[ TEST END ]------------------------------------------")
 
         print("OK")
         return
@@ -708,6 +711,100 @@ class SetEnvironmentTest(TestCase):
         return
 
 
+    def test_SetEnvironment_parse_section_generic_options_missing(self):
+        """
+        A basic test that checks parsing via the ``configparserenhanceddata``
+        object. If we parse via that then we probably *should* get an actions
+        list constructed since it also calls the ``parse_section()`` method
+        under the hood.
+        """
+        section = "CONFIG_A"
+
+        actions_expect = [
+            {'op': 'envvar-set',     'envvar': 'FOO', 'value': 'bar'},
+            {'op': 'envvar-append',  'envvar': 'FOO', 'value': 'baz'},
+            {'op': 'envvar-prepend', 'envvar': 'FOO', 'value': 'foo'},
+            {'op': 'envvar-set',     'envvar': 'BAR', 'value': 'foo'},
+            {'op': 'envvar-unset',   'envvar': 'FOO', 'value': None }
+        ]
+
+        rval_expect_cped = {}
+
+        self._helper_parse_section(section, actions_expect, rval_expect_cped)
+
+        return
+
+
+    def test_SetEnvironment_parse_section_generic_options_exist(self):
+        """
+        Testing the use of parsing a section with operations and generic options
+        """
+        section = "CONFIG_ENVVAR_WITH_GENERIC_OPTION"
+
+        actions_expect = [
+            {'op': 'envvar-set',     'envvar': 'FOO', 'value': 'bar'},
+            {'op': 'envvar-append',  'envvar': 'FOO', 'value': 'baz'},
+            {'op': 'envvar-prepend', 'envvar': 'FOO', 'value': 'foo'}
+        ]
+
+        rval_expect_cped = {'key1': 'value1'}
+
+        self._helper_parse_section(section, actions_expect, rval_expect_cped)
+
+        return
+
+
+    def _helper_parse_section(self, section, actions_expect, rval_expect_cped):
+        """
+        Generic helper routine to test various ways of parsing a section
+        with verification that the results we get are expected.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment()
+        parser.inifilepath = self._filename
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        ## parse section via configparserenhanceddata accessor
+        print("Parse using configparserenhanceddata[{}]:".format(section))
+        rval_actual_cped = parser.configparserenhanceddata[section]
+        parser.pretty_print_actions()
+        actions_actual_cped = parser.actions
+
+        self.assertDictEqual(rval_expect_cped, rval_actual_cped)
+
+        # Reset parser and parse section via parse_section
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        # Parse the section using `parse_section()`
+        print("Parse using parse_section({}):".format(section))
+        rval_expect = { "setenvironment": actions_expect }
+        rval_actual = parser.parse_section(section)
+        actions_actual_ps = parser.actions
+
+        self.assertDictEqual(rval_expect, rval_actual)
+
+        # Check results
+
+        self.assertListEqual(actions_actual_cped, actions_actual_ps,
+                             "Mismatch in result across methods.")
+
+        self.assertListEqual(actions_expect, actions_actual_cped,
+                             "configparserenhanceddata[] results validation failed.")
+
+        self.assertListEqual(actions_expect, actions_actual_ps,
+                             "parse_section() results validation failed.")
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+
 # EOF
-
-

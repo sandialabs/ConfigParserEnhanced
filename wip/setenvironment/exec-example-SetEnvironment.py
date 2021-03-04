@@ -44,7 +44,7 @@ def test_setenvironment(filename="config.ini"):
     print("")
 
     parser = setenvironment.SetEnvironment(filename=filename)
-    parser.debug_level = 1
+    parser.debug_level = 5
     parser.exception_control_level = 4
 
     parse_section(parser, "CONFIG_A+")     # ENVVARS + USE
@@ -66,12 +66,12 @@ def test_setenvironment(filename="config.ini"):
 
 
 def parse_section(parser, section):
-    data = parser.parse_section(section)
+    #data = parser.parse_section(section)
+    data = parser.configparserenhanceddata[section]
 
     print("\nAction Data")
     print("===========")
-    pprint(data, width=120)
-
+    pprint(parser.actions, width=120)
 
     # Print the loginfo from the last search
     print("\nLogInfo")
@@ -79,6 +79,9 @@ def parse_section(parser, section):
     #parser._loginfo_print(pretty=True)
     handler_list = [ (d['type'], d['name']) for d in parser._loginfo if d['type'] in ['handler-entry','handler-exit']]
     pprint(handler_list, width=120)
+
+    assert len(parser.actions) > 0
+
     return data
 
 

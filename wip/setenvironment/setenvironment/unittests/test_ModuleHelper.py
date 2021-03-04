@@ -28,6 +28,12 @@ from setenvironment import ModuleHelper
 
 
 
+# ===========================
+#   M O C K   H E L P E R S
+# ===========================
+
+
+
 class mock_popen(object):
     """
     Abstract base class for popen mock
@@ -164,52 +170,79 @@ class mock_popen_stdout_throws_on_exec(mock_popen):
 
 
 
-class moduleHelperTest(TestCase):
+
+def mock_distutils_spawn_find_executable_raise(*args, **kwargs):
+    argstr = ",".join(args)
+    print("[mock] `distutils.spawn.find_executable({})` -> Raise Exception".format(argstr))
+    raise Exception("[mock] Exception goes boom!")
+
+
+
+def mock_shutil_which_returns_none(*args, **kwargs):
+    argstr = ",".join(args)
+    print("[mock] `shutil.which({})` -> None".format(argstr))
+    return None
+
+
+
+# =======================================
+#   M O D U L E H E L P E R   T E S T S
+# =======================================
+
+
+
+class ModuleHelperTest(TestCase):
     """
     Main test driver for the module() function provided by the
     ModuleHelper.py file
     """
     def setUp(self):
-        pass
+        return
+
 
 
     @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
-    def test_module_load_status_ok(self, arg_popen):
+    def test_ModuleHeler_module_load_status_ok(self, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(0, r)
+        return
 
 
     @patch('subprocess.Popen', side_effect=mock_popen_status_error_rc1)
-    def test_module_load_status_error(self, arg_popen):
+    def test_ModuleHeler_module_load_status_error(self, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(1, r)
+        return
 
 
     @patch('subprocess.Popen', side_effect=mock_popen_status_error_rc0)
-    def test_module_load_status_error(self, arg_popen):
+    def test_ModuleHeler_module_load_status_error(self, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(1, r)
+        return
 
 
     @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
-    def test_module_swap_status_ok(self, arg_popen):
+    def test_ModuleHeler_module_swap_status_ok(self, arg_popen):
         r = ModuleHelper.module("swap", "dummy-gcc/4.8.4", "dummy-gcc/7.3.0")
         print("result = {}".format(r))
         self.assertEqual(0, r)
+        return
 
 
     #@patch('subprocess.Popen', side_effect=mock_popen_status_ok)
-    def test_module_unload_status_ok(self):
+    def test_ModuleHeler_module_unload_status_ok(self):
         with patch('subprocess.Popen', side_effect=mock_popen_status_ok):
             r = ModuleHelper.module("unload", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(0, r)
+        return
 
 
-    def test_module_load_args_as_list(self):
+    def test_ModuleHeler_module_load_args_as_list(self):
         """
         The `module()` function can take arguments in as a list.
         This tests that module works when the parameter is a list of arguments.
@@ -218,31 +251,35 @@ class moduleHelperTest(TestCase):
             r = ModuleHelper.module( [ "unload", "dummy-gcc/4.8.4" ] )
         print("result = {}".format(r))
         self.assertEqual(0, r)
+        return
 
 
-    def test_module_load_success_by_mlstatus(self):
+    def test_ModuleHeler_module_load_success_by_mlstatus(self):
         with patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_success):
             r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(0, r)
+        return
 
 
-    def test_module_load_error_by_mlstatus(self):
+    def test_ModuleHeler_module_load_error_by_mlstatus(self):
         with patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error):
             r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(1, r)
+        return
 
 
-    def test_module_load_error_no_modulecmd(self):
+    def test_ModuleHeler_module_load_error_no_modulecmd(self):
         with patch('distutils.spawn.find_executable', side_effect=Exception("mock side-effect error")):
             with patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error):
                 r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(1, r)
+        return
 
 
-    def test_module_load_error_exception(self):
+    def test_ModuleHeler_module_load_error_exception(self):
         """
         This tests the execution path in ModuleHelper in which the exec() command would
         throw an exception.
@@ -253,9 +290,10 @@ class moduleHelperTest(TestCase):
         with patch('subprocess.Popen', side_effect=mock_popen_stdout_throws_on_exec):
             with self.assertRaises(BaseException):
                 ModuleHelper.module("load", "gcc/4.8.4")
+        return
 
 
-    def test_module_load_error_module_returns_nonetype(self):
+    def test_ModuleHeler_module_load_error_module_returns_nonetype(self):
         """
         This tests a failure when the `module()` function returns a NoneType
         object (i.e., like what happens with LMOD)
@@ -263,6 +301,23 @@ class moduleHelperTest(TestCase):
         with patch('subprocess.Popen', side_effect=mock_popen_status_error_return_nonetype):
             with self.assertRaises(TypeError):
                 ModuleHelper.module("load", "gcc/4.8.4")
+        return
 
 
+    @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
+    @patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_raise)
+    @patch('shutil.which', side_effect=mock_shutil_which_returns_none)
+    def test_ModuleHeler_modulecmd_not_found(self, arg_shutil, arg_distutils, arg_popen):
+        """
+        Test a failure to find a `modulecmd` binary with the environment
+        modules subsystem.
+        """
+        #with patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_raise):
+        #with patch('shutil.which', side_effect=mock_shutil_which_returns_none):
+        with self.assertRaises(FileNotFoundError):
+            ModuleHelper.module("load", "dummy-gcc/4.8.4")
 
+        return
+
+
+# EOF
