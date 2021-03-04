@@ -151,8 +151,9 @@ class SetEnvironmentTest(TestCase):
         print("Section  : {}".format(section))
 
         parser = SetEnvironment(self._filename)
-        parser.debug_level = 1
-        #parser.exception_control_level = 4
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
 
         # parse a section
         data = parser.parse_section(section)
@@ -160,6 +161,8 @@ class SetEnvironmentTest(TestCase):
         # Pretty print the actions (unchecked)
         print("")
         parser.pretty_print_actions()
+
+        print("-----[ TEST END ]------------------------------------------")
 
         print("OK")
         return
@@ -703,6 +706,48 @@ class SetEnvironmentTest(TestCase):
         # Apply the actions
         with self.assertRaises(KeyError):
             parser.apply()
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_parse_via_configparserenhanceddata(self):
+        """
+        A basic test that checks parsing via the ``configparserenhanceddata``
+        object. If we parse via that then we probably *should* get an actions
+        list constructed since it also calls the ``parse_section()`` method
+        under the hood.
+        """
+        section = "CONFIG_A"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        # parse a section via configparserenhanceddata accessor
+        parser.configparserenhanceddata[section]
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        actions_expect = [
+            {'op': 'envvar-set', 'envvar': 'FOO', 'value': 'bar'},
+            {'op': 'envvar-append', 'envvar': 'FOO', 'value': 'baz'},
+            {'op': 'envvar-prepend', 'envvar': 'FOO', 'value': 'foo'},
+            {'op': 'envvar-set', 'envvar': 'BAR', 'value': 'foo'},
+            {'op': 'envvar-unset', 'envvar': 'FOO', 'value': None}
+        ]
+        actions_actual = parser.actions
+
+        self.assertListEqual(actions_expect, actions_actual, "Actions mismatch!")
+
+        print("-----[ TEST END ]------------------------------------------")
 
         print("OK")
         return

@@ -76,6 +76,8 @@ class SetEnvironment(ConfigParserEnhanced):
         the most recent section that has been parsed. This is overwritten when
         we execute a new parse.
 
+        Todo: add example of structure of the ``actions`` object.
+
         Returns:
             list: A *list* containing the sequence of actions that
             SetEnvironment has extracted from the configuration
@@ -334,7 +336,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - 0     : SUCCESS
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
-
         """
         self.enter_handler(handler_parameters)
 
@@ -521,15 +522,10 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
 
-
         Todo:
             Implement the 'cleanup' portion of finalize. See inline comment(s).
         """
-        handler_name = handler_parameters.handler_name
-
-        self.debug_message(1, "Enter handler: {}".format(handler_name))                             # Console
-        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))               # Console
-        self._loginfo_add('handler-entry', {'name': handler_name})                                  # Logging
+        self.enter_handler(handler_parameters)
 
         # Save out the results into the 'actions' list for the class.
         self.actions = handler_parameters.data_shared["setenvironment"]
@@ -538,8 +534,7 @@ class SetEnvironment(ConfigParserEnhanced):
         # Invoke a cleanup step here to curate the list of actions.
         # primarily, this means handle things like the 'remove' operations.
 
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
-        self._loginfo_add('handler-exit', {'name': handler_name})                                   # Logging
+        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -739,6 +734,7 @@ class SetEnvironment(ConfigParserEnhanced):
             os.environ[envvar_name] = envvar_value
             self.debug_message(3, "envvar :: {} = {}".format(envvar_name, envvar_value))
 
+        # Todo: update documentation to note that we use `os.pathsep` for the separator
         elif operation == "envvar-append":
             _tmp = envvar_value_old + [ envvar_value ]
             newval = os.pathsep.join(_tmp)
@@ -838,3 +834,14 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
 # EOF
+
+
+# Notes
+"""
+1) The separator for envvars defaults to the os.pathsep (:), but this might
+   be different for other things like CMake targets. We could add a new command
+   like `envvar-set-separator` that could be used to change a property that caches
+   the default separator which could also be changed during class instantiation.
+
+2) Another option might be to enhance ConfigParserEnhanced to support Triples.
+"""

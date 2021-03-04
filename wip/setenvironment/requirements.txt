@@ -7,5 +7,6 @@ pytest
 pytest-cov
 
 # Private Repositories
-configparserenhanced @ git+https://internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+# configparserenhanced @ git+https://internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+configparserenhanced @ git+https://internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@issue_3#egg=configparserenhanced
 
