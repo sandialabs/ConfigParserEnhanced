@@ -616,6 +616,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_rval = self.handler_finalize(section_name, handler_finalize_params)
             self._check_handler_rval("handler_finalize", handler_rval)
 
+        # When leaving recursion, we should add the section if it doesn't exist.
+        # - configparserenhanceddata.add_section() only adds if the section doesn't exist.
+        # - we should only add an 'empty' section if it actually exists in the .ini file.
+        if self.configparserdata.has_section(section_name):
+            self.configparserenhanceddata.add_section(section_name)
+
         # Remove the section from the `processed_sections` field when we exit.
         # - This properly enables a true depth-first search of `use` links.
         self._validate_handlerparameters(handler_parameters)
@@ -1161,8 +1167,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         def items(self, section=None):
             section_list = self.data.keys()
-            if self._owner != None:
-                section_list = self._owner.configparserdata.keys()
 
             output = None
             if section is None:
@@ -1175,7 +1179,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
         def keys(self):
-            return self.data.keys()
+            """
+            Returns an iterable of sections in the ``.ini`` file.
+
+            Returns:
+                iterable object: containing the sections in the ``.ini`` file.
+            """
+            section_list = self.data.keys()
+
+            if self._owner != None:
+                section_list = self._owner.configparserdata.keys()
+
+            return section_list
 
 
         def __iter__(self):
@@ -1189,15 +1204,36 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             return self.data[key]
 
 
-        def __len__(self):
-            return len(self.data)
+        def __len__(self) -> int:
+            """
+            Returns the # of sections in the ``.ini`` file.
+            This will always be the total # of sections in the file as detected
+            by ``ConfigParser``. We may or may not have them parsed at this time
+            but accessing a given section via the ``[]`` or other means will cause
+            it to be parsed at that time if it hasn't been yet.
+
+            Returns:
+                int: The number of sections in the .ini file.
+            """
+            return len(self.keys())
 
 
         def sections(self):
-            return self.data.keys()
+            """
+            Returns an iterable of sections in the ``.ini`` file.
+
+            Returns:
+                iterable object: containing the sections in the ``.ini`` file.
+            """
+            return self.keys()
 
 
-        def has_section(self, section):
+        def has_section(self, section) -> bool:
+            """Checks if the section exists in the data.
+
+            Returns:
+                boolean: True if the section exists, False if otherwise.
+            """
 
             # If we have an owner (we should)
             if self._owner != None:
@@ -1210,11 +1246,20 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                         except KeyError:
                             pass
 
-                    # if the section came back empty (i.e., no generic actions)
-                    # then add an empty section.
-                    if section not in self.data.keys():
-                        self._add_empty_section(section)
+            return self.has_section_no_parse(section)
 
+
+        def has_section_no_parse(self, section):
+            """Check for existence of the section without parsing
+
+            This will return True if the section exists or False if
+            it does not. In this check, if the section does not exist
+            the owner parser will NOT be invoked.
+
+            Returns:
+                boolean: True if the section exists in the data and
+                    False if it does not.
+            """
             return section in self.data.keys()
 
 
@@ -1224,7 +1269,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             return self.data[section]
 
 
-        def has_option(self, section, option):
+        def has_option(self, section, option) -> bool:
             """
             """
             if self._owner != None and section not in self._sections_checked:
@@ -1257,12 +1302,25 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise KeyError("Missing section {}.".format(section))
 
 
-        def add_section(self, section):
+        def add_section(self, section, force=False):
+            """Add a new empty section.
+
+            Adds a new empty section if an existing one does not
+            already exist. We can override this and force the new
+            section if we enable the ``force`` option.
+
+            Args:
+                section (str): The new section name.
+                force (boolean): If True then we will FORCE the
+                    new section to be added regardless of whether
+                    or not this will overwrite an existing section.
+
+            Returns:
+                dict: A dictionary containing the new section added.
             """
-            Directly add a new section, if it does not exist.
-            """
-            if not self.has_section(section):
-                self._add_empty_section(section)
+            if not self.has_section_no_parse(section):
+                self.data[section] = {}
+            return self.data[section]
 
 
         def set(self, section, option, value):
@@ -1275,6 +1333,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # Note: We overwrite the option, even if it's already there.
             self.data[section][option] = value
             return self.data[section][option]
+
+
+        # -------------------------------------
+        #   H E L P E R S   ( P R I V A T E )
+        # -------------------------------------
 
 
         @property
@@ -1313,18 +1376,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
         def _parse_owner_section(self, section):
-            """
-            Parse the section from the owner class.
+            """Parse the section from the owner class.
             """
             if self._owner != None:
                 self._set_owner_options()
                 self._sections_checked.add(section)
                 self._owner.parse_section(section, initialize=False, finalize=False)
             return
-
-
-        def _add_empty_section(self, section):
-            if section not in self.data.keys():
-                self.data[section] = {}
 
 
