@@ -60,8 +60,9 @@ class SetEnvironment(ConfigParserEnhanced):
     .. docstrings style reference:
         https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html
     """
-    def __init__(self, filename):
-        self.inifilepath = filename
+    def __init__(self, filename=None):
+        if filename is not None:
+            self.inifilepath = filename
 
 
     # -----------------------
@@ -527,12 +528,8 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         self.enter_handler(handler_parameters)
 
-        # Save out the results into the 'actions' list for the class.
+        # Save the results into the 'actions' property
         self.actions = handler_parameters.data_shared["setenvironment"]
-
-        # Todo:
-        # Invoke a cleanup step here to curate the list of actions.
-        # primarily, this means handle things like the 'remove' operations.
 
         self.exit_handler(handler_parameters)
         return 0

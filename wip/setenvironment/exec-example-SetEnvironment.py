@@ -47,9 +47,9 @@ def test_setenvironment(filename="config.ini"):
     parser.debug_level = 5
     parser.exception_control_level = 4
 
-    #parse_section(parser, "CONFIG_A+")     # ENVVARS + USE
+    parse_section(parser, "CONFIG_A+")     # ENVVARS + USE
     #parse_section(parser, "CONFIG_B+")     # MODULES + USE
-    parse_section(parser, "CONFIG_A")      # ENVVARS ONLY
+    #parse_section(parser, "CONFIG_A")      # ENVVARS ONLY
     #parse_section(parser, "CONFIG_B")      # MODULES ONLY
 
     print("")
@@ -67,7 +67,7 @@ def test_setenvironment(filename="config.ini"):
 
 def parse_section(parser, section):
     #data = parser.parse_section(section)
-    data = parser.configparserenhanceddata[section]   # doesn't work somehow.
+    data = parser.configparserenhanceddata[section]
 
     print("\nAction Data")
     print("===========")
