@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 # Note, when updating this, the docstring in ConfigParserEnhanced
-# should also be updated.
-# Todo: Can we automate that docstring? Can it be removed?
+# and in pyproject.toml should also be updated
 __version__ = "0.1.4"
 
 
