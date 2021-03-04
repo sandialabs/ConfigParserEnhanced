@@ -75,9 +75,17 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         The *actions* property contains the list of actions generated for
         the most recent section that has been parsed. This is overwritten when
-        we execute a new parse.
+        we execute a new parse. An example of the structure of this object is:
 
-        Todo: add example of structure of the ``actions`` object.
+        .. code-block:: python
+            :linenos:
+
+            [
+                {'op': 'envvar-set',     'envvar': 'FOO', 'value': 'bar'},
+                {'op': 'envvar-append',  'envvar': 'FOO', 'value': 'baz'},
+                {'op': 'envvar-prepend', 'envvar': 'FOO', 'value': 'foo'}
+            ]
+
 
         Returns:
             list: A *list* containing the sequence of actions that
@@ -201,11 +209,6 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Returns:
             int 0
-
-        Todo:
-            This could probably be moved outside of this class since it's not
-            really directly relevant to the environment setting stuff. Perhaps
-            if we develop some soft of 'helpers' or 'utilities' module sometime.
         """
         if envvar_filter is not None:
             assert isinstance(envvar_filter, list)
@@ -522,9 +525,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - 0     : SUCCESS
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
-
-        Todo:
-            Implement the 'cleanup' portion of finalize. See inline comment(s).
         """
         self.enter_handler(handler_parameters)
 
@@ -660,6 +660,27 @@ class SetEnvironment(ConfigParserEnhanced):
         of BASH shell environment vars (i.e., "${foobar}") and replace them with
         the actual environment variables.
 
+        This looks like a bash variable expansion, it is not bash and
+        we do not support expanding all forms of `bash` variables. For example,
+        bash variables that look like ``$foo`` which don't have the enclosing ``{``
+        and ``}`` braces can introduce unexpected results. For example:
+
+        :: code-block: bash
+            :linenos:
+
+            $ export var1=AAA
+            $ export var2=B$var1B
+            $ export var3=B${var1}B
+
+        In this case, setting ``var2`` will likely fail because bash think you're
+        appending the contents of ``$var1B`` to the end of ``B``, or if there is
+        a ``$var1B`` that exists it would append that to ``B`` which might not be
+        the desired result if you wanted output like what ``var3`` will get
+        (``BAAAB``).
+
+        Because of this, we only support the more *explicit* nature of requiring
+        expansion to be performed within curly braces.
+
         Returns:
              A string that contains the contents of any `${ENVVAR}` entries expanded
              inline into the string.
@@ -668,7 +689,7 @@ class SetEnvironment(ConfigParserEnhanced):
              KeyError: Required environment variable does not exist.
 
         Todo:
-            Test this.
+            - Verify this is tested.
         """
         regexp = re.compile(r"(\$\{(\S*)\})")
         string_out = string_in
@@ -830,15 +851,6 @@ class SetEnvironment(ConfigParserEnhanced):
         return rval
 
 
+
 # EOF
 
-
-# Notes
-"""
-1) The separator for envvars defaults to the os.pathsep (:), but this might
-   be different for other things like CMake targets. We could add a new command
-   like `envvar-set-separator` that could be used to change a property that caches
-   the default separator which could also be changed during class instantiation.
-
-2) Another option might be to enhance ConfigParserEnhanced to support Triples.
-"""

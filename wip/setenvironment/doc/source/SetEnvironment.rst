@@ -1,3 +1,4 @@
+
 SetEnvironment Class Reference
 ==============================
 
@@ -70,5 +71,9 @@ Helpers (Private)
 
 .. automethod:: setenvironment.SetEnvironment._helper_envvar_common
 .. automethod:: setenvironment.SetEnvironment._helper_module_common
+.. automethod:: setenvironment.SetEnvironment._apply_envvar
+.. automethod:: setenvironment.SetEnvironment._apply_module
+.. automethod:: setenvironment.SetEnvironment._expand_envvars_in_string
+
 
 
