@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
+
+## [0.1.4] - 2021-03-04
+### Added
 - New *property* to `ConfigParserEnhanced`: `parse_section_last_result`.
   This property gives access to the results from the _last_ call to
   `parse_section()`.
