@@ -1243,8 +1243,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     if section not in self._sections_checked:
                         try:
                             self._parse_owner_section(section)
-                        except KeyError:
-                            pass
+                        except KeyError:                                                            # pragma: no cover
+                            # This might not be reachable.
+                            pass                                                                    # pragma: no cover
 
             return self.has_section_no_parse(section)
 
