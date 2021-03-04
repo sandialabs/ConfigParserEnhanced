@@ -91,21 +91,25 @@ class ConfigParserEnhancedTest(TestCase):
         return
 
 
-    def test_ConfigParserEnhanced_basic(self):
+    def test_ConfigParserEnhanced_Template(self):
         """
-        Just a baic run of the ConfigParserEnhanced
-        This is useful to build other tests from.
+        Basic test template
         """
-        section = "SECTION-A"
-
         print("\n")
         print("Load file: {}".format(self._filename))
+
+        print("----[ TEST BEGIN ]----------------------------------")
+
+        section = "SECTION-A"
         print("Section  : {}".format(section))
 
         parser = ConfigParserEnhanced(self._filename)
-        parser.debug_level = 0
-        parser.exception_control_level = 0
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
         data = parser.parse_section(section)
+
+        print("----[ TEST END   ]----------------------------------")
 
         print("OK")
         return
@@ -1124,6 +1128,152 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
 
 
+    def test_ConfigParserEnhanced_property_parse_section_last_result_01(self):
+        """
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        # Test the values of parse_section and parse_section_last_result
+        # are identical.
+        print("----[ TEST BEGIN ]----------------------------------")
+
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+        result = parser.parse_section(section)
+
+        result_last = parser.parse_section_last_result
+
+        self.assertDictEqual(result, result_last, "Results must match.")
+
+        print("----[ TEST END   ]----------------------------------")
+
+
+        # Test that the values of configparserenhanceddata's scan will
+        # not be identical to what parse_section provides.
+        print("----[ TEST BEGIN ]----------------------------------")
+
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        result_cped_actual   = parser.configparserenhanceddata[section]
+        result_parser_actual = parser.parse_section_last_result
+
+        result_cped_expect   = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        result_parser_expect = {}
+
+        self.assertDictEqual(result_cped_expect, result_cped_actual)
+        self.assertDictEqual(result_parser_expect, result_parser_actual)
+
+        print("----[ TEST END   ]----------------------------------")
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_property_parse_section_last_result_02(self):
+        """
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            def handler_finalize(self, section_name, handler_parameters) -> int:
+                """
+                Redefine handler_generic so that it changes HandlerParameters
+                data_internal['processed_sections'] type to a non-set type.  This
+                should trigger a TypeError.
+                """
+                handler_parameters.data_shared["ROOT"] = handler_parameters.section_root
+                return 0
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        # Test that parse_section_last_result will be different on a
+        # second call to parse_section().
+        print("----[ TEST BEGIN ]----------------------------------")
+
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhancedTest(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        result_parse_section_A_expect = {"ROOT": section}
+        result_parse_section_A_actual = parser.parse_section(section)
+
+        result_last_parsed_A_expect = {"ROOT": section}
+        result_last_parsed_A_actual   = parser.parse_section_last_result
+
+        self.assertDictEqual(result_parse_section_A_expect, result_parse_section_A_actual)
+        self.assertDictEqual(result_last_parsed_A_expect, result_last_parsed_A_actual)
+
+        section = "SECTION-B"
+        print("Section  : {}".format(section))
+
+        result_parse_section_B_expect = {"ROOT": section}
+        result_parse_section_B_actual = parser.parse_section(section)
+
+        result_last_parsed_B_expect = {"ROOT": section}
+        result_last_parsed_B_actual   = parser.parse_section_last_result
+
+        self.assertDictEqual(result_parse_section_B_expect, result_parse_section_B_actual)
+        self.assertDictEqual(result_last_parsed_B_expect, result_last_parsed_B_actual)
+
+        print("----[ TEST END   ]----------------------------------")
+
+        print("OK")
+        return
+
+
+
+    def test_ConfigParserEnhanced_property_parse_section_last_result_03(self):
+        """
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        # Test the values of parse_section and parse_section_last_result
+        # are identical.
+        print("----[ TEST BEGIN ]----------------------------------")
+
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+
+        result_last_expect = None
+        result_last_actual = parser.parse_section_last_result
+
+        self.assertEqual(result_last_expect, result_last_actual, "Results must match.")
+
+        print("----[ TEST END   ]----------------------------------")
+
+        # Check that we can trigger the TypeError by assigning an invalid
+        # value to parse_section_last_result
+        print("----[ TEST BEGIN ]----------------------------------")
+
+        with self.assertRaises(TypeError):
+            parser.parse_section_last_result = "WRONG TYPE"
+
+        print("----[ TEST END   ]----------------------------------")
+
+
+        print("OK")
+        return
+
+
+
 
 
 
@@ -1141,7 +1291,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         return
 
 
-    def test_ConfigParserDataEnhanced_Basic(self):
+    def test_ConfigParserDataEnhanced_Template(self):
         """
         This is the basic test template
         """
@@ -1644,7 +1794,75 @@ class ConfigParserEnhancedDataTest(TestCase):
         return
 
 
+    def test_ConfigParserDataEnhanced_items(self):
+        """
+        This is the basic test template
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
 
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 5
+
+        parser.exception_control_level = 4
+
+
+        # With no parameters to items() the behaviour is to loop over the
+        # whole structure -- all sections.
+        print("-----[ TEST START ]--------------------------------------------------")
+        count_expect = 20
+        count_actual = 0
+        for k,v in parser.configparserenhanceddata.items():
+            print("{}:{}".format(k,v))
+            count_actual += 1
+        self.assertEqual(count_expect, count_actual)
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+
+        # with a specific section provided, we loop over the options in just that section.
+        print("-----[ TEST START ]--------------------------------------------------")
+        section = "SECTION-A"
+        count_expect = 3
+        count_actual = 0
+        for k,v in parser.configparserenhanceddata.items(section):
+            print("{}:{}".format(k,v))
+            count_actual += 1
+        self.assertEqual(count_expect, count_actual)
+
+        print("-----[ TEST END   ]--------------------------------------------------")
+        print("OK")
+        return
+
+
+    def test_ConfigParserDataEnhanced_owner_default(self):
+        """
+        Check that the property ``_owner`` will default to ``None``
+        if it wasn't set but the property is accessed.
+
+        In practice, this should not happen within ``ConfigParserEnhanced``
+        because it will always set the ``_owner`` property when creating
+        the structure. This test is mainly here to provide coverage or catch
+        someone being naughty.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 5
+
+        print("-----[ TEST START ]--------------------------------------------------")
+
+        delattr(parser.configparserenhanceddata, '_owner_data')
+
+        default_owner_expect = None
+        default_owner_actual = parser.configparserenhanceddata._owner
+        self.assertEqual(default_owner_expect, default_owner_actual)
+
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
 
 
 # EOF

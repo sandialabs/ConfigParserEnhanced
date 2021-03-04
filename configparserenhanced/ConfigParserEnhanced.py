@@ -101,7 +101,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     See Also:
         - `ConfigParser reference <https://docs.python.org/3/library/configparser.html>`
     """
-    def __init__(self, filename):
+    def __init__(self, filename = None):
         """Constructor
 
         Args:
@@ -111,7 +111,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 `read() <https://docs.python.org/3/library/configparser.html#configparser.ConfigParser.read>`_
                 method.
         """
-        self.inifilepath = filename
+        if filename is not None:
+            self.inifilepath = filename
 
 
     # -----------------------
@@ -283,6 +284,32 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return self._configparserenhanceddata
 
 
+    @property
+    def parse_section_last_result(self) -> dict:
+        """Cache the previous parser results.
+
+        This property caches the results from the most recent
+        ``parse_section()`` call.
+
+        Returns:
+            dict: containing the most recent return value from
+                ``parse_section()`` or ``None`` if there are no
+                previous searches.
+        """
+        if not hasattr(self, '_parse_section_last_result'):
+            self._parse_section_last_result = None
+        return self._parse_section_last_result
+
+
+    @parse_section_last_result.setter
+    def parse_section_last_result(self, value) -> dict:
+        if not isinstance(value, dict):
+            raise TypeError("parse_section_last_result must be assigned a dict object.")
+        self._parse_section_last_result = value
+        return self._parse_section_last_result
+
+
+
     # -------------------------------------
     #   P A R S E R   P U B L I C   A P I
     # -------------------------------------
@@ -313,6 +340,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
 
+        # Cache the result
+        self.parse_section_last_result = result
+
         return result
 
 
@@ -334,7 +364,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Enter handler    : {}".format(handler_name))                         # Console
-        self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(2, "--> option       : {}".format(handler_parameters.raw_option))        # Console
         self.debug_message(2, "--> op_params    : {}".format(handler_parameters.op_params))         # Console
         self.debug_message(2, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
         self.debug_message(3, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
@@ -526,8 +556,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise KeyError(message)
 
         # Verify that we actually got a section returned. If not, raise a KeyError.
+        # This might be unreachable.
         if current_section is None:
-            # This may be unreachable.
             raise Exception("ERROR: Unable to load section `{}` for an unknown reason.".format(section_name))
 
         # Initialize and set processed_sections.
@@ -627,10 +657,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_handlerparameters(handler_parameters)
         handler_parameters.data_internal['processed_sections'].remove(section_name)
 
+        # Set up the return value.
+        output = handler_parameters.data_shared
+
+        # Finalize the logging data / output
         self._loginfo_add('section-exit', {'name': section_name})                                   # Logging
         self.debug_message(1, "Exit section: `{}`".format(section_name))                            # Console
 
-        return handler_parameters.data_shared
+        return output
 
 
     def _validate_handlerparameters(self, handler_parameters):
@@ -1166,7 +1200,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
         def items(self, section=None):
-            section_list = self.data.keys()
+            """Iterator over all sections and their values in the ``.ini`` file.
+            """
+            section_list = self.keys()
 
             output = None
             if section is None:
@@ -1382,7 +1418,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if self._owner != None:
                 self._set_owner_options()
                 self._sections_checked.add(section)
-                self._owner.parse_section(section, initialize=False, finalize=False)
+                #self._owner.parse_section(section, initialize=False, finalize=False)
+                self._owner.parse_section(section)
             return
 
 

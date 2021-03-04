@@ -17,7 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- New *property* to `ConfigParserEnhanced`: `parse_section_last_result`.
+  This property gives access to the results from the _last_ call to
+  `parse_section()`.
 ### Changed
+- Parses of sections kicked off via the inner class `ConfigParserEnhancedData`
+  such as `parser.configparserenhanceddata[section]` will no longer
+  tell `parse_section` to skip calling `handler_initialize` and `handler_finalize`.
+  The output of this call won't change, but this will affect the state of
+  `handler_parameters.data_shared`,  and what is returned by `parse_section_last_result`.
 ### Deprecated
 ### Removed
 ### Fixed
