@@ -717,6 +717,16 @@ class SetEnvironmentTest(TestCase):
         object. If we parse via that then we probably *should* get an actions
         list constructed since it also calls the ``parse_section()`` method
         under the hood.
+
+        Todo:
+            This fails because in CPE we explicitly didn't execute the
+            finalizer and initializer methods when accessing the data through the
+            ``configparserenhanceddata`` accessors. We need to resolve what the 'right'
+            thing is here given what ``configparserenhanceddata`` is supposed to be.
+
+            The parser is the parser so we can change this... probably should but
+            I need to check what is going on to make sure I don't break things
+            or assumptions in relaxing this restriction.
         """
         section = "CONFIG_A"
 
