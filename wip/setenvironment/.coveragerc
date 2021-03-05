@@ -1,11 +1,24 @@
 [run]
 omit = */unittests/*
+branch = True
+dynamic_context = test_function
 
 [paths]
 source = setenvironment
 
 [report]
 skip_covered = False
+fail_under = 90
+show_missing = True
 
 [html]
 directory = tests/htmlcov
+title = SetEnvironment Coverage Report
+show_contexts = True
+
+[xml]
+output = tests/coverage.xml
+
+[json]
+output = tests/coverage.json
+pretty_print = True

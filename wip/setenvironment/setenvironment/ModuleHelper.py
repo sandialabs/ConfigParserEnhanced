@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Module helper for \*nix systems
+Module helper for Environment Modules and LMOD
 
-This module contains a helper for using the modules subsystem on
-\*nix systems.  It will attempt to load the env_modules_python
+This module contains a helper for using the modules subsystem.
+It will attempt to load the env_modules_python
 module and if that does not exist then we generate our own call
 to the ``module()`` function.
 

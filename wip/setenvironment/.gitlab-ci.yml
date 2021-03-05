@@ -27,7 +27,7 @@ pytest:
   timeout: 20m
   script:
     #- bash ./exec-reqs-install.sh
-    - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
+    - python3 -m pytest --cov=setenvironment  --cov-report=term --cov-report=html --cov-config=.coveragerc
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 install:
@@ -51,7 +51,7 @@ publish coverage:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
+    - python3 -m pytest --cov=setenvironment --cov-report=term --cov-report=html --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/SetEnvironment/coverage
     - mkdir -p /home/josbrau/html_files/SetEnvironment/coverage
     - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironment/coverage/
