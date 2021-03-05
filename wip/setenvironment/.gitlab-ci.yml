@@ -24,12 +24,17 @@ before_script:
 
 pytest:
   stage: test
-  timeout: 20m
+  timeout: 10m
   script:
     #- bash ./exec-reqs-install.sh
     - python3 -m pytest --cov=setenvironment  --cov-report=term --cov-report=html --cov-config=.coveragerc
-    - python3 ./exec-example-SetEnvironment.py
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+
+apptest:
+  stage: test
+  timeout: 10m
+  script:
+    - python3 ./exec-example-SetEnvironment.py
 
 install:
   stage: deploy
