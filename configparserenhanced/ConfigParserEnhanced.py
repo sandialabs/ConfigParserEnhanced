@@ -936,8 +936,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # expand rval handling or users should use something > 10.
             self.exception_control_event("WARNING", RuntimeError,
                                          "Handler `{}` returned {}".format(handler_name, handler_rval))
-        elif handler_rval > 10:
-            self.exception_control_event("SERIOUS", RuntimeError,
+        else:
+            self.exception_control_event("CRITICAL", RuntimeError,
                                          "Handler `{}` returned {}".format(handler_name, handler_rval))
         return
 
@@ -1406,10 +1406,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         def _set_owner_options(self):
             """
             Get options from the owner class, if we have an owner class.
+
+            Todo: Test what happens if self._owner == None
             """
             if self._owner != None:
                 self.exception_control_level = self._owner.exception_control_level
                 self.debug_level = self._owner.debug_level
+
+            return
 
 
         def _parse_owner_section(self, section):
@@ -1420,6 +1424,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._sections_checked.add(section)
                 #self._owner.parse_section(section, initialize=False, finalize=False)
                 self._owner.parse_section(section)
+
             return
 
 

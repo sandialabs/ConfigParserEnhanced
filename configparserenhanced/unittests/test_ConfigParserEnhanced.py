@@ -141,6 +141,29 @@ class ConfigParserEnhancedTest(TestCase):
         assert configparserdata.has_section("SECTION C+")
 
 
+    def test_ConfigParserEnhanced_property_inifilepath(self):
+        """
+        Test that everything works if we don't give a filename
+        argument to the c'tor but instead use the inifilepath.
+        """
+        section = "SECTION-A"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced()
+        parser.inifilepath = self._filename
+        parser.debug_level = 1
+
+        parser.parse_section(section)
+
+        self.assertIsInstance(parser._loginfo, list)
+        self.assertIsInstance(parser._configparserdata, configparser.ConfigParser)
+
+        print("OK")
+
+
     def test_ConfigParserEnhanced_property_inifilepath_changed(self):
         """
         Tests that changing the inifile will properly reset the data structure.
@@ -662,7 +685,76 @@ class ConfigParserEnhancedTest(TestCase):
             parser.parse_section(section)
 
         print("OK")
+        return
 
+
+    def test_ConfigParserEnhanced_parser_handler_rval_reserved_warning(self):
+        """
+        Test a WARNING event if a handler returns a reserved value (1..10)
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that sets up an ambiguous handler naming scheme
+            for an ``operation`` called "operation" (yeah, super creative).
+
+            This should trigger an ``AmbiguousHandlerError`` exception.
+            """
+            def handler_test_handler_fail(self, section_name, handler_parameters) -> int:
+                return 5
+
+
+        print("Load file  : {}".format(self._filename))
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+
+        section = "HANDLER_FAIL_TEST"
+        print("\n")
+        print("section    : {}".format(section))
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            parser.parse_section(section)
+            stdout = fake_out.getvalue()
+            self.assertIn("EXCEPTION SKIPPED", stdout)
+            self.assertIn("Handler `handler_test_handler_fail` returned 5", stdout)
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserEnhanced_parse_section_handler_fail_5(self):
+        """
+        Test a WARNING event if a handler returns a reserved value (1..10)
+        that will raise an exception because ``exception_control_level`` is set
+        to 5.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+            """
+            Test class that sets up an ambiguous handler naming scheme
+            for an ``operation`` called "operation" (yeah, super creative).
+
+            This should trigger an ``AmbiguousHandlerError`` exception.
+            """
+            def handler_test_handler_fail(self, section_name, handler_parameters) -> int:
+                return 5
+
+
+        print("Load file  : {}".format(self._filename))
+
+        parser = ConfigParserEnhancedTest(filename=self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        section = "HANDLER_FAIL_TEST"
+        print("\n")
+        print("section    : {}".format(section))
+
+        with self.assertRaises(RuntimeError):
+            parser.parse_section(section)
+
+        print("OK")
+        return
 
     def test_ConfigParserEnhanced_parse_section_handler_fail_11(self):
         """
@@ -1858,6 +1950,60 @@ class ConfigParserEnhancedDataTest(TestCase):
         default_owner_expect = None
         default_owner_actual = parser.configparserenhanceddata._owner
         self.assertEqual(default_owner_expect, default_owner_actual)
+
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+
+        print("-----[ TEST START ]--------------------------------------------------")
+
+        # Test what happens if we set the owner options but _owner is none.
+
+        parser.configparserenhanceddata.exception_control_level = 0
+        parser.configparserenhanceddata.debug_level = 0
+
+        # This is basically a noop so we should _not_ get the debug_level and
+        # exception_control_level from the _owner.
+        parser.configparserenhanceddata._set_owner_options()
+
+        self.assertEqual(0, parser.configparserenhanceddata.debug_level)
+        self.assertEqual(0, parser.configparserenhanceddata.exception_control_level)
+
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+
+        print("-----[ TEST START ]--------------------------------------------------")
+
+        # Test what happens if we set the owner options but _owner is none.
+
+        parser.configparserenhanceddata.exception_control_level = 0
+        parser.configparserenhanceddata.debug_level = 0
+
+        # This is basically a noop.
+        # - Nothing should be parsed
+        # - _set_owner_options should also not be called so we
+        #   can use the same test we used in the previous test.
+        parser.configparserenhanceddata._parse_owner_section("SECTION-A")
+
+        self.assertEqual(0, parser.configparserenhanceddata.debug_level)
+        self.assertEqual(0, parser.configparserenhanceddata.exception_control_level)
+
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+
+        print("-----[ TEST START ]--------------------------------------------------")
+
+        # Check that if we try and get the keys() data and we have no _owner
+        # then we'll just get whatever is in ``data.keys()``.
+
+        parser.configparserenhanceddata.data["TEST"] = "FOO"
+
+        # Test what happens if we set the owner options but _owner is none.
+        keys_expect = parser.configparserenhanceddata.data.keys()
+        keys_actual = parser.configparserenhanceddata.keys()
+
+        self.assertListEqual(list(keys_expect), list(keys_actual))
+
+        del parser.configparserenhanceddata.data["TEST"]
 
         print("-----[ TEST END   ]--------------------------------------------------")
 

@@ -20,9 +20,10 @@ find . -name "*.py?" -exec rm {} \;           >& /dev/null
 #fi
 
 options=(
-    --cov-report
-    term-missing
-    --cov-report html
+    --cov-report=term
+    --cov-report=term-missing
+    --cov-report=html
+    --cov-report=xml
     --cov=configparserenhanced
     )
 

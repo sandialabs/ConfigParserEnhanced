@@ -1,5 +1,27 @@
 [run]
 omit = */unittests/*
+branch = True
+dynamic_context = test_function
+
+[paths]
+source = configparserenhanced
+
+[report]
+skip_covered = False
+fail_under = 90
+show_missing = True
 
 [html]
 directory = tests/htmlcov
+title = ConfigParserEnhanced Coverage Report
+show_contexts = True
+
+[xml]
+output = tests/coverage.xml
+
+[json]
+output = tests/coverage.json
+pretty_print = True
+show_contexts = True
+
+

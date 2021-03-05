@@ -15,9 +15,9 @@ pytest:
   stage: test
   timeout: 20m
   script:
-    - python3 -m pytest --cov=configparserenhanced --cov-report html --cov-report term
+    - python3 -m pytest --cov=configparserenhanced --cov-report=html --cov-report=term --cov-config=.coveragerc
     - python3 ./exec-example-ConfigParserEnhanced.py
-  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+  coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
 install:
   stage: deploy
@@ -43,7 +43,7 @@ publish coverage:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -m pytest --cov=configparserenhanced --cov-report html --cov-report term
+    - python3 -m pytest --cov=configparserenhanced --cov-report=html --cov-report=term --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/coverage
     #- mv htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
