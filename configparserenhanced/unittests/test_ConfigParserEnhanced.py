@@ -334,19 +334,19 @@ class ConfigParserEnhancedTest(TestCase):
         handler_entry_list_expected = [
             "handler_initialize",
             "_handler_use",
-            "handler_generic",
-            "handler_generic",
-            "handler_generic",
-            "handler_generic",
+            "_generic_option_handler",
+            "_generic_option_handler",
+            "_generic_option_handler",
+            "_generic_option_handler",
             "handler_finalize"
         ]
         handler_exit_list_expected = [
             "handler_initialize",
-            "handler_generic",
-            "handler_generic",
-            "handler_generic",
+            "_generic_option_handler",
+            "_generic_option_handler",
+            "_generic_option_handler",
             "_handler_use",
-            "handler_generic",
+            "_generic_option_handler",
             "handler_finalize"
         ]
 
