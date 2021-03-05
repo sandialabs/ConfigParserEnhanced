@@ -16,8 +16,13 @@ pytest:
   timeout: 20m
   script:
     - python3 -m pytest --cov=configparserenhanced --cov-report=html --cov-report=term --cov-config=.coveragerc
-    - python3 ./exec-example-ConfigParserEnhanced.py
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+
+apptest:
+  stage: test
+  timeout: 10m
+  script:
+    - python3 ./exec-example-ConfigParserEnhanced.py
 
 install:
   stage: deploy
