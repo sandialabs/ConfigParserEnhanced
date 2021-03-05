@@ -77,7 +77,7 @@ Public Methods
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members: ConfigParserEnhancedData,handler_initialize,handler_finalize,handler_generic
+   :exclude-members: ConfigParserEnhancedData,handler_initialize,handler_finalize
    :special-members: __init__
 
 
@@ -90,7 +90,7 @@ there.
 
 .. automethod:: configparserenhanced.ConfigParserEnhanced.handler_initialize
 .. automethod:: configparserenhanced.ConfigParserEnhanced.handler_finalize
-.. automethod:: configparserenhanced.ConfigParserEnhanced.handler_generic
+.. automethod:: configparserenhanced.ConfigParserEnhanced._generic_option_handler
 
 Operation Handlers (Private)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

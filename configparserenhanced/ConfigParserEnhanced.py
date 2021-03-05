@@ -951,9 +951,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def _launch_generic_option_handler(self, section_name, handler_parameters, sec_k, sec_v) -> int:
-        """Launcher for ``handler_generic()``
+        """Launcher for ``_generic_option_handler()``
 
-        ``handler_generic()`` is called in two places inside the recursive parser.
+        ``_generic_option_handler()`` is called in two places inside the recursive parser.
         1. It is called when the ``key:value`` pair in an option does not parse out
            to ``operation`` and ``parameter`` fields.
         2. It is called when the ``key:value`` pair in an option does parse to
@@ -963,13 +963,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         This helper just manages the call in both places so thay're done the same way.
 
         Returns:
-            int: Returns the output value from ``handler_generic()``
+            int: Returns the output value from ``_generic_option_handler()``
         """
         output = 0
 
         self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
 
-        handler_parameters.handler_name = "handler_generic"
+        handler_parameters.handler_name = "_generic_option_handler"
         output = self._generic_option_handler(section_name, handler_parameters)
 
         return output
