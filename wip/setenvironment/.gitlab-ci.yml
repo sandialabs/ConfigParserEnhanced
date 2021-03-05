@@ -28,6 +28,7 @@ pytest:
   script:
     #- bash ./exec-reqs-install.sh
     - python3 -m pytest --cov=setenvironment  --cov-report=term --cov-report=html --cov-config=.coveragerc
+    - python3 ./exec-example-SetEnvironment.py
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
 install:
