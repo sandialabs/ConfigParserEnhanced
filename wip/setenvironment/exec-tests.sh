@@ -24,6 +24,7 @@ options=(
     --cov-report=term
     #--cov-report=term-missing
     --cov-report=html
+    --cov-report=xml
     --cov-config=.coveragerc
     )
 
