@@ -1355,7 +1355,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             Returns:
                 dict: A dictionary containing the new section added.
             """
-            if not self.has_section_no_parse(section):
+            if (force) or (not self.has_section_no_parse(section)):
                 self.data[section] = {}
             return self.data[section]
 
