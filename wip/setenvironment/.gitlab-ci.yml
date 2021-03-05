@@ -52,9 +52,9 @@ publish coverage:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - python3 -m pytest --cov=setenvironment --cov-report html --cov-report term
-    - rm -rf /home/josbrau/html_files/SetEnvironmentNew/coverage
-    - mkdir -p /home/josbrau/html_files/SetEnvironmentNew/coverage
-    - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironmentNew/coverage/
+    - rm -rf /home/josbrau/html_files/SetEnvironment/coverage
+    - mkdir -p /home/josbrau/html_files/SetEnvironment/coverage
+    - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironment/coverage/
 
 publish docs:
   stage: publish
@@ -65,9 +65,9 @@ publish docs:
     - cd doc/
     - python3 -m pip install -r requirements.txt
     - bash make_html_docs.sh
-    - rm -rf /home/josbrau/html_files/SetEnvironmentNew/doc
-    - mkdir -p /home/josbrau/html_files/SetEnvironmentNew/doc
-    - mv html/* /home/josbrau/html_files/SetEnvironmentNew/doc/
+    - rm -rf /home/josbrau/html_files/SetEnvironment/doc
+    - mkdir -p /home/josbrau/html_files/SetEnvironment/doc
+    - mv html/* /home/josbrau/html_files/SetEnvironment/doc/
 
 
 

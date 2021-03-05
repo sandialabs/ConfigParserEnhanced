@@ -6,8 +6,8 @@ authors = [
     "William McLendon <wcmclen@sandia.gov>"
 ]
 readme = "README.md"
-documentation = "http://10.202.35.89:8080/SetEnvironmentNew/doc/index.html"
-repository = "https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironmentNew"
+documentation = "http://10.202.35.89:8080/SetEnvironment/doc/index.html"
+repository = "https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment"
 classifiers = [
     'Development Status :: 3 - Alpha',
     'Intended Audience :: DevOps',
