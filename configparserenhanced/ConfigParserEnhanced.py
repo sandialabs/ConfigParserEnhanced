@@ -394,11 +394,19 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return
 
 
-    def handler_generic(self, section_name, handler_parameters) -> int:
-        """Handler for non-operation ``key: value`` pairs.
+    def _generic_option_handler(self, section_name, handler_parameters) -> int:
+        """Generic Handler Template
 
-        A generic handler that processes all *optons* in a ``.ini``
-        file section that do not have an operation handler defined for them.
+        This handler is used for options whose ``key:value`` pair does not
+        get resolved to a proper ``<operation>`` and therefore do not get
+        routed to a ``handler_<operation>()`` method.
+
+        This method provides a great *template* for subclasses to use when
+        creating new custom handlers according to the naming scheme
+        ``handler_<operation>()`` or ``_handler_<operation>()``.
+
+        Note:
+            This method should not be overridden by subclasses.
 
         Args:
             section_name (str): The name of the section being processed.
@@ -409,7 +417,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             int:
             * 0     : SUCCESS
             * [1-10]: Reserved for future use (WARNING)
-            * > 10  : An unknown failure occurred (SERIOUS)
+            * > 10  : An unknown failure occurred (CRITICAL)
         """
         self.enter_handler(handler_parameters)
         self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))
@@ -439,7 +447,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             int:
             * 0     : SUCCESS
             * [1-10]: Reserved for future use (WARNING)
-            * > 10  : An unknown failure occurred (SERIOUS)
+            * > 10  : An unknown failure occurred (CRITICAL)
         """
         self.enter_handler(handler_parameters)
 
@@ -472,7 +480,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             int:
             * 0     : SUCCESS
             * [1-10]: Reserved for future use (WARNING)
-            * > 10  : An unknown failure occurred (SERIOUS)
+            * > 10  : An unknown failure occurred (CRITICAL)
         """
         self.enter_handler(handler_parameters)
 
@@ -599,7 +607,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             if regex_op_splitter_m is None:
                 # Call generic_handler if the option key did not expand to an 'operation'.
-                handler_rval = self._launch_handler_generic(section_name,
+                handler_rval = self._launch_generic_option_handler(section_name,
                                                             handler_parameters,
                                                             sec_k,
                                                             sec_v)
@@ -630,7 +638,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
                     # Call generic_handler if no operation handler is found.
-                    handler_rval = self._launch_handler_generic(section_name,
+                    handler_rval = self._launch_generic_option_handler(section_name,
                                                                 handler_parameters,
                                                                 sec_k,
                                                                 sec_v)
@@ -942,7 +950,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return
 
 
-    def _launch_handler_generic(self, section_name, handler_parameters, sec_k, sec_v) -> int:
+    def _launch_generic_option_handler(self, section_name, handler_parameters, sec_k, sec_v) -> int:
         """Launcher for ``handler_generic()``
 
         ``handler_generic()`` is called in two places inside the recursive parser.
@@ -962,7 +970,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.configparserenhanceddata.set(handler_parameters.section_root, sec_k, sec_v)
 
         handler_parameters.handler_name = "handler_generic"
-        output = self.handler_generic(section_name, handler_parameters)
+        output = self._generic_option_handler(section_name, handler_parameters)
 
         return output
 
@@ -985,7 +993,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             int:
             * 0     : SUCCESS
             * [1-10]: Reserved for future use (WARNING)
-            * > 10  : An unknown failure occurred (SERIOUS)
+            * > 10  : An unknown failure occurred (CRITICAL)
 
         Todo:
             Once we can use Python 3.8 in our environments, we can use the @final decorator
