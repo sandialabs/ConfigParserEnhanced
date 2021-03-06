@@ -17,6 +17,7 @@ from __future__ import print_function
 
 import os
 import re
+from textwrap import dedent
 
 try:
     # @final decorator, requires Python 3.8.x
@@ -108,6 +109,38 @@ class SetEnvironment(ConfigParserEnhanced):
     # ------------------------------
     #   P U B L I C   M E T H O D S
     # ------------------------------
+
+
+    def apply(self) -> int:
+        """Apply the set of instructions stored in ``actions``.
+
+        This method will cause the actions that are defined to be
+        executed.
+
+        Returns:
+            integer: 0 if successful, nonzero if something went wrong that did not
+                trigger an exception of some kind.
+
+        Todo:
+            - Print out some useful log message(s) indicating that actions have occurred.
+              maybe a banner also or something?
+        """
+        output = 0
+
+        for iaction in self.actions:
+            rval  = 0
+            op    = iaction['op']
+            value = iaction['value']
+
+            if 'envvar' in iaction.keys():
+                rval = self._apply_envvar(op, envvar_name=iaction['envvar'], envvar_value=value)
+
+            if 'module' in iaction.keys():
+                rval = self._apply_module(op, module_name=iaction['module'], module_value=value)
+
+            output = max(output, rval)
+
+        return output
 
 
     def pretty_print_actions(self):
@@ -240,36 +273,166 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def apply(self) -> int:
-        """Apply the set of instructions stored in ``actions``.
+    def write_actions_to_file(self, filename, interpreter="bash") -> int:
+        """Write the actions to an 'executable' file.
 
-        This method will cause the actions that are defined to be
-        executed.
+        Generates an executable script that will execute the actions
+        that we generate in the same way ``apply()`` would.
+
+        Args:
+            filename (str,Path): The destination filename the
+                actions should be written to.
+            interpreter (str): The kind of file to generate. Currently
+                we only support "bash".
+
+        Raises:
+            ValueError: If an unknown ``interpreter`` parameter is provided
+                and ``exception_control_level`` is >= 2 (SERIOUS events raise
+                exceptions instead of warn)
 
         Returns:
-            integer: 0 if successful, nonzero if something went wrong that did not
-                trigger an exception of some kind.
+            int: 0 if successful
 
         Todo:
-            - Print out some useful log message(s) indicating that actions have occurred.
-              maybe a banner also or something?
+            In the future, generate options to write out the actions as
+            "python".
         """
-        output = 0
+        output_file_str = ""
+        if interpreter == "bash":
+            output_file_str = self._gen_actions_script_bash()
+        else:
+            message = "Unknown interpreter type '{}' provided.".format(interpreter)
+            self.exception_control_event("SERIOUS", ValueError, message)
+
+        with open(filename, "w") as ofp:
+            ofp.write(output_file_str)
+
+        return 0
+
+
+    def _gen_actions_script_bash(self) -> str:
+        """Generate an action script for a **bash** script.
+
+        Raises:
+            ValueError: if an ``action`` does not have a ``envvar`` or
+                a ``module`` key.
+
+        Returns:
+            str: containing the bash script that can be written.
+        """
+        output_file_str = dedent("""\
+        #!/usr/bin/env bash
+
+        # envvar_append_or_create
+        #  $1 = envvar name
+        #  $2 = string to append
+        function envvar_append_or_create() {
+            # envvar $1 is not set
+            if [[ ! -n "${!1+1}" ]]; then
+                export ${1}="${2}"
+            else
+                export ${1}="${!1}:${2}"
+            fi
+        }
+
+        # envvar_prepend_or_create
+        #  $1 = envvar name
+        #  $2 = string to prepend
+        function envvar_prepend_or_create() {
+            # envvar $1 is not set
+            if [[ ! -n "${!1+1}" ]]; then
+                export ${1}="${2}"
+            else
+                export ${1}="${2}:${!1}"
+            fi
+        }
+
+        # envvar_set_or_create
+        #  $1 = envvar name
+        #  $2 = string to prepend
+        function envvar_set_or_create() {
+            export ${1}="${2}"
+        }
+
+        """)
 
         for iaction in self.actions:
-            rval  = 0
-            op    = iaction['op']
-            value = iaction['value']
+            if "envvar" in iaction.keys():
+                output_file_str += self._gen_action_line_bash_envvar(iaction)
+            elif "module" in iaction.keys():
+                output_file_str += self._gen_action_line_bash_module(iaction)
+            else:
+                raise ValueError("Unknown action class.")
 
-            if 'envvar' in iaction.keys():
-                rval = self._apply_envvar(op, envvar_name=iaction['envvar'], envvar_value=value)
+        # Append an "EOF" comment for convenience. This helps annotate that we did
+        # actually finish the file (and gives a nice thing to test for in testing, etc.)
+        output_file_str += "\n\n# EOF\n"
 
-            if 'module' in iaction.keys():
-                rval = self._apply_module(op, module_name=iaction['module'], module_value=value)
+        return output_file_str
 
-            output = max(output, rval)
 
-        return output
+    def _gen_action_line_bash_envvar(self, entry) -> str:
+        """
+        """
+        envvar_name = entry["envvar"]
+        envvar_val  = entry["value"]
+        envvar_op   = entry["op"]
+
+        output_line = None
+        if envvar_op == "envvar-set":
+            output_line = "envvar_set_or_create {} \"{}\"".format(envvar_name, envvar_val)
+
+        elif envvar_op == "envvar-append":
+            output_line = "envvar_append_or_create {} \"{}\"".format(envvar_name, envvar_val)
+
+        elif envvar_op == "envvar-prepend":
+            output_line = "envvar_prepend_or_create {} \"{}\"".format(envvar_name, envvar_val)
+
+        elif envvar_op == "envvar-unset":
+            output_line = "unset {}".format(envvar_name)
+
+        else:
+            # This is reachable if someone creates a new handler for
+            # an envvar-<action> but does not update this if/elif
+            # case statement.
+            raise ValueError("Unknown envvar operation: {}".format(envvar_op))
+
+        output_line += "\n"
+        return output_line
+
+
+    def _gen_action_line_bash_module(self, entry) -> str:
+        """
+        """
+        module_name = entry["module"]
+        module_val  = entry["value"]
+        module_op   = entry["op"]
+
+        output_line = None
+        if module_op == "module-load":
+            output_line = "module load {}/{}".format(module_name, module_val)
+
+        elif module_op == "module-unload":
+            output_line = "module unload {}".format(module_name)
+
+        elif module_op == "module-swap":
+            output_line = "module swap {} {}".format(module_name, module_val)
+
+        elif module_op == "module-use":
+            output_line = "module use {}".format(module_val)
+
+        elif module_op == "module-purge":
+            output_line = "module purge"
+
+        else:
+            # This is reachable if someone creates a new handler for
+            # a module-<action> but does not update this if/elif
+            # case statement.
+            raise ValueError("Unknown module operation: {}".format(envvar_op))
+
+        output_line += "\n"
+        return output_line
+
 
 
     # --------------------
