@@ -82,7 +82,7 @@ def parse_section(parser, section):
 
     assert len(parser.actions) > 0
 
-    parser.write_actions_to_file("___test.sh")
+    parser.write_actions_to_file("___set_environment.sh")
 
     return data
 
