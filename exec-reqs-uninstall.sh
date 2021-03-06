@@ -11,6 +11,9 @@ source scripts/common.bash
 python_exe="python3"
 projectname="configparserenhanced"
 
+execute_command "which ${python_exe:?}"
+execute_command "${python_exe:?} --version"
+
 options=(
     -m pip
     uninstall

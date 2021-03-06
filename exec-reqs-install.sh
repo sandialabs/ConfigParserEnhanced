@@ -13,6 +13,9 @@ printf "${normal}"
 
 python_exe="python3"
 
+execute_command "which ${python_exe:?}"
+execute_command "${python_exe:?} --version"
+
 options=(
     -m pip
     install
