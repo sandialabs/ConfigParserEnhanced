@@ -11,6 +11,9 @@ source scripts/common.bash
 python_exe="python3"
 projectname="setenvironment"
 
+execute_command "which ${python_exe:?}"
+execute_command "${python_exe:?} --version"
+
 options=(
     -m pip
     uninstall
