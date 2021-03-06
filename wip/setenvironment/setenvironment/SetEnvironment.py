@@ -320,6 +320,8 @@ class SetEnvironment(ConfigParserEnhanced):
         Returns:
             str: containing the bash script that can be written.
         """
+
+        # Generate 'standard' bash file with functions
         output_file_str = dedent("""\
         #!/usr/bin/env bash
 
