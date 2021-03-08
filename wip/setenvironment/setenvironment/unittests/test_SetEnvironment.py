@@ -480,7 +480,10 @@ class SetEnvironmentTest(TestCase):
         parser.pretty_print_actions()
 
         # Apply the actions
-        with self.assertRaises(FileNotFoundError):
+        # - the missing file will generate a RuntimeError, but the message
+        #   that will get generated down in the ``exception_control_event``
+        #   should have the details.
+        with self.assertRaises(RuntimeError):
             parser.apply()
 
         print("OK")
@@ -752,6 +755,83 @@ class SetEnvironmentTest(TestCase):
         self._helper_parse_section(section, actions_expect, rval_expect_cped)
 
         return
+
+
+    def test_SetEnvironment_write_actions_to_file_bash(self):
+        """
+        Test the ``write_actions_to_file`` method with a ``bash`` target.
+        """
+        section = "CONFIG_A+"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        filename_out = "___apply_configuration.sh"
+        interpreter  = "bash"
+        rval_expect  = 0
+        rval_actual  = parser.write_actions_to_file(filename_out, interpreter)
+
+        self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_write_actions_to_file_python(self):
+        """
+        Test the ``write_actions_to_file`` method with a ``python`` target.
+        """
+        section = "CONFIG_A+"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        filename_out = "___apply_configuration.py"
+        interpreter  = "python"
+        rval_expect  = 0
+
+        with self.assertRaises(ValueError):
+            rval_actual  = parser.write_actions_to_file(filename_out, interpreter)
+            self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    # =================
+    #   H E L P E R S
+    # =================
+
 
 
     def _helper_parse_section(self, section, actions_expect, rval_expect_cped):

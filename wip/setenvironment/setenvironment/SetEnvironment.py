@@ -15,6 +15,7 @@ Todo:
 """
 from __future__ import print_function
 
+import inspect
 import os
 import re
 from textwrap import dedent
@@ -31,9 +32,88 @@ import pathlib
 from . import ModuleHelper
 
 
+
 # ===================================
 #  S U P P O R T   F U N C T I O N S
 # ===================================
+
+
+
+def envvar_op(op, arg1, *args):
+    """
+    """
+    envvar_exists    = arg1 in os.environ.keys()
+    envvar_value_old = [os.environ[arg1]] if envvar_exists else []
+
+    if len(args) > 0 and args[0] != None:
+        envvar_value = expand_envvars_in_string(args[0])
+
+    if op == "set":
+        os.environ[arg1] = envvar_value
+    elif op == "append":
+        tmp = envvar_value_old + [ envvar_value ]
+        newval = os.pathsep.join(tmp)
+        os.environ[arg1] = newval
+    elif op == "prepend":
+        tmp = [ envvar_value ] + envvar_value_old
+        newval = os.pathsep.join(tmp)
+        os.environ[arg1] = newval
+    elif op == "unset":
+        if envvar_exists:
+            del os.environ[arg1]
+    else:
+        raise ValueError
+    return 0
+
+
+def expand_envvars_in_string(string_in) -> str:
+    """
+    Take an input string that may contain environment variables in the style
+    of BASH shell environment vars (i.e., "${foobar}") and replace them with
+    the actual environment variables.
+
+    This looks like a bash variable expansion, it is not bash and
+    we do not support expanding all forms of `bash` variables. For example,
+    bash variables that look like ``$foo`` which don't have the enclosing ``{``
+    and ``}`` braces can introduce unexpected results. For example:
+
+    :: code-block: bash
+        :linenos:
+
+        $ export var1=AAA
+        $ export var2=B$var1B
+        $ export var3=B${var1}B
+
+    In this case, setting ``var2`` will likely fail because bash think you're
+    appending the contents of ``$var1B`` to the end of ``B``, or if there is
+    a ``$var1B`` that exists it would append that to ``B`` which might not be
+    the desired result if you wanted output like what ``var3`` will get
+    (``BAAAB``).
+
+    Because of this, we only support the more *explicit* nature of requiring
+    expansion to be performed within curly braces.
+
+    Returns:
+         A string that contains the contents of any `${ENVVAR}` entries expanded
+         inline into the string.
+
+    Raises:
+         KeyError: Required environment variable does not exist.
+
+    Todo:
+        - Verify this is tested.
+    """
+    regexp = re.compile(r"(\$\{(\S*)\})")
+    string_out = string_in
+    for m in re.finditer(regexp, string_out):
+        #v = m.group(1)  # The full ENVVAR sequence: ${VARNAME}
+        s = m.group(2)  # Just the ENVVAR itself: VARNAME
+        if(s in os.environ.keys()):
+            string_out = re.sub(regexp, os.environ[s], string_in)
+        else:
+            msg = "Required environment variable `{}` does not exist.".format(s)
+            raise KeyError(msg)
+    return string_out
 
 
 
@@ -310,133 +390,6 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def _gen_actions_script_bash(self) -> str:
-        """Generate an action script for a **bash** script.
-
-        Raises:
-            ValueError: if an ``action`` does not have a ``envvar`` or
-                a ``module`` key.
-
-        Returns:
-            str: containing the bash script that can be written.
-        """
-
-        # Generate 'standard' bash file with functions
-        output_file_str = dedent("""\
-        #!/usr/bin/env bash
-
-        # envvar_append_or_create
-        #  $1 = envvar name
-        #  $2 = string to append
-        function envvar_append_or_create() {
-            # envvar $1 is not set
-            if [[ ! -n "${!1+1}" ]]; then
-                export ${1}="${2}"
-            else
-                export ${1}="${!1}:${2}"
-            fi
-        }
-
-        # envvar_prepend_or_create
-        #  $1 = envvar name
-        #  $2 = string to prepend
-        function envvar_prepend_or_create() {
-            # envvar $1 is not set
-            if [[ ! -n "${!1+1}" ]]; then
-                export ${1}="${2}"
-            else
-                export ${1}="${2}:${!1}"
-            fi
-        }
-
-        # envvar_set_or_create
-        #  $1 = envvar name
-        #  $2 = string to prepend
-        function envvar_set_or_create() {
-            export ${1}="${2}"
-        }
-
-        """)
-
-        for iaction in self.actions:
-            if "envvar" in iaction.keys():
-                output_file_str += self._gen_action_line_bash_envvar(iaction)
-            elif "module" in iaction.keys():
-                output_file_str += self._gen_action_line_bash_module(iaction)
-            else:
-                raise ValueError("Unknown action class.")
-
-        # Append an "EOF" comment for convenience. This helps annotate that we did
-        # actually finish the file (and gives a nice thing to test for in testing, etc.)
-        output_file_str += "\n\n# EOF\n"
-
-        return output_file_str
-
-
-    def _gen_action_line_bash_envvar(self, entry) -> str:
-        """
-        """
-        envvar_name = entry["envvar"]
-        envvar_val  = entry["value"]
-        envvar_op   = entry["op"]
-
-        output_line = None
-        if envvar_op == "envvar-set":
-            output_line = "envvar_set_or_create {} \"{}\"".format(envvar_name, envvar_val)
-
-        elif envvar_op == "envvar-append":
-            output_line = "envvar_append_or_create {} \"{}\"".format(envvar_name, envvar_val)
-
-        elif envvar_op == "envvar-prepend":
-            output_line = "envvar_prepend_or_create {} \"{}\"".format(envvar_name, envvar_val)
-
-        elif envvar_op == "envvar-unset":
-            output_line = "unset {}".format(envvar_name)
-
-        else:
-            # This is reachable if someone creates a new handler for
-            # an envvar-<action> but does not update this if/elif
-            # case statement.
-            raise ValueError("Unknown envvar operation: {}".format(envvar_op))
-
-        output_line += "\n"
-        return output_line
-
-
-    def _gen_action_line_bash_module(self, entry) -> str:
-        """
-        """
-        module_name = entry["module"]
-        module_val  = entry["value"]
-        module_op   = entry["op"]
-
-        output_line = None
-        if module_op == "module-load":
-            output_line = "module load {}/{}".format(module_name, module_val)
-
-        elif module_op == "module-unload":
-            output_line = "module unload {}".format(module_name)
-
-        elif module_op == "module-swap":
-            output_line = "module swap {} {}".format(module_name, module_val)
-
-        elif module_op == "module-use":
-            output_line = "module use {}".format(module_val)
-
-        elif module_op == "module-purge":
-            output_line = "module purge"
-
-        else:
-            # This is reachable if someone creates a new handler for
-            # a module-<action> but does not update this if/elif
-            # case statement.
-            raise ValueError("Unknown module operation: {}".format(envvar_op))
-
-        output_line += "\n"
-        return output_line
-
-
-
     # --------------------
     #   H A N D L E R S
     # --------------------
@@ -454,7 +407,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_envvar_common(section_name, handler_parameters)
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
     def handler_envvar_append(self, section_name, handler_parameters) -> int:
@@ -476,7 +429,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_envvar_common(section_name, handler_parameters)
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
     def handler_envvar_prepend(self, section_name, handler_parameters) -> int:
@@ -491,7 +444,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_envvar_common(section_name, handler_parameters)
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
     def handler_envvar_remove(self, section_name, handler_parameters) -> int:
@@ -541,7 +494,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        return self._helper_envvar_common(section_name, handler_parameters)
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
     def handler_module_load(self, section_name, handler_parameters) -> int:
@@ -558,7 +511,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        return self._helper_module_common(section_name, handler_parameters)
+        return self._helper_handler_module_common(section_name, handler_parameters)
 
 
     def handler_module_purge(self, section_name, handler_parameters) -> int:
@@ -576,7 +529,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_module_common(section_name, handler_parameters)
+        return self._helper_handler_module_common(section_name, handler_parameters)
 
 
     def handler_module_remove(self, section_name, handler_parameters) -> int:
@@ -643,7 +596,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_module_common(section_name, handler_parameters)
+        return self._helper_handler_module_common(section_name, handler_parameters)
 
 
     def handler_module_unload(self, section_name, handler_parameters) -> int:
@@ -661,7 +614,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_module_common(section_name, handler_parameters)
+        return self._helper_handler_module_common(section_name, handler_parameters)
 
 
     def handler_module_use(self, section_name, handler_parameters) -> int:
@@ -679,7 +632,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_module_common(section_name, handler_parameters)
+        return self._helper_handler_module_common(section_name, handler_parameters)
 
 
     def handler_finalize(self, section_name, handler_parameters) -> int:
@@ -704,8 +657,7 @@ class SetEnvironment(ConfigParserEnhanced):
     #  H E L P E R S
     # ---------------
 
-
-    def _helper_envvar_common(self, section_name, handler_parameters) -> int:
+    def _helper_handler_common_envvar(self, section_name, handler_parameters) -> int:
         """Common handler for envvar actions
 
         All the *envvar* actions do basically the same thing so we can move the
@@ -761,7 +713,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def _helper_module_common(self, section_name, handler_parameters) -> int:
+    def _helper_handler_module_common(self, section_name, handler_parameters) -> int:
         """Common handler for module actions
 
         All the *module* actions care about the same sets of parameters so we
@@ -819,80 +771,33 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def _expand_envvars_in_string(self, string_in) -> str:
-        """
-        Take an input string that may contain environment variables in the style
-        of BASH shell environment vars (i.e., "${foobar}") and replace them with
-        the actual environment variables.
-
-        This looks like a bash variable expansion, it is not bash and
-        we do not support expanding all forms of `bash` variables. For example,
-        bash variables that look like ``$foo`` which don't have the enclosing ``{``
-        and ``}`` braces can introduce unexpected results. For example:
-
-        :: code-block: bash
-            :linenos:
-
-            $ export var1=AAA
-            $ export var2=B$var1B
-            $ export var3=B${var1}B
-
-        In this case, setting ``var2`` will likely fail because bash think you're
-        appending the contents of ``$var1B`` to the end of ``B``, or if there is
-        a ``$var1B`` that exists it would append that to ``B`` which might not be
-        the desired result if you wanted output like what ``var3`` will get
-        (``BAAAB``).
-
-        Because of this, we only support the more *explicit* nature of requiring
-        expansion to be performed within curly braces.
-
-        Returns:
-             A string that contains the contents of any `${ENVVAR}` entries expanded
-             inline into the string.
-
-        Raises:
-             KeyError: Required environment variable does not exist.
-
-        Todo:
-            - Verify this is tested.
-        """
-        regexp = re.compile(r"(\$\{(\S*)\})")
-        string_out = string_in
-        for m in re.finditer(regexp, string_out):
-            #v = m.group(1)  # The full ENVVAR sequence: ${VARNAME}
-            s = m.group(2)  # Just the ENVVAR itself: VARNAME
-            if(s in os.environ.keys()):
-                string_out = re.sub(regexp, os.environ[s], string_in)
-            else:
-                msg = "Required environment variable `{}` does not exist.".format(s)
-                raise KeyError(msg)
-        return string_out
-
-
     def _apply_envvar(self, operation, envvar_name, envvar_value) -> int:
-        """Apply ENVVAR operations
+        """Apply an ENVVAR operation
 
-        Currently supported envvar operations are:
-
+        Currently supported ENVVAR operations are:
         - ``envvar-append``
         - ``envvar-prepend``
         - ``envvar-set``
         - ``envvar-unset``
 
+        Note:
+            ``envvar-remove`` is handled in the ``handler_envvar_remove``
+            directly because its context is most applicable at processing
+            time.
+
         Args:
-            operation (str): The operation to be executed (i.e., ``envvar-set``)
-            envvar_name (str): The name of the environment variable.
-            envvar_value (str,None): The value to assign the environment variable.
+            operation (str): The *operation* to apply (i.e., ``set``, ``unset`` etc.)
+            envvar_name (str): The name of the environment variable we're working on.
+            envvar_value (str, None): The value to be assigned to the envvar.
+                This is not used by ``unset``.
 
         Returns:
-            integer: 0 if successful.
+            int: 0 if successful
 
         Raises:
-            KeyError: If an envvar_value contains a variable (``${envvar_name}``)
-                that references an environment variable that does not exist.
             TypeError: if any of the parameters fail a typecheck on method entry.
+            ValueError: if the operation provided is invalid.
         """
-        # Validate parameters
         if not isinstance(operation, (str)):
             raise TypeError("operation must be a string.")
         if not isinstance(envvar_name, (str)):
@@ -900,47 +805,16 @@ class SetEnvironment(ConfigParserEnhanced):
         if not isinstance(envvar_value, (str, type(None))):
             raise TypeError("envvar_value must be either `string` or `None` types.")
 
-        # Debug Message
-        self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value))
+        self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value))         # Console
 
-        # Detect if the envvar already exists, and if so get its value.
-        envvar_exists = envvar_name in os.environ.keys()
-        envvar_value_old = [os.environ[envvar_name]] if envvar_exists else []
+        command = self._gen_actioncmd_envvar(operation, envvar_name, envvar_value)
+        output  = self._exec_helper(command)
 
-        # Expand any `${envvar}` entries in the envvar string to
-        # contain the actual envvar value.
-        if envvar_value != None:
-            envvar_value = self._expand_envvars_in_string(envvar_value)
+        if output != 0:
+            message = "ENVVAR operation {} failed with {} rval.".format(operation, output)
+            self.exception_control_event("CRITICAL", RuntimeError, message)
 
-        # Execute `envvar` operations:
-        if operation == "envvar-set":
-            os.environ[envvar_name] = envvar_value
-            self.debug_message(3, "envvar :: {} = {}".format(envvar_name, envvar_value))
-
-        # Todo: update documentation to note that we use `os.pathsep` for the separator
-        elif operation == "envvar-append":
-            _tmp = envvar_value_old + [ envvar_value ]
-            newval = os.pathsep.join(_tmp)
-            os.environ[envvar_name] = newval
-            self.debug_message(3, "envvar :: {} = {}".format(envvar_name, newval))
-
-        elif operation == "envvar-prepend":
-            _tmp = [ envvar_value ] + envvar_value_old
-            newval = os.pathsep.join(_tmp)
-            os.environ[envvar_name] = newval
-            self.debug_message(3, "envvar :: {} = {}".format(envvar_name, newval))
-
-        elif operation == "envvar-unset":
-            del os.environ[envvar_name]
-            self.debug_message(3, "envvar :: del {}".format(envvar_name))
-
-        else:
-            # This is reachable if someone creates a new handler for
-            # an envvar-<action> but does not update this if/elif
-            # case statement.
-            raise ValueError("Unknown envvar operation: {}".format(operation))
-
-        return 0
+        return output
 
 
     def _apply_module(self, operation, module_name, module_value) -> int:
@@ -960,7 +834,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Args:
             operation (str): The operation to be executed (i.e., ``module-load``)
-            module_name (str): The name of the module.
+            module_name (str, None): The name of the module.
             module_value (str,None): The value from the operation field.
 
         Returns:
@@ -970,7 +844,6 @@ class SetEnvironment(ConfigParserEnhanced):
             TypeError: if any of the parameters fail a typecheck on method entry.
             ValueError: if the operation provided is invalid.
         """
-        # Validate parameters
         if not isinstance(operation, (str)):
             raise TypeError("operation must be a string.")
         if not isinstance(module_name, (str, type(None))):
@@ -978,44 +851,283 @@ class SetEnvironment(ConfigParserEnhanced):
         if not isinstance(module_value, (str, type(None))):
             raise TypeError("module_value must be either `string` or `None` types.")
 
-        # Debug Message
-        self.debug_message(2, "{} :: {} - {}".format(operation, module_name, module_value))
+        self.debug_message(2, "{} :: {} - {}".format(operation, module_name, module_value))         # Console
 
-        # Process the commands (order by most likely operation)
-        rval = 0
-        if operation == "module-load":
-            _tmp = "{}/{}".format(module_name, module_value)
-            rval = ModuleHelper.module("load", _tmp)
+        command = self._gen_actioncmd_module(operation, module_name, module_value)
+        output  = self._exec_helper(command)
 
-        elif operation == "module-unload":
-            rval = ModuleHelper.module("unload", module_name)
-
-        elif operation == "module-swap":
-            module_old = module_name
-            module_new = module_value
-            rval = ModuleHelper.module("swap", module_old, module_new)
-
-        elif operation == "module-use":
-            # Check the path existence for a `module use`. This could be moved to ModuleHelper later?
-            if not pathlib.Path(module_value).exists():
-                msg = "Requested path `{}` for `module use` does not exist.".format(module_value)
-                self.exception_control_event("CRITICAL", FileNotFoundError, msg)
-
-            rval = ModuleHelper.module("use", module_value)
-
-        elif operation == "module-purge":
-            rval = ModuleHelper.module("purge")
-
-        else:
-            raise ValueError("Unknown module operation: {}".format(operation))
-
-        if rval != 0:
-            message = "MODULE operation {} failed with {} rval.".format(operation, rval)
+        if output != 0:
+            message = "MODULE operation `{}` failed with rval == `{}`.".format(operation, output)
             self.exception_control_event("CRITICAL", RuntimeError, message)
 
-        return rval
+        return output
+
+
+    def _gen_script_bash_common(self) -> str:
+        """Generate "common" Bash functions
+
+        Generates a 'common' set of functions and helpers for Bash scripts.
+        This is used if we wish to generate a script in Bash that would
+        perform the same actions as the ``apply()`` method used in ``SetEnvironment``.
+
+        Returns:
+            str: A string containing the helper functions required if we generate
+            a Python output script.
+        """
+        output = dedent("""\
+        #!/usr/bin/env bash
+
+        # envvar_append_or_create
+        #  $1 = envvar name
+        #  $2 = string to append
+        function envvar_append_or_create() {
+            # envvar $1 is not set
+            if [[ ! -n "${!1+1}" ]]; then
+                export ${1}="${2}"
+            else
+                export ${1}="${!1}:${2}"
+            fi
+        }
+
+        # envvar_prepend_or_create
+        #  $1 = envvar name
+        #  $2 = string to prepend
+        function envvar_prepend_or_create() {
+            # envvar $1 is not set
+            if [[ ! -n "${!1+1}" ]]; then
+                export ${1}="${2}"
+            else
+                export ${1}="${2}:${!1}"
+            fi
+        }
+
+        # envvar_set_or_create
+        #  $1 = envvar name
+        #  $2 = string to prepend
+        function envvar_set_or_create() {
+            export ${1:?}="${2:?}"
+        }
+
+        # envvar_op
+        # $1 = operation    (set, append, prepend, unset)
+        # $2 = arg1         (envvar name)
+        # $3 = arg2         (envvar value - optional)
+        function envvar_op() {
+
+            local op=${1:?}
+            local arg1=${2:?}
+            local arg2=${3}
+
+            if [[ "${op}" == "set" ]]; then
+                envvar_set_or_create ${arg1:?} ${arg2:?}
+            elif [[ "${op}" == "unset" ]]; then
+                unset ${arg1:?}
+            elif [[ "${op}" == "append" ]]; then
+                envvar_append_or_create ${arg1} ${arg2:?}
+            elif [[ "${op}" == "prepend" ]]; then
+                envvar_prepend_or_create ${arg1} ${arg2:?}
+            else
+                echo -e "!! ERROR (BASH): Unknown operation: ${op}"
+            fi
+        }
+
+        """)
+        return output
+
+
+    def _gen_script_common_python(self) -> str:
+        """Generate "common" Python functions
+
+        Generates a common set of functions and helpers for Python
+        scripts. This is used if we wish to generate a script in Python
+        that performs the equivalent actions of ``apply()``. The generated
+        python output of this should be inserted to the ``.py`` file that
+        is generated.
+
+        Returns:
+            str: A string containing the helper functions required if we
+                generate a Python output script.
+        """
+
+        output = dedent("""\
+        import os
+
+        """)
+
+        # Note: We use `inspect` here to pull in the same code that's
+        #       used in SetEnvironment itself to reduce technical debt.
+        output += inspect.getsource(expand_envvars_in_string)
+        output += "\n"
+
+        output += inspect.getsource(envvar_op)
+        output += "\n"
+
+        return output
+
+
+    def _gen_actions_script_bash(self) -> str:
+        """Generate an action script for a **bash** script.
+
+        Raises:
+            ValueError: if an ``action`` does not have a ``envvar`` or
+                a ``module`` key.
+
+        Returns:
+            str: containing the bash script that can be written.
+        """
+
+        output_file_str = self._gen_script_bash_common()
+
+        for iaction in self.actions:
+
+            action_val = iaction['value']
+            action_op  = iaction['op']
+
+            if "envvar" in iaction.keys():
+                action_name = iaction['envvar']
+                output_file_str += self._gen_actioncmd_envvar(action_op,
+                                                              action_name,
+                                                              action_val,
+                                                              interp="bash")
+
+            elif "module" in iaction.keys():
+                action_name = iaction['module']
+                output_file_str += self._gen_actioncmd_module(action_op,
+                                                              action_name,
+                                                              action_val,
+                                                              interp='bash')
+            else:
+                raise ValueError("Unknown action class.")
+
+            output_file_str += "\n"
+
+        # Append an "EOF" comment for convenience. This helps annotate that we did
+        # actually finish the file (and gives a nice thing to test for in testing, etc.)
+        output_file_str += "\n\n# EOF\n"
+
+        return output_file_str
+
+
+    def _gen_actioncmd_module(self, op, arg1, arg2, interp='python'):
+        """
+        """
+        output = ""
+        op = self._remove_prefix(op, "module-")
+
+        arglist = [ op ]
+        if op == "purge":
+            pass
+        elif op == "use":
+            # Todo: Do we check these here? I'm torn on this because if we just wanted to
+            #       parse the ini file and generate a bash script that might be relocated
+            #       and run from a different CWD then checking here doesn't make sense.
+            #       Maybe a WARNING?
+            #       Depending on the Modules command available, we may get an error if
+            #       the `module use` fails and give us a RuntimeError. I'll leave out for now
+            #       and we can include it later once we have a chance to discuss in a code
+            #       review.
+            #if not os.path.exists(arg2):
+            #    self.exception_control_event("SERIOUS", FileNotFoundError,
+            #                                 "`module use` PATH not found: `{}`".format(arg2))
+            #if  not os.path.isdir(arg2):
+            #    self.exception_control_event("SERIOUS", FileNotFoundError,
+            #                                 "`module use` PATH is not a dir: `{}`".format(arg2))
+            arglist += [ arg2 ]
+        elif op == "load":
+            arglist += [ arg1 + "/" + arg2 ]
+        elif op == "unload":
+            arglist += [ arg1 ]
+        elif op == "swap":
+            arglist += [ arg1, arg2 ]
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid module operation provided: {}".format(op))
+
+        if interp=="python":
+            arglist = [ '"' + x + '"' for x in arglist ]
+            output = "ModuleHelper.module({})".format(",".join(arglist))
+        elif interp=="bash":
+            output = "module {}".format(" ".join(arglist))
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid interpreter provided: {}".format(interp))
+
+        return output
+
+
+    def _gen_actioncmd_envvar(self, op, arg1, arg2, interp='python'):
+        """
+        """
+        output = ""
+        op = self._remove_prefix(op, "envvar-")
+
+        arglist = [ op ]
+        if op == "set":
+            arglist += [ arg1, arg2 ]
+        elif op == "append":
+            arglist += [ arg1, arg2 ]
+        elif op == "prepend":
+            arglist += [ arg1, arg2 ]
+        elif op == "unset":
+            arglist += [ arg1 ]
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid module operation provided: {}".format(op))
+
+        if interp=="python":
+            arglist = [ '"' + x + '"' for x in arglist ]
+            output = "envvar_op({})".format(",".join(arglist))
+        elif interp=="bash":
+            output = "envvar_op {}".format(" ".join(arglist))
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid interpreter provided: {}".format(interp))
+
+        return output
+
+
+    def _remove_prefix(self, text, prefix) -> str:
+        """Remove a prefix string from another string
+
+        Removes a prefix string from some text. This is a better approach
+        than ``my_string.strip("somestr")`` because Python doesn't treat the
+        parameter to ``strip()`` as a proper substring.
+
+        Note:
+            Python 3.9 introduced ``removeprefix()`` and ``removesuffix()``
+            but until we can set 3.9.x as a minimum version we need to use
+            this workaround.
+
+        Returns:
+            str: A string object with the prefix removed if it existed.
+        """
+        assert isinstance(text, (str))
+        prefix = str(prefix)
+        if text.startswith(prefix):
+            return text[len(prefix):]
+        return text
+
+
+    def _exec_helper(self, command):
+        """Wrapper for ``exec()`` that properly captures the return value.
+
+        There are quirks with ``exec()`` and how hit handles return values
+        so this wrapper does it the 'right' way.
+
+        One can't fully rely on it to modify an existing local variable.
+        I think if the local var doesn't exist it will create one but if
+        it does exist then it won't overwrite it.
+
+        See Also:
+            - https://docs.python.org/3/library/functions.html#exec
+        """
+        ldict = {}
+        exec( "_rval = "+ command, globals(), ldict)
+        return ldict['_rval']
 
 
 
 # EOF
+
+
 
