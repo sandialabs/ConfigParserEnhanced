@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 ### Changed
+- Renamed `generic_handler` to `_generic_option_handler` because that name
+  could inadvertantly cause a `.ini` file option such as
+  `generic command: should not invoke a handler` to invoke the `generic_handler`
+  but it would go through the _handled operation_ code path and not the true _generic_
+  command code path.
 ### Deprecated
 ### Removed
 ### Fixed
