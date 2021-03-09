@@ -818,9 +818,8 @@ class SetEnvironmentTest(TestCase):
         interpreter  = "python"
         rval_expect  = 0
 
-        with self.assertRaises(ValueError):
-            rval_actual  = parser.write_actions_to_file(filename_out, interpreter)
-            self.assertEqual(rval_expect, rval_actual)
+        rval_actual  = parser.write_actions_to_file(filename_out, interpreter)
+        self.assertEqual(rval_expect, rval_actual)
 
         print("-----[ TEST END ]------------------------------------------")
 

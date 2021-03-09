@@ -39,28 +39,42 @@ from . import ModuleHelper
 
 
 
-def envvar_op(op, arg1, *args):
-    """
-    """
-    envvar_exists    = arg1 in os.environ.keys()
-    envvar_value_old = [os.environ[arg1]] if envvar_exists else []
+def envvar_op(op, envvar_name, envvar_value=""):
+    """Envvar operation helper
 
-    if len(args) > 0 and args[0] != None:
-        envvar_value = expand_envvars_in_string(args[0])
+    This function generates a wrapper for envvar operations.
+
+    Args:
+        op (str): The operation to execute. Valid entries are:
+            - ``set`` - Sets or resets an envvar to the specified value.
+            - ``append`` - Append a value to an existing envvar
+                or set if it doesn't exist.
+            - ``prepend`` - Prepend a value to an existing envvar
+                or set if it doesn't exist.
+            - ``unset`` - Unset (delete) an envvar if it exists.
+        envvar_name (str): The *name* of the envvar to be modified.
+        envvar_value (str): Optional envvar value for operations that
+            need to set a value. Default: ""
+    """
+    envvar_exists    = envvar_name in os.environ.keys()
+    envvar_value_old = [os.environ[envvar_name]] if envvar_exists else []
+
+    if envvar_value != "" and '$' in envvar_value:
+        envvar_value = expand_envvars_in_string(envvar_value)
 
     if op == "set":
-        os.environ[arg1] = envvar_value
+        os.environ[envvar_name] = envvar_value
     elif op == "append":
         tmp = envvar_value_old + [ envvar_value ]
         newval = os.pathsep.join(tmp)
-        os.environ[arg1] = newval
+        os.environ[envvar_name] = newval
     elif op == "prepend":
         tmp = [ envvar_value ] + envvar_value_old
         newval = os.pathsep.join(tmp)
-        os.environ[arg1] = newval
+        os.environ[envvar_name] = newval
     elif op == "unset":
         if envvar_exists:
-            del os.environ[arg1]
+            del os.environ[envvar_name]
     else:
         raise ValueError
     return 0
@@ -99,9 +113,6 @@ def expand_envvars_in_string(string_in) -> str:
 
     Raises:
          KeyError: Required environment variable does not exist.
-
-    Todo:
-        - Verify this is tested.
     """
     regexp = re.compile(r"(\$\{(\S*)\})")
     string_out = string_in
@@ -377,13 +388,14 @@ class SetEnvironment(ConfigParserEnhanced):
             In the future, generate options to write out the actions as
             "python".
         """
-        output_file_str = ""
-        if interpreter == "bash":
-            output_file_str = self._gen_actions_script_bash()
-        else:
-            message = "Unknown interpreter type '{}' provided.".format(interpreter)
-            self.exception_control_event("SERIOUS", ValueError, message)
+        allowable_interpreter_list = ["bash", "python"]
+        if interpreter not in allowable_interpreter_list:
+            errmsg  = "Invalid interpreter provided: {}\n".format(interpreter)
+            errmsg += "Allowable values must be one of: {}.".format(", ".join(allowable_interpreter_list))
+            self.exception_control_event("SERIOUS", ValueError, errmsg)
+            return 1
 
+        output_file_str = self._gen_actions_script(interp=interpreter)
         with open(filename, "w") as ofp:
             ofp.write(output_file_str)
 
@@ -511,7 +523,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        return self._helper_handler_module_common(section_name, handler_parameters)
+        return self._helper_handler_common_module(section_name, handler_parameters)
 
 
     def handler_module_purge(self, section_name, handler_parameters) -> int:
@@ -529,7 +541,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_handler_module_common(section_name, handler_parameters)
+        return self._helper_handler_common_module(section_name, handler_parameters)
 
 
     def handler_module_remove(self, section_name, handler_parameters) -> int:
@@ -596,7 +608,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_handler_module_common(section_name, handler_parameters)
+        return self._helper_handler_common_module(section_name, handler_parameters)
 
 
     def handler_module_unload(self, section_name, handler_parameters) -> int:
@@ -614,7 +626,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_handler_module_common(section_name, handler_parameters)
+        return self._helper_handler_common_module(section_name, handler_parameters)
 
 
     def handler_module_use(self, section_name, handler_parameters) -> int:
@@ -632,7 +644,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        return self._helper_handler_module_common(section_name, handler_parameters)
+        return self._helper_handler_common_module(section_name, handler_parameters)
 
 
     def handler_finalize(self, section_name, handler_parameters) -> int:
@@ -713,7 +725,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def _helper_handler_module_common(self, section_name, handler_parameters) -> int:
+    def _helper_handler_common_module(self, section_name, handler_parameters) -> int:
         """Common handler for module actions
 
         All the *module* actions care about the same sets of parameters so we
@@ -863,7 +875,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
-    def _gen_script_bash_common(self) -> str:
+    def _gen_script_common_bash(self) -> str:
         """Generate "common" Bash functions
 
         Generates a 'common' set of functions and helpers for Bash scripts.
@@ -881,7 +893,6 @@ class SetEnvironment(ConfigParserEnhanced):
         #  $1 = envvar name
         #  $2 = string to append
         function envvar_append_or_create() {
-            # envvar $1 is not set
             if [[ ! -n "${!1+1}" ]]; then
                 export ${1}="${2}"
             else
@@ -893,7 +904,6 @@ class SetEnvironment(ConfigParserEnhanced):
         #  $1 = envvar name
         #  $2 = string to prepend
         function envvar_prepend_or_create() {
-            # envvar $1 is not set
             if [[ ! -n "${!1+1}" ]]; then
                 export ${1}="${2}"
             else
@@ -950,22 +960,31 @@ class SetEnvironment(ConfigParserEnhanced):
         """
 
         output = dedent("""\
+        #!/usr/bin/env python3
         import os
+        import re
+        import sys
+
+        if not sys.version_info.major >= 3:
+            raise Exception("Minimum Python required is 3.x")
+
+        from setenvironment import ModuleHelper
+
 
         """)
 
         # Note: We use `inspect` here to pull in the same code that's
         #       used in SetEnvironment itself to reduce technical debt.
         output += inspect.getsource(expand_envvars_in_string)
-        output += "\n"
+        output += "\n\n"
 
         output += inspect.getsource(envvar_op)
-        output += "\n"
+        output += "\n\n"
 
         return output
 
 
-    def _gen_actions_script_bash(self) -> str:
+    def _gen_actions_script(self, interp='bash') -> str:
         """Generate an action script for a **bash** script.
 
         Raises:
@@ -975,8 +994,13 @@ class SetEnvironment(ConfigParserEnhanced):
         Returns:
             str: containing the bash script that can be written.
         """
+        # Todo: Value check on interp
 
-        output_file_str = self._gen_script_bash_common()
+        output_file_str = ""
+        if interp == "bash":
+            output_file_str += self._gen_script_common_bash()
+        elif interp == "python":
+            output_file_str += self._gen_script_common_python()
 
         for iaction in self.actions:
 
@@ -988,31 +1012,83 @@ class SetEnvironment(ConfigParserEnhanced):
                 output_file_str += self._gen_actioncmd_envvar(action_op,
                                                               action_name,
                                                               action_val,
-                                                              interp="bash")
+                                                              interp=interp)
 
             elif "module" in iaction.keys():
                 action_name = iaction['module']
                 output_file_str += self._gen_actioncmd_module(action_op,
                                                               action_name,
                                                               action_val,
-                                                              interp='bash')
+                                                              interp=interp)
             else:
                 raise ValueError("Unknown action class.")
 
             output_file_str += "\n"
 
-        # Append an "EOF" comment for convenience. This helps annotate that we did
-        # actually finish the file (and gives a nice thing to test for in testing, etc.)
-        output_file_str += "\n\n# EOF\n"
+        output_file_str += "\n\n"
 
         return output_file_str
 
 
-    def _gen_actioncmd_module(self, op, arg1, arg2, interp='python'):
+    def _gen_actioncmd_module(self, op, *args, interp='python') -> str:
         """
+        Generates an executable module command based on the selected interpreter.
+
+        Operations defined for this are:
+
+        +-------------+----------+---------------------------------------------------+
+        | Operation   | Req Args | Description & required positional args            |
+        +=============+==========+===================================================+
+        | ``load``    |        2 | Load the specified module.                        |
+        +-------------+----------+                                                   +
+        |             |          |  - arg1: *module name* (``gcc``)                  |
+        |             |          |  - arg2: *module version* (``7.3.0``)             |
+        +-------------+----------+---------------------------------------------------+
+        | ``purge``   |        0 | Purge all loaded modules and search paths.        |
+        +-------------+----------+---------------------------------------------------+
+        | ``swap``    |        2 | Swap a loaded module for another module.          |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *module name* (``gcc``)                   |
+        |             |          | - arg2: *module name* + *version* (``gcc/9.2.0``) |
+        +-------------+----------+---------------------------------------------------+
+        | ``unload``  |        1 | Unload the specified module.                      |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *module name* (i.e., ``gcc``)             |
+        +-------------+----------+---------------------------------------------------+
+        | ``use``     |        1 | Add a path to be included in modules search path. |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *path to modules*                         |
+        +-------------+----------+---------------------------------------------------+
+
+        This method is invoked like this
+        ``_gen_actioncmd_module(op, arg1, arg2, ... , argN, interp='python')``
+        where there is a variable number of positional arguments after ``op``
+        based on which operation is specified.
+
+        Allowable interpreters for the ``interp`` parameter are "bash" or "python".
+
+        - For ``python`` uses we use the ``module()`` function defined in ``ModuleHelper``.
+        - For ``bash`` use cases we generate commands using the ``module`` application.
+
+        Args:
+            op (string): The module operation to perform.
+            *args: Provide the (str) arguments needed for the given operation.
+                See the table provided above.
+            interp (str): Interpreter to generate code for. ``bash`` or ``python``
+                are currently allowed.
         """
         output = ""
         op = self._remove_prefix(op, "module-")
+
+        # Validate parameters
+        num_args_req = 0
+        if   op in ['purge']:          num_args_req = 0
+        elif op in ['use',  'unload']: num_args_req = 1
+        elif op in ['load', 'swap']:   num_args_req = 2
+
+        if len(args) < num_args_req:
+            errmsg = "Incorrect # of arguments provided for `module-{}`".format(op)
+            self.exception_control_event("CRITICAL", IndexError, errmsg)
 
         arglist = [ op ]
         if op == "purge":
@@ -1032,13 +1108,13 @@ class SetEnvironment(ConfigParserEnhanced):
             #if  not os.path.isdir(arg2):
             #    self.exception_control_event("SERIOUS", FileNotFoundError,
             #                                 "`module use` PATH is not a dir: `{}`".format(arg2))
-            arglist += [ arg2 ]
+            arglist += [ args[1] ]
         elif op == "load":
-            arglist += [ arg1 + "/" + arg2 ]
+            arglist += [ args[0] + "/" + args[1] ]
         elif op == "unload":
-            arglist += [ arg1 ]
+            arglist += [ args[0] ]
         elif op == "swap":
-            arglist += [ arg1, arg2 ]
+            arglist += [ args[0], args[1] ]
         else:
             self.exception_control_event("SERIOUS", ValueError,
                                          "Invalid module operation provided: {}".format(op))
@@ -1055,21 +1131,89 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
-    def _gen_actioncmd_envvar(self, op, arg1, arg2, interp='python'):
+    def _gen_actioncmd_envvar(self, op, *args, interp='python'):
         """
+        Generates an executable environment variable command based on
+        the selected interpreter.
+
+        Operations defined for this are:
+
+        +-------------+----------+---------------------------------------------------+
+        | Operation   | Req Args | Description & required positional args            |
+        +=============+==========+===================================================+
+        | ``append``  |        2 | Append a value ot an existing environment var.    |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *envvar name*                             |
+        |             |          | - arg2: *envvar value*                            |
+        +-------------+----------+---------------------------------------------------+
+        | ``prepend`` |        2 | Prepend a value to an existing environment var.   |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *envvar name*                             |
+        |             |          | - arg2: *envvar value*                            |
+        +-------------+----------+---------------------------------------------------+
+        | ``set``     |        2 | Set an environment variable to a value.           |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *envvar name*                             |
+        |             |          | - arg2: *envvar value*                            |
+        +-------------+----------+---------------------------------------------------+
+        | ``unset``   |        1 | Unset the environment variable if it exists.      |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *module name* (i.e., ``gcc``)             |
+        +-------------+----------+---------------------------------------------------+
+
+        This method is invoked like this
+        ``_gen_actioncmd_module(op, arg1, arg2, ... , argN, interp='python')``
+        where there is a variable number of positional arguments after ``op``
+        based on which operation is specified.
+        This method generates an executable line of code in the language specified
+        by the ``interp`` parameter. Currently, ``bash`` and ``python`` are allowed.
+
+        +-------------+--------------------------------------------------------------+
+        | ``interp``  | Common Functions Generator(s)                                |
+        +=============+==============================================================+
+        | ``python``  | ``_gen_script_common_python``, defines:                      |
+        +-------------+                                                              |
+        |             | - ``envvar_op()``                                            |
+        |             | - ``expand_envvars_in_string()``                             |
+        +-------------+--------------------------------------------------------------+
+        | ``bash```   | ``_gen_script_common_bash``, defines:                        |
+        +             +                                                              |
+        |             | - ``envvar_op``                                              |
+        |             | - ``envvar_append_or_create``                                |
+        |             | - ``envvar_prepend_or_create``                               |
+        |             | - ``envvar_set_or_create``                                   |
+        +-------------+--------------------------------------------------------------+
+
+        Args:
+            - ``op`` (str): The operation to be executed.
+                See the table above for more details.
+            *args: Provide the (str) arguments needed for the given operation.
+                See the table above for more details.
+            interp (str): Interpreter to generate code for. ``bash`` or ``python``
+                are currently allowed.
+
         """
         output = ""
         op = self._remove_prefix(op, "envvar-")
 
+        # Validate parameters
+        num_args_req = 0
+        if   op in ['unset']: num_args_req = 1
+        else:                 num_args_req = 2
+
+        if len(args) < num_args_req:
+            errmsg = "Incorrect # of arguments provided for `envvar-{}`".format(op)
+            self.exception_control_event("CRITICAL", IndexError, errmsg)
+
         arglist = [ op ]
         if op == "set":
-            arglist += [ arg1, arg2 ]
+            arglist += [ args[0], args[1] ]
         elif op == "append":
-            arglist += [ arg1, arg2 ]
+            arglist += [ args[0], args[1] ]
         elif op == "prepend":
-            arglist += [ arg1, arg2 ]
+            arglist += [ args[0], args[1] ]
         elif op == "unset":
-            arglist += [ arg1 ]
+            arglist += [ args[0] ]
         else:
             self.exception_control_event("SERIOUS", ValueError,
                                          "Invalid module operation provided: {}".format(op))

@@ -69,11 +69,12 @@ Environment Modules Handlers
 Helpers (Private)
 +++++++++++++++++
 
-.. automethod:: setenvironment.SetEnvironment._helper_envvar_common
-.. automethod:: setenvironment.SetEnvironment._helper_module_common
+.. automethod:: setenvironment.SetEnvironment._helper_handler_common_envvar
+.. automethod:: setenvironment.SetEnvironment._helper_handler_common_module
 .. automethod:: setenvironment.SetEnvironment._apply_envvar
 .. automethod:: setenvironment.SetEnvironment._apply_module
-.. automethod:: setenvironment.SetEnvironment._expand_envvars_in_string
-
-
+.. automethod:: setenvironment.SetEnvironment._gen_actioncmd_envvar
+.. automethod:: setenvironment.SetEnvironment._gen_actioncmd_module
+.. automethod:: setenvironment.SetEnvironment._remove_prefix
+.. automethod:: setenvironment.SetEnvironment._exec_helper
 
