@@ -21,6 +21,7 @@ options=(
     install
     --user
     -r requirements.txt
+    -r doc/requirements.txt
 )
 
 cmd="${python_exe} ${options[@]}"
