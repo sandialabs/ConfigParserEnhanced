@@ -25,6 +25,7 @@ from mock import Mock
 from mock import MagicMock
 from mock import patch
 
+import filecmp
 from textwrap import dedent
 
 try:
@@ -143,6 +144,11 @@ class SetEnvironmentTest(TestCase):
         print("")
         self.maxDiff = None
         self._filename = find_config_ini(filename="config_test_setenvironment.ini")
+
+        # Get the location of the unit testing scripts (for file writing tests)
+        unit_test_path = os.path.realpath(__file__)
+        self.unit_test_file = os.path.basename(unit_test_path)
+        self.unit_test_path = os.path.dirname(unit_test_path)
 
 
     def test_SetEnvironment_Template(self):
@@ -818,31 +824,35 @@ class SetEnvironmentTest(TestCase):
         print("")
         parser.pretty_print_actions()
 
-        filename_out = "___apply_configuration.sh"
+        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_truth.sh"])
+        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_test.sh"])
         include_header = True
         interpreter  = "bash"
         rval_expect  = 0
-        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
 
         self.assertEqual(rval_expect, rval_actual)
+        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
 
         print("-----[ TEST END ]------------------------------------------")
 
         print("-----[ TEST BEGIN ]----------------------------------------")
 
-        filename_out = "___apply_configuration_nohdr.sh"
+        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_nohdr_truth.sh"])
+        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_nohdr_test.sh"])
         include_header = False
         interpreter  = "bash"
         rval_expect  = 0
-        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
 
         self.assertEqual(rval_expect, rval_actual)
+        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
 
         print("-----[ TEST END ]------------------------------------------")
 
         print("-----[ TEST BEGIN ]----------------------------------------")
 
-        filename_out = "___apply_configuration_nohdr.sh"
+        filename_out = "___apply_configuration_nowrite_01.sh"
         include_header = True
         interpreter  = "undefined interpreter"
         rval_expect  = 0
@@ -878,31 +888,38 @@ class SetEnvironmentTest(TestCase):
         print("")
         parser.pretty_print_actions()
 
-        filename_out = "___apply_configuration.py"
+        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_truth.py"])
+        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_test.py"])
         include_header = True
         interpreter  = "python"
         rval_expect  = 0
 
-        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
+
         self.assertEqual(rval_expect, rval_actual)
+        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
+
 
         print("-----[ TEST END ]------------------------------------------")
 
         print("-----[ TEST BEGIN ]----------------------------------------")
 
-        filename_out = "___apply_configuration.py"
+        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_nohdr_truth.py"])
+        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_nohdr_test.py"])
         include_header = False
         interpreter  = "python"
         rval_expect  = 0
 
-        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
+
         self.assertEqual(rval_expect, rval_actual)
+        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
 
         print("-----[ TEST END ]------------------------------------------")
 
         print("-----[ TEST BEGIN ]----------------------------------------")
 
-        filename_out = "___apply_configuration.py"
+        filename_out = "___apply_configuration_nowrite_01.py"
         include_header = True
         interpreter  = "undefined interpreter"
         rval_expect  = 0
@@ -915,7 +932,7 @@ class SetEnvironmentTest(TestCase):
 
         print("-----[ TEST BEGIN ]----------------------------------------")
 
-        filename_out = "___apply_configuration.py"
+        filename_out = "___apply_configuration_nowrite_02.py"
         include_header = True
         interpreter  = "undefined interpreter"
         rval_expect  = 1

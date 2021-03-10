@@ -74,13 +74,15 @@ debug.launch-configs = (2,
          'rundir': ('project',
                     u'')})})
 proj.directory-list = [{'dirloc': loc('.'),
-                        'excludes': ('.git',
-                                     '.coverage',
-                                     '.pytest_cache'),
-                        'filter': u'*',
+                        'excludes': ['.coverage',
+                                     '.git',
+                                     u'tests',
+                                     '.pytest_cache'],
+                        'filter': '*',
                         'include_hidden': True,
                         'recursive': True,
                         'watch_for_changes': True}]
+proj.file-list = [loc('pytest.ini')]
 proj.file-type = 'shared'
 proj.launch-config = {loc('../../coding/pyExampleLib/configparser/configparser-example.py'): ('c'\
         'ustom',
