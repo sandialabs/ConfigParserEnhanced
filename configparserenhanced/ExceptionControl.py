@@ -44,9 +44,13 @@ class ExceptionControl(object):
       a problem happened. The likelihood that this kind of event should
       halt execution and/or throw an exception rather than print out a message
       is high.
-    * **CRITICAL:** The highest severity of event. This would generally indicate something
+    * **CRITICAL:** The highest severity of event that might not be raised depending
+      on the value of ``exception_control_level``. This would generally indicate something
       went seriously wrong and we should definitely raise the exception
       and halt execution.
+    * **CATASTROPHIC:** This kind of event is the highest level of severity
+      and will **always** raise the associated exception. These cannot be
+      opted out of.
 
     When events are raised, we will set them to the appropriate type and the behaviour can
     be determined based on the ``exception_control_level`` property on the class. This property
@@ -68,11 +72,29 @@ class ExceptionControl(object):
        Lower severity events will print out a warning message.
     5. **Always Raise:**
        All events trigger their exception.
-
-
-    Todo:
-        - Convert this to an abstract base class?
     """
+
+
+    @property
+    def _exception_control_map_event_to_level_req(self):
+        """
+        A map of the Exception Control event classes to the
+        minimum level of ``exception_control_level`` required to
+        trigger an event of each class to be raised vs. print a warning.
+
+        Values for each class can range from 0 to 5. An event class of 0
+        indicates that the event will *always* raise an exception and a
+        level of 5 would only be raised at the highest ``exception_control_level``.
+        """
+        output = {
+            "WARNING"      : 5,
+            "MINOR"        : 4,
+            "SERIOUS"      : 3,
+            "CRITICAL"     : 2,
+            "CATASTROPHIC" : 0
+        }
+        return output
+
 
     @property
     def exception_control_level(self):
@@ -150,17 +172,10 @@ class ExceptionControl(object):
 
         event_type = str(event_type).upper()
 
-        event_type_to_exception_control_level_map = {
-            "WARNING" : 5,
-            "MINOR"   : 4,
-            "SERIOUS" : 3,
-            "CRITICAL": 2,
-        }
-
         if not _is_raisable(exception_type):
             raise TypeError("The exception type must be some kind of `Exception`.")
 
-        req_exception_control_level = event_type_to_exception_control_level_map[event_type]
+        req_exception_control_level = self._exception_control_map_event_to_level_req[event_type]
         if self.exception_control_level >= req_exception_control_level:
             if message == None:
                 raise exception_type
