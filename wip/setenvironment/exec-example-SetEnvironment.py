@@ -82,8 +82,9 @@ def parse_section(parser, section):
 
     assert len(parser.actions) > 0
 
-    return data
+    parser.write_actions_to_file("___set_environment.sh")
 
+    return data
 
 
 def experimental(filename="config.ini"):
