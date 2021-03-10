@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 ### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
+
+## [0.2.0] - 2021-03-10
+### Added
+### Changed
 - `ExceptionControl`
     - Add property `_exception_control_map_event_to_level_req` to `ExceptionControl`
       which maps the exception control levels to the type names.
