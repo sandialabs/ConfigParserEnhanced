@@ -11,7 +11,7 @@ Todo:
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
 
-:Version: 0.0.1
+:Version: 0.1.0
 """
 from __future__ import print_function
 

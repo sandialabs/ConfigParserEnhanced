@@ -1,4 +1,4 @@
-ModuleHelper Reference
+ModuleHelper Class Reference
 ==============================
 
 

@@ -16,8 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
-
 ## [Unreleased]
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+#### Security
+#### Todo (for Unreleased)
+
+
+
+## [0.1.0] - 2021-03-10
 - ConfigParserEnhanced is currently _alpha_ and has many changes occurring.
 
 #### Added
