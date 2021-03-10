@@ -44,7 +44,7 @@ else:                                                                           
 
 
 
-try:
+try:    # pragma: no cover  (don't report until we have a system we can test on with LMOD available)
 
     # Try to import the LMOD version of the module() function.
     # See: https://github.com/TACC/Lmod/blob/master/init/env_modules_python.py.in

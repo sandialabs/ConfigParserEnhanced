@@ -1018,6 +1018,9 @@ class SetEnvironment(ConfigParserEnhanced):
                 output_file_str += self._gen_script_header_bash()
             elif interp == "python":
                 output_file_str += self._gen_script_header_python()
+            else:                                                                                   # pragma: no cover (unreachable)
+                self.exception_control_event("CRITICAL", RuntimeError,
+                    "'Unreachable' branch executed, something is broken!")
 
         for iaction in self.actions:
 
@@ -1209,6 +1212,13 @@ class SetEnvironment(ConfigParserEnhanced):
             interp (str): Interpreter to generate code for. ``bash`` or ``python``
                 are currently allowed.
 
+        Raises:
+            IndexError: If the number of arguments provided is incompatible with
+                the command.
+            ValueError: If the operation provided is not in the list of available
+                operations.
+            ValueError: If the interpreter is not in the list of available interpreters.
+
         """
         output = ""
         op = self._remove_prefix(op, "envvar-")
@@ -1254,15 +1264,25 @@ class SetEnvironment(ConfigParserEnhanced):
         than ``my_string.strip("somestr")`` because Python doesn't treat the
         parameter to ``strip()`` as a proper substring.
 
+        Args:
+            text (str): The text string.
+            prefix (str): The prefix to strip off.
+
+        Returns:
+            str: A string object with the prefix removed if it existed.
+
         Note:
             Python 3.9 introduced ``removeprefix()`` and ``removesuffix()``
             but until we can set 3.9.x as a minimum version we need to use
             this workaround.
 
-        Returns:
-            str: A string object with the prefix removed if it existed.
+        Raises:
+            TypeError: if ``text`` or ``prefix`` are not both strings.
         """
-        assert isinstance(text, (str))
+        if not isinstance(text, (str)):
+            raise TypeError("`text` must be a string type.")
+        if not isinstance(prefix, (str)):
+            raise TypeError("`prefix` must be a string type.")
         prefix = str(prefix)
         if text.startswith(prefix):
             return text[len(prefix):]

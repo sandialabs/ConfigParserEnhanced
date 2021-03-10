@@ -25,6 +25,8 @@ from mock import Mock
 from mock import MagicMock
 from mock import patch
 
+from textwrap import dedent
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -451,7 +453,6 @@ class SetEnvironmentTest(TestCase):
         parser.apply()
 
         self.assertFalse("FOO" in os.environ.keys())
-        self.assertFalse("BAR" in os.environ.keys())
 
         print("-----[ TEST END ]------------------------------------------")
 
@@ -975,6 +976,47 @@ class SetEnvironmentTest(TestCase):
         return
 
 
+    def test_SetEnvironment_helper_gen_actions_script_nohdr(self):
+        """
+        Test `_gen_actions_script` without a header
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.exception_control_level = 5
+        parser.debug_level = 5
+
+        section = "CONFIG_A"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        test_incl_hdr = False
+        test_interp = "bash"
+        rval_expect = dedent("""\
+                        envvar_op set FOO bar
+                        envvar_op append FOO baz
+                        envvar_op prepend FOO foo
+                        envvar_op set BAR foo
+                        envvar_op unset FOO
+                        """).strip()
+        rval_actual = parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+        rval_actual = rval_actual.strip()
+
+        self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+        print("OK")
+        return
+
+
     def test_SetEnvironment_helper_gen_actions_script_badinterp(self):
         """
         Test `_gen_actions_script` with a bad interpreter
@@ -1042,6 +1084,213 @@ class SetEnvironmentTest(TestCase):
         del parser.actions[-1]
 
         print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_helper_gen_actioncmd_module_badinterp(self):
+        """
+        Test the ``_gen_actioncmd_module`` command.
+
+        Test that an exception is raised if ``interp`` is sent a bad
+        parameter for the interpreter.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        operation   = "module-load"
+        module_name = "gcc"
+        module_ver  = "7.2.0"
+        interpreter = "bad interpreter name"
+        with self.assertRaises(ValueError):
+            parser._gen_actioncmd_module(operation, module_name, module_ver, interp=interpreter)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_helper_gen_actioncmd_envvar_badinterp(self):
+        """
+        Test the ``_gen_actioncmd_envvar`` command
+
+        Test that an exception is raised if ``interp`` is sent a bad
+        parameter for the interpreter.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        operation   = "envvar-set"
+        envvar_name = "FOO"
+        envvar_val  = "BAR"
+        interpreter = "bad interpreter name"
+        with self.assertRaises(ValueError):
+            parser._gen_actioncmd_envvar(operation, envvar_name, envvar_val, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_helper_gen_actioncmd_envvar_badnumargs(self):
+        """
+        Test the ``_gen_actioncmd_envvar`` command
+
+        Test what happens if the wrong # of parameters is sent in for commands.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        envvar_name = "FOO"
+        envvar_val  = "BAR"
+        interpreter = "python"
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # envvar-set requires 2 parameters.
+        operation   = "envvar-set"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_envvar(operation, envvar_name, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # envvar-append requires 2 parameters.
+        operation   = "envvar-append"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_envvar(operation, envvar_name, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # envvar-prepend requires 2 parameters.
+        operation   = "envvar-prepend"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_envvar(operation, envvar_name, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # envvar-unset requires 1 parameters.
+        operation   = "envvar-unset"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_envvar(operation, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_helper_gen_actioncmd_module_badnumargs(self):
+        """
+        Test the ``_gen_actioncmd_module`` command
+
+        Test what happens if the wrong # of parameters is sent in for commands.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        module_name = "gcc"
+        module_val  = "7.3.0"
+        interpreter = "python"
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # module-load requires 2 parameters.
+        operation = "module-load"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_module(operation, module_name, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # module-unload requires 1 parameters.
+        operation = "module-unload"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_module(operation, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # module-use requires 1 parameters
+        operation = "module-use"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_module(operation, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # module-swap requires 2 parameters
+        operation = "module-swap"
+        with self.assertRaises(IndexError):
+            parser._gen_actioncmd_module(operation, module_name, interp=interpreter)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # module-purge requires 0 parameters
+        operation  = "module-purge"
+        cmd_expect = 'ModuleHelper.module("purge")'
+        cmd_actual = parser._gen_actioncmd_module(operation, interp=interpreter)
+        self.assertEqual(cmd_expect, cmd_actual)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_helper_remove_prefix(self):
+        """
+        Test the ``_remove_prefix`` method.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        text        = "envvar-use"
+        prefix      = "envvar-"
+        rval_expect = "use"
+        rval_actual = parser._remove_prefix(text, prefix)
+        self.assertEqual(rval_expect, rval_actual)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        text        = "envvar-use"
+        prefix      = "varuse"
+        rval_expect = "envvar-use"
+        rval_actual = parser._remove_prefix(text, prefix)
+        self.assertEqual(rval_expect, rval_actual)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        text        = None
+        prefix      = "envvar-"
+        rval_expect = "envvar-use"
+        with self.assertRaises(TypeError):
+            rval_actual = parser._remove_prefix(text, prefix)
+            self.assertEqual(rval_expect, rval_actual)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        text        = "envvar-use"
+        prefix      = None
+        rval_expect = "envvar-use"
+        with self.assertRaises(TypeError):
+            rval_actual = parser._remove_prefix(text, prefix)
+            self.assertEqual(rval_expect, rval_actual)
+        print("-----[ TEST END ]------------------------------------------")
+
 
         print("OK")
         return
