@@ -49,6 +49,7 @@ Operation handlers for .ini file processing
 
 .. automethod:: setenvironment.SetEnvironment.handler_finalize
 
+
 Environment Variable Handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_append
@@ -56,6 +57,7 @@ Environment Variable Handlers
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_remove
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_set
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_unset
+
 
 Environment Modules Handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,14 +68,28 @@ Environment Modules Handlers
 .. automethod:: setenvironment.SetEnvironment.handler_module_unload
 .. automethod:: setenvironment.SetEnvironment.handler_module_use
 
+
 Helpers (Private)
 +++++++++++++++++
-
-.. automethod:: setenvironment.SetEnvironment._helper_envvar_common
-.. automethod:: setenvironment.SetEnvironment._helper_module_common
 .. automethod:: setenvironment.SetEnvironment._apply_envvar
 .. automethod:: setenvironment.SetEnvironment._apply_module
-.. automethod:: setenvironment.SetEnvironment._expand_envvars_in_string
+.. automethod:: setenvironment.SetEnvironment._helper_handler_common_envvar
+.. automethod:: setenvironment.SetEnvironment._helper_handler_common_module
+.. automethod:: setenvironment.SetEnvironment._gen_actioncmd_envvar
+.. automethod:: setenvironment.SetEnvironment._gen_actioncmd_module
+.. automethod:: setenvironment.SetEnvironment._remove_prefix
+.. automethod:: setenvironment.SetEnvironment._exec_helper
 
 
+Helpers (Private - Writers)
++++++++++++++++++++++++++++
+.. automethod:: setenvironment.SetEnvironment._gen_actions_script
+.. automethod:: setenvironment.SetEnvironment._gen_script_header_bash
+.. automethod:: setenvironment.SetEnvironment._gen_script_header_python
+
+
+Free Functions
+++++++++++++++
+.. autofunction:: setenvironment.SetEnvironment.expand_envvars_in_string
+.. autofunction:: setenvironment.SetEnvironment.envvar_op
 

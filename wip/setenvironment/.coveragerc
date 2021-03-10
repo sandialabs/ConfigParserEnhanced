@@ -10,6 +10,9 @@ source = setenvironment
 skip_covered = False
 fail_under = 90
 show_missing = True
+exclude_lines =
+    pragma: no cover
+    if 0:
 
 [html]
 directory = tests/htmlcov
