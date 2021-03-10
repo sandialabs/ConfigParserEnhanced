@@ -83,6 +83,7 @@ def parse_section(parser, section):
     assert len(parser.actions) > 0
 
     parser.write_actions_to_file("___set_environment.sh")
+    parser.write_actions_to_file("___set_environment.py", interpreter="python")
 
     return data
 

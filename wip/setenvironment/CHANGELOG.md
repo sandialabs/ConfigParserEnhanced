@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a sample 'modulefiles' dir under `unittests` for testing module
   command handling.
 - Added `write_actions_to_file(filename,interpreter)`.
-  This currently only supports `bash` output.
+  This currently only supports `bash` and `python` output.
 
 #### Changed
 - Fairly major overhaul of the way we generate the commands to support
