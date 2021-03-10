@@ -97,6 +97,56 @@ class ExceptionControl(object):
 
 
     @property
+    def exception_control_silent_warnings(self) -> bool:
+        """A flag that toggles silencing of warnings.
+
+        This ``boolean`` property toggles whether or not
+        ``exception_control_event`` should silence events that
+        don't *raise* their associated exception.
+
+        Returns:
+            bool: ``True`` to cause events that don't raise their exception
+                to suppress their associated exception message. ``False``
+                if we do not wish to suppress warning messages.
+        """
+        if not hasattr(self, '_exception_control_silent_warnings'):
+            self._exception_control_silent_warnings = False
+        return self._exception_control_silent_warnings
+
+
+    @exception_control_silent_warnings.setter
+    def exception_control_silent_warnings(self, value) -> bool:
+        if not isinstance(value, (bool)):
+            raise TypeError("Value must be a `bool` type in assignment.")
+        self._exception_control_silent_warnings = value
+        return self._exception_control_silent_warnings
+
+
+    @property
+    def exception_control_compact_warnings(self) -> bool:
+        """A flag that toggles compact warnings.
+
+        This ``boolean`` property toggles the use of compact warnings.
+
+        Returns:
+            bool: ``True`` will set warnings to be compact in nature
+                and print out just a short warning rather than the
+                full warning.
+        """
+        if not hasattr(self, '_exception_control_compact_warnings'):
+            self._exception_control_compact_warnings = False
+        return self._exception_control_compact_warnings
+
+
+    @exception_control_compact_warnings.setter
+    def exception_control_compact_warnings(self, value) -> bool:
+        if not isinstance(value, (bool)):
+            raise TypeError("Value must be a `bool` type in assignment.")
+        self._exception_control_compact_warnings = value
+        return self._exception_control_compact_warnings
+
+
+    @property
     def exception_control_level(self):
         """Get the value of the ``exception_control_level`` property.
 
@@ -185,26 +235,37 @@ class ExceptionControl(object):
             try:
                 raise exception_type
             except exception_type as ex:
-                print("!! " + "="*80)
-                print("!! EXCEPTION SKIPPED")
-                print("!! Event Type : {}".format(event_type))
-                print("!! Exception  : {}".format(exception_type.__name__))
-                if message != None:
-                    message = message.replace("\n", "\n!!            : ")
-                    print("!! Message    : {}".format(message))
 
-                print("!!")
-                print("!! Call Stack:")
-                # Ignore the last entry from the call stack since that is _this_ method.
-                # and it's the _caller_ that we care about for the call stack in reporting.
-                for line in traceback.format_stack()[:-1]:
-                    line = line.strip()
-                    line = line.replace("\n", "\n!! ")
-                    print("!! {}".format(line.strip()))
+                if not self.exception_control_silent_warnings:
 
-                print("!!")
-                print("!! Increase `exception_control_level` to {} to raise this exception.".format(req_exception_control_level))
-                print("!! " + "="*80)
-                sys.stdout.flush()
+                    if self.exception_control_compact_warnings:
+                        tb_last = str(traceback.format_stack()[-1])
+                        tb_last = tb_last.splitlines()[0]
+                        tb_last = tb_last.strip()
+                        print("!! EXCEPTION SKIPPED ({} : {}) @ {}".format(
+                            event_type, exception_type.__name__, tb_last))
+                    else:
+                        print("!! " + "="*80)
+                        print("!! EXCEPTION SKIPPED")
+                        print("!! Event Type : {}".format(event_type))
+                        print("!! Exception  : {}".format(exception_type.__name__))
+                        if message != None:
+                            message = message.replace("\n", "\n!!            : ")
+                            print("!! Message    : {}".format(message))
+
+                        print("!!")
+                        print("!! Call Stack:")
+                        # Ignore the last entry from the call stack since that is _this_ method.
+                        # and it's the _caller_ that we care about for the call stack in reporting.
+                        for line in traceback.format_stack()[:-1]:
+                            line = line.strip()
+                            line = line.replace("\n", "\n!! ")
+                            print("!! {}".format(line.strip()))
+
+                        print("!!")
+                        print("!! Increase `exception_control_level` to {} to raise this exception.".format(req_exception_control_level))
+                        print("!! " + "="*80)
+
+                    sys.stdout.flush()
 
         return
