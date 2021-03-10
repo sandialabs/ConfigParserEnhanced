@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       which maps the exception control levels to the type names.
     - Add new class of `exception_control_event`: "CATASTROPHIC" which indicates
       errors that will _always_ raise the exception and cannot be overridden.
+- Added property `exception_control_silent_warnings` to `ExceptionControl`
+  to enable silencing events that would only print out a warning message.
+- Added property `exception_control_compact_warnings` to `ExceptionControl`
+  to enable _compact_ one-line warning messages instead of the full message and
+  stack trace that is normally generated.
 - Renamed `generic_handler` to `_generic_option_handler` because that name
   could inadvertantly cause a `.ini` file option such as
   `generic command: should not invoke a handler` to invoke the `generic_handler`

@@ -424,6 +424,438 @@ class ExceptionControlTest(TestCase):
         return
 
 
+    def test_ExceptionControl_method_exception_control_event_silent_warnings(self):
+
+        class testme(ExceptionControl):
+            def __init__(self):
+                pass
+                return
+
+            def event_warning(self):
+                inst_testme.exception_control_event("WARNING", ValueError, message="message text")
+
+            def event_minor(self):
+                inst_testme.exception_control_event("MINOR", ValueError, message="message text")
+
+            def event_serious(self):
+                inst_testme.exception_control_event("SERIOUS", ValueError, message="message text")
+
+            def event_critical(self):
+                inst_testme.exception_control_event("CRITICAL", ValueError, message="message text")
+
+            def event_catastrophic(self):
+                inst_testme.exception_control_event("CATASTROPHIC", ValueError, message="message text")
+
+
+        inst_testme = testme()
+
+        # Check that we raise the typeerror if the assignment isn't a bool
+        with self.assertRaises(TypeError):
+            inst_testme.exception_control_silent_warnings = None
+
+        # Enable warning suppression
+        inst_testme.exception_control_silent_warnings = True
+
+        # Default exception_control_level == 4
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_minor()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 0 (Silent Running)
+        inst_testme.exception_control_level = 0
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_serious()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_critical()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
+        inst_testme.exception_control_level = 1
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_serious()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_critical()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 2 (raise CRITICAL)
+        inst_testme.exception_control_level = 2
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_serious()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
+        inst_testme.exception_control_level = 3
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 4 (raise CRITICAL, SERIOUS, MINOR)
+        inst_testme.exception_control_level = 4
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_minor()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 5 (raise ALL)
+        inst_testme.exception_control_level = 5
+        with self.assertRaises(ValueError):
+            inst_testme.event_warning()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_minor()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+        print("OK")
+        return
+
+
+    def test_ExceptionControl_method_exception_control_event_compact_warnings(self):
+
+        class testme(ExceptionControl):
+            def __init__(self):
+                pass
+                return
+
+            def event_warning(self):
+                inst_testme.exception_control_event("WARNING", ValueError, message="message text")
+
+            def event_minor(self):
+                inst_testme.exception_control_event("MINOR", ValueError, message="message text")
+
+            def event_serious(self):
+                inst_testme.exception_control_event("SERIOUS", ValueError, message="message text")
+
+            def event_critical(self):
+                inst_testme.exception_control_event("CRITICAL", ValueError, message="message text")
+
+            def event_catastrophic(self):
+                inst_testme.exception_control_event("CATASTROPHIC", ValueError, message="message text")
+
+
+        inst_testme = testme()
+
+        # Check that we raise the typeerror if the assignment isn't a bool
+        with self.assertRaises(TypeError):
+            inst_testme.exception_control_compact_warnings = None
+
+        # Enable warning suppression
+        inst_testme.exception_control_compact_warnings = True
+
+        exception_msg_regex_01 = r"!! EXCEPTION SKIPPED \(WARNING : ValueError\)"
+        exception_msg_regex_02 = r"!! EXCEPTION SKIPPED \(MINOR : ValueError\)"
+        exception_msg_regex_03 = r"!! EXCEPTION SKIPPED \(SERIOUS : ValueError\)"
+        exception_msg_regex_04 = r"!! EXCEPTION SKIPPED \(CRITICAL : ValueError\)"
+
+        # Default exception_control_level == 4
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_01)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_minor()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 0 (Silent Running)
+        inst_testme.exception_control_level = 0
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_serious()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_critical()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
+        inst_testme.exception_control_level = 1
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_01)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_02)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_serious()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_03)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_critical()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_04)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 2 (raise CRITICAL)
+        inst_testme.exception_control_level = 2
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_01)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_02)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_serious()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_03)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
+        inst_testme.exception_control_level = 3
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_01)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_minor()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_02)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 4 (raise CRITICAL, SERIOUS, MINOR)
+        inst_testme.exception_control_level = 4
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_warning()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(1, len(output_actual.splitlines()))
+            self.assertRegex(output_actual, exception_msg_regex_01)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_minor()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+
+        # Set exception_control_level = 5 (raise ALL)
+        inst_testme.exception_control_level = 5
+        with self.assertRaises(ValueError):
+            inst_testme.event_warning()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_minor()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
+        print("OK")
+        return
+
+
+
+
 # EOF
 
 
