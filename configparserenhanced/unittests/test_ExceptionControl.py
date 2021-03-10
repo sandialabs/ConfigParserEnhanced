@@ -112,6 +112,7 @@ class ExceptionControlTest(TestCase):
         self.assertEqual(inst_testme.exception_control_level, 5)
 
         print("OK")
+        return
 
 
     def test_ExceptionControl_method_exception_control_event(self):
@@ -133,11 +134,15 @@ class ExceptionControlTest(TestCase):
             def event_critical(self):
                 inst_testme.exception_control_event("CRITICAL", ValueError, message="message text")
 
+            def event_catastrophic(self):
+                inst_testme.exception_control_event("CATASTROPHIC", ValueError, message="message text")
+
 
         inst_testme = testme()
 
         exception_skipped_msg_regex_01 = r"!! EXCEPTION SKIPPED"
         exception_skipped_msg_regex_02 = r"Message\s*:"
+
 
         # Default exception_control_level == 4
         with patch('sys.stdout', new = StringIO()) as fake_out:
@@ -150,6 +155,9 @@ class ExceptionControlTest(TestCase):
 
         with self.assertRaises(ValueError):
             inst_testme.event_serious()
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
 
         with self.assertRaises(ValueError):
             inst_testme.event_critical()
@@ -177,6 +185,9 @@ class ExceptionControlTest(TestCase):
             print(fake_out.getvalue())
             self.assertEqual("", fake_out.getvalue().rstrip())
 
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
 
         # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
         inst_testme.exception_control_level = 1
@@ -204,6 +215,9 @@ class ExceptionControlTest(TestCase):
             self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
             self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_02)
 
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
 
         # Set exception_control_level = 2 (raise CRITICAL)
         inst_testme.exception_control_level = 2
@@ -221,6 +235,9 @@ class ExceptionControlTest(TestCase):
             inst_testme.event_serious()
             print(fake_out.getvalue())
             self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
+
+        with self.assertRaises(ValueError):
+            inst_testme.event_critical()
 
 
         # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
@@ -241,6 +258,9 @@ class ExceptionControlTest(TestCase):
         with self.assertRaises(ValueError):
             inst_testme.event_critical()
 
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
+
 
         # Set exception_control_level = 4 (raise CRITICAL, SERIOUS, MINOR)
         inst_testme.exception_control_level = 4
@@ -258,39 +278,8 @@ class ExceptionControlTest(TestCase):
         with self.assertRaises(ValueError):
             inst_testme.event_critical()
 
-
-        # Set exception_control_level = 5 (raise ALL)
-        inst_testme.exception_control_level = 5
         with self.assertRaises(ValueError):
-            inst_testme.event_warning()
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_minor()
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_serious()
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_critical()
-
-
-        print("OK")
-
-
-        inst_testme.exception_control_level = 4
-        with patch('sys.stdout', new = StringIO()) as fake_out:
-            inst_testme.event_warning()
-            print(fake_out.getvalue())
-            self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_minor()
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_serious()
-
-        with self.assertRaises(ValueError):
-            inst_testme.event_critical()
+            inst_testme.event_catastrophic()
 
 
         # Set exception_control_level = 5 (raise ALL)
@@ -307,8 +296,11 @@ class ExceptionControlTest(TestCase):
         with self.assertRaises(ValueError):
             inst_testme.event_critical()
 
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic()
 
         print("OK")
+        return
 
 
     def test_ExceptionControl_method_exception_control_event_nomsg(self):
@@ -330,6 +322,8 @@ class ExceptionControlTest(TestCase):
             def event_critical_nomsg(self):
                 inst_testme.exception_control_event("CRITICAL", ValueError)
 
+            def event_catastrophic_nomsg(self):
+                inst_testme.exception_control_event("CATASTROPHIC", ValueError)
 
 
         inst_testme = testme()
@@ -356,6 +350,9 @@ class ExceptionControlTest(TestCase):
             print(fake_out.getvalue())
             self.assertNotIn("Message:", fake_out.getvalue())
 
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic_nomsg()
+
 
         # Set exception_control_level = 5 (raise ALL)
         inst_testme.exception_control_level = 5
@@ -371,7 +368,12 @@ class ExceptionControlTest(TestCase):
         with self.assertRaises(ValueError):
             inst_testme.event_critical_nomsg()
 
+        with self.assertRaises(ValueError):
+            inst_testme.event_catastrophic_nomsg()
+
+
         print("OK")
+        return
 
 
     def test_ExceptionControl_method_exception_control_event_badexception(self):
@@ -393,6 +395,9 @@ class ExceptionControlTest(TestCase):
             def event_critical(self):
                 inst_testme.exception_control_event("CRITICAL", None, message="message text")
 
+            def event_catastrophic(self):
+                inst_testme.exception_control_event("CATASTROPHIC", None, message="message text")
+
 
         inst_testme = testme()
 
@@ -410,6 +415,13 @@ class ExceptionControlTest(TestCase):
 
             with self.assertRaises(TypeError):
                 inst_testme.event_critical()
+
+            with self.assertRaises(TypeError):
+                inst_testme.event_catastrophic()
+
+
+        print("OK")
+        return
 
 
 # EOF

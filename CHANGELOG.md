@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 ### Changed
+- `ExceptionControl`
+    - Add property `_exception_control_map_event_to_level_req` to `ExceptionControl`
+      which maps the exception control levels to the type names.
+    - Add new class of `exception_control_event`: "CATASTROPHIC" which indicates
+      errors that will _always_ raise the exception and cannot be overridden.
 - Renamed `generic_handler` to `_generic_option_handler` because that name
   could inadvertantly cause a `.ini` file option such as
   `generic command: should not invoke a handler` to invoke the `generic_handler`

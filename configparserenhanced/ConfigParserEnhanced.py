@@ -563,9 +563,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             message = "ERROR: No section named `{}` was found in the configuration file {}.".format(section_name, self.inifilepath)
             raise KeyError(message)
 
-        # Verify that we actually got a section returned. If not, raise a KeyError.
-        # This might be unreachable.
-        if current_section is None:
+        if current_section is None:                                                                 # pragma: no cover (UNREACHABLE)
             raise Exception("ERROR: Unable to load section `{}` for an unknown reason.".format(section_name))
 
         # Initialize and set processed_sections.
@@ -893,8 +891,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             * ``handler_method`` is either a reference to the handler method
               if it exists, or None if it does not exist.
         """
-        if not isinstance(operation, (str)):
-            # This is probably not reachable. Add a '# pragma: no cover' ?
+        if not isinstance(operation, (str)):                                                        # pragma: no cover (UNREACHABLE)
             raise TypeError("op1 must be a string!")
 
         handler_name = operation
