@@ -38,7 +38,6 @@ from . import ModuleHelper
 # ===================================
 
 
-
 def envvar_op(op, envvar_name, envvar_value=""):
     """Envvar operation helper
 
@@ -46,12 +45,14 @@ def envvar_op(op, envvar_name, envvar_value=""):
 
     Args:
         op (str): The operation to execute. Valid entries are:
-            - ``set`` - Sets or resets an envvar to the specified value.
-            - ``append`` - Append a value to an existing envvar
-                or set if it doesn't exist.
-            - ``prepend`` - Prepend a value to an existing envvar
-                or set if it doesn't exist.
-            - ``unset`` - Unset (delete) an envvar if it exists.
+
+          - ``set`` - Sets or resets an envvar to the specified value.
+          - ``append`` - Append a value to an existing envvar
+              or set if it doesn't exist.
+          - ``prepend`` - Prepend a value to an existing envvar
+              or set if it doesn't exist.
+          - ``unset`` - Unset (delete) an envvar if it exists.
+
         envvar_name (str): The *name* of the envvar to be modified.
         envvar_value (str): Optional envvar value for operations that
             need to set a value. Default: ""
@@ -75,8 +76,8 @@ def envvar_op(op, envvar_name, envvar_value=""):
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
-    else:
-        raise ValueError
+    else:                                                                                           # pragma: no cover
+        raise ValueError                                                                            # pragma: no cover
     return 0
 
 
@@ -91,12 +92,12 @@ def expand_envvars_in_string(string_in) -> str:
     bash variables that look like ``$foo`` which don't have the enclosing ``{``
     and ``}`` braces can introduce unexpected results. For example:
 
-    :: code-block: bash
+    .. code-block:: bash
         :linenos:
 
-        $ export var1=AAA
-        $ export var2=B$var1B
-        $ export var3=B${var1}B
+        export var1=AAA
+        export var2=B$var1B
+        export var3=B${var1}B
 
     In this case, setting ``var2`` will likely fail because bash think you're
     appending the contents of ``$var1B`` to the end of ``B``, or if there is
@@ -364,7 +365,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def write_actions_to_file(self, filename, interpreter="bash") -> int:
+    def write_actions_to_file(self, filename, include_header=True, interpreter="bash") -> int:
         """Write the actions to an 'executable' file.
 
         Generates an executable script that will execute the actions
@@ -373,13 +374,15 @@ class SetEnvironment(ConfigParserEnhanced):
         Args:
             filename (str,Path): The destination filename the
                 actions should be written to.
+            include_header (bool): Include a `header` containing pre-defined
+                functions used by the actions. Default: False
             interpreter (str): The kind of file to generate. Currently
-                we only support "bash".
+                we only support "bash". Default: 'bash'
 
         Raises:
             ValueError: If an unknown ``interpreter`` parameter is provided
                 and ``exception_control_level`` is >= 2 (SERIOUS events raise
-                exceptions instead of warn)
+                exceptions instead of warn).
 
         Returns:
             int: 0 if successful
@@ -395,7 +398,7 @@ class SetEnvironment(ConfigParserEnhanced):
             self.exception_control_event("SERIOUS", ValueError, errmsg)
             return 1
 
-        output_file_str = self._gen_actions_script(interp=interpreter)
+        output_file_str = self._gen_actions_script(incl_hdr=include_header, interp=interpreter)
         with open(filename, "w") as ofp:
             ofp.write(output_file_str)
 
@@ -823,6 +826,7 @@ class SetEnvironment(ConfigParserEnhanced):
         output  = self._exec_helper(command)
 
         if output != 0:
+            output  = 1
             message = "ENVVAR operation {} failed with {} rval.".format(operation, output)
             self.exception_control_event("CRITICAL", RuntimeError, message)
 
@@ -875,7 +879,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
-    def _gen_script_common_bash(self) -> str:
+    def _gen_script_header_bash(self) -> str:
         """Generate "common" Bash functions
 
         Generates a 'common' set of functions and helpers for Bash scripts.
@@ -945,7 +949,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
-    def _gen_script_common_python(self) -> str:
+    def _gen_script_header_python(self) -> str:
         """Generate "common" Python functions
 
         Generates a common set of functions and helpers for Python
@@ -984,8 +988,14 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
-    def _gen_actions_script(self, interp='bash') -> str:
+    def _gen_actions_script(self, incl_hdr=True, interp='bash') -> str:
         """Generate an action script for a **bash** script.
+
+        Args:
+            incl_hdr (bool): Include standard header with functions
+                definitions for functions used if True.
+            interp (str): What interpreter should the generated code
+                work for?
 
         Raises:
             ValueError: if an ``action`` does not have a ``envvar`` or
@@ -994,13 +1004,20 @@ class SetEnvironment(ConfigParserEnhanced):
         Returns:
             str: containing the bash script that can be written.
         """
-        # Todo: Value check on interp
+        allowable_interpreter_list = ["bash", "python"]
+        if interp not in allowable_interpreter_list:
+            errmsg  = "Invalid interpreter provided: {}\n".format(interp)
+            errmsg += "Allowable values must be one of: {}.".format(", ".join(allowable_interpreter_list))
+            self.exception_control_event("SERIOUS", ValueError, errmsg)
+            return ""
 
         output_file_str = ""
-        if interp == "bash":
-            output_file_str += self._gen_script_common_bash()
-        elif interp == "python":
-            output_file_str += self._gen_script_common_python()
+
+        if incl_hdr:
+            if interp == "bash":
+                output_file_str += self._gen_script_header_bash()
+            elif interp == "python":
+                output_file_str += self._gen_script_header_python()
 
         for iaction in self.actions:
 

@@ -51,6 +51,11 @@ from .common import *
 #===============================================================================
 
 
+def mock_function_return_1(*args, **kwargs):
+    print("[mock] Generic function override - returns 1")
+    return 1
+
+
 
 class mock_popen(object):
     """
@@ -144,16 +149,16 @@ class SetEnvironmentTest(TestCase):
 
         This test doesn't really validate any output -- it just runs a basic check.
         """
-        section = "CONFIG_A+"
-
         print("\n")
         print("Load file: {}".format(self._filename))
-        print("Section  : {}".format(section))
 
         parser = SetEnvironment(self._filename)
         parser.debug_level = 5
 
         print("-----[ TEST BEGIN ]----------------------------------------")
+
+        section = "CONFIG_A+"
+        print("Section  : {}".format(section))
 
         # parse a section
         data = parser.parse_section(section)
@@ -390,7 +395,7 @@ class SetEnvironmentTest(TestCase):
         return
 
 
-    def test_SetEnvironment_method_apply_envvar_test(self):
+    def test_SetEnvironment_method_apply_envvar_test_01(self):
         """
         """
         section = "CONFIG_A"   # envvars
@@ -416,6 +421,39 @@ class SetEnvironmentTest(TestCase):
         self.assertEqual("foo", os.environ["BAR"])
 
         parser.pretty_print_envvars(["BAR"], True)
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_apply_envvar_test_02(self):
+        """
+        """
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        section = "ENVVAR_UNSET_TEST"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        print("")
+        parser.pretty_print_actions()
+
+        # Apply the actions
+        parser.apply()
+
+        self.assertFalse("FOO" in os.environ.keys())
+        self.assertFalse("BAR" in os.environ.keys())
+
+        print("-----[ TEST END ]------------------------------------------")
 
         print("OK")
         return
@@ -780,11 +818,36 @@ class SetEnvironmentTest(TestCase):
         parser.pretty_print_actions()
 
         filename_out = "___apply_configuration.sh"
+        include_header = True
         interpreter  = "bash"
         rval_expect  = 0
-        rval_actual  = parser.write_actions_to_file(filename_out, interpreter)
+        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
 
         self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        filename_out = "___apply_configuration_nohdr.sh"
+        include_header = False
+        interpreter  = "bash"
+        rval_expect  = 0
+        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+
+        self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        filename_out = "___apply_configuration_nohdr.sh"
+        include_header = True
+        interpreter  = "undefined interpreter"
+        rval_expect  = 0
+        with self.assertRaises(ValueError):
+            rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+            self.assertEqual(rval_expect, rval_actual)
 
         print("-----[ TEST END ]------------------------------------------")
 
@@ -815,16 +878,174 @@ class SetEnvironmentTest(TestCase):
         parser.pretty_print_actions()
 
         filename_out = "___apply_configuration.py"
+        include_header = True
         interpreter  = "python"
         rval_expect  = 0
 
-        rval_actual  = parser.write_actions_to_file(filename_out, interpreter)
+        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
         self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        filename_out = "___apply_configuration.py"
+        include_header = False
+        interpreter  = "python"
+        rval_expect  = 0
+
+        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+        self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        filename_out = "___apply_configuration.py"
+        include_header = True
+        interpreter  = "undefined interpreter"
+        rval_expect  = 0
+
+        with self.assertRaises(ValueError):
+            rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+            self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        filename_out = "___apply_configuration.py"
+        include_header = True
+        interpreter  = "undefined interpreter"
+        rval_expect  = 1
+
+        parser.exception_control_level = 2
+
+        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+        self.assertEqual(rval_expect, rval_actual)
+
+        print("-----[ TEST END ]------------------------------------------")
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_helper_apply_envvar_failure(self):
+        """
+        Simulate a failure to set an envvar.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        section = "CONFIG_A"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        # Override the _exec_helper call to force a rvalue of 1. This should
+        # trigger the `if output != 0` check at the end of `_apply_envvar`
+
+        # In this case, the RuntimeError exception will be thrown.
+        parser.exception_control_level = 5
+        with patch.object(SetEnvironment, '_exec_helper', mock_function_return_1 ):
+            with self.assertRaises(RuntimeError):
+                rval = parser._apply_envvar("envvar-set", "FOO", "BAR")
+                self.assertEqual(1, rval)
+
+
+        # In this case, `exception_control_level` is set to 0 so the RuntimeError
+        # isn't raised but the command should still return a nonzero value.
+        parser.exception_control_level = 0
+        with patch.object(SetEnvironment, '_exec_helper', mock_function_return_1 ):
+            rval = parser._apply_envvar("envvar-set", "FOO", "BAR")
+            self.assertNotEqual(0, rval)
 
         print("-----[ TEST END ]------------------------------------------")
 
         print("OK")
         return
+
+
+    def test_SetEnvironment_helper_gen_actions_script_badinterp(self):
+        """
+        Test `_gen_actions_script` with a bad interpreter
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.exception_control_level = 5
+        parser.debug_level = 5
+
+        section = "CONFIG_A"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        # This should throw a ValueError because the `exception_control_event`
+        # that gets raised is a `SERIOUS` one which causes a throw if
+        # `exception_control_level` is >= 3.
+        test_incl_hdr = True
+        test_interp = "invalid_interpreter"
+        with self.assertRaises(ValueError):
+            parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        # Test what happens if ECL is low enough to cause the SERIOUS event to
+        # _not_ raise the ValueError but instead print out a big warning.
+        # Setting `exception_control_level` to 2 will cause only CRITICAL events
+        # to raise the exception.
+        parser.exception_control_level = 2
+        test_incl_hdr = True
+        test_interp   = "invalid_interpreter"
+        rval_expect   = ""
+        rval_actual   = parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+        self.assertEqual(rval_expect, rval_actual)
+        parser.exception_control_level = 5
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        # Test what happens when there's an action entry that is missing either
+        # `envvar` or `module` in its key(). This should throw a ValueError.
+        test_incl_hdr = True
+        test_interp   = "bash"
+
+        # add a bogus action that is missing either 'envvar' or 'module' from its
+        # keys.
+        parser.actions.append( {'op': 'envvar-set', 'value': "thevalue", "newkey": "???"} )
+
+        with self.assertRaises(ValueError):
+            parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+
+        # Cleanup: Remove the bogus entry from the actions.
+        del parser.actions[-1]
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
 
 
     # =================
