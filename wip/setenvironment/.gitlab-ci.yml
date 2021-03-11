@@ -40,8 +40,7 @@ install:
   stage: deploy
   needs: [pytest]
   script:
-    #- python3 -m pip install --user .
-    #- python3 -m pip uninstall -y setenvironment
+    - python3 -m pip install --user wheel
     - python3 -m pip wheel -w dist .
   artifacts:
     paths:
