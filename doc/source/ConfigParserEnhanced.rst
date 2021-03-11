@@ -1,6 +1,7 @@
 ====================================
 ConfigParserEnhanced Class Reference
 ====================================
+
 The :class:`~configparserenhanced.ConfigParserEnhanced` provides extended functionality for the :class:`ConfigParser`
 module. This class attempts to satisfy the following goals:
 
@@ -24,54 +25,69 @@ module. This class attempts to satisfy the following goals:
     OPTION field.
 
 
+
+Normalization of Fields
+=======================
+
+Internally, the parser will apply a normalization transform to the **operation** and the
+**parameter** fields.
+
+The following operations are applied to the **operation** field:
+
+- Replace occurrences of ``-`` with ``_``.
+
+
+
 Extending through Inheritance
------------------------------
+=============================
 
-    One example of how we might extend :class:`~configparserenhanced.ConfigParserEnhanced` to add an
-    operation that might prepend to an environment variable could be
-    the following. Say we wish to prepend to the ``PATH`` environment variable by adding a new
-    *operation* called ``envvar-prepend`` that might be invoked in this
-    ``.ini`` snippet:
+One example of how we might extend :class:`~configparserenhanced.ConfigParserEnhanced` to add an
+operation that might prepend to an environment variable could be
+the following. Say we wish to prepend to the ``PATH`` environment variable by adding a new
+*operation* called ``envvar-prepend`` that might be invoked in this
+``.ini`` snippet:
 
-    .. code-block:: ini
-        :linenos:
+.. code-block:: ini
+    :linenos:
 
-        [SET_PATH_VARS]
-        envvar-prepend PATH A: /some/new/path
-        envvar-prepend PATH B: /another/path/to/prepend/to/PATH
+    [SET_PATH_VARS]
+    envvar-prepend PATH A: /some/new/path
+    envvar-prepend PATH B: /another/path/to/prepend/to/PATH
 
-    :class:`~configparserenhanced.ConfigParserEnhanced` will identify an *operation* ``envvar-prepend``
-    with a parameter ``PATH``. It will then look for a method called
-    :meth:`_handler_envvar_prepend()` to handle the operation:
+:class:`~configparserenhanced.ConfigParserEnhanced` will identify an *operation* ``envvar-prepend``
+with a parameter ``PATH``. It will then look for a method called
+:meth:`_handler_envvar_prepend()` to handle the operation:
 
-    .. code-block:: python
-        :linenos:
+.. code-block:: python
+    :linenos:
 
-        def _handler_envvar_prepend(self, section_name, handler_parameters) -> int:
-            op1,op2 = handler_parameters.op_params
-            envvar_new = op2 # I think this was missing (if the envvar doesn't exist yet).  Is this right?
-            if op1 in os.environ.keys():
-                envvar_new = ":".join([
-                    op2,
-                    os.environ[op1]
-                ])
-            os.environ[op1] = envvar_new
-            return 0
+    def _handler_envvar_prepend(self, section_name, handler_parameters) -> int:
+        op1,op2 = handler_parameters.op_params
+        envvar_new = op2 # I think this was missing (if the envvar doesn't exist yet).  Is this right?
+        if op1 in os.environ.keys():
+            envvar_new = ":".join([
+                op2,
+                os.environ[op1]
+            ])
+        os.environ[op1] = envvar_new
+        return 0
 
-    The strings "A" and "B" on lines 2 and 3 of the ``.ini`` file are solely
-    used to uniqueify the entries within the section ``SET_PATH_VARS``.
+The strings "A" and "B" on lines 2 and 3 of the ``.ini`` file are solely
+used to uniqueify the entries within the section ``SET_PATH_VARS``.
+
 
 
 API Documentation
------------------
+=================
 
 ConfigParserEnhanced
 ++++++++++++++++++++
 .. automodule:: configparserenhanced.ConfigParserEnhanced
    :no-members:
 
-Public Methods
-~~~~~~~~~~~~~~
+
+Public Interface
+~~~~~~~~~~~~~~~~
 .. autoclass:: configparserenhanced.ConfigParserEnhanced
    :noindex:
    :members:
@@ -92,6 +108,7 @@ there.
 .. automethod:: configparserenhanced.ConfigParserEnhanced.handler_finalize
 .. automethod:: configparserenhanced.ConfigParserEnhanced._generic_option_handler
 
+
 Operation Handlers (Private)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 These handlers perform tasks internal to :class:`~configparserenhanced.ConfigParserEnhanced` and should
@@ -99,25 +116,55 @@ not be overridden.
 
 .. automethod:: configparserenhanced.ConfigParserEnhanced._handler_use
 
-Helpers (Private)
-~~~~~~~~~~~~~~~~~
+
+Parser Helpers (Private)
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. automethod:: configparserenhanced.ConfigParserEnhanced._parse_section_r
+
+.. autoattribute:: configparserenhanced.ConfigParserEnhanced._regex_op_splitter
+.. automethod:: configparserenhanced.ConfigParserEnhanced._regex_op_matcher
+
+.. automethod:: configparserenhanced.ConfigParserEnhanced._get_op1_from_regex_match
+.. automethod:: configparserenhanced.ConfigParserEnhanced._get_op2_from_regex_match
+
+.. automethod:: configparserenhanced.ConfigParserEnhanced._apply_transformation_to_operation
+.. automethod:: configparserenhanced.ConfigParserEnhanced._apply_transformation_to_parameter
+
+.. automethod:: configparserenhanced.ConfigParserEnhanced._validate_handlerparameters
+.. automethod:: configparserenhanced.ConfigParserEnhanced._new_handler_parameters
+
+.. automethod:: configparserenhanced.ConfigParserEnhanced._locate_handler_method
+.. automethod:: configparserenhanced.ConfigParserEnhanced._launch_generic_option_handler
+.. automethod:: configparserenhanced.ConfigParserEnhanced._check_handler_rval
+
+
+Private Methods
+~~~~~~~~~~~~~~~
 .. automethod:: configparserenhanced.ConfigParserEnhanced._loginfo_add
 .. automethod:: configparserenhanced.ConfigParserEnhanced._loginfo_print
 
 
+
+Inner Classes
+~~~~~~~~~~~~~
+
+
 ConfigParserEnhancedData
 ++++++++++++++++++++++++
-:class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData` is an *inner class* of :class:`~configparserenhanced.ConfigParserEnhanced` that
+:class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData` is
+an *inner class* of :class:`~configparserenhanced.ConfigParserEnhanced` that
 behaves somewhat like a partial implementation of a :class:`ConfigParser`
-object that is customized to work in concert with :class:`~configparserenhanced.ConfigParserEnhanced`.
+object that is customized to work in concert with
+:class:`~configparserenhanced.ConfigParserEnhanced`.
 
-This class operates using lazy-evaluation of the parser method in :class:`~configparserenhanced.ConfigParserEnhanced`
-to process sections when requested.
+This class operates using lazy-evaluation of the parser method in
+:class:`~configparserenhanced.ConfigParserEnhanced` to process sections when requested.
 
 The following table shows the main API and implementation differences
-between a :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData` object and a
-:class:`ConfigParser` object, illustrating what subset of features
-a :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData` object provides:
+between a :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData`
+object and a :class:`ConfigParser` object, illustrating what subset of features
+a :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData`
+object provides:
 
 .. csv-table:: ConfigParserEnhancedData Comparison
    :file: tbl_configparserenhanceddata_comparison.csv
@@ -126,6 +173,8 @@ a :class:`~configparserenhanced.ConfigParserEnhanced.ConfigParserEnhancedData` o
    :align: center
    :delim: |
 
+Public Interface
+~~~~~~~~~~~~~~~~
 .. autoclass:: configparserenhanced::ConfigParserEnhanced.ConfigParserEnhancedData
    :members:
    :undoc-members:

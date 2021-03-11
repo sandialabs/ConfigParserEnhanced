@@ -17,7 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- New internal method `_apply_transformation_to_operation()`.
+  Applies any needed transformations to the raw `<operation>` strings.
+  Currently this just replaces occurrences of `-` with `_` to operations.
+- New internal method `_apply_transformation_to_parameter()`.
+  Applies any needed transformations to the raw `<parameter>` strings.
+  Currently this is just a pass-through, added now to pair with
+  `_apply_transformation_to_operation()`.
 ### Changed
+- `operations` have added processing to do some normalization. Currently
+  this is just a replacement of any `-` with `_`. For example, an
+  operation such as `foo-bar-baz` will be converted to `foo_bar_baz`
+  internally.
 ### Deprecated
 ### Removed
 ### Fixed

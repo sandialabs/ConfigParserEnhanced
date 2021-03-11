@@ -279,14 +279,14 @@ class ConfigParserEnhancedTest(TestCase):
                              ('op1', 'op 2'),
                              ('op1', 'op2'),
                              ('op1', 'op2'),
-                             ('op-1', None),
-                             ('op-1', 'op2'),
-                             ('op-1', 'op2'),
-                             ('op-1', 'op2'),
-                             ('op-1', 'op2'),
-                             ('op-1', 'op 2'),
-                             ('op-1', 'op 2'),
-                             ('op-1', 'op-2'),
+                             ('op_1', None),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op2'),
+                             ('op_1', 'op 2'),
+                             ('op_1', 'op 2'),
+                             ('op_1', 'op-2'),
                              ('op_1', 'op_2'),
                              ('op1',  'op2'),
                              ('op1',  'op2')
@@ -299,7 +299,9 @@ class ConfigParserEnhancedTest(TestCase):
         pprint(results_actual)
 
         self.assertListEqual(results_expected, results_actual)
-        print("Test Complete.")
+
+        print("OK")
+        return
 
 
     def test_ConfigParserEnhanced_keyword_use(self):
