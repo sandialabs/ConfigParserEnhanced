@@ -41,12 +41,14 @@ install:
   needs: [pytest]
   script:
     - python3 -m pip install --user wheel
-    - python3 -m pip install --user .
-    - python3 -m pip uninstall -y setenvironment configparserenhanced
-#    - python3 -m pip wheel -w dist .
-#  artifacts:
-#    paths:
-#      - dist/setenvironment*.whl
+    # - python3 -m pip install --user .
+    # - python3 -m pip uninstall -y setenvironment configparserenhanced
+    - python3 -m pip wheel --no-deps -w setenvironment-dist .
+  artifacts:
+    name: "setenvironment-dist"
+    paths:
+      - setenvironment-dist/setenvironment*.whl
+    expire_in: 2 weeks
 
 sphinx-documentation:
   stage: make_docs
