@@ -1,7 +1,7 @@
-import configparser
-from pathlib import Path
 import re
 import sys
+from configparserenhanced import ConfigParserEnhanced
+from pathlib import Path
 
 
 class EnvKeywordParser:
@@ -49,26 +49,16 @@ class EnvKeywordParser:
     @property
     def supported_envs(self):
         """
-        Gets the :class:`ConfigParser` object with
+        Gets the :class:`ConfigParserEnhancedData` object with
         :attr:`supported_envs_filename` loaded.
 
         Returns:
-            ConfigParser:  A :class:`ConfigParser` object with
-            `supported_envs_filename` loaded.
+            ConfigParserEnhancedData:  A :class:`ConfigParserEnhancedData`
+            object with `supported_envs_filename` loaded.
         """
-        self._supported_envs = configparser.ConfigParser()
-        try:
-            with open(self.supported_envs_filename, "r") as f:
-                self._supported_envs.read_file(f)
-
-        except IOError:
-            msg = ("\n+" + "="*78 + "+\n"
-                   "|   ERROR:  Unable to load configuration file\n"
-                   f"|   - Requested file: {self.supported_envs_filename}\n"
-                   f"|   - CWD: {Path.cwd()}\n"
-                   "+" + "="*78 + "+\n")
-            sys.exit(msg)
-
+        self._supported_envs = ConfigParserEnhanced(
+                self.supported_envs_filename
+            ).configparserenhanceddata
         return self._supported_envs
 
     @property
