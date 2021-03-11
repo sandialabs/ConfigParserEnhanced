@@ -618,7 +618,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))       # Console
 
                 op1 = self._get_op1_from_regex_match(regex_op_splitter_m)
+                op1 = self._apply_transformation_to_operation(op1)
+
                 op2 = self._get_op2_from_regex_match(regex_op_splitter_m)
+                op2 = self._apply_transformation_to_parameter(op2)
+
                 handler_parameters.op_params = (op1, op2)
 
                 self._loginfo_add('section-operands', {'op1': op1, 'op2': op2})                     # Logging
@@ -868,6 +872,37 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
+    def _apply_transformation_to_operation(self, operation) -> str:
+        """
+        Apply transformations to the **operator** parameters which are necessary
+        for the parser and down-stream handlers.
+
+        Current transformations:
+
+            - Repalce all occurrences of `-` with `_`
+
+        Returns:
+            str: A string containing the transformed operator parameter.
+        """
+        output = operation.replace("-", "_")
+        return output
+
+
+    def _apply_transformation_to_parameter(self, parameter) -> str:
+        """
+        Applies transformations to the **parameter** field if necessary.
+
+        Current transformations:
+
+            - *none at this time*
+
+        Returns:
+            str: A string containing the transformed operator parameter.
+        """
+        output = parameter
+        return output
+
+
     def _locate_handler_method(self, operation) -> str:
         """Convert op1 to a handler name and get the reference to the handler.
 
@@ -882,20 +917,20 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         Args:
             operation (str): The operation parameter that is converted to
-                a proper handler name of the form ``_handler_{operation}()``
-                or ``handler_{operation}()``.
+              a proper handler name of the form ``_handler_{operation}()``
+              or ``handler_{operation}()``.
 
         Returns:
-            tuple: A tuple containing the ``(handler_name, handler_method)``.
-            * ``handler_name`` is a string.
-            * ``handler_method`` is either a reference to the handler method
-              if it exists, or None if it does not exist.
+            tuple: A tuple containing the ``(handler_name, handler_method)`` where:
+              - ``handler_name`` is a string.
+              - ``handler_method`` is either a reference to the handler method
+                if it exists, or None if it does not exist.
         """
         if not isinstance(operation, (str)):                                                        # pragma: no cover (UNREACHABLE)
             raise TypeError("op1 must be a string!")
 
         handler_name = operation
-        handler_name = handler_name.replace('-','_')
+        handler_name = self._apply_transformation_to_operation(handler_name)
 
         handler_name_private = "_handler_{}".format(handler_name)
         handler_name_public  = "handler_{}".format(handler_name)
@@ -951,6 +986,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """Launcher for ``_generic_option_handler()``
 
         ``_generic_option_handler()`` is called in two places inside the recursive parser.
+
         1. It is called when the ``key:value`` pair in an option does not parse out
            to ``operation`` and ``parameter`` fields.
         2. It is called when the ``key:value`` pair in an option does parse to
