@@ -16,9 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
-## [Unreleased]
+## [Unreleased] ([0.1.1] - 2021-03-11)
 #### Added
+- New command: `envvar-remove-substr` - this will remove a substring
+  from an existing envvar. Syntax: `envvar-remove-substr <envvar> : <substr>`.
+- New command: `envvar-remove-path-entry` - this will remove a path entry
+  from an existing path-type envvar. Syntax: `envvar-remove-path-entry <envvar>: <path>`.
 #### Changed
+- Updated to account for changes in `ConfigParserEnhanced` regarding
+  operation normalization. This doesn't affect `.ini` file construction
+  but internally we now need to use `_` instead of `-` characters in the
+  operation matching.
+  Operations in `.ini` files should actually be able to interchance `-` and `_`
+  without changing any actual behaviour now.
 #### Deprecated
 #### Removed
 #### Fixed

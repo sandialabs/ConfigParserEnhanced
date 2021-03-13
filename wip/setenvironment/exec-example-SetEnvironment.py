@@ -47,10 +47,11 @@ def test_setenvironment(filename="config.ini"):
     parser.debug_level = 5
     parser.exception_control_level = 4
 
-    parse_section(parser, "CONFIG_A+")     # ENVVARS + USE
+    #parse_section(parser, "CONFIG_A+")     # ENVVARS + USE
     #parse_section(parser, "CONFIG_B+")     # MODULES + USE
     #parse_section(parser, "CONFIG_A")      # ENVVARS ONLY
     #parse_section(parser, "CONFIG_B")      # MODULES ONLY
+    parse_section(parser, "ENVVAR_REMOVE_SUBSTR_TEST")
 
     print("")
     parser.pretty_print_actions()
@@ -66,8 +67,12 @@ def test_setenvironment(filename="config.ini"):
 
 
 def parse_section(parser, section):
+
     #data = parser.parse_section(section)
     data = parser.configparserenhanceddata[section]
+
+    # Test out something that might be experimental
+    experimental(parser, section)
 
     print("\nAction Data")
     print("===========")
@@ -88,7 +93,8 @@ def parse_section(parser, section):
     return data
 
 
-def experimental(filename="config.ini"):
+
+def experimental(parser, section):
 
     return
 
@@ -100,8 +106,6 @@ def main():
     """
     fname_ini = "config_test_setenvironment.ini"
     fpath_ini = find_config_ini(filename=fname_ini)
-
-    experimental(filename=fpath_ini)
 
     test_setenvironment(filename=fpath_ini)
 

@@ -70,6 +70,7 @@ def envvar_op(op, envvar_name, envvar_value=""):
           - ``prepend`` - Prepend a value to an existing envvar
               or set if it doesn't exist.
           - ``unset`` - Unset (delete) an envvar if it exists.
+          - ``remove_substr`` - Removes a substring from an existing envvar.
 
         envvar_name (str): The *name* of the envvar to be modified.
         envvar_value (str): Optional envvar value for operations that
@@ -94,6 +95,14 @@ def envvar_op(op, envvar_name, envvar_value=""):
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
+    elif op == "remove_substr":
+        if envvar_exists:
+            os.environ[envvar_name] = os.environ[envvar_name].replace(envvar_value,"")
+    elif op == "remove_path_entry":
+        if envvar_exists:
+            entry_list_old = os.environ[envvar_name].split(os.pathsep)
+            entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
+            os.environ[envvar_name] = os.pathsep.join(entry_list_new)
     else:                                                                                           # pragma: no cover
         raise ValueError                                                                            # pragma: no cover
     return 0
@@ -103,6 +112,7 @@ envvar_op("set","FOO","bar")
 envvar_op("append","FOO","baz")
 envvar_op("prepend","FOO","foo")
 envvar_op("set","BAR","foo")
+envvar_op("remove_substr","FOO","bar")
 envvar_op("unset","FOO")
 ModuleHelper.module("purge")
 ModuleHelper.module("use","setenvironment/unittests/modulefiles")

@@ -11,6 +11,7 @@ doc/html
 src
 dist
 setenvironment-dist
+*.whl
 
 # python object files
 *.pyo
