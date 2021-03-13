@@ -4,6 +4,8 @@ Operation,Usage,Description
 **envvar-prepend**,``envvar-prepend envvar: value``, Prepend a value to an existing envvar using ``os.pathsep`` as the delimiter.
 **envvar-remove**,``envvar-remove envvar:``, Removes all occurrences of envvar from actions.
 **envvar-unset**, ``envvar-unset envvar:``, Unsets (removes) an envvar if it exists.
+**envvar-remove-substr**, ``envvar-remove-substr envvar: substr``, Remove all occurrences of *substr* from *envvar*.
+**envvar-remove-path-entry**, ``envvar-remove-path-entry envvar: path``, Remove occurrences of a *path* from a path *envvar*.
 **module-load**,``module-load module_name: version``,Load a module.
 **module-purge**,``module-purge:``,Purge all loaded modules.
 **module-remove**,``module-remove module_name:``,Removes all uses of <module_name> from actions.

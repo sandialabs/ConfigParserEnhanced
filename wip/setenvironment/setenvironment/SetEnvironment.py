@@ -11,7 +11,7 @@ Todo:
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
 
-:Version: 0.1.0
+:Version: 0.1.1
 """
 from __future__ import print_function
 
@@ -52,6 +52,7 @@ def envvar_op(op, envvar_name, envvar_value=""):
           - ``prepend`` - Prepend a value to an existing envvar
               or set if it doesn't exist.
           - ``unset`` - Unset (delete) an envvar if it exists.
+          - ``remove_substr`` - Removes a substring from an existing envvar.
 
         envvar_name (str): The *name* of the envvar to be modified.
         envvar_value (str): Optional envvar value for operations that
@@ -76,6 +77,14 @@ def envvar_op(op, envvar_name, envvar_value=""):
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
+    elif op == "remove_substr":
+        if envvar_exists:
+            os.environ[envvar_name] = os.environ[envvar_name].replace(envvar_value,"")
+    elif op == "remove_path_entry":
+        if envvar_exists:
+            entry_list_old = os.environ[envvar_name].split(os.pathsep)
+            entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
+            os.environ[envvar_name] = os.pathsep.join(entry_list_new)
     else:                                                                                           # pragma: no cover
         raise ValueError                                                                            # pragma: no cover
     return 0
@@ -174,9 +183,9 @@ class SetEnvironment(ConfigParserEnhanced):
             :linenos:
 
             [
-                {'op': 'envvar-set',     'envvar': 'FOO', 'value': 'bar'},
-                {'op': 'envvar-append',  'envvar': 'FOO', 'value': 'baz'},
-                {'op': 'envvar-prepend', 'envvar': 'FOO', 'value': 'foo'}
+                {'op': 'envvar_set',     'envvar': 'FOO', 'value': 'bar'},
+                {'op': 'envvar_append',  'envvar': 'FOO', 'value': 'baz'},
+                {'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'}
             ]
 
 
@@ -266,26 +275,32 @@ class SetEnvironment(ConfigParserEnhanced):
             operation = action['op']
 
             print("--> {:<14} : ".format(operation), end="")
-            if operation == "module-purge":
+            if operation == "module_purge":
                 print("")
-            elif operation == "module-use":
+            elif operation == "module_use":
                 print("{}".format(action['value']))
-            elif operation == "module-load":
+            elif operation == "module_load":
                 print("{}/{}".format(action['module'], action['value']))
-            elif operation == "module-swap":
+            elif operation == "module_swap":
                 print("{} {}".format(action['module'], action['value']))
-            elif operation == "module-unload":
+            elif operation == "module_unload":
                 print("{}".format(action['module']))
-            elif operation == "envvar-set":
+            elif operation == "envvar_set":
                 print("{}=\"{}\"".format(action['envvar'], action['value']))
-            elif operation == "envvar-prepend":
+            elif operation == "envvar_prepend":
                 arg = "${%s}"%(action['envvar'])
                 print("{}=\"{}:{}\"".format(action['envvar'],action['value'],arg))
-            elif operation == "envvar-append":
+            elif operation == "envvar_append":
                 arg = "${%s}"%(action['envvar'])
                 print("{}=\"{}:{}\"".format(action['envvar'],arg,action['value']))
-            elif operation == "envvar-unset":
+            elif operation == "envvar_unset":
                 print("{}".format(action['envvar']))
+            elif operation == "envvar_remove_substr":
+                arg = "${%s}"%(action['envvar'])
+                print("{}=\"{}:{}\"".format(action['envvar'],arg,action['value']))
+            elif operation == "envvar_remove_path_entry":
+                arg = "${%s}"%(action['envvar'])
+                print("{}=\"{}:{}\"".format(action['envvar'],arg,action['value']))
             else:
                 print("(unhandled) {}".format(action))
 
@@ -410,6 +425,71 @@ class SetEnvironment(ConfigParserEnhanced):
     # --------------------
 
 
+
+    def _handler_envvar_remove_substr(self, section_name, handler_parameters) -> int:
+        """Handler: for ``envvar-remove-substr``
+
+        Handles operations that wish to remove *all* occurrences of a substring
+        from a given envvar.
+
+        .. code-block:: bash
+            :linenos:
+
+            [ENVVAR_REMOVE_SUBSTR_TEST]
+            # Create an environment var FOO="BAAAB"
+            envvar-set FOO           : BAAAB
+
+            # Removes all "A" substrings from FOO
+            envvar-remove-substr FOO : A
+
+            # Result should be: FOO="BB"
+
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+
+        Returns:
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (CRITICAL)
+        """
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
+
+
+    def _handler_envvar_remove_path_entry(self, section_name, handler_parameters) -> int:
+        """Handler: for ``envvar-remove-path-entry``
+
+        Handles operations that remove all occurrences of a specific
+        path from an envvar.
+
+        .. code-block:: bash
+            :linenos:
+
+            [ENVVAR_REMOVE_PATH_ENTRY_TEST]
+            # Create an TEST_PATH = "/foo:/bar:/bar/baz:/bar:/bif"
+            envvar-set TEST_PATH : /foo:/bar:/bar/baz:/bar:/bif
+
+            # Removes "/bar" from the path
+            envvar-remove-path-entry TEST_PATH : /bar
+
+            # Result should be: TEST_PATH = "/foo:/bar/baz:/bif"
+
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+
+        Returns:
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (CRITICAL)
+        """
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
+
+
     def handler_envvar_set(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-set operations.
 
@@ -513,7 +593,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def handler_module_load(self, section_name, handler_parameters) -> int:
-        """
+        """Handler: for module-load operations.
 
         Args:
             section_name (str): The section name string.
@@ -530,7 +610,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def handler_module_purge(self, section_name, handler_parameters) -> int:
-        """
+        """Handler: for module-purge operations
 
         Args:
             section_name (str): The section name string.
@@ -548,7 +628,8 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def handler_module_remove(self, section_name, handler_parameters) -> int:
-        """
+        """Handler: for module-remove operations.
+
         Removes all module operations that operate on the labeled module from
         the action lists at the time this command is encountered.
 
@@ -597,7 +678,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def handler_module_swap(self, section_name, handler_parameters) -> int:
-        """
+        """Handler: for module-swap operations.
 
         Args:
             section_name (str): The section name string.
@@ -615,7 +696,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def handler_module_unload(self, section_name, handler_parameters) -> int:
-        """
+        """Handler: for module-unload operations.
 
         Args:
             section_name (str): The section name string.
@@ -633,7 +714,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def handler_module_use(self, section_name, handler_parameters) -> int:
-        """
+        """Handler: for module-use operations.
 
         Args:
             section_name (str): The section name string.
@@ -683,13 +764,15 @@ class SetEnvironment(ConfigParserEnhanced):
 
             >>> handler_parameters.data_shared['setenvironment']
             [
-                {'op': 'envvar-set',     'envvar': 'FOO', 'value': 'bar'},
-                {'op': 'envvar-append',  'envvar': 'FOO', 'value': 'baz'},
-                {'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'},
-                {'op': 'envvar-set',     'envvar': 'BAR', 'value': 'foo'},
-                {'op': 'envvar-set',     'envvar': 'BAZ', 'value': 'bar'},
+                {'op': 'envvar_set',     'envvar': 'FOO', 'value': 'bar' },
+                {'op': 'envvar_append',  'envvar': 'FOO', 'value': 'baz' },
+                {'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo' },
+                {'op': 'envvar_set',     'envvar': 'BAR', 'value': 'foo' },
+                {'op': 'envvar_set',     'envvar': 'BAZ', 'value': 'bar' },
                 {'op': 'envvar_unset',   'envvar': 'FOO', 'value': 'None'},
-                {'op': 'envvar_remove',  'envvar': 'BAZ', 'value': 'None'}
+                {'op': 'envvar_remove',  'envvar': 'BAZ', 'value': 'None'},
+                {'op': 'envvar_remove_substr',    'envvar': 'MYENVVAR', 'value': 'B'   },
+                {'op': 'envvar_remove_path_entry','envvar': 'MYPATH',   'value': '/foo'}
             ]
 
         Args:
@@ -740,14 +823,14 @@ class SetEnvironment(ConfigParserEnhanced):
 
             >>> handler_parameters.data_shared['setenvironment']
             [
-                {'op': 'module-purge',  'module': None,          'value': ''},
-                {'op': 'module-use',    'module': None,          'value': '/foo/bar/baz'},
-                {'op': 'module-load',   'module': 'dummy-gcc',    'value': '4.8.4'},
-                {'op': 'module-load',   'module': 'dummy-boost',  'value': '1.10.1'},
-                {'op': 'module-load',   'module': 'dummy-python', 'value': '3.9.0'},
-                {'op': 'module-load',   'module': 'dummy-gcc',    'value': '4.8.4'},
-                {'op': 'module-unload', 'module': 'dummy-boost',  'value': ''},
-                {'op': 'module-remove', 'module': 'dummy-python', 'value': ''},
+                {'op': 'module_purge',  'module': None,          'value': ''},
+                {'op': 'module_use',    'module': None,          'value': '/foo/bar/baz'},
+                {'op': 'module_load',   'module': 'dummy-gcc',    'value': '4.8.4'},
+                {'op': 'module_load',   'module': 'dummy-boost',  'value': '1.10.1'},
+                {'op': 'module_load',   'module': 'dummy-python', 'value': '3.9.0'},
+                {'op': 'module_load',   'module': 'dummy-gcc',    'value': '4.8.4'},
+                {'op': 'module_unload', 'module': 'dummy-boost',  'value': ''},
+                {'op': 'module_remove', 'module': 'dummy-python', 'value': ''},
             ]
 
         Args:
@@ -790,13 +873,15 @@ class SetEnvironment(ConfigParserEnhanced):
         """Apply an ENVVAR operation
 
         Currently supported ENVVAR operations are:
-        - ``envvar-append``
-        - ``envvar-prepend``
-        - ``envvar-set``
-        - ``envvar-unset``
+        - ``envvar_append``
+        - ``envvar_prepend``
+        - ``envvar_set``
+        - ``envvar_unset``
+        - ``envvar_remove_substr``
+        - ``envvar_remove_path_entry``
 
         Note:
-            ``envvar-remove`` is handled in the ``handler_envvar_remove``
+            ``envvar_remove`` is handled in the ``handler_envvar_remove``
             directly because its context is most applicable at processing
             time.
 
@@ -838,18 +923,19 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Currently supported MODULE operations are:
 
-        - ``module-load``
-        - ``module-purge``
-        - ``module-swap``
-        - ``module-unload``
-        - ``module-use``
+        - ``module_load``
+        - ``module_purge``
+        - ``module_swap``
+        - ``module_unload``
+        - ``module_use``
+        - ``module_remove_substr``
 
         Note:
-            ``module-remove`` is handled in the handler itself since it's
+            ``module_remove`` is handled in the handler itself since it's
             context is most applicable at the time of parsing.
 
         Args:
-            operation (str): The operation to be executed (i.e., ``module-load``)
+            operation (str): The operation to be executed (i.e., ``module_load``)
             module_name (str, None): The name of the module.
             module_value (str,None): The value from the operation field.
 
@@ -922,26 +1008,62 @@ class SetEnvironment(ConfigParserEnhanced):
             export ${1:?}="${2:?}"
         }
 
+        # envvar_remove_substr
+        # $1 = envvar name
+        # $2 = substring to remove
+        function envvar_remove_substr() {
+            local envvar=${1:?}
+            local substr=${2:?}
+            #echo "envvar   : ${envvar}" > /dev/stdout
+            #echo "to_remove: ${substr}" > /dev/stdout
+            if [[ "${substr}" == *"#"* ]]; then
+                printf "%s\n" "ERROR: $FUNCNAME: \"$substr\" contains a '#' which is invalid." 2>&1
+                return
+            fi
+            if [ ! -z ${1:?} ]; then
+                export ${envvar}=$(echo ${!envvar} | sed s#${substr}##g)
+            fi
+        }
+
+        # envvar_remove_path_entry
+        # $1 = A path style envvar name
+        # $2 = Entry to remove from the path.
+        function envvar_remove_path_entry() {
+            local envvar=${1:?}
+            local to_remove=${2:?}
+            local new_value=${!envvar}
+            #echo -e "envvar = ${envvar}" > /dev/stdout
+            #echo -e "to_remove = ${to_remove}" > /dev/stdout
+            #echo -e "new_value = ${new_value}" > /dev/stdout
+            if [ ! -z ${envvar} ]; then
+                new_value=:${new_value}:
+                new_value=${new_value//:${to_remove}:/:}
+                new_value=${new_value#:1}
+                new_value=${new_value%:1}
+                export ${envvar}=${new_value}
+            fi
+        }
+
         # envvar_op
         # $1 = operation    (set, append, prepend, unset)
         # $2 = arg1         (envvar name)
         # $3 = arg2         (envvar value - optional)
         function envvar_op() {
-
             local op=${1:?}
             local arg1=${2:?}
             local arg2=${3}
-
-            if [[ "${op}" == "set" ]]; then
+            if [[ "${op:?}" == "set" ]]; then
                 envvar_set_or_create ${arg1:?} ${arg2:?}
-            elif [[ "${op}" == "unset" ]]; then
+            elif [[ "${op:?}" == "unset" ]]; then
                 unset ${arg1:?}
-            elif [[ "${op}" == "append" ]]; then
-                envvar_append_or_create ${arg1} ${arg2:?}
-            elif [[ "${op}" == "prepend" ]]; then
-                envvar_prepend_or_create ${arg1} ${arg2:?}
+            elif [[ "${op:?}" == "append" ]]; then
+                envvar_append_or_create ${arg1:?} ${arg2:?}
+            elif [[ "${op:?}" == "prepend" ]]; then
+                envvar_prepend_or_create ${arg1:?} ${arg2:?}
+            elif [[ "${op:?}" == "remove_substr" ]]; then
+                envvar_remove_substr ${arg1:?} ${arg2:?}
             else
-                echo -e "!! ERROR (BASH): Unknown operation: ${op}"
+                echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
             fi
         }
 
@@ -1098,7 +1220,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 are currently allowed.
         """
         output = ""
-        op = self._remove_prefix(op, "module-")
+        op = self._remove_prefix(op, "module_")
 
         # Validate parameters
         num_args_req = 0
@@ -1158,28 +1280,38 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Operations defined for this are:
 
-        +-------------+----------+---------------------------------------------------+
-        | Operation   | Req Args | Description & required positional args            |
-        +=============+==========+===================================================+
-        | ``append``  |        2 | Append a value ot an existing environment var.    |
-        +-------------+----------+                                                   +
-        |             |          | - arg1: *envvar name*                             |
-        |             |          | - arg2: *envvar value*                            |
-        +-------------+----------+---------------------------------------------------+
-        | ``prepend`` |        2 | Prepend a value to an existing environment var.   |
-        +-------------+----------+                                                   +
-        |             |          | - arg1: *envvar name*                             |
-        |             |          | - arg2: *envvar value*                            |
-        +-------------+----------+---------------------------------------------------+
-        | ``set``     |        2 | Set an environment variable to a value.           |
-        +-------------+----------+                                                   +
-        |             |          | - arg1: *envvar name*                             |
-        |             |          | - arg2: *envvar value*                            |
-        +-------------+----------+---------------------------------------------------+
-        | ``unset``   |        1 | Unset the environment variable if it exists.      |
-        +-------------+----------+                                                   +
-        |             |          | - arg1: *module name* (i.e., ``gcc``)             |
-        +-------------+----------+---------------------------------------------------+
+        +-----------------------+----------+---------------------------------------------------+
+        | Operation             | Req Args | Description & required positional args            |
+        +=======================+==========+===================================================+
+        | ``append``            |        2 | Append a value ot an existing environment var.    |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *envvar value*                            |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``prepend``           |        2 | Prepend a value to an existing environment var.   |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *envvar value*                            |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``set``               |        2 | Set an environment variable to a value.           |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *envvar value*                            |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``unset``             |        1 | Unset the environment variable if it exists.      |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *module name* (i.e., ``gcc``)             |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``remove_substr``     |        2 | Remove a substring from an envvar if it exists.   |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *substrin to remove*                      |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``remove_path_entry`` |        2 | Remove a substring from an envvar if it exists.   |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *substrin to remove*                      |
+        +-----------------------+----------+---------------------------------------------------+
 
         This method is invoked like this
         ``_gen_actioncmd_module(op, arg1, arg2, ... , argN, interp='python')``
@@ -1192,16 +1324,17 @@ class SetEnvironment(ConfigParserEnhanced):
         | ``interp``  | Common Functions Generator(s)                                |
         +=============+==============================================================+
         | ``python``  | ``_gen_script_common_python``, defines:                      |
-        +-------------+                                                              |
+        +-------------+                                                              +
         |             | - ``envvar_op()``                                            |
         |             | - ``expand_envvars_in_string()``                             |
         +-------------+--------------------------------------------------------------+
         | ``bash```   | ``_gen_script_common_bash``, defines:                        |
-        +             +                                                              |
+        +-------------+                                                              +
         |             | - ``envvar_op``                                              |
         |             | - ``envvar_append_or_create``                                |
         |             | - ``envvar_prepend_or_create``                               |
         |             | - ``envvar_set_or_create``                                   |
+        |             | - ``envvar_remove_substr``                                   |
         +-------------+--------------------------------------------------------------+
 
         Args:
@@ -1221,7 +1354,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         """
         output = ""
-        op = self._remove_prefix(op, "envvar-")
+        op = self._remove_prefix(op, "envvar_")
 
         # Validate parameters
         num_args_req = 0
@@ -1241,6 +1374,10 @@ class SetEnvironment(ConfigParserEnhanced):
             arglist += [ args[0], args[1] ]
         elif op == "unset":
             arglist += [ args[0] ]
+        elif op == "remove_substr":
+            arglist += [ args[0], args[1] ]
+        elif op == "remove_path_entry":
+            arglist += [ args[0], args[1] ]
         else:
             self.exception_control_event("SERIOUS", ValueError,
                                          "Invalid module operation provided: {}".format(op))

@@ -4,7 +4,7 @@ if [ -e html ]; then
     rm -rf html
 fi
 
-sphinx-build -b html source/ html/
+sphinx-build -b html source/ html/ -W
 
 err=$?
 
