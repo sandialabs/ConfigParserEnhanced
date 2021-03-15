@@ -30,11 +30,12 @@ def test_supported_envs_ini_is_read_correctly():
 
 
 def test_invalid_supported_envs_filename_raises():
-    with pytest.raises(SystemExit) as excinfo:
+    with pytest.raises(IOError) as excinfo:
         ekp = EnvKeywordParser("", "machine-type-1", "invalid_filename_here.ini")
         ekp.supported_envs
     exception_message = excinfo.value.args[0]
-    assert "ERROR:  Unable to load configuration file" in exception_message
+    assert ("ERROR: Unable to load configuration .ini file" in
+            exception_message)
 
 
 #####################
