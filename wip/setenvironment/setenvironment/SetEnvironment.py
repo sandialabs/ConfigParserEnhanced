@@ -105,25 +105,21 @@ def envvar_op(op, envvar_name, envvar_value=""):
         tmp = envvar_value_old + [ envvar_value ]
         newval = os.pathsep.join(tmp)
         envvar_assign(envvar_name, newval)
-        #os.environ[envvar_name] = newval
     elif op == "prepend":
         tmp = [ envvar_value ] + envvar_value_old
         newval = os.pathsep.join(tmp)
-        #os.environ[envvar_name] = newval
         envvar_assign(envvar_name, newval)
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
     elif op == "remove_substr":
         if envvar_exists:
-            #os.environ[envvar_name] = os.environ[envvar_name].replace(envvar_value,"")
             newval = os.environ[envvar_name].replace(envvar_value,"")
             envvar_assign(envvar_name, newval)
     elif op == "remove_path_entry":
         if envvar_exists:
             entry_list_old = os.environ[envvar_name].split(os.pathsep)
             entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
-            #os.environ[envvar_name] = os.pathsep.join(entry_list_new)
             newval = os.pathsep.join(entry_list_new)
             envvar_assign(envvar_name, newval)
     else:                                                                                           # pragma: no cover
