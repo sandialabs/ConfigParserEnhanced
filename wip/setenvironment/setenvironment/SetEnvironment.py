@@ -38,7 +38,42 @@ from . import ModuleHelper
 # ===================================
 
 
-def envvar_op(op, envvar_name, envvar_value=""):
+def envvar_assign(envvar_name, envvar_value, allow_empty=True):
+    """Assign an environment variable.
+
+    Assigns an environment variable (envvar) to a set value.
+    Optionally raise an exception if the value is empty.
+
+    Args:
+        envvar_name (str): The name of the envvar.
+        envvar_value (str): The value to set to the envvar.
+        allow_empty (bool): If False, we throw a ``ValueError`` if
+            ``envvar_value`` is empty. Default: True.
+
+    Raises:
+        TypeError: if:
+
+            - ``envvar_value`` is not a string.
+            - ``envvar_value`` is not a string.
+            - ``allow_empty`` is not a bool.
+
+        ValueError if:
+
+            - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
+    """
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
+    os.environ[envvar_name] = envvar_value
+    return
+
+
+def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
     """Envvar operation helper
 
     This function generates a wrapper for envvar operations.
@@ -57,6 +92,10 @@ def envvar_op(op, envvar_name, envvar_value=""):
         envvar_name (str): The *name* of the envvar to be modified.
         envvar_value (str): Optional envvar value for operations that
             need to set a value. Default: ""
+        allow_empty (bool): If False, we throw a ``ValueError`` if
+            assignment of an empty value is attempted. Default: True.
+
+
     """
     envvar_exists    = envvar_name in os.environ.keys()
     envvar_value_old = [os.environ[envvar_name]] if envvar_exists else []
@@ -65,26 +104,28 @@ def envvar_op(op, envvar_name, envvar_value=""):
         envvar_value = expand_envvars_in_string(envvar_value)
 
     if op == "set":
-        os.environ[envvar_name] = envvar_value
+        envvar_assign(envvar_name, envvar_value, allow_empty)
     elif op == "append":
         tmp = envvar_value_old + [ envvar_value ]
         newval = os.pathsep.join(tmp)
-        os.environ[envvar_name] = newval
+        envvar_assign(envvar_name, newval, allow_empty)
     elif op == "prepend":
         tmp = [ envvar_value ] + envvar_value_old
         newval = os.pathsep.join(tmp)
-        os.environ[envvar_name] = newval
+        envvar_assign(envvar_name, newval, allow_empty)
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
     elif op == "remove_substr":
         if envvar_exists:
-            os.environ[envvar_name] = os.environ[envvar_name].replace(envvar_value,"")
+            newval = os.environ[envvar_name].replace(envvar_value,"")
+            envvar_assign(envvar_name, newval, allow_empty)
     elif op == "remove_path_entry":
         if envvar_exists:
             entry_list_old = os.environ[envvar_name].split(os.pathsep)
             entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
-            os.environ[envvar_name] = os.pathsep.join(entry_list_new)
+            newval = os.pathsep.join(entry_list_new)
+            envvar_assign(envvar_name, newval, allow_empty)
     else:                                                                                           # pragma: no cover
         raise ValueError                                                                            # pragma: no cover
     return 0
@@ -1101,9 +1142,11 @@ class SetEnvironment(ConfigParserEnhanced):
 
         # Note: We use `inspect` here to pull in the same code that's
         #       used in SetEnvironment itself to reduce technical debt.
+
+        output += inspect.getsource(envvar_assign)
+        output += "\n\n"
         output += inspect.getsource(expand_envvars_in_string)
         output += "\n\n"
-
         output += inspect.getsource(envvar_op)
         output += "\n\n"
 
@@ -1134,6 +1177,7 @@ class SetEnvironment(ConfigParserEnhanced):
             return ""
 
         output_file_str = ""
+        output_comment_str = "#"
 
         if incl_hdr:
             if interp == "bash":
@@ -1144,6 +1188,9 @@ class SetEnvironment(ConfigParserEnhanced):
                 self.exception_control_event("CRITICAL", RuntimeError,
                     "'Unreachable' branch executed, something is broken!")
 
+        output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
+        output_file_str += "{}   S E T E N V I R O N M E N T   C O M M A N D S\n".format(output_comment_str)
+        output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
         for iaction in self.actions:
 
             action_val = iaction['value']
