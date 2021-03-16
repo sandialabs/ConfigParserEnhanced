@@ -73,7 +73,7 @@ def envvar_assign(envvar_name, envvar_value, allow_empty=True):
     return
 
 
-def envvar_op(op, envvar_name, envvar_value=""):
+def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
     """Envvar operation helper
 
     This function generates a wrapper for envvar operations.
@@ -92,6 +92,10 @@ def envvar_op(op, envvar_name, envvar_value=""):
         envvar_name (str): The *name* of the envvar to be modified.
         envvar_value (str): Optional envvar value for operations that
             need to set a value. Default: ""
+        allow_empty (bool): If False, we throw a ``ValueError`` if
+            assignment of an empty value is attempted. Default: True.
+
+
     """
     envvar_exists    = envvar_name in os.environ.keys()
     envvar_value_old = [os.environ[envvar_name]] if envvar_exists else []
@@ -100,28 +104,28 @@ def envvar_op(op, envvar_name, envvar_value=""):
         envvar_value = expand_envvars_in_string(envvar_value)
 
     if op == "set":
-        os.environ[envvar_name] = envvar_value
+        envvar_assign(envvar_name, envvar_value, allow_empty)
     elif op == "append":
         tmp = envvar_value_old + [ envvar_value ]
         newval = os.pathsep.join(tmp)
-        envvar_assign(envvar_name, newval)
+        envvar_assign(envvar_name, newval, allow_empty)
     elif op == "prepend":
         tmp = [ envvar_value ] + envvar_value_old
         newval = os.pathsep.join(tmp)
-        envvar_assign(envvar_name, newval)
+        envvar_assign(envvar_name, newval, allow_empty)
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
     elif op == "remove_substr":
         if envvar_exists:
             newval = os.environ[envvar_name].replace(envvar_value,"")
-            envvar_assign(envvar_name, newval)
+            envvar_assign(envvar_name, newval, allow_empty)
     elif op == "remove_path_entry":
         if envvar_exists:
             entry_list_old = os.environ[envvar_name].split(os.pathsep)
             entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
             newval = os.pathsep.join(entry_list_new)
-            envvar_assign(envvar_name, newval)
+            envvar_assign(envvar_name, newval, allow_empty)
     else:                                                                                           # pragma: no cover
         raise ValueError                                                                            # pragma: no cover
     return 0
