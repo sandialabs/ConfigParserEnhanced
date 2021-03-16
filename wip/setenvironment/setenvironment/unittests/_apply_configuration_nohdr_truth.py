@@ -1,3 +1,6 @@
+# -------------------------------------------------
+#   S E T E N V I R O N M E N T   C O M M A N D S
+# -------------------------------------------------
 envvar_op("set","FOO","bar")
 envvar_op("append","FOO","baz")
 envvar_op("prepend","FOO","foo")

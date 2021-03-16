@@ -16,13 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
-## [Unreleased] ([0.1.1] - 2021-03-11)
+## [Unreleased] ([0.1.1] - 2021-03-16)
 #### Added
+- New free-function: `envvar_assign` - A helper that handles _assigning_ envvars.
+  Adds option to raise an exception if the envvar value is an empty string or not.
+  Default is to allow empty assignment, but having this toggle will allow us to
+  tune this later on.
 - New command: `envvar-remove-substr` - this will remove a substring
   from an existing envvar. Syntax: `envvar-remove-substr <envvar> : <substr>`.
 - New command: `envvar-remove-path-entry` - this will remove a path entry
   from an existing path-type envvar. Syntax: `envvar-remove-path-entry <envvar>: <path>`.
 #### Changed
+- Free functions `envvar_assign` and `envvar_op` are now exposed to the package API in
+  the `__init__.py` file.
 - Updated to account for changes in `ConfigParserEnhanced` regarding
   operation normalization. This doesn't affect `.ini` file construction
   but internally we now need to use `_` instead of `-` characters in the

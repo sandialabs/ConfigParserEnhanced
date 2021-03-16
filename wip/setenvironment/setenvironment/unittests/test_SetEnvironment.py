@@ -875,6 +875,9 @@ class SetEnvironmentTest(TestCase):
         test_incl_hdr = False
         test_interp = "bash"
         rval_expect = dedent("""\
+                        # -------------------------------------------------
+                        #   S E T E N V I R O N M E N T   C O M M A N D S
+                        # -------------------------------------------------
                         envvar_op set FOO bar
                         envvar_op append FOO baz
                         envvar_op prepend FOO foo
@@ -1431,6 +1434,35 @@ class SetEnvironmentTest(TestCase):
         print("-----[ TEST END ]------------------------------------------")
         print("OK")
         return
+
+
+    def test_SetEnvironment_freefunc_envvar_assign(self):
+        """
+        Test the free-function ``envvar_assign``
+        """
+        print("\n")
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        with self.assertRaises(TypeError):
+            envvar_assign(None, "BAR")
+
+        with self.assertRaises(TypeError):
+            envvar_assign("FOO", None)
+
+        with self.assertRaises(TypeError):
+            envvar_assign("FOO", "BAR", None)
+
+        envvar_assign("FOO", "", True)
+        self.assertEqual("", os.environ["FOO"])
+        del os.environ["FOO"]
+
+        with self.assertRaises(ValueError):
+            envvar_assign("FOO", "", False)
+
+        print("-----[ TEST END ]------------------------------------------")
+        print("OK")
+        return
+
 
 
 
