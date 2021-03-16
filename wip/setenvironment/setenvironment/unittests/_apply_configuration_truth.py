@@ -9,6 +9,41 @@ if not sys.version_info.major >= 3:
 from setenvironment import ModuleHelper
 
 
+def envvar_assign(envvar_name, envvar_value, allow_empty=True):
+    """Assign an environment variable.
+
+    Assigns an environment variable (envvar) to a set value.
+    Optionally raise an exception if the value is empty.
+
+    Args:
+        envvar_name (str): The name of the envvar.
+        envvar_value (str): The value to set to the envvar.
+        allow_empty (bool): If False, we throw a ``ValueError`` if
+            ``envvar_value`` is empty. Default: True.
+
+    Raises:
+        TypeError: if:
+
+            - ``envvar_value`` is not a string.
+            - ``envvar_value`` is not a string.
+            - ``allow_empty`` is not a bool.
+
+        ValueError if:
+
+            - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
+    """
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
+    os.environ[envvar_name] = envvar_value
+    return
+
+
 def expand_envvars_in_string(string_in) -> str:
     """
     Take an input string that may contain environment variables in the style
@@ -87,27 +122,36 @@ def envvar_op(op, envvar_name, envvar_value=""):
     elif op == "append":
         tmp = envvar_value_old + [ envvar_value ]
         newval = os.pathsep.join(tmp)
-        os.environ[envvar_name] = newval
+        envvar_assign(envvar_name, newval)
+        #os.environ[envvar_name] = newval
     elif op == "prepend":
         tmp = [ envvar_value ] + envvar_value_old
         newval = os.pathsep.join(tmp)
-        os.environ[envvar_name] = newval
+        #os.environ[envvar_name] = newval
+        envvar_assign(envvar_name, newval)
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
     elif op == "remove_substr":
         if envvar_exists:
-            os.environ[envvar_name] = os.environ[envvar_name].replace(envvar_value,"")
+            #os.environ[envvar_name] = os.environ[envvar_name].replace(envvar_value,"")
+            newval = os.environ[envvar_name].replace(envvar_value,"")
+            envvar_assign(envvar_name, newval)
     elif op == "remove_path_entry":
         if envvar_exists:
             entry_list_old = os.environ[envvar_name].split(os.pathsep)
             entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
-            os.environ[envvar_name] = os.pathsep.join(entry_list_new)
+            #os.environ[envvar_name] = os.pathsep.join(entry_list_new)
+            newval = os.pathsep.join(entry_list_new)
+            envvar_assign(envvar_name, newval)
     else:                                                                                           # pragma: no cover
         raise ValueError                                                                            # pragma: no cover
     return 0
 
 
+# -------------------------------------------------
+#   S E T E N V I R O N M E N T   C O M M A N D S
+# -------------------------------------------------
 envvar_op("set","FOO","bar")
 envvar_op("append","FOO","baz")
 envvar_op("prepend","FOO","foo")
