@@ -61,6 +61,8 @@ def test_configparserEnhanced(filename="config.ini"):
     parser = ConfigParserEnhanced(filename=filename)
     parser.debug_level = 1
     parser.exception_control_level = 4
+    parser.exception_control_compact_warnings = True
+    parser.exception_control_silent_warnings  = False
 
     section = "SECTION-A+"
     section = "SECTION C+"
@@ -84,7 +86,14 @@ def test_configparserEnhanced(filename="config.ini"):
     print_section(parser, "SECTION C+")
     print_section(parser, "SECTION-A")
 
-    print("Loop over items in parser.configparserenhanceddata")
+    # uncomment this to pre-parse the file.
+    #parser.configparserenhanceddata.sections(True)
+
+    print("Loop over sections in parser.configparserenhanceddata:")
+    for section in parser.configparserenhanceddata.sections():
+        print("- {}".format(section))
+
+    print("Loop over items in parser.configparserenhanceddata:")
     for section,options in parser.configparserenhanceddata.items():
         print("[{}]".format(section))
         max_keylen=0

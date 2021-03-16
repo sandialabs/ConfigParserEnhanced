@@ -239,7 +239,7 @@ class ExceptionControl(object):
                 if not self.exception_control_silent_warnings:
 
                     if self.exception_control_compact_warnings:
-                        tb_last = str(traceback.format_stack()[-1])
+                        tb_last = str(traceback.format_stack()[-2])
                         tb_last = tb_last.splitlines()[0]
                         tb_last = tb_last.strip()
                         print("!! EXCEPTION SKIPPED ({} : {}) @ {}".format(

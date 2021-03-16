@@ -1779,6 +1779,91 @@ class ConfigParserEnhancedDataTest(TestCase):
         return
 
 
+    def test_ConfigParserDataEnhanced_sections_arg_parse(self):
+        """
+        Test ``sections(parse=True)`` in ``ConfigParserEnhancedData``
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = True
+        parser.exception_control_silent_warnings  = False
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        sections = parser.configparserenhanceddata.sections(parse=True)
+
+        print("Section names:")
+        for isec in sections:
+            print(isec)
+
+        # Note: the _loginfo data will only contain the data from the _last_ section
+        #       in the .ini file.
+        self.assertTrue( hasattr(parser, '_loginfo') )
+        section_entry_list = [ d['name'] for d in parser._loginfo if d['type']=='section-entry']
+        section_exit_list  = [ d['name'] for d in parser._loginfo if d['type']=='section-exit']
+        self.assertListEqual(section_entry_list, section_exit_list[::-1])
+
+        # Just checking that we _did_ parse sections is sufficient here
+        # to prove that this _did_ trigger the parses.
+        self.assertTrue( len(section_entry_list) > 0 )
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        # Round 2 - Everything would be cached so we shouldn't need to re-parse things.
+
+        # Wipe the loginfo, it should remain empty the 2nd time we list the sections.
+        parser._loginfo_reset()
+
+        sections = parser.configparserenhanceddata.sections(parse=True)
+
+        print("Section names:")
+        for isec in sections:
+            print(isec)
+
+        # _loginfo isn't generated because we didn't re-parse anything.
+        self.assertFalse( hasattr(parser, '_loginfo') )
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        # Round 3 - Setting parse = "force" will force a re-parse of the data. In this
+        # case we should now have a _loginfo object created.
+
+        # Wipe the loginfo, it should remain empty the 2nd time we list the sections.
+        parser._loginfo_reset()
+
+        sections = parser.configparserenhanceddata.sections(parse="force")
+
+        print("Section names:")
+        for isec in sections:
+            print(isec)
+
+        # Let's pull only the "entry" list from _loginfo and compare it to the
+        # reversed "exit" list from the time we first parsed the data.  They
+        # should be equal.
+        self.assertTrue( hasattr(parser, '_loginfo') )
+        section_entry_list = [ d['name'] for d in parser._loginfo if d['type']=='section-entry']
+        self.assertListEqual(section_entry_list, section_exit_list[::-1])
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        # Check for a bad-type assigned to `parse`
+        with self.assertRaises(TypeError):
+            sections = parser.configparserenhanceddata.sections(parse=None)
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        # Check for a bad-value assigned to `parse`
+        with self.assertRaises(ValueError):
+            sections = parser.configparserenhanceddata.sections(parse="definitely not the right value")
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
+
+
     def test_ConfigParserDataEnhanced_has_section(self):
         """
         Test the ``has_section`` method.
@@ -1847,6 +1932,32 @@ class ConfigParserEnhancedDataTest(TestCase):
         result_actual = parser.configparserenhanceddata.has_option(section, option)
         self.assertEqual(result_expect, result_actual, "has_option found missing option?")
 
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserDataEnhanced_has_option_no_owner(self):
+        """
+        This is the basic test template
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 5
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        # deleting the owner will force the property to be `None`
+        delattr(parser.configparserenhanceddata, '_owner_data')
+
+        section = "SECTION-A"
+        option  = "key1"
+        print("has_option : {} in {} ?".format(option, section))
+        result_expect = False
+        result_actual = parser.configparserenhanceddata.has_option(section, option)
         print("-----[ TEST END   ]--------------------------------------------------")
 
         print("OK")
@@ -1988,12 +2099,10 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         self.assertEqual(0, parser.configparserenhanceddata.debug_level)
         self.assertEqual(0, parser.configparserenhanceddata.exception_control_level)
-
         print("-----[ TEST END   ]--------------------------------------------------")
 
 
         print("-----[ TEST START ]--------------------------------------------------")
-
         # Check that if we try and get the keys() data and we have no _owner
         # then we'll just get whatever is in ``data.keys()``.
 
@@ -2006,11 +2115,37 @@ class ConfigParserEnhancedDataTest(TestCase):
         self.assertListEqual(list(keys_expect), list(keys_actual))
 
         del parser.configparserenhanceddata.data["TEST"]
-
         print("-----[ TEST END   ]--------------------------------------------------")
 
         print("OK")
         return
+
+
+
+    def test_ConfigParserDataEnhanced__parse_owner_section(self):
+        """
+        Test parameter options for `_parse_owner_section()`
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 5
+        parser.exception_control_compact_warnings = True
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        # _parse_owner_section should throw a TypeError if force_parse isn't a bool.
+        with self.assertRaises(TypeError):
+            parser.configparserenhanceddata._parse_owner_section("SECTION-A", force_parse=None)
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
+
+
+
+
 
 
 # EOF
