@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "configparserenhanced"
-version = "0.2.0"
+version = "0.2.1"
 description = "A .ini file processing tool that extends configparser to add processing triggers to options."
 authors = [
     "William McLendon <wcmclen@sandia.gov>",

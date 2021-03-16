@@ -44,7 +44,7 @@ Todo:
     - William C. McLendon III <wcmclen@sandia.gov>
     - Jason M. Gates <jmgate@sandia.gov>
 
-:Version: 0.2.0
+:Version: 0.2.1
 
 """
 from __future__ import print_function
@@ -153,8 +153,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_inifilepath'):
             if hasattr(self, '_configparserdata'):
                 delattr(self, '_configparserdata')
-            if hasattr(self, '_loginfo'):
-                delattr(self, '_loginfo')
+            self._loginfo_reset()
 
         # Internally we represent the inifile as a `list of Path` objects.
         # Do the necessary conversions to make that so.
@@ -335,9 +334,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise ValueError("`section` cannot be empty.")
 
         # If a previous run generated _loginfo, clear it before this run.
-        if hasattr(self, '_loginfo'):
-            delattr(self, '_loginfo')
+        self._loginfo_reset()
 
+        # Parse the requested section.
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
 
         # Cache the result
@@ -1088,6 +1087,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return
 
 
+    def _loginfo_reset(self) -> None:
+        """
+        Reset the ``_loginfo`` data.
+        """
+        if hasattr(self, '_loginfo'):
+            delattr(self, '_loginfo')
+        return
+
+
     def _loginfo_print(self, pretty=True) -> None:
         """
         This is a helper to pretty-print the ``_loginfo`` object.
@@ -1295,13 +1303,38 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             return len(self.keys())
 
 
-        def sections(self):
+        def sections(self, parse=False):
             """
             Returns an iterable of sections in the ``.ini`` file.
+
+            Args:
+                parse (str,bool): Determines whether or not we will parse the sections
+                    as well. This can be a string or a boolean type.
+
+                    - ``False``: (default): Only returns the section names.
+                    - ``True`` : Return the section names but also execute a parse of the sections.
+                    - "force"  : Same as ``True`` but we *force* a (re)parse of all sections
+                        even if they've already been parsed before.
 
             Returns:
                 iterable object: containing the sections in the ``.ini`` file.
             """
+            force_parse = False
+
+            # Check the parameters.
+            if not isinstance(parse, (bool,str)):
+                raise TypeError("parse option must be a bool or str type.")
+            if isinstance(parse, (str)):
+                parse = parse.lower()
+                force_parse = parse == "force"
+                if parse != "force":
+                    self.exception_control_event("CATASTROPHIC", ValueError,
+                                                 "`parse` should be a bool or a"
+                                                 "string that is set to 'force'")
+
+            if parse:
+                for section in self.keys():
+                    self._parse_owner_section(section, force_parse)
             return self.keys()
 
 
@@ -1322,7 +1355,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                             self._parse_owner_section(section)
                         except KeyError:                                                            # pragma: no cover
                             # This might not be reachable.
-                            pass                                                                    # pragma: no cover
+                            self.exception_control_event("CATASTROPHIC", KeyError,
+                                "Reached 'unreachable' code? Please notify developers of this")
 
             return self.has_section_no_parse(section)
 
@@ -1350,9 +1384,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         def has_option(self, section, option) -> bool:
             """
             """
-            if self._owner != None and section not in self._sections_checked:
+            if self._owner != None:
                 self._parse_owner_section(section)
-            return option in self.data[section].keys()
+            return (section in self.data.keys()) and (option in self.data[section].keys())
 
 
         def get(self, section, option):
@@ -1457,14 +1491,34 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             return
 
 
-        def _parse_owner_section(self, section):
+        def _parse_owner_section(self, section, force_parse=False):
             """Parse the section from the owner class.
+
+            The ``force_parse`` parameter determins if we will perform a parse of the
+            section even if it's already been parsed.
+
+            Args:
+                section (str): The section name of the section to parse.
+                force_parse (bool,str): Determins if we should parse the section or not.
+
+            Raises:
+                TypeError: If the ``force_parse`` option is not a ``bool`` or ``str`` type.
             """
+            # Check the parameters.
+            if not isinstance(force_parse, (bool)):
+                self.exception_control_event("CATASTROPHIC", TypeError,
+                        "`force_parse` must be a `bool` type.")
+
             if self._owner != None:
-                self._set_owner_options()
-                self._sections_checked.add(section)
-                #self._owner.parse_section(section, initialize=False, finalize=False)
-                self._owner.parse_section(section)
+
+                do_parse_section = section not in self._sections_checked
+                do_parse_section = do_parse_section or force_parse
+
+                if do_parse_section:
+                    self._set_owner_options()
+                    self._sections_checked.add(section)
+                    self._owner.parse_section(section)
+                    #self._owner.parse_section(section, initialize=False, finalize=False)
 
             return
 

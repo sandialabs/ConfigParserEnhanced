@@ -14,9 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
-
 ## [Unreleased]
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
+## [0.2.1] - 2021-03-15
+### Added
+- New private method: `_loginfo_reset`. This removes the `_loginfo` attribute.
 - New internal method `_apply_transformation_to_operation()`.
   Applies any needed transformations to the raw `<operation>` strings.
   Currently this just replaces occurrences of `-` with `_` to operations.
@@ -25,6 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Currently this is just a pass-through, added now to pair with
   `_apply_transformation_to_operation()`.
 ### Changed
+- Add parameter `parse` to `ConfigParserEnhancedData.sections` which can be
+  either `True`, `False`, or `"force"`.
+    - If `False` then requesting `configparserenhanceddata.sections()` will give
+      the list of sections in the .ini file without parseing them.
+    - If `True` then requesting `configparserenhanceddata.sections()` will give
+      the list of sections in the .ini file but it will also kick off the parser
+      to parse (and cache) them.
+    - If `"force"` then requesting `configparserenhanceddata.sections()` will
+      FORCE a (re)parse of the sections in the .ini file.
+- Add parameter `force_parse` to `ConfigParserEnhancedData._parse_owner_sections()`
+  in support of new `parse` parameter to `ConfigParserEnhancedData.sections`.
 - `operations` have added processing to do some normalization. Currently
   this is just a replacement of any `-` with `_`. For example, an
   operation such as `foo-bar-baz` will be converted to `foo_bar_baz`
@@ -32,6 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+- Fix a bug in the indexing in the `ExceptionControl` module to print out the
+  correct stack entry showing where `exception_control_event` was called that
+  triggered the event in the traceback when `exception_control_compact_warnings`
+  is enabled.
 ### Security
 
 
