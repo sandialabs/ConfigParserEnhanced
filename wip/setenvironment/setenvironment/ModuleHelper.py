@@ -49,7 +49,7 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
     # Try to import the LMOD version of the module() function.
     # See: https://github.com/TACC/Lmod/blob/master/init/env_modules_python.py.in
     import env_modules_python
-    print("NOTICE> [ModuleHelper.py] Using the lmod based `env_modules_python` module handler.")
+    # print("NOTICE> [ModuleHelper.py] Using the lmod based `env_modules_python` module handler.")
 
 
     def module(command, *arguments) -> int:
@@ -88,7 +88,7 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
 
 
 except ImportError:
-    print("NOTICE> [ModuleHelper.py] Using the modulecmd based environment modules handler.")
+    # print("NOTICE> [ModuleHelper.py] Using the modulecmd based environment modules handler.")
 
 
     def module(command, *arguments) -> int:
