@@ -1,10 +1,11 @@
-import re
-import sys
 from configparserenhanced import ConfigParserEnhanced
 from pathlib import Path
+import re
+from src.load_env_common import LoadEnvCommon
+import sys
 
 
-class EnvKeywordParser:
+class EnvKeywordParser(LoadEnvCommon):
     """
     This class accepts a configuration file containing supported environments
     on various machines in the following format::
@@ -112,7 +113,7 @@ class EnvKeywordParser:
                 err_msg = self.get_err_msg_showing_supported_environments(
                     "Unable to find alias or environment name for system "
                     f"'{self.system_name}' in\nkeyword string "
-                    f"'{self.build_name}'"
+                    f"'{self.build_name}'."
                 )
                 sys.exit(err_msg)
 
@@ -233,41 +234,13 @@ class EnvKeywordParser:
 
         return matched_env_name
 
-    def get_err_msg_for_list(self, err_msg, item_list):
-        """
-        Helper function to generate an error message using a list. Produces a
-        message like the following::
-
-            +=================================================================+
-            |   ERROR:  {msg}.
-            |     - {item_list[0]}
-            |     - {item_list[1]}
-            |     - ...
-            |     - {item_list[n]}
-            +=================================================================+
-
-        Parameters:
-            err_msg (str):  The error message to print.  Can be multiline.
-            item_list (list):  The list of items to print in the error message.
-
-        Returns:
-            str:  The formatted error message.
-        """
-        msg = ("\n+" + "="*78 + "+\n" +
-               self.get_formatted_multiline_err_msg(err_msg))
-        for item in item_list:
-            msg += f"|     - {item}\n"
-        msg += ("+" + "="*78 + "+\n")
-
-        return msg
-
     def get_err_msg_showing_supported_environments(self, err_msg):
         """
         Similar to :func:`get_err_msg_for_list`, except it's a bit more
         specific. Produces an error message like::
 
             +=================================================================+
-            |   ERROR:  {err_msg}.
+            |   ERROR:  {err_msg}
             |   - Supported Environments for 'machine-type-1':
             |     - intel-18.0.5-mpich-7.7.6
             |       * Aliases:
@@ -288,7 +261,7 @@ class EnvKeywordParser:
         """
         msg = (
             "\n+" + "="*78 + "+\n" +
-            self.get_formatted_multiline_err_msg(err_msg) +
+            self.get_formatted_err_msg(err_msg) +
             f"|   - Supported Environments for '{self.system_name}':\n"
         )
 
@@ -302,30 +275,6 @@ class EnvKeywordParser:
                 msg += ("|" + " "*9 + f"- {a}\n")
 
         msg += ("+" + "="*78 + "+\n")
-
-        return msg
-
-    def get_formatted_multiline_err_msg(self, err_msg):
-        """
-        This helper method handles multiline error messages, rendering them
-        like::
-
-            |   ERROR:  Unable to find alias or environment name for system
-            |           'machine-type-1' in keyword string 'bad_kw_str'.
-
-        Parameters:
-            err_msg (str):  The error message, with potentially multiple lines.
-
-        Returns:
-            str:  The formatted error message.
-        """
-        err_msg_lines = err_msg.split("\n")
-        for idx, line in enumerate(err_msg_lines):
-            period = "." if idx == len(err_msg_lines)-1 else ""
-            if idx == 0:
-                msg = f"|   ERROR:  {line}{period}\n"
-            else:
-                msg += f"|           {line}{period}\n"
 
         return msg
 
@@ -352,7 +301,7 @@ class EnvKeywordParser:
             assert duplicates == []
         except AssertionError:
             msg = self.get_err_msg_for_list(
-                f"Aliases for '{self.system_name}' contains duplicates",
+                f"Aliases for '{self.system_name}' contains duplicates:",
                 duplicates
             )
             sys.exit(msg)
@@ -381,7 +330,7 @@ class EnvKeywordParser:
         except AssertionError:
             msg = self.get_err_msg_for_list(
                 f"Alias found for '{self.system_name}' that matches an "
-                "environment name", duplicates
+                "environment name:", duplicates
             )
             sys.exit(msg)
 
@@ -393,7 +342,7 @@ class EnvKeywordParser:
             es = "es" if len(aliases_w_whitespace) > 1 else ""
             s = "s" if len(aliases_w_whitespace) == 1 else ""
             msg = self.get_err_msg_for_list(
-                f"The following alias{es} contain{s} whitespace",
+                f"The following alias{es} contain{s} whitespace:",
                 aliases_w_whitespace
             )
             sys.exit(msg)
@@ -479,7 +428,7 @@ class EnvKeywordParser:
             except AssertionError:
                 sys.exit(
                     self.get_err_msg_showing_supported_environments(
-                        f"'{vc}' is not a supported version"
+                        f"'{vc}' is not a supported version."
                     )
                 )
 
@@ -489,5 +438,5 @@ class EnvKeywordParser:
             assert [en for en in self.env_names if versioned_match in en] != []
         except AssertionError:
             sys.exit(self.get_err_msg_showing_supported_environments(
-                f"'{versioned_match}' is not a supported version"
+                f"'{versioned_match}' is not a supported version."
             ))

@@ -22,23 +22,23 @@ load_env_ini_data = ConfigParserEnhanced(
 @pytest.mark.parametrize("inputs", [
     {
         "build_name": "intel",
-        "sys_name": "machine-type-1",
+        "hostname": "mutrino",
         "expected_env": "machine-type-1-intel-18.0.5-mpich-7.7.6"
     },
     {
         "build_name": "arm",
-        "sys_name": "machine-type-4",
+        "hostname": "stria",
         "expected_env": "machine-type-4-arm-20.0-openmpi-4.0.2"
     }
 ])
 @pytest.mark.parametrize("prog_cmd", ["prog", "cmd"])
-@patch("load_env.os")
-def test_ekp_matches_correct_env_name(mock_os, prog_cmd, inputs):
+@patch("load_env.socket")
+def test_ekp_matches_correct_env_name(mock_socket, prog_cmd, inputs):
     ###########################################################################
     # **This will need to change later once we have a more sophisticated**
     # **system determination in place.**
     ###########################################################################
-    mock_os.environ.get.return_value = inputs["sys_name"]
+    mock_socket.gethostname.return_value = inputs["hostname"]
 
     if prog_cmd == "prog":
         le = LoadEnv(
@@ -58,7 +58,7 @@ def test_ekp_matches_correct_env_name(mock_os, prog_cmd, inputs):
 @pytest.mark.parametrize("inputs", [
     {
         "build_name": "intel",
-        "sys_name": "machine-type-1",
+        "hostname": "mutrino",
         "expected_env": "machine-type-1-intel-18.0.5-mpich-7.7.6",
         "expected_cmds": [
             "module load sparc-dev/intel-18.0.5_mpich-7.7.6",
@@ -68,7 +68,7 @@ def test_ekp_matches_correct_env_name(mock_os, prog_cmd, inputs):
     },
     {
         "build_name": "arm",
-        "sys_name": "machine-type-4",
+        "hostname": "stria",
         "expected_env": "machine-type-4-arm-20.0-openmpi-4.0.2",
         "expected_cmds": [
             # "module load ninja",
@@ -85,13 +85,13 @@ def test_ekp_matches_correct_env_name(mock_os, prog_cmd, inputs):
     }
 ])
 @pytest.mark.parametrize("prog_cmd", ["prog", "cmd"])
-@patch("load_env.os")
-def test_correct_commands_are_saved(mock_os, prog_cmd, inputs):
+@patch("load_env.socket")
+def test_correct_commands_are_saved(mock_socket, prog_cmd, inputs):
     ###########################################################################
     # **This will need to change later once we have a more sophisticated**
     # **system determination in place.**
     ###########################################################################
-    mock_os.environ.get.return_value = inputs["sys_name"]
+    mock_socket.gethostname.return_value = inputs["hostname"]
 
     if prog_cmd == "prog":
         le = LoadEnv(

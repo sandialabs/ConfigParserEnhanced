@@ -138,17 +138,17 @@ def test_underscores_hyphens_dont_matter_for_aliases():
 @pytest.mark.parametrize("bad_alias", [
     {
         "alias": "intel",
-        "err_msg": "ERROR:  Aliases for 'machine-type-1' contains duplicates.",
+        "err_msg": "ERROR:  Aliases for 'machine-type-1' contains duplicates:",
     },
     {
         "alias": "intel-18.0.5-mpich-7.7.6",
         "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an environment"
-                    " name."),
+                    " name:"),
     },
     {
         "alias": "intel-19.0.4-mpich-7.7.6",
         "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an environment"
-                    " name."),
+                    " name:"),
     },
 ])
 def test_alias_values_are_unique(bad_alias):
@@ -193,7 +193,7 @@ def test_alias_values_do_not_contain_whitespace(multiple_aliases):
 
     es = "es" if multiple_aliases is True else ""
     s = "" if multiple_aliases is True else "s"
-    assert f"The following alias{es} contain{s} whitespace." in exc_msg
+    assert f"The following alias{es} contain{s} whitespace:" in exc_msg
     assert "- intel 18\n" in exc_msg
     if multiple_aliases is True:
         assert "- intel default\n" in exc_msg
