@@ -885,7 +885,9 @@ class SetEnvironmentTest(TestCase):
                         envvar_op remove_substr FOO bar
                         envvar_op unset FOO
                         """).strip()
-        rval_actual = parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+        rval_actual = parser.generate_actions_script(incl_hdr=test_incl_hdr,
+                                                 incl_shebang=False,
+                                                 interp=test_interp)
         rval_actual = rval_actual.strip()
 
         self.assertEqual(rval_expect, rval_actual)
@@ -924,7 +926,7 @@ class SetEnvironmentTest(TestCase):
         test_incl_hdr = True
         test_interp = "invalid_interpreter"
         with self.assertRaises(ValueError):
-            parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+            parser.generate_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
 
         print("-----[ TEST END ]------------------------------------------")
 
@@ -938,7 +940,7 @@ class SetEnvironmentTest(TestCase):
         test_incl_hdr = True
         test_interp   = "invalid_interpreter"
         rval_expect   = ""
-        rval_actual   = parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+        rval_actual   = parser.generate_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
         self.assertEqual(rval_expect, rval_actual)
         parser.exception_control_level = 5
 
@@ -956,7 +958,7 @@ class SetEnvironmentTest(TestCase):
         parser.actions.append( {'op': 'envvar_set', 'value': "thevalue", "newkey": "???"} )
 
         with self.assertRaises(ValueError):
-            parser._gen_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+            parser.generate_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
 
         # Cleanup: Remove the bogus entry from the actions.
         del parser.actions[-1]
@@ -1291,149 +1293,77 @@ class SetEnvironmentTest(TestCase):
         return
 
 
-    def test_SetEnvironment_write_actions_to_file_bash(self):
+    def test_SetEnvironment_write_actions_to_file(self):
         """
-        Test the ``write_actions_to_file`` method with a ``bash`` target.
         """
-        section = "CONFIG_A+"
+        gen_new_ground_truth = False
 
-        print("\n")
-        print("Load file: {}".format(self._filename))
-        print("Section  : {}".format(section))
+        options_list = [
+            {"interpreter": "bash", "header": True,  "body":  True,  "shebang": True  },
+            {"interpreter": "bash", "header": True,  "body":  True,  "shebang": False },
+            {"interpreter": "bash", "header": True,  "body":  False, "shebang": True  },
+            {"interpreter": "bash", "header": True,  "body":  False, "shebang": False },
 
-        parser = SetEnvironment(self._filename)
-        parser.debug_level = 5
+            {"interpreter": "bash", "header": False, "body":  True,  "shebang": True  },
+            {"interpreter": "bash", "header": False, "body":  True,  "shebang": False },
+            {"interpreter": "bash", "header": False, "body":  False, "shebang": True  },
+            {"interpreter": "bash", "header": False, "body":  False, "shebang": False },
 
-        print("-----[ TEST BEGIN ]----------------------------------------")
+            {"interpreter": "python", "header": True,  "body":  True,  "shebang": True  },
+            {"interpreter": "python", "header": True,  "body":  True,  "shebang": False },
+            {"interpreter": "python", "header": True,  "body":  False, "shebang": True  },
+            {"interpreter": "python", "header": True,  "body":  False, "shebang": False },
 
-        # parse a section
-        data = parser.parse_section(section)
+            {"interpreter": "python", "header": False, "body":  True,  "shebang": True  },
+            {"interpreter": "python", "header": False, "body":  True,  "shebang": False },
+            {"interpreter": "python", "header": False, "body":  False, "shebang": True  },
+            {"interpreter": "python", "header": False, "body":  False, "shebang": False },
+        ]
 
-        # Pretty print the actions (unchecked)
-        print("")
-        parser.pretty_print_actions()
+        for options in options_list:
+            self._helper_write_actions_to_file(options,
+                                               gen_new_ground_truth=gen_new_ground_truth)
 
-        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_truth.sh"])
-        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_test.sh"])
-        include_header = True
-        interpreter  = "bash"
-        rval_expect  = 0
-        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
+        self.assertFalse(gen_new_ground_truth,
+                         "Testing should not also generate new ground truth.")
 
-        self.assertEqual(rval_expect, rval_actual)
-        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
-
-        print("-----[ TEST END ]------------------------------------------")
-
-        print("-----[ TEST BEGIN ]----------------------------------------")
-
-        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_nohdr_truth.sh"])
-        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_nohdr_test.sh"])
-        include_header = False
-        interpreter  = "bash"
-        rval_expect  = 0
-        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
-
-        self.assertEqual(rval_expect, rval_actual)
-        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
-
-        print("-----[ TEST END ]------------------------------------------")
-
-        print("-----[ TEST BEGIN ]----------------------------------------")
-
-        filename_out = "___apply_configuration_nowrite_01.sh"
-        include_header = True
-        interpreter  = "undefined interpreter"
-        rval_expect  = 0
-        with self.assertRaises(ValueError):
-            rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
-            self.assertEqual(rval_expect, rval_actual)
-
-        print("-----[ TEST END ]------------------------------------------")
-
-        print("OK")
         return
 
 
-    def test_SetEnvironment_write_actions_to_file_python(self):
+    def test_SetEnvironment_write_actions_to_file_bad_interp(self):
         """
-        Test the ``write_actions_to_file`` method with a ``python`` target.
         """
         section = "CONFIG_A+"
-
         print("\n")
         print("Load file: {}".format(self._filename))
         print("Section  : {}".format(section))
 
         parser = SetEnvironment(self._filename)
         parser.debug_level = 5
+        parser.exception_control_level = 5
+        parser.exception_control_compact_warnings = True
 
         print("-----[ TEST BEGIN ]----------------------------------------")
-
-        # parse a section
-        data = parser.parse_section(section)
-
-        # Pretty print the actions (unchecked)
-        print("")
-        parser.pretty_print_actions()
-
-        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_truth.py"])
-        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_test.py"])
-        include_header = True
-        interpreter  = "python"
-        rval_expect  = 0
-
-        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
-
-        self.assertEqual(rval_expect, rval_actual)
-        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
-
-
-        print("-----[ TEST END ]------------------------------------------")
-
-        print("-----[ TEST BEGIN ]----------------------------------------")
-
-        filename_out_truth = os.path.sep.join([self.unit_test_path,"_apply_configuration_nohdr_truth.py"])
-        filename_out_test  = os.path.sep.join([self.unit_test_path,"___apply_configuration_nohdr_test.py"])
-        include_header = False
-        interpreter  = "python"
-        rval_expect  = 0
-
-        rval_actual  = parser.write_actions_to_file(filename_out_test, include_header, interpreter)
-
-        self.assertEqual(rval_expect, rval_actual)
-        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
-
-        print("-----[ TEST END ]------------------------------------------")
-
-        print("-----[ TEST BEGIN ]----------------------------------------")
-
-        filename_out = "___apply_configuration_nowrite_01.py"
-        include_header = True
-        interpreter  = "undefined interpreter"
-        rval_expect  = 0
-
+        print("Raise exception on bad interpreter")
+        parser.exception_control_level = 5
         with self.assertRaises(ValueError):
-            rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
-            self.assertEqual(rval_expect, rval_actual)
-
+            parser.write_actions_to_file("___tmp.txt", interpreter = "not a valid interpreter")
         print("-----[ TEST END ]------------------------------------------")
 
+
         print("-----[ TEST BEGIN ]----------------------------------------")
-
-        filename_out = "___apply_configuration_nowrite_02.py"
-        include_header = True
-        interpreter  = "undefined interpreter"
-        rval_expect  = 1
-
+        print("Warning on bad interpreter")
         parser.exception_control_level = 2
-
-        rval_actual  = parser.write_actions_to_file(filename_out, include_header, interpreter)
+        rval_expect = 1
+        rval_actual = parser.write_actions_to_file("___tmp.txt", interpreter = "not a valid interpreter")
         self.assertEqual(rval_expect, rval_actual)
-
         print("-----[ TEST END ]------------------------------------------")
-        print("OK")
+
+
+
         return
+
+
 
 
     def test_SetEnvironment_freefunc_envvar_assign(self):
@@ -1519,8 +1449,83 @@ class SetEnvironmentTest(TestCase):
                              "parse_section() results validation failed.")
 
         print("-----[ TEST END ]------------------------------------------")
-
         print("OK")
+        return
+
+
+    def _helper_write_actions_to_file(self, options, gen_new_ground_truth=False):
+        """
+        Set gen_new_ground_truth = True to create new ground-truth files.
+        """
+        section = "CONFIG_A+"
+        print("\n")
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        print("options  : {}".format(options))
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+
+        files_subdir = "files"
+
+        filename_interp  = options["interpreter"]
+        filename_header  = options["header"]
+        filename_body    = options["body"]
+        filename_shebang = options["shebang"]
+
+        filename_base = "config"
+        filename_ext  = "txt"
+
+        self.assertIn(filename_interp, ["bash", "python"])
+
+        if   filename_interp == "bash":   filename_ext = "sh"
+        elif filename_interp == "python": filename_ext = "py"
+
+        filename_base += "-{}".format(filename_interp)
+
+        if filename_header: filename_base += "-inc_hdr"
+        else              : filename_base += "-exc_hdr"
+
+        if filename_body: filename_base += "-inc_body"
+        else            : filename_base += "-exc_body"
+
+        if filename_shebang: filename_base += "-inc_shbng"
+        else               : filename_base += "-exc_shbng"
+
+        filename_base += ".{}".format(filename_ext)
+
+        filename_base_truth = "_" + filename_base
+        filename_base_test  = "___" + filename_base
+
+        # parse a section
+        parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions()
+
+        filename_out_truth = os.path.sep.join([self.unit_test_path, files_subdir, filename_base_truth])
+        filename_out_test  = os.path.sep.join([self.unit_test_path, files_subdir, filename_base_test])
+
+        rval_expect = 0
+        rval_actual = parser.write_actions_to_file(filename_out_test,
+                                                   include_header  = filename_header,
+                                                   include_body    = filename_body,
+                                                   include_shebang = filename_shebang,
+                                                   interpreter     = filename_interp)
+
+        if gen_new_ground_truth:
+            rval_actual  = parser.write_actions_to_file(filename_out_truth,
+                                                        include_header  = filename_header,
+                                                        include_body    = filename_body,
+                                                        include_shebang = filename_shebang,
+                                                        interpreter     = filename_interp)
+
+        self.assertEqual(rval_expect, rval_actual)
+        self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
+
+        print("-----[ TEST END ]------------------------------------------")
         return
 
 
