@@ -421,7 +421,11 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def write_actions_to_file(self, filename, include_header=True, interpreter="bash") -> int:
+    def write_actions_to_file(self, filename,
+                              include_header=True,
+                              include_body=True,
+                              include_shebang=True,
+                              interpreter="bash") -> int:
         """Write the actions to an 'executable' file.
 
         Generates an executable script that will execute the actions
@@ -431,9 +435,14 @@ class SetEnvironment(ConfigParserEnhanced):
             filename (str,Path): The destination filename the
                 actions should be written to.
             include_header (bool): Include a `header` containing pre-defined
-                functions used by the actions. Default: False
-            interpreter (str): The kind of file to generate. Currently
-                we only support "bash". Default: 'bash'
+                functions used by the actions. Default: True
+            include_body (bool): Include the `body` of the commands in the output
+                file? (Set this to False and ``include_header=True`` to generate a
+                *header-only* option.). Default: True
+            include_shebang (bool): Include the shebang line (i.e., `#!/usr/bin/bash`)
+                in the generated file. Python will use `python3`. Default: True
+            interpreter (str): The kind of file to generate. We support
+                generation of "bash" or "python" scripts. Default: 'bash'
 
         Raises:
             ValueError: If an unknown ``interpreter`` parameter is provided
@@ -454,11 +463,93 @@ class SetEnvironment(ConfigParserEnhanced):
             self.exception_control_event("SERIOUS", ValueError, errmsg)
             return 1
 
-        output_file_str = self._gen_actions_script(incl_hdr=include_header, interp=interpreter)
+        output_file_str = self.generate_actions_script(incl_hdr=include_header,
+                                                   incl_body=include_body,
+                                                   incl_shebang=include_shebang,
+                                                   interp=interpreter)
         with open(filename, "w") as ofp:
             ofp.write(output_file_str)
 
         return 0
+
+
+    def generate_actions_script(self, incl_hdr=True, incl_body=True, incl_shebang=True, interp='bash') -> str:
+        """Generate an action script for a **bash** script.
+
+        Args:
+            incl_hdr (bool): Include standard header with functions
+                definitions for functions used if True.
+            incl_body (bool): Include the `body` of the commands in the output
+                file? (Set this to False and ``include_header=True`` to generate a
+                *header-only* option.). Default: True
+            incl_shebang (bool): Include the shebang line (i.e., `#!/usr/bin/bash`)
+                in the generated file. Python will use `python3`. Default: True
+            interp (str): Specifies the generator for the script or script fragments.
+                Allowable values are "bash" or "python". Default = "bash".
+
+        Raises:
+            ValueError: if an ``action`` does not have a ``envvar`` or
+                a ``module`` key.
+
+        Returns:
+            str: containing the bash script that can be written.
+        """
+        allowable_interpreter_list = ["bash", "python"]
+        if interp not in allowable_interpreter_list:
+            errmsg  = "Invalid interpreter provided: {}\n".format(interp)
+            errmsg += "Allowable values must be one of: {}.".format(", ".join(allowable_interpreter_list))
+            self.exception_control_event("SERIOUS", ValueError, errmsg)
+            return ""
+
+        output_file_str = ""
+        output_comment_str = self._output_comment_col0_str(interp=interp)
+
+        if incl_hdr:
+            if incl_shebang:
+                output_file_str += self._gen_shebang_line(interp)
+            if interp == "bash":
+                output_file_str += self._gen_script_header_bash()
+            elif interp == "python":
+                output_file_str += self._gen_script_header_python()
+            else:                                                                                   # pragma: no cover (unreachable)
+                self.exception_control_event("CRITICAL", RuntimeError,
+                    "'Unreachable' branch executed, something is broken!")
+            output_file_str += "\n\n"
+
+        if incl_body:
+            if incl_shebang and not incl_hdr:
+                output_file_str += self._gen_shebang_line(interp)
+
+            output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
+            output_file_str += "{}   S E T E N V I R O N M E N T   C O M M A N D S\n".format(output_comment_str)
+            output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
+            for iaction in self.actions:
+
+                action_val = iaction['value']
+                action_op  = iaction['op']
+
+                if "envvar" in iaction.keys():
+                    action_name = iaction['envvar']
+                    output_file_str += self._gen_actioncmd_envvar(action_op,
+                                                                  action_name,
+                                                                  action_val,
+                                                                  interp=interp)
+
+                elif "module" in iaction.keys():
+                    action_name = iaction['module']
+                    output_file_str += self._gen_actioncmd_module(action_op,
+                                                                  action_name,
+                                                                  action_val,
+                                                                  interp=interp)
+                else:
+                    raise ValueError("Unknown action class.")
+
+                output_file_str += "\n"
+
+            output_file_str += "\n\n"
+
+        return output_file_str
+
 
 
     # --------------------
@@ -1018,7 +1109,10 @@ class SetEnvironment(ConfigParserEnhanced):
             a Python output script.
         """
         output = dedent("""\
-        #!/usr/bin/env bash
+        # ---------------------------------------------------
+        #   S E T E N V I R O N M E N T   F U N C T I O N S
+        # ---------------------------------------------------
+
 
         # envvar_append_or_create
         #  $1 = envvar name
@@ -1058,7 +1152,7 @@ class SetEnvironment(ConfigParserEnhanced):
             #echo "envvar   : ${envvar}" > /dev/stdout
             #echo "to_remove: ${substr}" > /dev/stdout
             if [[ "${substr}" == *"#"* ]]; then
-                printf "%s\n" "ERROR: $FUNCNAME: \"$substr\" contains a '#' which is invalid." 2>&1
+                printf "%s\\n" "ERROR: $FUNCNAME: \"$substr\" contains a '#' which is invalid." 2>&1
                 return
             fi
             if [ ! -z ${1:?} ]; then
@@ -1107,7 +1201,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
             fi
         }
-
         """)
         return output
 
@@ -1128,6 +1221,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         output = dedent("""\
         #!/usr/bin/env python3
+
+        # ---------------------------------------------------
+        #   S E T E N V I R O N M E N T   F U N C T I O N S
+        # ---------------------------------------------------
         import os
         import re
         import sys
@@ -1148,75 +1245,33 @@ class SetEnvironment(ConfigParserEnhanced):
         output += inspect.getsource(expand_envvars_in_string)
         output += "\n\n"
         output += inspect.getsource(envvar_op)
-        output += "\n\n"
 
         return output
 
 
-    def _gen_actions_script(self, incl_hdr=True, interp='bash') -> str:
-        """Generate an action script for a **bash** script.
-
-        Args:
-            incl_hdr (bool): Include standard header with functions
-                definitions for functions used if True.
-            interp (str): What interpreter should the generated code
-                work for?
-
-        Raises:
-            ValueError: if an ``action`` does not have a ``envvar`` or
-                a ``module`` key.
-
-        Returns:
-            str: containing the bash script that can be written.
+    def _gen_shebang_line(self, interp="bash") -> str:
         """
-        allowable_interpreter_list = ["bash", "python"]
-        if interp not in allowable_interpreter_list:
-            errmsg  = "Invalid interpreter provided: {}\n".format(interp)
-            errmsg += "Allowable values must be one of: {}.".format(", ".join(allowable_interpreter_list))
-            self.exception_control_event("SERIOUS", ValueError, errmsg)
-            return ""
+        """
+        output = "#!/usr/bin/env "
+        if interp == "bash":
+            output += "bash"
+        elif interp == "python":
+            output += "python3"
+        else:                                                                                       # pragma: no cover (unreachable)
+            self.exception_control_event("CRITICAL", RuntimeError,
+                "'Unreachable' branch executed, something is broken!")
+        output += "\n"
+        return output
 
-        output_file_str = ""
-        output_comment_str = "#"
 
-        if incl_hdr:
-            if interp == "bash":
-                output_file_str += self._gen_script_header_bash()
-            elif interp == "python":
-                output_file_str += self._gen_script_header_python()
-            else:                                                                                   # pragma: no cover (unreachable)
-                self.exception_control_event("CRITICAL", RuntimeError,
-                    "'Unreachable' branch executed, something is broken!")
-
-        output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
-        output_file_str += "{}   S E T E N V I R O N M E N T   C O M M A N D S\n".format(output_comment_str)
-        output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
-        for iaction in self.actions:
-
-            action_val = iaction['value']
-            action_op  = iaction['op']
-
-            if "envvar" in iaction.keys():
-                action_name = iaction['envvar']
-                output_file_str += self._gen_actioncmd_envvar(action_op,
-                                                              action_name,
-                                                              action_val,
-                                                              interp=interp)
-
-            elif "module" in iaction.keys():
-                action_name = iaction['module']
-                output_file_str += self._gen_actioncmd_module(action_op,
-                                                              action_name,
-                                                              action_val,
-                                                              interp=interp)
-            else:
-                raise ValueError("Unknown action class.")
-
-            output_file_str += "\n"
-
-        output_file_str += "\n\n"
-
-        return output_file_str
+    def _output_comment_col0_str(self, interp="bash") -> str:
+        output="#"
+        if interp in ["bash", "python"]:
+            output="#"
+        else:                                                                                       # pragma: no cover (unreachable)
+            self.exception_control_event("CRITICAL", RuntimeError,
+                "'Unreachable' branch executed, something is broken!")
+        return output
 
 
     def _gen_actioncmd_module(self, op, *args, interp='python') -> str:

@@ -87,8 +87,11 @@ def parse_section(parser, section):
 
     assert len(parser.actions) > 0
 
-    parser.write_actions_to_file("___set_environment.sh")
-    parser.write_actions_to_file("___set_environment.py", interpreter="python")
+    for interp,ext in [("bash","sh"), ("python", "py")]:
+        parser.write_actions_to_file("___set_environment-everything.{}".format(ext), interpreter=interp)
+        parser.write_actions_to_file("___set_environment-header_only.{}".format(ext), interpreter=interp, include_body=False)
+        parser.write_actions_to_file("___set_environment-body_only.{}".format(ext), interpreter=interp, include_header=False)
+        parser.write_actions_to_file("___set_environment-empty.{}".format(ext), interpreter=interp, include_body=False, include_header=False)
 
     return data
 

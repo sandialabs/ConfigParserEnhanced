@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command: `envvar-remove-path-entry` - this will remove a path entry
   from an existing path-type envvar. Syntax: `envvar-remove-path-entry <envvar>: <path>`.
 #### Changed
+- Modify `write_actions_to_file()` to add new parameter(s):
+    - `include_body = True`
+    - `include_shebang = True`
+  to allow customization of the generated output when generating output data for files.
+- Rename `_gen_actions_script()` to `generate_actions_script()` to expose generation of
+  script content to the public API.
 - Free functions `envvar_assign` and `envvar_op` are now exposed to the package API in
   the `__init__.py` file.
 - Updated to account for changes in `ConfigParserEnhanced` regarding

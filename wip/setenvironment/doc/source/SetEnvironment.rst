@@ -83,7 +83,6 @@ Helpers (Private)
 
 Helpers (Private - Writers)
 +++++++++++++++++++++++++++
-.. automethod:: setenvironment.SetEnvironment._gen_actions_script
 .. automethod:: setenvironment.SetEnvironment._gen_script_header_bash
 .. automethod:: setenvironment.SetEnvironment._gen_script_header_python
 
