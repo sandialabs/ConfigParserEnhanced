@@ -16,12 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
-## [Unreleased] ([0.1.1] - 2021-03-16)
+## [Unreleased] ([0.2.0] - 2021-03-22)
 #### Added
 - New free-function: `envvar_assign` - A helper that handles _assigning_ envvars.
   Adds option to raise an exception if the envvar value is an empty string or not.
   Default is to allow empty assignment, but having this toggle will allow us to
   tune this later on.
+- Added a `handler_initialize` handler for the start of searches.
+- Added a new **private** function: `_initialize_handler_parameters` which controls the
+  _initialization_ of the `handler_parameters` that is passed around by the handlers
+  when parsing a `.ini` file section. This replaced 3x snippets that did the same thing.
 - New command: `envvar-remove-substr` - this will remove a substring
   from an existing envvar. Syntax: `envvar-remove-substr <envvar> : <substr>`.
 - New command: `envvar-remove-path-entry` - this will remove a path entry
@@ -29,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command: `envvar-find-in-path` - This new function will locate an executable
   that is on the path. Syntax: `envvar-find-in-path <envvar>: <executable>`
 #### Changed
+- Changes the `actions` parameter to now be a _dictionary_ where each key is a
+  _section name_ and the values are now _action lists_. This allows caching of
+  action lists when parsing multiple sections instead of the previous behvaiour
+  where the _last_ section parsed was what stored actions.  See Issue #13 for
+  additional details on bugs this could create.
 - Modify `write_actions_to_file()` to add new parameter(s):
     - `include_body = True`
     - `include_shebang = True`
@@ -46,6 +55,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Deprecated
 #### Removed
 #### Fixed
+- Fixed Issue #13
+  - Modified `apply()`, `pretty_print_actions()`, `generate_actions_script()` and
+    `write_actions_to_file()` to take a required `sections` parameter to specify which
+    section should be worked on.
+
+
 #### Security
 #### Todo (for Unreleased)
 

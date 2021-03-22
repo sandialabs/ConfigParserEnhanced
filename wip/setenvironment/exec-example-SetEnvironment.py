@@ -47,24 +47,30 @@ def test_setenvironment(filename="config.ini"):
     parser.debug_level = 5
     parser.exception_control_level = 4
 
-    #parse_section(parser, "CONFIG_A+")     # ENVVARS + USE
-    #parse_section(parser, "CONFIG_B+")     # MODULES + USE
-    #parse_section(parser, "CONFIG_A")      # ENVVARS ONLY
-    #parse_section(parser, "CONFIG_B")      # MODULES ONLY
-    #parse_section(parser, "ENVVAR_REMOVE_SUBSTR_TEST")
-    parse_section(parser, "ENVVAR_FIND_IN_PATH_TEST")
+    # pre-parse all sections
+    parser.parse_all_sections()
+
+    section_name = "CONFIG_A+"      # ENVVARS + USE
+    section_name = "CONFIG_B+"      # MODULES + USE
+    section_name = "CONFIG_A"       # ENVVARS ONLY
+    section_name = "CONFIG_B"       # MODULES ONLY
+    section_name = "ENVVAR_REMOVE_SUBSTR_TEST"
+    section_name = "ENVVAR_FIND_IN_PATH_TEST"
+
+    parse_section(parser, section_name)
 
     print("")
-    parser.pretty_print_actions()
+    parser.pretty_print_actions(section_name)
 
-    parser.apply()
+    parser.apply(section_name)
 
     envvar_filter=["TEST_SETENVIRONMENT_", "TEST_ENVVAR_", "FOO", "BAR", "BAZ"]
 
     parser.pretty_print_envvars(envvar_filter, True)
 
     for interp,ext in [("bash","sh"), ("python", "py")]:
-        parser.write_actions_to_file("___set_environment.{}".format(ext), interpreter=interp)
+        filename = "___set_environment.{}".format(ext)
+        parser.write_actions_to_file(filename, section_name, interpreter=interp)
 
     return
 
@@ -72,15 +78,15 @@ def test_setenvironment(filename="config.ini"):
 
 def parse_section(parser, section):
 
-    #data = parser.parse_section(section)
-    data = parser.configparserenhanceddata[section]
-
     # Test out something that might be experimental
     experimental(parser, section)
 
+    #data = parser.parse_section(section)
+    data = parser.configparserenhanceddata[section]
+
     print("\nAction Data")
     print("===========")
-    pprint(parser.actions, width=120)
+    pprint(parser.actions[section], width=120)
 
     # Print the loginfo from the last search
     print("\nLogInfo")
@@ -89,7 +95,7 @@ def parse_section(parser, section):
     handler_list = [ (d['type'], d['name']) for d in parser._loginfo if d['type'] in ['handler-entry','handler-exit']]
     pprint(handler_list, width=120)
 
-    assert len(parser.actions) > 0
+    assert len(parser.actions[section]) > 0
 
     return data
 
