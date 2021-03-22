@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from an existing envvar. Syntax: `envvar-remove-substr <envvar> : <substr>`.
 - New command: `envvar-remove-path-entry` - this will remove a path entry
   from an existing path-type envvar. Syntax: `envvar-remove-path-entry <envvar>: <path>`.
+- New command: `envvar-find-in-path` - This new function will locate an executable
+  that is on the path. Syntax: `envvar-find-in-path <envvar>: <executable>`
 #### Changed
 - Modify `write_actions_to_file()` to add new parameter(s):
     - `include_body = True`

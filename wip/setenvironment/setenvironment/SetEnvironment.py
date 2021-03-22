@@ -73,6 +73,36 @@ def envvar_assign(envvar_name, envvar_value, allow_empty=True):
     return
 
 
+def envvar_find_in_path(exe_file) -> str:
+    """Find an executable file in the current search path.
+
+    This function attempts to locate an executable app in the current
+    search path. If found it will return the path to the application,
+    otherwise an exception is raised.
+
+    Args:
+        exe_file (str, Path): An executable application file to locate.
+
+    Raises:
+        FileNotFoundError: If the executable is not located we will
+            raise this exception.
+    """
+    import distutils.spawn
+    import shutil
+
+    output = None
+    try:
+        output = distutils.spawn.find_executable(exe_file)
+        if output is None:
+            raise FileNotFoundError("Unable to find {}".format(exe_file))
+    except:
+        output = shutil.which(exe_file)
+        if output is None:
+            raise FileNotFoundError("Unable to find {}".format(exe_file))
+
+    return str(output)
+
+
 def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
     """Envvar operation helper
 
@@ -126,8 +156,14 @@ def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
             entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
             newval = os.pathsep.join(entry_list_new)
             envvar_assign(envvar_name, newval, allow_empty)
+    elif op == "find_in_path":
+        try:
+            envvar_value = envvar_find_in_path(envvar_value)
+        except FileNotFoundError:
+            envvar_value = ""
+        envvar_assign(envvar_name, envvar_value, allow_empty)
     else:                                                                                           # pragma: no cover
-        raise ValueError                                                                            # pragma: no cover
+        raise ValueError("Unknown command `{}`.".format(op))
     return 0
 
 
@@ -341,6 +377,8 @@ class SetEnvironment(ConfigParserEnhanced):
             elif operation == "envvar_remove_path_entry":
                 arg = "${%s}"%(action['envvar'])
                 print("{}=\"{}:{}\"".format(action['envvar'],arg,action['value']))
+            elif operation == "envvar_find_in_path":
+                print("{}=\"{}\"".format(action['envvar'], action['value']))
             else:
                 print("(unhandled) {}".format(action))
 
@@ -608,6 +646,38 @@ class SetEnvironment(ConfigParserEnhanced):
             envvar-remove-path-entry TEST_PATH : /bar
 
             # Result should be: TEST_PATH = "/foo:/bar/baz:/bif"
+
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+
+        Returns:
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (CRITICAL)
+        """
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
+
+
+    def _handler_envvar_find_in_path(self, section_name, handler_parameters) -> int:
+        """Handler: for ``envvar-find-in-path``
+
+        This handler is used when the ``envvar-find-in-path`` command is issued which
+        instructs SetEnvironment to generate code to *find* a given executable in the
+        path.
+
+        In this example, we give the command ``envvar-find-in-path`` to search for the
+        ``ls`` executable. We're being a little sneaky by setting this into ``TEST_ENVVAR_EXE``
+        first to demonstrate that we can use the ``${ENVVAR}`` expansion here as well.
+
+        .. code-block:: bash
+            :linenos:
+
+            [ENVVAR_FIND_IN_PATH_TEST]
+            envvar-set          TEST_ENVVAR_EXE  : ls
+            envvar-find-in-path TEST_ENVVAR_PATH : ${TEST_ENVVAR_EXE}
 
         Args:
             section_name (str): The name of the section being processed.
@@ -1221,6 +1291,8 @@ class SetEnvironment(ConfigParserEnhanced):
                 envvar_prepend_or_create ${arg1:?} ${arg2:?}
             elif [[ "${op:?}" == "remove_substr" ]]; then
                 envvar_remove_substr ${arg1:?} ${arg2:?}
+            elif [[ "${op:?}" == "find_in_path" ]]; then
+                envvar_set_or_create ${arg1:?} $(which ${arg2:?})
             else
                 echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
             fi
@@ -1263,6 +1335,8 @@ class SetEnvironment(ConfigParserEnhanced):
         # Note: We use `inspect` here to pull in the same code that's
         #       used in SetEnvironment itself to reduce technical debt.
 
+        output += inspect.getsource(envvar_find_in_path)
+        output += "\n\n"
         output += inspect.getsource(envvar_assign)
         output += "\n\n"
         output += inspect.getsource(expand_envvars_in_string)
@@ -1502,6 +1576,8 @@ class SetEnvironment(ConfigParserEnhanced):
         elif op == "remove_substr":
             arglist += [ args[0], args[1] ]
         elif op == "remove_path_entry":
+            arglist += [ args[0], args[1] ]
+        elif op == "find_in_path":
             arglist += [ args[0], args[1] ]
         else:
             self.exception_control_event("SERIOUS", ValueError,

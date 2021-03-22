@@ -53,8 +53,11 @@ Operation handlers for .ini file processing
 Environment Variable Handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_append
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_find_in_path
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_prepend
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_remove
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_remove_substr
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_remove_path_entry
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_set
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_unset
 

@@ -13,6 +13,36 @@ if not sys.version_info.major >= 3:
 from setenvironment import ModuleHelper
 
 
+def envvar_find_in_path(exe_file) -> str:
+    """Find an executable file in the current search path.
+
+    This function attempts to locate an executable app in the current
+    search path. If found it will return the path to the application,
+    otherwise an exception is raised.
+
+    Args:
+        exe_file (str, Path): An executable application file to locate.
+
+    Raises:
+        FileNotFoundError: If the executable is not located we will
+            raise this exception.
+    """
+    import distutils.spawn
+    import shutil
+
+    output = None
+    try:
+        output = distutils.spawn.find_executable(exe_file)
+        if output is None:
+            raise FileNotFoundError("Unable to find {}".format(exe_file))
+    except:
+        output = shutil.which(exe_file)
+        if output is None:
+            raise FileNotFoundError("Unable to find {}".format(exe_file))
+
+    return str(output)
+
+
 def envvar_assign(envvar_name, envvar_value, allow_empty=True):
     """Assign an environment variable.
 
@@ -148,8 +178,14 @@ def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
             entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
             newval = os.pathsep.join(entry_list_new)
             envvar_assign(envvar_name, newval, allow_empty)
+    elif op == "find_in_path":
+        try:
+            envvar_value = envvar_find_in_path(envvar_value)
+        except FileNotFoundError:
+            envvar_value = ""
+        envvar_assign(envvar_name, envvar_value, allow_empty)
     else:                                                                                           # pragma: no cover
-        raise ValueError                                                                            # pragma: no cover
+        raise ValueError("Unknown command `{}`.".format(op))
     return 0
 
 

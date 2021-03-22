@@ -87,6 +87,8 @@ function envvar_op() {
         envvar_prepend_or_create ${arg1:?} ${arg2:?}
     elif [[ "${op:?}" == "remove_substr" ]]; then
         envvar_remove_substr ${arg1:?} ${arg2:?}
+    elif [[ "${op:?}" == "find_in_path" ]]; then
+        envvar_set_or_create ${arg1:?} $(which ${arg2:?})
     else
         echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
     fi

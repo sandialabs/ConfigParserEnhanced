@@ -51,16 +51,20 @@ def test_setenvironment(filename="config.ini"):
     #parse_section(parser, "CONFIG_B+")     # MODULES + USE
     #parse_section(parser, "CONFIG_A")      # ENVVARS ONLY
     #parse_section(parser, "CONFIG_B")      # MODULES ONLY
-    parse_section(parser, "ENVVAR_REMOVE_SUBSTR_TEST")
+    #parse_section(parser, "ENVVAR_REMOVE_SUBSTR_TEST")
+    parse_section(parser, "ENVVAR_FIND_IN_PATH_TEST")
 
     print("")
     parser.pretty_print_actions()
 
     parser.apply()
 
-    envvar_filter=["TEST_SETENVIRONMENT_", "FOO", "BAR", "BAZ"]
+    envvar_filter=["TEST_SETENVIRONMENT_", "TEST_ENVVAR_", "FOO", "BAR", "BAZ"]
 
     parser.pretty_print_envvars(envvar_filter, True)
+
+    for interp,ext in [("bash","sh"), ("python", "py")]:
+        parser.write_actions_to_file("___set_environment.{}".format(ext), interpreter=interp)
 
     return
 
@@ -87,18 +91,11 @@ def parse_section(parser, section):
 
     assert len(parser.actions) > 0
 
-    for interp,ext in [("bash","sh"), ("python", "py")]:
-        parser.write_actions_to_file("___set_environment-everything.{}".format(ext), interpreter=interp)
-        parser.write_actions_to_file("___set_environment-header_only.{}".format(ext), interpreter=interp, include_body=False)
-        parser.write_actions_to_file("___set_environment-body_only.{}".format(ext), interpreter=interp, include_header=False)
-        parser.write_actions_to_file("___set_environment-empty.{}".format(ext), interpreter=interp, include_body=False, include_header=False)
-
     return data
 
 
 
 def experimental(parser, section):
-
     return
 
 
