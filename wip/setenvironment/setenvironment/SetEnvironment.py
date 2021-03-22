@@ -11,7 +11,7 @@ Todo:
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
 
-:Version: 0.1.1
+:Version: 0.2.0
 """
 from __future__ import print_function
 
@@ -250,38 +250,41 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     @property
-    def actions(self) -> list:                                                                      # Todo: deprecate me
+    def actions(self) -> dict:
         """
-        The *actions* property contains the list of actions generated for
-        the most recent section that has been parsed. This is overwritten when
-        we execute a new parse. An example of the structure of this object is:
+        A dictionary storing the set of actions by section name for any sections that
+        have been parsed.
+
+        An example of the structure of this object is the following:
 
         .. code-block:: python
             :linenos:
 
-            [
-                {'op': 'envvar_set',     'envvar': 'FOO', 'value': 'bar'},
-                {'op': 'envvar_append',  'envvar': 'FOO', 'value': 'baz'},
-                {'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'}
-            ]
-
+            { "SECTION_A":
+                [
+                    {'op': 'envvar_set',     'envvar': 'FOO', 'value': 'bar'},
+                    {'op': 'envvar_append',  'envvar': 'FOO', 'value': 'baz'},
+                    {'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'}
+                ]
+            }
 
         Returns:
-            list: A *list* containing the sequence of actions that
-            SetEnvironment has extracted from the configuration
-            file section.
+            dict: A *dict* containing an entry for every *section* that has been
+            parsed by the parser during the life of this class instance. Each entry
+            in the ``dict`` is a *list of actions*.
         """
-        if not hasattr(self, '_var_actions'):
-            self._var_actions = []
-        return self._var_actions
+        if not hasattr(self, "_var_actions_cache"):
+            self._var_actions_cache = {}
+        return self._var_actions_cache
 
 
     @actions.setter
-    def actions(self, value) -> list:                                                               # Todo: deprecate me
-        if not isinstance(value, (list)):
-            raise TypeError("actions must be a list.")
-        self._var_actions = value
-        return self._var_actions
+    def actions(self, value) -> dict:
+        if not isinstance(value, (dict)):
+            self.exception_control_event("CATASTROPHIC", TypeError,
+                                         "actions_cache must be a dict.")
+        self._var_actions_cache = value
+        return self._var_actions_cache
 
 
     # ------------------------------
@@ -289,11 +292,14 @@ class SetEnvironment(ConfigParserEnhanced):
     # ------------------------------
 
 
-    def apply(self) -> int:
+    def apply(self, section) -> int:
         """Apply the set of instructions stored in ``actions``.
 
         This method will cause the actions that are defined to be
         executed.
+
+        Args:
+            section (str): The desired *section* from the .ini file for this operation.
 
         Returns:
             integer: 0 if successful, nonzero if something went wrong that did not
@@ -302,9 +308,15 @@ class SetEnvironment(ConfigParserEnhanced):
         Todo:
             - Replace this function with actions_cache use. Add parameters for section_name
         """
+        if not isinstance(section, (str)):
+            self.exception_control_event("CATASTROPHIC", TypeError,
+                                         "`secton` must be a str type.")
         output = 0
 
-        for iaction in self.actions:
+        # kick off a parse of the section.
+        self.configparserenhanceddata[section]
+
+        for iaction in self.actions[section]:
             rval  = 0
             op    = iaction['op']
             value = iaction['value']
@@ -320,7 +332,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
-    def pretty_print_actions(self):
+    def pretty_print_actions(self, section):
         """Pretty print the list of actions that ``apply()`` would execute.
 
         This is a helper function that will print out a listing of the actions
@@ -344,43 +356,48 @@ class SetEnvironment(ConfigParserEnhanced):
             --> module-unload  : boost
             --> module-swap    : gcc gcc/7.3.0
 
+        Args:
+            section (str): The desired *section* from the .ini file for this operation.
         """
+        # Trigger a parse of the section if we don't already have it.
+        self.configparserenhanceddata[section]
+
         print("Actions")
         print("=======")
-        for action in self.actions:
-            operation = action['op']
+        for iaction in self.actions[section]:
+            operation = iaction['op']
 
             print("--> {:<14} : ".format(operation), end="")
             if operation == "module_purge":
                 print("")
             elif operation == "module_use":
-                print("{}".format(action['value']))
+                print("{}".format(iaction['value']))
             elif operation == "module_load":
-                print("{}/{}".format(action['module'], action['value']))
+                print("{}/{}".format(iaction['module'], iaction['value']))
             elif operation == "module_swap":
-                print("{} {}".format(action['module'], action['value']))
+                print("{} {}".format(iaction['module'], iaction['value']))
             elif operation == "module_unload":
-                print("{}".format(action['module']))
+                print("{}".format(iaction['module']))
             elif operation == "envvar_set":
-                print("{}=\"{}\"".format(action['envvar'], action['value']))
+                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
             elif operation == "envvar_prepend":
-                arg = "${%s}"%(action['envvar'])
-                print("{}=\"{}:{}\"".format(action['envvar'],action['value'],arg))
+                arg = "${%s}"%(iaction['envvar'])
+                print("{}=\"{}:{}\"".format(iaction['envvar'],iaction['value'],arg))
             elif operation == "envvar_append":
-                arg = "${%s}"%(action['envvar'])
-                print("{}=\"{}:{}\"".format(action['envvar'],arg,action['value']))
+                arg = "${%s}"%(iaction['envvar'])
+                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
             elif operation == "envvar_unset":
-                print("{}".format(action['envvar']))
+                print("{}".format(iaction['envvar']))
             elif operation == "envvar_remove_substr":
-                arg = "${%s}"%(action['envvar'])
-                print("{}=\"{}:{}\"".format(action['envvar'],arg,action['value']))
+                arg = "${%s}"%(iaction['envvar'])
+                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
             elif operation == "envvar_remove_path_entry":
-                arg = "${%s}"%(action['envvar'])
-                print("{}=\"{}:{}\"".format(action['envvar'],arg,action['value']))
+                arg = "${%s}"%(iaction['envvar'])
+                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
             elif operation == "envvar_find_in_path":
-                print("{}=\"{}\"".format(action['envvar'], action['value']))
+                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
             else:
-                print("(unhandled) {}".format(action))
+                print("(unhandled) {}".format(iaction))
 
         return
 
@@ -458,7 +475,9 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def write_actions_to_file(self, filename,
+    def write_actions_to_file(self,
+                              filename,
+                              section,
                               include_header=True,
                               include_body=True,
                               include_shebang=True,
@@ -471,6 +490,7 @@ class SetEnvironment(ConfigParserEnhanced):
         Args:
             filename (str,Path): The destination filename the
                 actions should be written to.
+            section (str): The desired *section* from the .ini file for this operation.
             include_header (bool): Include a `header` containing pre-defined
                 functions used by the actions. Default: True
             include_body (bool): Include the `body` of the commands in the output
@@ -500,17 +520,18 @@ class SetEnvironment(ConfigParserEnhanced):
             self.exception_control_event("SERIOUS", ValueError, errmsg)
             return 1
 
-        output_file_str = self.generate_actions_script(incl_hdr=include_header,
-                                                   incl_body=include_body,
-                                                   incl_shebang=include_shebang,
-                                                   interp=interpreter)
+        output_file_str = self.generate_actions_script(section,
+                                                       incl_hdr=include_header,
+                                                       incl_body=include_body,
+                                                       incl_shebang=include_shebang,
+                                                       interp=interpreter)
         with open(filename, "w") as ofp:
             ofp.write(output_file_str)
 
         return 0
 
 
-    def generate_actions_script(self, incl_hdr=True, incl_body=True, incl_shebang=True, interp='bash') -> str:
+    def generate_actions_script(self, section, incl_hdr=True, incl_body=True, incl_shebang=True, interp='bash') -> str:
         """Generate a script that will implement the computed list of actions.
 
         Generates a script in the language of the specified interpreter (currently
@@ -518,6 +539,7 @@ class SetEnvironment(ConfigParserEnhanced):
         that have been specified by the most recent section scanned by the ``.ini`` file.
 
         Args:
+            section (str): The desired *section* from the .ini file for this operation.
             incl_hdr (bool): Include standard header with functions
                 definitions for functions used if True.
             incl_body (bool): Include the `body` of the commands in the output
@@ -535,6 +557,10 @@ class SetEnvironment(ConfigParserEnhanced):
         Returns:
             str: containing the bash script that can be written.
         """
+        if not isinstance(section, (str)):
+            self.exception_control_event("CATASTROPHIC", TypeError,
+                                         "Section names must be a str type.")
+
         allowable_interpreter_list = ["bash", "python"]
         if interp not in allowable_interpreter_list:
             errmsg  = "Invalid interpreter provided: {}\n".format(interp)
@@ -564,7 +590,13 @@ class SetEnvironment(ConfigParserEnhanced):
             output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
             output_file_str += "{}   S E T E N V I R O N M E N T   C O M M A N D S\n".format(output_comment_str)
             output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
-            for iaction in self.actions:
+
+            # kick off a parse of the section.
+            if section not in self.actions.keys():
+                self.parse_section(section)
+
+            # Loop over the actions in the section
+            for iaction in self.actions[section]:
 
                 action_val = iaction['value']
                 action_op  = iaction['op']
@@ -934,6 +966,28 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_module(section_name, handler_parameters)
 
 
+    def handler_initialize(self, section_name, handler_parameters) -> int:
+        """Initialize a recursive parse search.
+
+        Args:
+            section_name (str): The section name string.
+            handler_parameters (object): A HandlerParameters object containing
+                the state data we need for this handler.
+
+        Returns:
+            integer value
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+        """
+        self.enter_handler(handler_parameters)
+
+        self._initialize_handler_parameters(section_name, handler_parameters)
+
+        self.exit_handler(handler_parameters)
+        return 0
+
+
     def handler_finalize(self, section_name, handler_parameters) -> int:
         """Finalize a recursive parse search.
 
@@ -945,11 +999,8 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         self.enter_handler(handler_parameters)
 
-        # Save the results into the 'actions' property
-        self.actions = handler_parameters.data_shared["setenvironment"]                             # TODO: Deprecate me!
-
         # save the results into the right `actions_cache` entry
-        self.actions_cache[section_name] = handler_parameters.data_shared["setenvironment"]
+        self.actions[section_name] = handler_parameters.data_shared["setenvironment"]
 
         self.exit_handler(handler_parameters)
         return 0
@@ -959,24 +1010,22 @@ class SetEnvironment(ConfigParserEnhanced):
     #  H E L P E R S
     # ---------------
 
-    @property
-    def actions_cache(self) -> dict:
-        """
-        A dictionary storing the set of actions by section name for any sections that
-        have been parsed.
-        """
-        if not hasattr(self, "_var_actions_cache"):
-            self._var_actions_cache = {}
-        return self._var_actions_cache
+    def _initialize_handler_parameters(self, section_name, handler_parameters):
+        """Initialize ``handler_parameters``
 
+        Initializes any default settings needed for ``handler_parameters``.
+        Takes the same parameters as handlers.
 
-    @actions_cache.setter
-    def actions_cache(self, value) -> dict:
-        if not isinstance(value, (dict)):
-            self.exception_control_event("CATASTROPHIC", TypeError,
-                                         "actions_cache must be a dict.")
-        self._var_actions_cache = value
-        return self._var_actions_cache
+        Args:
+            section_name (str): The section name string.
+            handler_parameters (object): A HandlerParameters object containing
+                the state data we need for this handler.
+        """
+        data_shared_ref = handler_parameters.data_shared
+        if 'setenvironment' not in data_shared_ref.keys():
+            data_shared_ref['setenvironment'] = []
+
+        return
 
 
     def _helper_handler_common_envvar(self, section_name, handler_parameters) -> int:
@@ -1017,10 +1066,8 @@ class SetEnvironment(ConfigParserEnhanced):
         operation_ref    = handler_parameters.op_params[0]
         envvar_name_ref  = handler_parameters.op_params[1]
         envvar_value_ref = handler_parameters.value
-        data_shared_ref  = handler_parameters.data_shared
 
-        if not 'setenvironment' in data_shared_ref.keys():
-            handler_parameters.data_shared['setenvironment'] = []
+        self._initialize_handler_parameters(section_name, handler_parameters)
 
         data_shared_actions_ref = handler_parameters.data_shared['setenvironment']
 
@@ -1075,10 +1122,8 @@ class SetEnvironment(ConfigParserEnhanced):
         operation_ref    = handler_parameters.op_params[0]
         module_name_ref  = handler_parameters.op_params[1]
         module_value_ref = handler_parameters.value
-        data_shared_ref  = handler_parameters.data_shared
 
-        if not 'setenvironment' in data_shared_ref.keys():
-            handler_parameters.data_shared['setenvironment'] = []
+        self._initialize_handler_parameters(section_name, handler_parameters)
 
         data_shared_actions_ref = handler_parameters.data_shared['setenvironment']
 

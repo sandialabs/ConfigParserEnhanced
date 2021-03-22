@@ -193,7 +193,70 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
+
+        print("-----[ TEST END ]------------------------------------------")
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_parse_DEFAULT(self):
+        """.ini files have a DEFAULT section that is implied even if it
+        doesn't exist. This test makes sure things don't w00f if we parse
+        ``DEFAULT``
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        section = "DEFAULT"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions(section)
+
+        print("-----[ TEST END ]------------------------------------------")
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_parse_all_sections(self):
+        """.ini files have a DEFAULT section that is implied even if it
+        doesn't exist. This test makes sure things don't w00f if we parse
+        ``DEFAULT``
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        section = "ENVVAR_SET_FOO"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        parser.parse_all_sections()
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions(section)
+
+        # check one of the sections parsed
+        actions_expected = [{'op': 'envvar_set', 'envvar': 'FOO', 'value': 'BAR'}]
+        actions_actual   = parser.actions[section]
+        self.assertListEqual(actions_expected, actions_actual)
+        for i in range(len(actions_expected)):
+            self.assertDictEqual(actions_expected[i], actions_actual[i])
 
         print("-----[ TEST END ]------------------------------------------")
         print("OK")
@@ -219,7 +282,7 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         print("OK")
         return
@@ -244,7 +307,7 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         print("OK")
         return
@@ -264,12 +327,12 @@ class SetEnvironmentTest(TestCase):
         parser.debug_level = 1
 
         # Check the default value
-        actions_default_expected = []
+        actions_default_expected = {}
         actions_default_actual   = parser.actions
         print("Default `actions` property = {}".format(actions_default_actual))
         self.assertEqual(actions_default_actual,
                          actions_default_expected,
-                         msg="Default actions property value should be `[]`")
+                         msg="Default actions property value should be `{}`")
 
         print("OK")
 
@@ -288,11 +351,11 @@ class SetEnvironmentTest(TestCase):
         parser.debug_level = 1
 
         # Check a valid assignment
-        actions_value_new       = [1,2,3]
+        actions_value_new       = {}
         parser.actions          = actions_value_new
         parser_actions_expected = actions_value_new
         parser_actions_actual   = parser.actions
-        self.assertListEqual(parser_actions_actual, parser_actions_expected)
+        self.assertDictEqual(parser_actions_actual, parser_actions_expected)
 
         # Check an invalid type assignment
         actions_value_new = None
@@ -325,11 +388,11 @@ class SetEnvironmentTest(TestCase):
         data = parser.parse_section(section)
 
         # inject an 'unknown-op' into the actions list.
-        parser.actions.append({'module': '???', 'op': 'unknown-op', 'value': '???'})
+        parser.actions[section].append({'module': '???', 'op': 'unknown-op', 'value': '???'})
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         print("OK")
 
@@ -361,9 +424,9 @@ class SetEnvironmentTest(TestCase):
         print("Expected:")
         pprint(actions_expected, width=90, indent=4)
         print("Actual")
-        pprint(parser.actions, width=90, indent=4)
+        pprint(parser.actions[section], width=90, indent=4)
 
-        self.assertListEqual(actions_expected, parser.actions)
+        self.assertListEqual(actions_expected, parser.actions[section])
 
         print("OK")
         return
@@ -423,6 +486,30 @@ class SetEnvironmentTest(TestCase):
         return
 
 
+    def test_SetEnvironment_method_apply_section_badtype(self):
+        """
+        Give a bad type for ``section`` in ``apply(section)``.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        section = None
+        print("Section  : {}".format(section))
+
+        with self.assertRaises(TypeError):
+            parser.apply(section)
+
+        print("-----[ TEST END ]------------------------------------------")
+        print("OK")
+        return
+
+
     def test_SetEnvironment_method_apply_envvar_test_01(self):
         """
         """
@@ -440,10 +527,10 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         # Apply the actions
-        parser.apply()
+        parser.apply(section)
 
         self.assertTrue("BAR" in os.environ.keys())
         self.assertEqual("foo", os.environ["BAR"])
@@ -473,10 +560,10 @@ class SetEnvironmentTest(TestCase):
         data = parser.parse_section(section)
 
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         # Apply the actions
-        parser.apply()
+        parser.apply(section)
 
         self.assertFalse("FOO" in os.environ.keys())
 
@@ -503,10 +590,10 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         # Apply the actions
-        parser.apply()
+        parser.apply(section)
 
         envvar_truth = [
             ("TEST_SETENVIRONMENT_GCC_VER", "7.3.0")
@@ -542,14 +629,14 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         # Apply the actions
         # - the missing file will generate a RuntimeError, but the message
         #   that will get generated down in the ``exception_control_event``
         #   should have the details.
         with self.assertRaises(RuntimeError):
-            parser.apply()
+            parser.apply(section)
 
         print("OK")
         return
@@ -582,7 +669,7 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         # Apply the actions but use our popen mock routine that emulates
         # a bad output.
@@ -595,7 +682,7 @@ class SetEnvironmentTest(TestCase):
             # This should ensure that we take the 'right' path in ModuleHelper.module
             # that we want to test here and trigger the RuntimeError.
             with patch('subprocess.Popen', side_effect=mock_popen_status_error_rc0):
-                parser.apply()
+                parser.apply(section)
 
         print("OK")
         return
@@ -629,10 +716,10 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         # Apply the actions
-        parser.apply()
+        parser.apply(section)
 
         envvar_truth = [
             ("ENVVAR_PARAM_01", "AAA"),
@@ -769,11 +856,39 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         # Apply the actions
         with self.assertRaises(KeyError):
-            parser.apply()
+            parser.apply(section)
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_method_generate_actions_script(self):
+        """Test generate_actions_script()
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        section = "CONFIG_A+"
+        print("Section  : {}".format(section))
+        rval_actual = parser.generate_actions_script(section)
+        self.assertIn("envvar_op set FOO bar", rval_actual)
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        section = None
+        print("Section  : {}".format(section))
+        with self.assertRaises(TypeError):
+            rval_actual = parser.generate_actions_script(section)
+        print("-----[ TEST END ]------------------------------------------")
 
         print("OK")
         return
@@ -841,7 +956,7 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         print("-----[ TEST BEGIN ]----------------------------------------")
 
@@ -888,7 +1003,7 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         print("-----[ TEST BEGIN ]----------------------------------------")
         test_incl_hdr = False
@@ -904,7 +1019,7 @@ class SetEnvironmentTest(TestCase):
                         envvar_op remove_substr FOO bar
                         envvar_op unset FOO
                         """).strip()
-        rval_actual = parser.generate_actions_script(incl_hdr=test_incl_hdr,
+        rval_actual = parser.generate_actions_script(section, incl_hdr=test_incl_hdr,
                                                  incl_shebang=False,
                                                  interp=test_interp)
         rval_actual = rval_actual.strip()
@@ -935,7 +1050,7 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         print("-----[ TEST BEGIN ]----------------------------------------")
 
@@ -945,7 +1060,7 @@ class SetEnvironmentTest(TestCase):
         test_incl_hdr = True
         test_interp = "invalid_interpreter"
         with self.assertRaises(ValueError):
-            parser.generate_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+            parser.generate_actions_script(section, incl_hdr=test_incl_hdr, interp=test_interp)
 
         print("-----[ TEST END ]------------------------------------------")
 
@@ -959,7 +1074,7 @@ class SetEnvironmentTest(TestCase):
         test_incl_hdr = True
         test_interp   = "invalid_interpreter"
         rval_expect   = ""
-        rval_actual   = parser.generate_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+        rval_actual   = parser.generate_actions_script(section, incl_hdr=test_incl_hdr, interp=test_interp)
         self.assertEqual(rval_expect, rval_actual)
         parser.exception_control_level = 5
 
@@ -974,13 +1089,13 @@ class SetEnvironmentTest(TestCase):
 
         # add a bogus action that is missing either 'envvar' or 'module' from its
         # keys.
-        parser.actions.append( {'op': 'envvar_set', 'value': "thevalue", "newkey": "???"} )
+        parser.actions[section].append( {'op': 'envvar_set', 'value': "thevalue", "newkey": "???"} )
 
         with self.assertRaises(ValueError):
-            parser.generate_actions_script(incl_hdr=test_incl_hdr, interp=test_interp)
+            parser.generate_actions_script(section, incl_hdr=test_incl_hdr, interp=test_interp)
 
         # Cleanup: Remove the bogus entry from the actions.
-        del parser.actions[-1]
+        del parser.actions[section][-1]
 
         print("-----[ TEST END ]------------------------------------------")
 
@@ -1215,9 +1330,9 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
-        parser.apply()
+        parser.apply(section)
         parser.pretty_print_envvars(envvar_filter=["FOO"], filtered_keys_only=True)
 
         envvar_foo_expect = "BB"
@@ -1251,9 +1366,9 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
-        parser.apply()
+        parser.apply(section)
         parser.pretty_print_envvars(envvar_filter=["FOO"], filtered_keys_only=True)
 
         self.assertTrue("FOO" not in os.environ.keys())
@@ -1283,9 +1398,9 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
-        parser.apply()
+        parser.apply(section)
 
         print("-----[ TEST BEGIN ]----------------------------------------")
         parser.pretty_print_envvars(envvar_filter=["TEST_PATH1"], filtered_keys_only=True)
@@ -1369,7 +1484,7 @@ class SetEnvironmentTest(TestCase):
         print("Raise exception on bad interpreter")
         parser.exception_control_level = 5
         with self.assertRaises(ValueError):
-            parser.write_actions_to_file("___tmp.txt", interpreter = "not a valid interpreter")
+            parser.write_actions_to_file("___tmp.txt", section, interpreter="not a valid interpreter")
         print("-----[ TEST END ]------------------------------------------")
 
 
@@ -1377,7 +1492,7 @@ class SetEnvironmentTest(TestCase):
         print("Warning on bad interpreter")
         parser.exception_control_level = 2
         rval_expect = 1
-        rval_actual = parser.write_actions_to_file("___tmp.txt", interpreter = "not a valid interpreter")
+        rval_actual = parser.write_actions_to_file("___tmp.txt", section, interpreter="not a valid interpreter")
         self.assertEqual(rval_expect, rval_actual)
         print("-----[ TEST END ]------------------------------------------")
 
@@ -1437,10 +1552,10 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         print("")
-        parser.apply()
+        parser.apply(section)
 
         envvar_name = "TEST_ENVVAR_PATH"
         self.assertTrue(envvar_name in os.environ.keys(),
@@ -1465,7 +1580,7 @@ class SetEnvironmentTest(TestCase):
         print("- distutils.spawn.find_executable fails")
         print("- shutil.which succeeds")
         with patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_NotFound):
-            parser.apply()
+            parser.apply(section)
 
         envvar_name = "TEST_ENVVAR_PATH"
         self.assertTrue(envvar_name in os.environ.keys(),
@@ -1480,7 +1595,7 @@ class SetEnvironmentTest(TestCase):
         print("- distutils.spawn.find_executable fails")
         print("- shutil.which fails")
         with patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_NotFound):
-            parser.apply()
+            parser.apply(section)
 
         envvar_name = "TEST_ENVVAR_NOTFOUND"
         self.assertTrue(envvar_name in os.environ.keys(),
@@ -1517,8 +1632,8 @@ class SetEnvironmentTest(TestCase):
         ## parse section via configparserenhanceddata accessor
         print("Parse using configparserenhanceddata[{}]:".format(section))
         rval_actual_cped = parser.configparserenhanceddata[section]
-        parser.pretty_print_actions()
-        actions_actual_cped = parser.actions
+        parser.pretty_print_actions(section)
+        actions_actual_cped = parser.actions[section]
 
         self.assertDictEqual(rval_expect_cped, rval_actual_cped)
 
@@ -1530,7 +1645,7 @@ class SetEnvironmentTest(TestCase):
         print("Parse using parse_section({}):".format(section))
         rval_expect = { "setenvironment": actions_expect }
         rval_actual = parser.parse_section(section)
-        actions_actual_ps = parser.actions
+        actions_actual_ps = parser.actions[section]
 
         self.assertDictEqual(rval_expect, rval_actual)
 
@@ -1600,13 +1715,14 @@ class SetEnvironmentTest(TestCase):
 
         # Pretty print the actions (unchecked)
         print("")
-        parser.pretty_print_actions()
+        parser.pretty_print_actions(section)
 
         filename_out_truth = os.path.sep.join([self.unit_test_path, files_subdir, filename_base_truth])
         filename_out_test  = os.path.sep.join([self.unit_test_path, files_subdir, filename_base_test])
 
         rval_expect = 0
         rval_actual = parser.write_actions_to_file(filename_out_test,
+                                                   section,
                                                    include_header  = filename_header,
                                                    include_body    = filename_body,
                                                    include_shebang = filename_shebang,
@@ -1614,6 +1730,7 @@ class SetEnvironmentTest(TestCase):
 
         if gen_new_ground_truth:
             rval_actual  = parser.write_actions_to_file(filename_out_truth,
+                                                        section,
                                                         include_header  = filename_header,
                                                         include_body    = filename_body,
                                                         include_shebang = filename_shebang,
