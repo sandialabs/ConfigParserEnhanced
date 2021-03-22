@@ -53,8 +53,6 @@ def print_section(parser, section_name):
 
 
 def test_configparserEnhanced(filename="config.ini"):
-
-
     print("filename    : {}".format(filename))
     print("")
 

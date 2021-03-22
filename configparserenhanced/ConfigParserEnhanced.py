@@ -44,7 +44,7 @@ Todo:
     - William C. McLendon III <wcmclen@sandia.gov>
     - Jason M. Gates <jmgate@sandia.gov>
 
-:Version: 0.2.1
+:Version: 0.3.0
 
 """
 from __future__ import print_function
@@ -313,6 +313,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     #   P A R S E R   P U B L I C   A P I
     # -------------------------------------
 
+    def parse_all_sections(self):
+        """Parse ALL sections in the .ini file.
+
+        This can be useful if the user wishes to pre-parse all the sections
+        of an ``ini`` file in one go.
+        """
+        self.configparserenhanceddata.sections(True)
+        return
+
 
     def parse_section(self, section, initialize=True, finalize=True):
         """Execute parser operations for the provided *section*.
@@ -327,6 +336,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
             Unless :class:`~.HandlerParameters` is changed, this wil be a ``dict`` type.
         """
+        self.debug_message(1, "[" + "-"*40)
+        self.debug_message(1, "Parse section `{}` START".format(section))
+        self.debug_message(1, "[" + "-"*40)
+
         if not isinstance(section, str):
             raise TypeError("`section` must be a string type.")
 
@@ -342,6 +355,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # Cache the result
         self.parse_section_last_result = result
 
+        self.debug_message(1, "[" + "-"*40)
+        self.debug_message(1, "Parse section `{}` FINISH".format(section))
+        self.debug_message(1, "[" + "-"*40)
         return result
 
 
@@ -1234,7 +1250,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             """
             if not hasattr(self, '_data'):
-                self._data = {}
+                self._data = {
+                    "DEFAULT": {}
+                }
             return self._data
 
 
@@ -1245,6 +1263,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not isinstance(value, dict):
                 raise TypeError("data must be a `dict` type.")
             self._data = value
+            if "DEFAULT" not in self._data.keys():
+                self._data["DEFAULT"] = {}
             return self._data
 
 
@@ -1389,7 +1409,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             return (section in self.data.keys()) and (option in self.data[section].keys())
 
 
-        def get(self, section, option):
+        def get(self, section, option=None):
             """
             Get a section/option pair, if it exists. If we have not
             parsed the section yet, we should run the parser to
@@ -1399,10 +1419,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._parse_owner_section(section)
 
             if self.has_section(section):
-                if self.has_option(section, option):
+                if option is None:
+                    return self.data[section]
+                elif self.has_option(section, option):
                     return self.data[section][option]
                 else:
-                    raise KeyError("Missing section:option -> '{}': '{}'".format(section,option))
+                    self.exception_control_event("CATASTROPHIC", KeyError,
+                            "Missing section:option -> '{}': '{}'".format(section,option))
 
             # This is not reachable with a bad section name
             # because the call to parse_owner_section(section) will
