@@ -758,6 +758,7 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
         return
 
+
     def test_ConfigParserEnhanced_parse_section_handler_fail_11(self):
         """
         Test that we trigger the failure check if a handler returns a
@@ -1395,14 +1396,61 @@ class ConfigParserEnhancedDataTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
         parser.debug_level = 3
         parser.exception_control_level = 5
+        parser.exception_control_compact_warnings = False
 
         print("-----[ TEST START ]--------------------------------------------------")
 
         section = "SECTION-A"
         print("Section  : {}".format(section))
 
-
         print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserDataEnhanced_method_parse_all_sections(self):
+        """
+        This is the basic test template
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 1
+        parser.exception_control_level = 3
+        parser.exception_control_compact_warnings = True
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        parser.parse_all_sections()
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserDataEnhanced_property_data(self):
+        """
+        Testing of some options for the ``data`` property.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 5
+        parser.exception_control_compact_warnings = True
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        parser.configparserenhanceddata.data = {}
+        self.assertTrue("DEFAULT" in parser.configparserenhanceddata.data.keys())
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        parser.configparserenhanceddata.data = { "DEFAULT": {} }
+        self.assertTrue("DEFAULT" in parser.configparserenhanceddata.data.keys())
+        print("-----[ TEST END   ]--------------------------------------------------")
+
 
         print("OK")
         return
@@ -1502,7 +1550,47 @@ class ConfigParserEnhancedDataTest(TestCase):
         return
 
 
-    def test_ConfigParserDataEnhanced_getitem_01(self):
+    def test_ConfigParserDataEnhanced_method_get_01(self):
+        """
+        Test ``ConfigParserDataEnhanced.get()`` method.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 5
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+        result_expect = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        result_actual = parser.configparserenhanceddata.get(section)
+        self.assertDictEqual(result_expect, result_actual)
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+        result_expect = 'value2'
+        result_actual = parser.configparserenhanceddata.get(section, "key2")
+        self.assertEqual(result_expect, result_actual)
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+        result_expect = 'value2'
+        with self.assertRaises(KeyError):
+            result_actual = parser.configparserenhanceddata.get(section, "key400")
+            self.assertEqual(result_expect, result_actual)
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserDataEnhanced_method_getitem_01(self):
         """
         Test ``ConfigParserDataEnhanced.__getitem__`` method.
         """
@@ -1527,7 +1615,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         return
 
 
-    def test_ConfigParserDataEnhanced_getitem_02(self):
+    def test_ConfigParserDataEnhanced_method_getitem_02(self):
         """
         Test ``ConfigParserDataEnhanced.__getitem__`` method.
         """
@@ -1552,7 +1640,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         return
 
 
-    def test_ConfigParserDataEnhanced_getitem_03(self):
+    def test_ConfigParserDataEnhanced_method_getitem_03(self):
         """
         Test ``ConfigParserDataEnhanced.__getitem__`` method.
         """
@@ -2015,7 +2103,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         # With no parameters to items() the behaviour is to loop over the
         # whole structure -- all sections.
         print("-----[ TEST START ]--------------------------------------------------")
-        count_expect = 20
+        count_expect = 21
         count_actual = 0
         for k,v in parser.configparserenhanceddata.items():
             print("{}:{}".format(k,v))
@@ -2119,7 +2207,6 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         print("OK")
         return
-
 
 
     def test_ConfigParserDataEnhanced__parse_owner_section(self):

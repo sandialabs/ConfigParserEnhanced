@@ -14,9 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
-## [Unreleased]
+## [0.3.0] - 2021-03-22
 ### Added
+- `ConfigParserEnhanced.parse_all_sections()` added as a shortcut to kick off
+  a full parse of ALL sections in the .ini file.
 ### Changed
+- Changed `ConfigParserEnhancedData.data` property to include an empty "DEFAULT"
+  section if none is provided by the .ini file. This is to maintain compatibility
+  with `ConfigParser`.
+- Changed `ConfigParserEnhancedData.get(section, option)` to
+  `ConfigParserEnhancedData::get(section, option=None)`. Now `option` can be
+  an optional parameter and will return a `dict` containing the section's
+  keys if only a `section` is provided.
 ### Deprecated
 ### Removed
 ### Fixed
