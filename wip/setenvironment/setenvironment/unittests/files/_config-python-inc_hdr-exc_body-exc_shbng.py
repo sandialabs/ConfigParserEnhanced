@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 # ---------------------------------------------------
 #   S E T E N V I R O N M E N T   F U N C T I O N S

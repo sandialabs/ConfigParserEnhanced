@@ -214,7 +214,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     @property
-    def actions(self) -> list:
+    def actions(self) -> list:                                                                      # Todo: deprecate me
         """
         The *actions* property contains the list of actions generated for
         the most recent section that has been parsed. This is overwritten when
@@ -235,17 +235,17 @@ class SetEnvironment(ConfigParserEnhanced):
             SetEnvironment has extracted from the configuration
             file section.
         """
-        if not hasattr(self, '_actions'):
-            self._actions = []
-        return self._actions
+        if not hasattr(self, '_var_actions'):
+            self._var_actions = []
+        return self._var_actions
 
 
     @actions.setter
-    def actions(self, value) -> list:
+    def actions(self, value) -> list:                                                               # Todo: deprecate me
         if not isinstance(value, (list)):
             raise TypeError("actions must be a list.")
-        self._actions = value
-        return self._actions
+        self._var_actions = value
+        return self._var_actions
 
 
     # ------------------------------
@@ -264,8 +264,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 trigger an exception of some kind.
 
         Todo:
-            - Print out some useful log message(s) indicating that actions have occurred.
-              maybe a banner also or something?
+            - Replace this function with actions_cache use. Add parameters for section_name
         """
         output = 0
 
@@ -474,7 +473,11 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def generate_actions_script(self, incl_hdr=True, incl_body=True, incl_shebang=True, interp='bash') -> str:
-        """Generate an action script for a **bash** script.
+        """Generate a script that will implement the computed list of actions.
+
+        Generates a script in the language of the specified interpreter (currently
+        just ``python`` and ``bash`` are allowed) that will execute the set of actions
+        that have been specified by the most recent section scanned by the ``.ini`` file.
 
         Args:
             incl_hdr (bool): Include standard header with functions
@@ -551,11 +554,9 @@ class SetEnvironment(ConfigParserEnhanced):
         return output_file_str
 
 
-
     # --------------------
     #   H A N D L E R S
     # --------------------
-
 
 
     def _handler_envvar_remove_substr(self, section_name, handler_parameters) -> int:
@@ -875,7 +876,10 @@ class SetEnvironment(ConfigParserEnhanced):
         self.enter_handler(handler_parameters)
 
         # Save the results into the 'actions' property
-        self.actions = handler_parameters.data_shared["setenvironment"]
+        self.actions = handler_parameters.data_shared["setenvironment"]                             # TODO: Deprecate me!
+
+        # save the results into the right `actions_cache` entry
+        self.actions_cache[section_name] = handler_parameters.data_shared["setenvironment"]
 
         self.exit_handler(handler_parameters)
         return 0
@@ -884,6 +888,26 @@ class SetEnvironment(ConfigParserEnhanced):
     # ---------------
     #  H E L P E R S
     # ---------------
+
+    @property
+    def actions_cache(self) -> dict:
+        """
+        A dictionary storing the set of actions by section name for any sections that
+        have been parsed.
+        """
+        if not hasattr(self, "_var_actions_cache"):
+            self._var_actions_cache = {}
+        return self._var_actions_cache
+
+
+    @actions_cache.setter
+    def actions_cache(self, value) -> dict:
+        if not isinstance(value, (dict)):
+            self.exception_control_event("CATASTROPHIC", TypeError,
+                                         "actions_cache must be a dict.")
+        self._var_actions_cache = value
+        return self._var_actions_cache
+
 
     def _helper_handler_common_envvar(self, section_name, handler_parameters) -> int:
         """Common handler for envvar actions
@@ -1220,7 +1244,6 @@ class SetEnvironment(ConfigParserEnhanced):
         """
 
         output = dedent("""\
-        #!/usr/bin/env python3
 
         # ---------------------------------------------------
         #   S E T E N V I R O N M E N T   F U N C T I O N S
