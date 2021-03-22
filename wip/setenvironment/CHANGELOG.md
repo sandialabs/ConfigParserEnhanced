@@ -16,7 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
-## [Unreleased] ([0.2.0] - 2021-03-22)
+
+
+## [Unreleased]
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+#### Security
+#### Todo (for Unreleased)
+
+
+
+## [0.2.0] - 2021-03-22
 #### Added
 - New free-function: `envvar_assign` - A helper that handles _assigning_ envvars.
   Adds option to raise an exception if the envvar value is an empty string or not.
