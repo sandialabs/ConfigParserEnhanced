@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Removed
 #### Fixed
 #### Security
+#### Internal
 #### Todo (for Unreleased)
 -->
 
@@ -26,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Removed
 #### Fixed
 #### Security
+#### Internal
+- Renamed handlers from *public* api to *private* api for consistency.
+  Only `handler_initialize` and `handler_finalize` remain in the public
+  API since `ConfigParserEnhanced` has them there and they're designed
+  to be overridden.
 #### Todo (for Unreleased)
 
 
