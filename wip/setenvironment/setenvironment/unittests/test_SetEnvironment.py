@@ -38,6 +38,14 @@ from setenvironment import *
 from .common import *
 
 
+#===============================================================================
+#
+# General Utility Functions
+#
+#===============================================================================
+global_gen_new_ground_truth_files = False
+#global_gen_new_ground_truth_files = True     # comment this out for production.
+
 
 #===============================================================================
 #
@@ -1427,34 +1435,124 @@ class SetEnvironmentTest(TestCase):
         return
 
 
+    def test_SetEnvironment_handler_envvar_assert_not_empty_01(self):
+        """Test the ``envvar-assert-not-empty`` command's functions.
+        """
+        # Toggle generate-new-ground-truth-files mode. This should never be left True when checked in.
+        gen_new_ground_truth = global_gen_new_ground_truth_files
+        # ATTN: LEAVING THIS ENABLED SHOULD FAIL THIS TEST AFTER FILE GENERATION
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+        section = "ENVVAR_ASSERT_NOT_EMPTY"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions(section)
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        with self.assertRaises(ValueError):
+            parser.apply(section)
+            # Todo: is there a way to determine tne # of calls to the assert?
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        script_bash_actual = parser.generate_actions_script(section, interp='bash')
+        print(script_bash_actual)
+
+        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_01 ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_02 ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_03 "ERROR -', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_04 ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_05 "ERROR -', script_bash_actual)
+
+        options = {"prefix": "ane", "section": section, "header": True, "body": True, "shebang": True, "interpreter": "bash" }
+        self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
+        print("-----[ TEST END ]------------------------------------------")
+
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        # Generate Python output
+        script_python_actual = parser.generate_actions_script(section, interp='python')
+        options["interpreter"] = "python"
+        self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
+
+        self.assertFalse(gen_new_ground_truth,
+                         "Testing should not also generate new ground truth.")
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_handler_envvar_assert_not_empty_02(self):
+        """Test the ``envvar-assert-not-empty`` command's functions.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+        section = "ENVVAR_ASSERT_NOT_EMPTY_02"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions(section)
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        with self.assertRaises(ValueError):
+            parser.apply(section)
+            # Todo: is there a way to determine tne # of calls to the assert?
+
+        print("-----[ TEST END ]------------------------------------------")
+
+
     def test_SetEnvironment_write_actions_to_file(self):
         """
         """
         # Toggle generate-new-ground-truth-files mode. This should never be left True when checked in.
-        gen_new_ground_truth = False
-        #gen_new_ground_truth = True
+        gen_new_ground_truth = global_gen_new_ground_truth_files
         # ATTN: LEAVING THIS ENABLED SHOULD FAIL THIS TEST AFTER FILE GENERATION
 
+        section = "CONFIG_A+"
+
         options_list = [
-            {"interpreter": "bash", "header": True,  "body":  True,  "shebang": True  },
-            {"interpreter": "bash", "header": True,  "body":  True,  "shebang": False },
-            {"interpreter": "bash", "header": True,  "body":  False, "shebang": True  },
-            {"interpreter": "bash", "header": True,  "body":  False, "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": True,  "body":  True,  "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": True,  "body":  True,  "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": True,  "body":  False, "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": True,  "body":  False, "shebang": False },
 
-            {"interpreter": "bash", "header": False, "body":  True,  "shebang": True  },
-            {"interpreter": "bash", "header": False, "body":  True,  "shebang": False },
-            {"interpreter": "bash", "header": False, "body":  False, "shebang": True  },
-            {"interpreter": "bash", "header": False, "body":  False, "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": False, "body":  True,  "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": False, "body":  True,  "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": False, "body":  False, "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "bash", "header": False, "body":  False, "shebang": False },
 
-            {"interpreter": "python", "header": True,  "body":  True,  "shebang": True  },
-            {"interpreter": "python", "header": True,  "body":  True,  "shebang": False },
-            {"interpreter": "python", "header": True,  "body":  False, "shebang": True  },
-            {"interpreter": "python", "header": True,  "body":  False, "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": True,  "body":  True,  "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": True,  "body":  True,  "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": True,  "body":  False, "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": True,  "body":  False, "shebang": False },
 
-            {"interpreter": "python", "header": False, "body":  True,  "shebang": True  },
-            {"interpreter": "python", "header": False, "body":  True,  "shebang": False },
-            {"interpreter": "python", "header": False, "body":  False, "shebang": True  },
-            {"interpreter": "python", "header": False, "body":  False, "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": False, "body":  True,  "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": False, "body":  True,  "shebang": False },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": False, "body":  False, "shebang": True  },
+            {"prefix": "config", "section": section, "interpreter": "python", "header": False, "body":  False, "shebang": False },
         ]
 
         for options in options_list:
@@ -1523,6 +1621,21 @@ class SetEnvironmentTest(TestCase):
 
         with self.assertRaises(ValueError):
             envvar_assign("FOO", "", False)
+
+        print("-----[ TEST END ]------------------------------------------")
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_freefunc_envvar_op(self):
+        """
+        Test the free-function ``envvar_op``
+        """
+        print("\n")
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        with self.assertRaises(ValueError):
+            envvar_op("non-existent-operation", "FOO")
 
         print("-----[ TEST END ]------------------------------------------")
         print("OK")
@@ -1669,24 +1782,27 @@ class SetEnvironmentTest(TestCase):
         """
         Set gen_new_ground_truth = True to create new ground-truth files.
         """
-        section = "CONFIG_A+"
+
         print("\n")
         print("-----[ TEST BEGIN ]----------------------------------------")
         print("options  : {}".format(options))
         print("Load file: {}".format(self._filename))
-        print("Section  : {}".format(section))
 
         parser = SetEnvironment(self._filename)
         parser.debug_level = 5
 
         files_subdir = "files"
 
+        filename_prefix  = options["prefix"]
         filename_interp  = options["interpreter"]
         filename_header  = options["header"]
         filename_body    = options["body"]
         filename_shebang = options["shebang"]
 
-        filename_base = "config"
+        section = options["section"]
+        print("Section  : {}".format(section))
+
+        filename_base = filename_prefix
         filename_ext  = "txt"
 
         self.assertIn(filename_interp, ["bash", "python"])

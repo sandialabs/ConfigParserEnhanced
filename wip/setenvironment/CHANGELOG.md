@@ -18,8 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [Unreleased]
+## [0.3.0] - Unreleased
 #### Added
+- New envvar command: `envvar-assert-not-empty` as part of ISSUE #12
 #### Changed
 #### Deprecated
 #### Removed

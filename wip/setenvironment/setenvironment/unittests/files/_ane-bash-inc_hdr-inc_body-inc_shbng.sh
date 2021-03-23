@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # ---------------------------------------------------
 #   S E T E N V I R O N M E N T   F U N C T I O N S
 # ---------------------------------------------------
@@ -115,18 +116,15 @@ function envvar_op() {
 # -------------------------------------------------
 #   S E T E N V I R O N M E N T   C O M M A N D S
 # -------------------------------------------------
-envvar_op set FOO bar
-envvar_op append FOO baz
-envvar_op prepend FOO foo
-envvar_op set BAR foo
-envvar_op remove_substr FOO bar
-envvar_op unset FOO
-module purge
-module use setenvironment/unittests/modulefiles
-module load gcc/4.8.4
-module load boost/1.10.1
-module load gcc/4.8.4
-module unload boost
-module swap gcc gcc/7.3.0
+envvar_op set TEST_ENVVAR_VALUE_01 FOO
+envvar_op assert_not_empty TEST_ENVVAR_VALUE_01 ""
+envvar_op set TEST_ENVVAR_VALUE_02 ""
+envvar_op assert_not_empty TEST_ENVVAR_VALUE_02 ""
+envvar_op set TEST_ENVVAR_VALUE_03 ""
+envvar_op assert_not_empty TEST_ENVVAR_VALUE_03 "ERROR - TEST_ENVVAR_VALUE_03 is missing or empty."
+envvar_op unset TEST_ENVVAR_VALUE_04
+envvar_op assert_not_empty TEST_ENVVAR_VALUE_04 ""
+envvar_op unset TEST_ENVVAR_VALUE_05
+envvar_op assert_not_empty TEST_ENVVAR_VALUE_05 "ERROR - TEST_ENVVAR_VALUE_05 is missing or empty."
 
 

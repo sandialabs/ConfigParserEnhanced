@@ -183,7 +183,13 @@ def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
         except FileNotFoundError:
             envvar_value = ""
         envvar_assign(envvar_name, envvar_value, allow_empty)
-    else:                                                                                           # pragma: no cover
+    elif op == "assert_not_empty":
+        if not envvar_exists or os.environ[envvar_name] == "":
+            message = "ERROR: Required envvar `{}` is not set.".format(envvar_name)
+            if envvar_value != "":
+                message = envvar_value
+            raise ValueError(message)
+    else:
         raise ValueError("Unknown command `{}`.".format(op))
     return 0
 

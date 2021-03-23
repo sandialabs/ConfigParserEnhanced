@@ -60,6 +60,7 @@ Environment Variable Handlers
 .. automethod:: setenvironment.SetEnvironment._handler_envvar_remove_path_entry
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_set
 .. automethod:: setenvironment.SetEnvironment.handler_envvar_unset
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_assert_not_empty
 
 
 Environment Modules Handlers
