@@ -11,8 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+### Internal
 ### Security
 -->
+
+## [0.3.1] - [Unreleased]
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Internal
+- Add `_validate_parameter` internal function to wrap the parameter
+  check operation that we do around the code. This simplifies some
+  of the coverage issues and also makes it easier to put more type
+  checks around parameters.
+### Security
+
+
 
 ## [0.3.0] - 2021-03-22
 ### Added
