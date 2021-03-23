@@ -33,9 +33,9 @@ from . import ModuleHelper
 
 
 
-# ===================================
-#  S U P P O R T   F U N C T I O N S
-# ===================================
+# ==============================
+#  F R E E   F U N C T I O N S
+# ==============================
 
 
 def envvar_assign(envvar_name, envvar_value, allow_empty=True):
@@ -224,7 +224,6 @@ def expand_envvars_in_string(string_in) -> str:
 # ===============================
 #   M A I N   C L A S S
 # ===============================
-
 
 
 class SetEnvironment(ConfigParserEnhanced):
@@ -637,98 +636,24 @@ class SetEnvironment(ConfigParserEnhanced):
     # --------------------
 
 
-    def _handler_envvar_remove_substr(self, section_name, handler_parameters) -> int:
-        """Handler: for ``envvar-remove-substr``
+    def _handler_envvar_append(self, section_name, handler_parameters) -> int:
+        """Handler: for envvar-append operations.
 
-        Handles operations that wish to remove *all* occurrences of a substring
-        from a given envvar.
+        Append operations will set or append a value to an environment variable
+        (envvar). If the envvar exists already then we will *append* the value to
+        it with a separator. If the envvar does not already exist, we will create
+        one with the value set.
 
-        .. code-block:: bash
-            :linenos:
-
-            [ENVVAR_REMOVE_SUBSTR_TEST]
-            # Create an environment var FOO="BAAAB"
-            envvar-set FOO           : BAAAB
-
-            # Removes all "A" substrings from FOO
-            envvar-remove-substr FOO : A
-
-            # Result should be: FOO="BB"
-
-        Args:
-            section_name (str): The name of the section being processed.
-            handler_parameters (HandlerParameters): The parameters passed to
-                the handler.
+        For example, if the envvar is "foo" and the value is "bar", if we already
+        have ``foo = "bif"`` then the result is ``foo = "bif:bar"``, but if ``foo``
+        did not already exist then the result would be ``foo = "bar"``
 
         Returns:
-            int:
-            * 0     : SUCCESS
-            * [1-10]: Reserved for future use (WARNING)
-            * > 10  : An unknown failure occurred (CRITICAL)
-        """
-        return self._helper_handler_common_envvar(section_name, handler_parameters)
+            integer: An integer value indicating if the handler was successful.
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
 
-
-    def _handler_envvar_remove_path_entry(self, section_name, handler_parameters) -> int:
-        """Handler: for ``envvar-remove-path-entry``
-
-        Handles operations that remove all occurrences of a specific
-        path from an envvar.
-
-        .. code-block:: bash
-            :linenos:
-
-            [ENVVAR_REMOVE_PATH_ENTRY_TEST]
-            # Create an TEST_PATH = "/foo:/bar:/bar/baz:/bar:/bif"
-            envvar-set TEST_PATH : /foo:/bar:/bar/baz:/bar:/bif
-
-            # Removes "/bar" from the path
-            envvar-remove-path-entry TEST_PATH : /bar
-
-            # Result should be: TEST_PATH = "/foo:/bar/baz:/bif"
-
-        Args:
-            section_name (str): The name of the section being processed.
-            handler_parameters (HandlerParameters): The parameters passed to
-                the handler.
-
-        Returns:
-            int:
-            * 0     : SUCCESS
-            * [1-10]: Reserved for future use (WARNING)
-            * > 10  : An unknown failure occurred (CRITICAL)
-        """
-        return self._helper_handler_common_envvar(section_name, handler_parameters)
-
-
-    def _handler_envvar_find_in_path(self, section_name, handler_parameters) -> int:
-        """Handler: for ``envvar-find-in-path``
-
-        This handler is used when the ``envvar-find-in-path`` command is issued which
-        instructs SetEnvironment to generate code to *find* a given executable in the
-        path.
-
-        In this example, we give the command ``envvar-find-in-path`` to search for the
-        ``ls`` executable. We're being a little sneaky by setting this into ``TEST_ENVVAR_EXE``
-        first to demonstrate that we can use the ``${ENVVAR}`` expansion here as well.
-
-        .. code-block:: bash
-            :linenos:
-
-            [ENVVAR_FIND_IN_PATH_TEST]
-            envvar-set          TEST_ENVVAR_EXE  : ls
-            envvar-find-in-path TEST_ENVVAR_PATH : ${TEST_ENVVAR_EXE}
-
-        Args:
-            section_name (str): The name of the section being processed.
-            handler_parameters (HandlerParameters): The parameters passed to
-                the handler.
-
-        Returns:
-            int:
-            * 0     : SUCCESS
-            * [1-10]: Reserved for future use (WARNING)
-            * > 10  : An unknown failure occurred (CRITICAL)
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
@@ -784,38 +709,34 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
-    def _handler_envvar_set(self, section_name, handler_parameters) -> int:
-        """Handler: for envvar-set operations.
+    def _handler_envvar_find_in_path(self, section_name, handler_parameters) -> int:
+        """Handler: for ``envvar-find-in-path``
 
-        Handles operations that wish to *set* an environment variable.
+        This handler is used when the ``envvar-find-in-path`` command is issued which
+        instructs SetEnvironment to generate code to *find* a given executable in the
+        path.
 
-        Returns:
-            integer: An integer value indicating if the handler was successful.
-                - 0     : SUCCESS
-                - [1-10]: Reserved for future use (WARNING)
-                - > 10  : An unknown failure occurred (SERIOUS)
-        """
-        return self._helper_handler_common_envvar(section_name, handler_parameters)
+        In this example, we give the command ``envvar-find-in-path`` to search for the
+        ``ls`` executable. We're being a little sneaky by setting this into ``TEST_ENVVAR_EXE``
+        first to demonstrate that we can use the ``${ENVVAR}`` expansion here as well.
 
+        .. code-block:: bash
+            :linenos:
 
-    def _handler_envvar_append(self, section_name, handler_parameters) -> int:
-        """Handler: for envvar-append operations.
+            [ENVVAR_FIND_IN_PATH_TEST]
+            envvar-set          TEST_ENVVAR_EXE  : ls
+            envvar-find-in-path TEST_ENVVAR_PATH : ${TEST_ENVVAR_EXE}
 
-        Append operations will set or append a value to an environment variable
-        (envvar). If the envvar exists already then we will *append* the value to
-        it with a separator. If the envvar does not already exist, we will create
-        one with the value set.
-
-        For example, if the envvar is "foo" and the value is "bar", if we already
-        have ``foo = "bif"`` then the result is ``foo = "bif:bar"``, but if ``foo``
-        did not already exist then the result would be ``foo = "bar"``
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
 
         Returns:
-            integer: An integer value indicating if the handler was successful.
-                - 0     : SUCCESS
-                - [1-10]: Reserved for future use (WARNING)
-                - > 10  : An unknown failure occurred (SERIOUS)
-
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (CRITICAL)
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
@@ -869,6 +790,84 @@ class SetEnvironment(ConfigParserEnhanced):
 
         self.exit_handler(handler_parameters)
         return 0
+
+
+    def _handler_envvar_remove_path_entry(self, section_name, handler_parameters) -> int:
+        """Handler: for ``envvar-remove-path-entry``
+
+        Handles operations that remove all occurrences of a specific
+        path from an envvar.
+
+        .. code-block:: bash
+            :linenos:
+
+            [ENVVAR_REMOVE_PATH_ENTRY_TEST]
+            # Create an TEST_PATH = "/foo:/bar:/bar/baz:/bar:/bif"
+            envvar-set TEST_PATH : /foo:/bar:/bar/baz:/bar:/bif
+
+            # Removes "/bar" from the path
+            envvar-remove-path-entry TEST_PATH : /bar
+
+            # Result should be: TEST_PATH = "/foo:/bar/baz:/bif"
+
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+
+        Returns:
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (CRITICAL)
+        """
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
+
+
+    def _handler_envvar_remove_substr(self, section_name, handler_parameters) -> int:
+        """Handler: for ``envvar-remove-substr``
+
+        Handles operations that wish to remove *all* occurrences of a substring
+        from a given envvar.
+
+        .. code-block:: bash
+            :linenos:
+
+            [ENVVAR_REMOVE_SUBSTR_TEST]
+            # Create an environment var FOO="BAAAB"
+            envvar-set FOO           : BAAAB
+
+            # Removes all "A" substrings from FOO
+            envvar-remove-substr FOO : A
+
+            # Result should be: FOO="BB"
+
+        Args:
+            section_name (str): The name of the section being processed.
+            handler_parameters (HandlerParameters): The parameters passed to
+                the handler.
+
+        Returns:
+            int:
+            * 0     : SUCCESS
+            * [1-10]: Reserved for future use (WARNING)
+            * > 10  : An unknown failure occurred (CRITICAL)
+        """
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
+
+
+    def _handler_envvar_set(self, section_name, handler_parameters) -> int:
+        """Handler: for envvar-set operations.
+
+        Handles operations that wish to *set* an environment variable.
+
+        Returns:
+            integer: An integer value indicating if the handler was successful.
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+        """
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
     def _handler_envvar_unset(self, section_name, handler_parameters) -> int:
@@ -1068,22 +1067,119 @@ class SetEnvironment(ConfigParserEnhanced):
     #  H E L P E R S
     # ---------------
 
-    def _initialize_handler_parameters(self, section_name, handler_parameters):
-        """Initialize ``handler_parameters``
 
-        Initializes any default settings needed for ``handler_parameters``.
-        Takes the same parameters as handlers.
+    def _apply_envvar(self, operation, envvar_name, envvar_value) -> int:
+        """Apply an ENVVAR operation
+
+        Currently supported ENVVAR operations are:
+        - ``envvar_append``
+        - ``envvar_prepend``
+        - ``envvar_set``
+        - ``envvar_unset``
+        - ``envvar_remove_substr``
+        - ``envvar_remove_path_entry``
+
+        Note:
+            ``envvar_remove`` is handled in the ``handler_envvar_remove``
+            directly because its context is most applicable at processing
+            time.
 
         Args:
-            section_name (str): The section name string.
-            handler_parameters (object): A HandlerParameters object containing
-                the state data we need for this handler.
-        """
-        data_shared_ref = handler_parameters.data_shared
-        if 'setenvironment' not in data_shared_ref.keys():
-            data_shared_ref['setenvironment'] = []
+            operation (str): The *operation* to apply (i.e., ``set``, ``unset`` etc.)
+            envvar_name (str): The name of the environment variable we're working on.
+            envvar_value (str, None): The value to be assigned to the envvar.
+                This is not used by ``unset``.
 
-        return
+        Returns:
+            int: 0 if successful
+
+        Raises:
+            TypeError: if any of the parameters fail a typecheck on method entry.
+            ValueError: if the operation provided is invalid.
+        """
+        if not isinstance(operation, (str)):
+            raise TypeError("operation must be a string.")
+        if not isinstance(envvar_name, (str)):
+            raise TypeError("envvar_name must be a string.")
+        if not isinstance(envvar_value, (str, type(None))):
+            raise TypeError("envvar_value must be either `string` or `None` types.")
+
+        self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value))         # Console
+
+        command = self._gen_actioncmd_envvar(operation, envvar_name, envvar_value)
+        output  = self._exec_helper(command)
+
+        if output != 0:
+            output  = 1
+            message = "ENVVAR operation {} failed with {} rval.".format(operation, output)
+            self.exception_control_event("CRITICAL", RuntimeError, message)
+
+        return output
+
+
+    def _apply_module(self, operation, module_name, module_value) -> int:
+        """Apply MODULE operations
+
+        Currently supported MODULE operations are:
+
+        - ``module_load``
+        - ``module_purge``
+        - ``module_swap``
+        - ``module_unload``
+        - ``module_use``
+        - ``module_remove_substr``
+
+        Note:
+            ``module_remove`` is handled in the handler itself since it's
+            context is most applicable at the time of parsing.
+
+        Args:
+            operation (str): The operation to be executed (i.e., ``module_load``)
+            module_name (str, None): The name of the module.
+            module_value (str,None): The value from the operation field.
+
+        Returns:
+            integer: 0 if successful.
+
+        Raises:
+            TypeError: if any of the parameters fail a typecheck on method entry.
+            ValueError: if the operation provided is invalid.
+        """
+        if not isinstance(operation, (str)):
+            raise TypeError("operation must be a string.")
+        if not isinstance(module_name, (str, type(None))):
+            raise TypeError("module_name must be either `string` or `None` types.")
+        if not isinstance(module_value, (str, type(None))):
+            raise TypeError("module_value must be either `string` or `None` types.")
+
+        self.debug_message(2, "{} :: {} - {}".format(operation, module_name, module_value))         # Console
+
+        command = self._gen_actioncmd_module(operation, module_name, module_value)
+        output  = self._exec_helper(command)
+
+        if output != 0:
+            message = "MODULE operation `{}` failed with rval == `{}`.".format(operation, output)
+            self.exception_control_event("CRITICAL", RuntimeError, message)
+
+        return output
+
+
+    def _exec_helper(self, command):
+        """Wrapper for ``exec()`` that properly captures the return value.
+
+        There are quirks with ``exec()`` and how hit handles return values
+        so this wrapper does it the 'right' way.
+
+        One can't fully rely on it to modify an existing local variable.
+        I think if the local var doesn't exist it will create one but if
+        it does exist then it won't overwrite it.
+
+        See Also:
+            - https://docs.python.org/3/library/functions.html#exec
+        """
+        ldict = {}
+        exec( "_rval = "+ command, globals(), ldict)
+        return ldict['_rval']
 
 
     def _helper_handler_common_envvar(self, section_name, handler_parameters) -> int:
@@ -1199,124 +1295,257 @@ class SetEnvironment(ConfigParserEnhanced):
         return 0
 
 
-    def _apply_envvar(self, operation, envvar_name, envvar_value) -> int:
-        """Apply an ENVVAR operation
+    def _initialize_handler_parameters(self, section_name, handler_parameters):
+        """Initialize ``handler_parameters``
 
-        Currently supported ENVVAR operations are:
-        - ``envvar_append``
-        - ``envvar_prepend``
-        - ``envvar_set``
-        - ``envvar_unset``
-        - ``envvar_remove_substr``
-        - ``envvar_remove_path_entry``
-
-        Note:
-            ``envvar_remove`` is handled in the ``handler_envvar_remove``
-            directly because its context is most applicable at processing
-            time.
+        Initializes any default settings needed for ``handler_parameters``.
+        Takes the same parameters as handlers.
 
         Args:
-            operation (str): The *operation* to apply (i.e., ``set``, ``unset`` etc.)
-            envvar_name (str): The name of the environment variable we're working on.
-            envvar_value (str, None): The value to be assigned to the envvar.
-                This is not used by ``unset``.
-
-        Returns:
-            int: 0 if successful
-
-        Raises:
-            TypeError: if any of the parameters fail a typecheck on method entry.
-            ValueError: if the operation provided is invalid.
+            section_name (str): The section name string.
+            handler_parameters (object): A HandlerParameters object containing
+                the state data we need for this handler.
         """
-        if not isinstance(operation, (str)):
-            raise TypeError("operation must be a string.")
-        if not isinstance(envvar_name, (str)):
-            raise TypeError("envvar_name must be a string.")
-        if not isinstance(envvar_value, (str, type(None))):
-            raise TypeError("envvar_value must be either `string` or `None` types.")
+        data_shared_ref = handler_parameters.data_shared
+        if 'setenvironment' not in data_shared_ref.keys():
+            data_shared_ref['setenvironment'] = []
 
-        self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value))         # Console
-
-        command = self._gen_actioncmd_envvar(operation, envvar_name, envvar_value)
-        output  = self._exec_helper(command)
-
-        if output != 0:
-            output  = 1
-            message = "ENVVAR operation {} failed with {} rval.".format(operation, output)
-            self.exception_control_event("CRITICAL", RuntimeError, message)
-
-        return output
+        return
 
 
-    def _apply_module(self, operation, module_name, module_value) -> int:
-        """Apply MODULE operations
+    def _gen_actioncmd_envvar(self, op, *args, interp='python') -> str:
+        """
+        Generates an executable environment variable command based on
+        the selected interpreter.
 
-        Currently supported MODULE operations are:
+        Operations defined for this are:
 
-        - ``module_load``
-        - ``module_purge``
-        - ``module_swap``
-        - ``module_unload``
-        - ``module_use``
-        - ``module_remove_substr``
+        +-----------------------+----------+---------------------------------------------------+
+        | Operation             | Req Args | Description & required positional args            |
+        +=======================+==========+===================================================+
+        | ``append``            |        2 | Append a value ot an existing environment var.    |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *envvar value*                            |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``prepend``           |        2 | Prepend a value to an existing environment var.   |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *envvar value*                            |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``set``               |        2 | Set an environment variable to a value.           |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *envvar value*                            |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``unset``             |        1 | Unset the environment variable if it exists.      |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *module name* (i.e., ``gcc``)             |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``remove_substr``     |        2 | Remove a substring from an envvar if it exists.   |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *substring to remove*                     |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``remove_path_entry`` |        2 | Remove a substring from an envvar if it exists.   |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *substring to remove*                     |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``assert_not_empty``  |        2 | Trigger an error if the envvar is empty or unset  |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *OPTIONAL message*                        |
+        +-----------------------+----------+---------------------------------------------------+
 
-        Note:
-            ``module_remove`` is handled in the handler itself since it's
-            context is most applicable at the time of parsing.
+        This method is invoked like this
+        ``_gen_actioncmd_module(op, arg1, arg2, ... , argN, interp='python')``
+        where there is a variable number of positional arguments after ``op``
+        based on which operation is specified.
+        This method generates an executable line of code in the language specified
+        by the ``interp`` parameter. Currently, ``bash`` and ``python`` are allowed.
+
+        +-------------+--------------------------------------------------------------+
+        | ``interp``  | Common Functions Generator(s)                                |
+        +=============+==============================================================+
+        | ``python``  | ``_gen_script_common_python``, defines:                      |
+        +-------------+                                                              +
+        |             | - ``envvar_op()``                                            |
+        |             | - ``expand_envvars_in_string()``                             |
+        +-------------+--------------------------------------------------------------+
+        | ``bash```   | ``_gen_script_common_bash``, defines:                        |
+        +-------------+                                                              +
+        |             | - ``envvar_op``                                              |
+        |             | - ``envvar_append_or_create``                                |
+        |             | - ``envvar_prepend_or_create``                               |
+        |             | - ``envvar_set_or_create``                                   |
+        |             | - ``envvar_remove_substr``                                   |
+        +-------------+--------------------------------------------------------------+
 
         Args:
-            operation (str): The operation to be executed (i.e., ``module_load``)
-            module_name (str, None): The name of the module.
-            module_value (str,None): The value from the operation field.
+            - ``op`` (str): The operation to be executed.
+                See the table above for more details.
+            *args: Provide the (str) arguments needed for the given operation.
+                See the table above for more details.
+            interp (str): Interpreter to generate code for. ``bash`` or ``python``
+                are currently allowed.
 
         Returns:
-            integer: 0 if successful.
+            str: A String containing the generated action commands.
 
         Raises:
-            TypeError: if any of the parameters fail a typecheck on method entry.
-            ValueError: if the operation provided is invalid.
+            IndexError: If the number of arguments provided is incompatible with
+                the command.
+            ValueError: If the operation provided is not in the list of available
+                operations.
+            ValueError: If the interpreter is not in the list of available interpreters.
+
         """
-        if not isinstance(operation, (str)):
-            raise TypeError("operation must be a string.")
-        if not isinstance(module_name, (str, type(None))):
-            raise TypeError("module_name must be either `string` or `None` types.")
-        if not isinstance(module_value, (str, type(None))):
-            raise TypeError("module_value must be either `string` or `None` types.")
+        output = ""
+        op = self._remove_prefix(op, "envvar_")
 
-        self.debug_message(2, "{} :: {} - {}".format(operation, module_name, module_value))         # Console
+        # Validate parameters
+        num_args_req = 0
+        if   op in ['unset']: num_args_req = 1
+        else:                 num_args_req = 2
 
-        command = self._gen_actioncmd_module(operation, module_name, module_value)
-        output  = self._exec_helper(command)
+        if len(args) < num_args_req:
+            errmsg = "Incorrect # of arguments provided for `envvar-{}`".format(op)
+            self.exception_control_event("CRITICAL", IndexError, errmsg)
 
-        if output != 0:
-            message = "MODULE operation `{}` failed with rval == `{}`.".format(operation, output)
-            self.exception_control_event("CRITICAL", RuntimeError, message)
+        oplist_argcount_1 = ["unset"
+                            ]
+        oplist_argcount_2 = ["set",
+                             "append",
+                             "prepend",
+                             "remove_substr",
+                             "remove_path_entry",
+                             "find_in_path",
+                             "assert_not_empty"
+                             ]
+
+        arglist = [ op ]
+
+        if op in oplist_argcount_1:
+            arglist += [ args[0] ]
+        elif op in oplist_argcount_2:
+            arglist += [ args[0], args[1] ]
+
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid module operation provided: {}".format(op))
+
+        if interp=="python":
+            arglist = [ '"' + x + '"' for x in arglist ]
+            output = "envvar_op({})".format(",".join(arglist))
+        elif interp=="bash":
+            arglist[2:] = [ x if x!="" and ' ' not in x else '"'+x+'"' for x in arglist[2:] ]
+            output = "envvar_op {}".format(" ".join(arglist))
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid interpreter provided: {}".format(interp))
 
         return output
 
 
-    def _gen_shebang_line(self, interp="bash") -> str:
+    def _gen_actioncmd_module(self, op, *args, interp='python') -> str:
         """
+        Generates an executable module command based on the selected interpreter.
+
+        Operations defined for this are:
+
+        +-------------+----------+---------------------------------------------------+
+        | Operation   | Req Args | Description & required positional args            |
+        +=============+==========+===================================================+
+        | ``load``    |        2 | Load the specified module.                        |
+        +-------------+----------+                                                   +
+        |             |          |  - arg1: *module name* (``gcc``)                  |
+        |             |          |  - arg2: *module version* (``7.3.0``)             |
+        +-------------+----------+---------------------------------------------------+
+        | ``purge``   |        0 | Purge all loaded modules and search paths.        |
+        +-------------+----------+---------------------------------------------------+
+        | ``swap``    |        2 | Swap a loaded module for another module.          |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *module name* (``gcc``)                   |
+        |             |          | - arg2: *module name* + *version* (``gcc/9.2.0``) |
+        +-------------+----------+---------------------------------------------------+
+        | ``unload``  |        1 | Unload the specified module.                      |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *module name* (i.e., ``gcc``)             |
+        +-------------+----------+---------------------------------------------------+
+        | ``use``     |        1 | Add a path to be included in modules search path. |
+        +-------------+----------+                                                   +
+        |             |          | - arg1: *path to modules*                         |
+        +-------------+----------+---------------------------------------------------+
+
+        This method is invoked like this
+        ``_gen_actioncmd_module(op, arg1, arg2, ... , argN, interp='python')``
+        where there is a variable number of positional arguments after ``op``
+        based on which operation is specified.
+
+        Allowable interpreters for the ``interp`` parameter are "bash" or "python".
+
+        - For ``python`` uses we use the ``module()`` function defined in ``ModuleHelper``.
+        - For ``bash`` use cases we generate commands using the ``module`` application.
+
+        Args:
+            op (string): The module operation to perform.
+            *args: Provide the (str) arguments needed for the given operation.
+                See the table provided above.
+            interp (str): Interpreter to generate code for. ``bash`` or ``python``
+                are currently allowed.
         """
-        output = "#!/usr/bin/env "
-        if interp == "bash":
-            output += "bash"
-        elif interp == "python":
-            output += "python3"
-        else:                                                                                       # pragma: no cover (unreachable)
-            self.exception_control_event("CRITICAL", RuntimeError,
-                "'Unreachable' branch executed, something is broken!")
-        output += "\n"
-        return output
+        output = ""
+        op = self._remove_prefix(op, "module_")
 
+        # Validate parameters
+        num_args_req = 0
+        if   op in ['purge']:          num_args_req = 0
+        elif op in ['use',  'unload']: num_args_req = 1
+        elif op in ['load', 'swap']:   num_args_req = 2
 
-    def _output_comment_col0_str(self, interp="bash") -> str:
-        output="#"
-        if interp in ["bash", "python"]:
-            output="#"
-        else:                                                                                       # pragma: no cover (unreachable)
-            self.exception_control_event("CRITICAL", RuntimeError,
-                "'Unreachable' branch executed, something is broken!")
+        if len(args) < num_args_req:
+            errmsg = "Incorrect # of arguments provided for `module-{}`".format(op)
+            self.exception_control_event("CRITICAL", IndexError, errmsg)
+
+        arglist = [ op ]
+        if op == "purge":
+            pass
+        elif op == "use":
+            # Todo: Do we check these here? I'm torn on this because if we just wanted to
+            #       parse the ini file and generate a bash script that might be relocated
+            #       and run from a different CWD then checking here doesn't make sense.
+            #       Maybe a WARNING?
+            #       Depending on the Modules command available, we may get an error if
+            #       the `module use` fails and give us a RuntimeError. I'll leave out for now
+            #       and we can include it later once we have a chance to discuss in a code
+            #       review.
+            #if not os.path.exists(arg2):
+            #    self.exception_control_event("SERIOUS", FileNotFoundError,
+            #                                 "`module use` PATH not found: `{}`".format(arg2))
+            #if  not os.path.isdir(arg2):
+            #    self.exception_control_event("SERIOUS", FileNotFoundError,
+            #                                 "`module use` PATH is not a dir: `{}`".format(arg2))
+            arglist += [ args[1] ]
+        elif op == "load":
+            arglist += [ args[0] + "/" + args[1] ]
+        elif op == "unload":
+            arglist += [ args[0] ]
+        elif op == "swap":
+            arglist += [ args[0], args[1] ]
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid module operation provided: {}".format(op))
+
+        if interp=="python":
+            arglist = [ '"' + x + '"' for x in arglist ]
+            output = "ModuleHelper.module({})".format(",".join(arglist))
+        elif interp=="bash":
+            output = "module {}".format(" ".join(arglist))
+        else:
+            self.exception_control_event("SERIOUS", ValueError,
+                                         "Invalid interpreter provided: {}".format(interp))
+
         return output
 
 
@@ -1493,236 +1722,28 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
-    def _gen_actioncmd_module(self, op, *args, interp='python') -> str:
+    def _gen_shebang_line(self, interp="bash") -> str:
         """
-        Generates an executable module command based on the selected interpreter.
-
-        Operations defined for this are:
-
-        +-------------+----------+---------------------------------------------------+
-        | Operation   | Req Args | Description & required positional args            |
-        +=============+==========+===================================================+
-        | ``load``    |        2 | Load the specified module.                        |
-        +-------------+----------+                                                   +
-        |             |          |  - arg1: *module name* (``gcc``)                  |
-        |             |          |  - arg2: *module version* (``7.3.0``)             |
-        +-------------+----------+---------------------------------------------------+
-        | ``purge``   |        0 | Purge all loaded modules and search paths.        |
-        +-------------+----------+---------------------------------------------------+
-        | ``swap``    |        2 | Swap a loaded module for another module.          |
-        +-------------+----------+                                                   +
-        |             |          | - arg1: *module name* (``gcc``)                   |
-        |             |          | - arg2: *module name* + *version* (``gcc/9.2.0``) |
-        +-------------+----------+---------------------------------------------------+
-        | ``unload``  |        1 | Unload the specified module.                      |
-        +-------------+----------+                                                   +
-        |             |          | - arg1: *module name* (i.e., ``gcc``)             |
-        +-------------+----------+---------------------------------------------------+
-        | ``use``     |        1 | Add a path to be included in modules search path. |
-        +-------------+----------+                                                   +
-        |             |          | - arg1: *path to modules*                         |
-        +-------------+----------+---------------------------------------------------+
-
-        This method is invoked like this
-        ``_gen_actioncmd_module(op, arg1, arg2, ... , argN, interp='python')``
-        where there is a variable number of positional arguments after ``op``
-        based on which operation is specified.
-
-        Allowable interpreters for the ``interp`` parameter are "bash" or "python".
-
-        - For ``python`` uses we use the ``module()`` function defined in ``ModuleHelper``.
-        - For ``bash`` use cases we generate commands using the ``module`` application.
-
-        Args:
-            op (string): The module operation to perform.
-            *args: Provide the (str) arguments needed for the given operation.
-                See the table provided above.
-            interp (str): Interpreter to generate code for. ``bash`` or ``python``
-                are currently allowed.
         """
-        output = ""
-        op = self._remove_prefix(op, "module_")
-
-        # Validate parameters
-        num_args_req = 0
-        if   op in ['purge']:          num_args_req = 0
-        elif op in ['use',  'unload']: num_args_req = 1
-        elif op in ['load', 'swap']:   num_args_req = 2
-
-        if len(args) < num_args_req:
-            errmsg = "Incorrect # of arguments provided for `module-{}`".format(op)
-            self.exception_control_event("CRITICAL", IndexError, errmsg)
-
-        arglist = [ op ]
-        if op == "purge":
-            pass
-        elif op == "use":
-            # Todo: Do we check these here? I'm torn on this because if we just wanted to
-            #       parse the ini file and generate a bash script that might be relocated
-            #       and run from a different CWD then checking here doesn't make sense.
-            #       Maybe a WARNING?
-            #       Depending on the Modules command available, we may get an error if
-            #       the `module use` fails and give us a RuntimeError. I'll leave out for now
-            #       and we can include it later once we have a chance to discuss in a code
-            #       review.
-            #if not os.path.exists(arg2):
-            #    self.exception_control_event("SERIOUS", FileNotFoundError,
-            #                                 "`module use` PATH not found: `{}`".format(arg2))
-            #if  not os.path.isdir(arg2):
-            #    self.exception_control_event("SERIOUS", FileNotFoundError,
-            #                                 "`module use` PATH is not a dir: `{}`".format(arg2))
-            arglist += [ args[1] ]
-        elif op == "load":
-            arglist += [ args[0] + "/" + args[1] ]
-        elif op == "unload":
-            arglist += [ args[0] ]
-        elif op == "swap":
-            arglist += [ args[0], args[1] ]
-        else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid module operation provided: {}".format(op))
-
-        if interp=="python":
-            arglist = [ '"' + x + '"' for x in arglist ]
-            output = "ModuleHelper.module({})".format(",".join(arglist))
-        elif interp=="bash":
-            output = "module {}".format(" ".join(arglist))
-        else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid interpreter provided: {}".format(interp))
-
+        output = "#!/usr/bin/env "
+        if interp == "bash":
+            output += "bash"
+        elif interp == "python":
+            output += "python3"
+        else:                                                                                       # pragma: no cover (unreachable)
+            self.exception_control_event("CRITICAL", RuntimeError,
+                "'Unreachable' branch executed, something is broken!")
+        output += "\n"
         return output
 
 
-    def _gen_actioncmd_envvar(self, op, *args, interp='python'):
-        """
-        Generates an executable environment variable command based on
-        the selected interpreter.
-
-        Operations defined for this are:
-
-        +-----------------------+----------+---------------------------------------------------+
-        | Operation             | Req Args | Description & required positional args            |
-        +=======================+==========+===================================================+
-        | ``append``            |        2 | Append a value ot an existing environment var.    |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *envvar value*                            |
-        +-----------------------+----------+---------------------------------------------------+
-        | ``prepend``           |        2 | Prepend a value to an existing environment var.   |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *envvar value*                            |
-        +-----------------------+----------+---------------------------------------------------+
-        | ``set``               |        2 | Set an environment variable to a value.           |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *envvar value*                            |
-        +-----------------------+----------+---------------------------------------------------+
-        | ``unset``             |        1 | Unset the environment variable if it exists.      |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *module name* (i.e., ``gcc``)             |
-        +-----------------------+----------+---------------------------------------------------+
-        | ``remove_substr``     |        2 | Remove a substring from an envvar if it exists.   |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *substring to remove*                     |
-        +-----------------------+----------+---------------------------------------------------+
-        | ``remove_path_entry`` |        2 | Remove a substring from an envvar if it exists.   |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *substring to remove*                     |
-        +-----------------------+----------+---------------------------------------------------+
-        | ``assert_not_empty``  |        2 | Trigger an error if the envvar is empty or unset  |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *OPTIONAL message*                        |
-        +-----------------------+----------+---------------------------------------------------+
-
-        This method is invoked like this
-        ``_gen_actioncmd_module(op, arg1, arg2, ... , argN, interp='python')``
-        where there is a variable number of positional arguments after ``op``
-        based on which operation is specified.
-        This method generates an executable line of code in the language specified
-        by the ``interp`` parameter. Currently, ``bash`` and ``python`` are allowed.
-
-        +-------------+--------------------------------------------------------------+
-        | ``interp``  | Common Functions Generator(s)                                |
-        +=============+==============================================================+
-        | ``python``  | ``_gen_script_common_python``, defines:                      |
-        +-------------+                                                              +
-        |             | - ``envvar_op()``                                            |
-        |             | - ``expand_envvars_in_string()``                             |
-        +-------------+--------------------------------------------------------------+
-        | ``bash```   | ``_gen_script_common_bash``, defines:                        |
-        +-------------+                                                              +
-        |             | - ``envvar_op``                                              |
-        |             | - ``envvar_append_or_create``                                |
-        |             | - ``envvar_prepend_or_create``                               |
-        |             | - ``envvar_set_or_create``                                   |
-        |             | - ``envvar_remove_substr``                                   |
-        +-------------+--------------------------------------------------------------+
-
-        Args:
-            - ``op`` (str): The operation to be executed.
-                See the table above for more details.
-            *args: Provide the (str) arguments needed for the given operation.
-                See the table above for more details.
-            interp (str): Interpreter to generate code for. ``bash`` or ``python``
-                are currently allowed.
-
-        Raises:
-            IndexError: If the number of arguments provided is incompatible with
-                the command.
-            ValueError: If the operation provided is not in the list of available
-                operations.
-            ValueError: If the interpreter is not in the list of available interpreters.
-
-        """
-        output = ""
-        op = self._remove_prefix(op, "envvar_")
-
-        # Validate parameters
-        num_args_req = 0
-        if   op in ['unset']: num_args_req = 1
-        else:                 num_args_req = 2
-
-        if len(args) < num_args_req:
-            errmsg = "Incorrect # of arguments provided for `envvar-{}`".format(op)
-            self.exception_control_event("CRITICAL", IndexError, errmsg)
-
-        oplist_argcount_1 = ["unset"
-                            ]
-        oplist_argcount_2 = ["set",
-                             "append",
-                             "prepend",
-                             "remove_substr",
-                             "remove_path_entry",
-                             "find_in_path",
-                             "assert_not_empty"
-                             ]
-
-        arglist = [ op ]
-
-        if op in oplist_argcount_1:
-            arglist += [ args[0] ]
-        elif op in oplist_argcount_2:
-            arglist += [ args[0], args[1] ]
-
-        else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid module operation provided: {}".format(op))
-
-        if interp=="python":
-            arglist = [ '"' + x + '"' for x in arglist ]
-            output = "envvar_op({})".format(",".join(arglist))
-        elif interp=="bash":
-            arglist[2:] = [ x if x!="" and ' ' not in x else '"'+x+'"' for x in arglist[2:] ]
-            output = "envvar_op {}".format(" ".join(arglist))
-        else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid interpreter provided: {}".format(interp))
-
+    def _output_comment_col0_str(self, interp="bash") -> str:
+        output="#"
+        if interp in ["bash", "python"]:
+            output="#"
+        else:                                                                                       # pragma: no cover (unreachable)
+            self.exception_control_event("CRITICAL", RuntimeError,
+                "'Unreachable' branch executed, something is broken!")
         return output
 
 
@@ -1756,24 +1777,6 @@ class SetEnvironment(ConfigParserEnhanced):
         if text.startswith(prefix):
             return text[len(prefix):]
         return text
-
-
-    def _exec_helper(self, command):
-        """Wrapper for ``exec()`` that properly captures the return value.
-
-        There are quirks with ``exec()`` and how hit handles return values
-        so this wrapper does it the 'right' way.
-
-        One can't fully rely on it to modify an existing local variable.
-        I think if the local var doesn't exist it will create one but if
-        it does exist then it won't overwrite it.
-
-        See Also:
-            - https://docs.python.org/3/library/functions.html#exec
-        """
-        ldict = {}
-        exec( "_rval = "+ command, globals(), ldict)
-        return ldict['_rval']
 
 
 
