@@ -30,47 +30,39 @@ Public Methods
    :special-members: __init__
    :exclude-members:
       handler_finalize,
-      handler_envvar_append,
-      handler_envvar_prepend,
-      handler_envvar_remove,
-      handler_envvar_set,
-      handler_envvar_unset,
-      handler_module_load,
-      handler_module_purge,
-      handler_module_remove,
-      handler_module_swap,
-      handler_module_unload,
-      handler_module_use
+      handler_initialize
+
 
 
 Operation Handlers
 ++++++++++++++++++
 Operation handlers for .ini file processing
 
+.. automethod:: setenvironment.SetEnvironment.handler_initialize
 .. automethod:: setenvironment.SetEnvironment.handler_finalize
 
 
 Environment Variable Handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: setenvironment.SetEnvironment.handler_envvar_append
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_append
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_assert_not_empty
 .. automethod:: setenvironment.SetEnvironment._handler_envvar_find_in_path
-.. automethod:: setenvironment.SetEnvironment.handler_envvar_prepend
-.. automethod:: setenvironment.SetEnvironment.handler_envvar_remove
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_prepend
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_remove
 .. automethod:: setenvironment.SetEnvironment._handler_envvar_remove_substr
 .. automethod:: setenvironment.SetEnvironment._handler_envvar_remove_path_entry
-.. automethod:: setenvironment.SetEnvironment.handler_envvar_set
-.. automethod:: setenvironment.SetEnvironment.handler_envvar_unset
-.. automethod:: setenvironment.SetEnvironment._handler_envvar_assert_not_empty
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_set
+.. automethod:: setenvironment.SetEnvironment._handler_envvar_unset
 
 
 Environment Modules Handlers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automethod:: setenvironment.SetEnvironment.handler_module_load
-.. automethod:: setenvironment.SetEnvironment.handler_module_purge
-.. automethod:: setenvironment.SetEnvironment.handler_module_remove
-.. automethod:: setenvironment.SetEnvironment.handler_module_swap
-.. automethod:: setenvironment.SetEnvironment.handler_module_unload
-.. automethod:: setenvironment.SetEnvironment.handler_module_use
+.. automethod:: setenvironment.SetEnvironment._handler_module_load
+.. automethod:: setenvironment.SetEnvironment._handler_module_purge
+.. automethod:: setenvironment.SetEnvironment._handler_module_remove
+.. automethod:: setenvironment.SetEnvironment._handler_module_swap
+.. automethod:: setenvironment.SetEnvironment._handler_module_unload
+.. automethod:: setenvironment.SetEnvironment._handler_module_use
 
 
 Helpers (Private)
