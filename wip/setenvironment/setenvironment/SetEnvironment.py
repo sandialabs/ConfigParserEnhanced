@@ -11,7 +11,7 @@ Todo:
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
 
-:Version: 0.2.0
+:Version: 0.3.0
 """
 from __future__ import print_function
 
@@ -162,7 +162,13 @@ def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
         except FileNotFoundError:
             envvar_value = ""
         envvar_assign(envvar_name, envvar_value, allow_empty)
-    else:                                                                                           # pragma: no cover
+    elif op == "assert_not_empty":
+        if not envvar_exists or os.environ[envvar_name] == "":
+            message = "ERROR: Required envvar `{}` is not set.".format(envvar_name)
+            if envvar_value != "":
+                message = envvar_value
+            raise ValueError(message)
+    else:
         raise ValueError("Unknown command `{}`.".format(op))
     return 0
 
@@ -725,6 +731,57 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    def _handler_envvar_assert_not_empty(self, section_name, handler_parameters) -> int:
+        """Handler: for envvar-assert_not_empty operations.
+
+        This command validates that an environment variable both exists
+        and has a non-empty value. This is essentially the same as:
+
+        .. code-block:: bash
+            :linenos:
+
+            if [[ -z TEST_ENVVAR ]]; then
+                echo "TEST_ENVVAR is not set!"
+            fi
+
+        The command is invoked in .ini files using the following syntax:
+        ``envvar-assert-not-empty <envvar_name> : <optional error message>``.
+
+        If the optional error message isn't provided, a generic message will be printed
+        in its place.
+
+        Sample *.ini* file sections showing ``envvar-assert-not-empty``:
+
+        .. code-block:: ini
+            :linenos:
+
+            [TEST_ASSERT_NOT_EMPTY_01]
+            envvar-unset TEST_ENVVAR
+            envvar-assert-not-empty TEST_ENVVAR
+
+            [TEST_ASSERT_NOT_EMPTY_02]
+            envvar-unset TEST_ENVVAR
+            envvar-assert-not-empty TEST_ENVVAR : ERROR - TEST_ENVVAR is not set!
+
+            [TEST_ASSERT_NOT_EMPTY_03]
+            envvar-set TEST_ENVVAR: ""
+            envvar-assert-not-empty TEST_ENVVAR
+
+            [TEST_ASSERT_NOT_EMPTY_04]
+            envvar-set TEST_ENVVAR: ""
+            envvar-assert-not-empty TEST_ENVVAR : ERROR - TEST_ENVVAR is empty!
+
+        Returns:
+            integer: An integer value indicating if the handler was successful.
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+        """
+
+        handler_parameters.value = "" if handler_parameters.value is None else handler_parameters.value
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
+
+
     def handler_envvar_set(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-set operations.
 
@@ -735,7 +792,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - 0     : SUCCESS
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
-
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
@@ -1047,7 +1103,8 @@ class SetEnvironment(ConfigParserEnhanced):
                 {'op': 'envvar_unset',   'envvar': 'FOO', 'value': 'None'},
                 {'op': 'envvar_remove',  'envvar': 'BAZ', 'value': 'None'},
                 {'op': 'envvar_remove_substr',    'envvar': 'MYENVVAR', 'value': 'B'   },
-                {'op': 'envvar_remove_path_entry','envvar': 'MYPATH',   'value': '/foo'}
+                {'op': 'envvar_remove_path_entry','envvar': 'MYPATH',   'value': '/foo'},
+                {'op': 'envvar_assert_not_empty', 'envvar': 'BAR', 'value': 'message'  },
             ]
 
         Args:
@@ -1236,6 +1293,31 @@ class SetEnvironment(ConfigParserEnhanced):
         return output
 
 
+    def _gen_shebang_line(self, interp="bash") -> str:
+        """
+        """
+        output = "#!/usr/bin/env "
+        if interp == "bash":
+            output += "bash"
+        elif interp == "python":
+            output += "python3"
+        else:                                                                                       # pragma: no cover (unreachable)
+            self.exception_control_event("CRITICAL", RuntimeError,
+                "'Unreachable' branch executed, something is broken!")
+        output += "\n"
+        return output
+
+
+    def _output_comment_col0_str(self, interp="bash") -> str:
+        output="#"
+        if interp in ["bash", "python"]:
+            output="#"
+        else:                                                                                       # pragma: no cover (unreachable)
+            self.exception_control_event("CRITICAL", RuntimeError,
+                "'Unreachable' branch executed, something is broken!")
+        return output
+
+
     def _gen_script_header_bash(self) -> str:
         """Generate "common" Bash functions
 
@@ -1264,6 +1346,22 @@ class SetEnvironment(ConfigParserEnhanced):
             fi
         }
 
+        # envvar_assert_not_empty
+        # $1 = envvar name
+        # $2 = optional error message
+        function envvar_assert_not_empty() {
+            local envvar=${1}
+            local message=${2}
+            if [[ -z "${!envvar}" ]]; then
+                if [[ -z "${message}" ]]; then
+                    echo "ERROR: ${envvar} is empty or not set"
+                else
+                    echo "${message}"
+                fi
+                exit 1
+            fi
+        }
+
         # envvar_prepend_or_create
         #  $1 = envvar name
         #  $2 = string to prepend
@@ -1277,9 +1375,9 @@ class SetEnvironment(ConfigParserEnhanced):
 
         # envvar_set_or_create
         #  $1 = envvar name
-        #  $2 = string to prepend
+        #  $2 = string to set the value to.
         function envvar_set_or_create() {
-            export ${1:?}="${2:?}"
+            export ${1:?}="${2}"
         }
 
         # envvar_remove_substr
@@ -1327,7 +1425,7 @@ class SetEnvironment(ConfigParserEnhanced):
             local arg1=${2:?}
             local arg2=${3}
             if [[ "${op:?}" == "set" ]]; then
-                envvar_set_or_create ${arg1:?} ${arg2:?}
+                envvar_set_or_create ${arg1:?} ${arg2}
             elif [[ "${op:?}" == "unset" ]]; then
                 unset ${arg1:?}
             elif [[ "${op:?}" == "append" ]]; then
@@ -1338,6 +1436,8 @@ class SetEnvironment(ConfigParserEnhanced):
                 envvar_remove_substr ${arg1:?} ${arg2:?}
             elif [[ "${op:?}" == "find_in_path" ]]; then
                 envvar_set_or_create ${arg1:?} $(which ${arg2:?})
+            elif [[ "${op:?}" == "assert_not_empty" ]]; then
+                envvar_assert_not_empty "${arg1:?}" "${arg2}"
             else
                 echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
             fi
@@ -1388,31 +1488,6 @@ class SetEnvironment(ConfigParserEnhanced):
         output += "\n\n"
         output += inspect.getsource(envvar_op)
 
-        return output
-
-
-    def _gen_shebang_line(self, interp="bash") -> str:
-        """
-        """
-        output = "#!/usr/bin/env "
-        if interp == "bash":
-            output += "bash"
-        elif interp == "python":
-            output += "python3"
-        else:                                                                                       # pragma: no cover (unreachable)
-            self.exception_control_event("CRITICAL", RuntimeError,
-                "'Unreachable' branch executed, something is broken!")
-        output += "\n"
-        return output
-
-
-    def _output_comment_col0_str(self, interp="bash") -> str:
-        output="#"
-        if interp in ["bash", "python"]:
-            output="#"
-        else:                                                                                       # pragma: no cover (unreachable)
-            self.exception_control_event("CRITICAL", RuntimeError,
-                "'Unreachable' branch executed, something is broken!")
         return output
 
 
@@ -1549,12 +1624,17 @@ class SetEnvironment(ConfigParserEnhanced):
         | ``remove_substr``     |        2 | Remove a substring from an envvar if it exists.   |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *substrin to remove*                      |
+        |                       |          | - arg2: *substring to remove*                     |
         +-----------------------+----------+---------------------------------------------------+
         | ``remove_path_entry`` |        2 | Remove a substring from an envvar if it exists.   |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *substrin to remove*                      |
+        |                       |          | - arg2: *substring to remove*                     |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``assert_not_empty``  |        2 | Trigger an error if the envvar is empty or unset  |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *OPTIONAL message*                        |
         +-----------------------+----------+---------------------------------------------------+
 
         This method is invoked like this
@@ -1609,21 +1689,24 @@ class SetEnvironment(ConfigParserEnhanced):
             errmsg = "Incorrect # of arguments provided for `envvar-{}`".format(op)
             self.exception_control_event("CRITICAL", IndexError, errmsg)
 
+        oplist_argcount_1 = ["unset"
+                            ]
+        oplist_argcount_2 = ["set",
+                             "append",
+                             "prepend",
+                             "remove_substr",
+                             "remove_path_entry",
+                             "find_in_path",
+                             "assert_not_empty"
+                             ]
+
         arglist = [ op ]
-        if op == "set":
-            arglist += [ args[0], args[1] ]
-        elif op == "append":
-            arglist += [ args[0], args[1] ]
-        elif op == "prepend":
-            arglist += [ args[0], args[1] ]
-        elif op == "unset":
+
+        if op in oplist_argcount_1:
             arglist += [ args[0] ]
-        elif op == "remove_substr":
+        elif op in oplist_argcount_2:
             arglist += [ args[0], args[1] ]
-        elif op == "remove_path_entry":
-            arglist += [ args[0], args[1] ]
-        elif op == "find_in_path":
-            arglist += [ args[0], args[1] ]
+
         else:
             self.exception_control_event("SERIOUS", ValueError,
                                          "Invalid module operation provided: {}".format(op))
@@ -1632,6 +1715,7 @@ class SetEnvironment(ConfigParserEnhanced):
             arglist = [ '"' + x + '"' for x in arglist ]
             output = "envvar_op({})".format(",".join(arglist))
         elif interp=="bash":
+            arglist[2:] = [ x if x!="" and ' ' not in x else '"'+x+'"' for x in arglist[2:] ]
             output = "envvar_op {}".format(" ".join(arglist))
         else:
             self.exception_control_event("SERIOUS", ValueError,

@@ -7,6 +7,7 @@ Operation,Usage,Description
 **envvar-remove-substr**, ``envvar-remove-substr envvar: substr``, Remove all occurrences of *substr* from *envvar*.
 **envvar-remove-path-entry**, ``envvar-remove-path-entry envvar: path``, Remove occurrences of a *path* from a path *envvar*.
 **envvar-find-in-path**, ``envvar-find-in-path envvar: executable``, Locate an executable in a **path list** style *envvar*.
+**envvar-assert-not-empty**, ``envvar-assert-not-empty envvar: optional message``, Throw an error if an envvar is not set or is empty.
 **module-load**,``module-load module_name: version``,Load a module.
 **module-purge**,``module-purge:``,Purge all loaded modules.
 **module-remove**,``module-remove module_name:``,Removes all uses of <module_name> from actions.

@@ -15,6 +15,22 @@ function envvar_append_or_create() {
     fi
 }
 
+# envvar_assert_not_empty
+# $1 = envvar name
+# $2 = optional error message
+function envvar_assert_not_empty() {
+    local envvar=${1}
+    local message=${2}
+    if [[ -z "${!envvar}" ]]; then
+        if [[ -z "${message}" ]]; then
+            echo "ERROR: ${envvar} is empty or not set"
+        else
+            echo "${message}"
+        fi
+        exit 1
+    fi
+}
+
 # envvar_prepend_or_create
 #  $1 = envvar name
 #  $2 = string to prepend
@@ -28,9 +44,9 @@ function envvar_prepend_or_create() {
 
 # envvar_set_or_create
 #  $1 = envvar name
-#  $2 = string to prepend
+#  $2 = string to set the value to.
 function envvar_set_or_create() {
-    export ${1:?}="${2:?}"
+    export ${1:?}="${2}"
 }
 
 # envvar_remove_substr
@@ -78,7 +94,7 @@ function envvar_op() {
     local arg1=${2:?}
     local arg2=${3}
     if [[ "${op:?}" == "set" ]]; then
-        envvar_set_or_create ${arg1:?} ${arg2:?}
+        envvar_set_or_create ${arg1:?} ${arg2}
     elif [[ "${op:?}" == "unset" ]]; then
         unset ${arg1:?}
     elif [[ "${op:?}" == "append" ]]; then
@@ -89,6 +105,8 @@ function envvar_op() {
         envvar_remove_substr ${arg1:?} ${arg2:?}
     elif [[ "${op:?}" == "find_in_path" ]]; then
         envvar_set_or_create ${arg1:?} $(which ${arg2:?})
+    elif [[ "${op:?}" == "assert_not_empty" ]]; then
+        envvar_assert_not_empty "${arg1:?}" "${arg2}"
     else
         echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
     fi
