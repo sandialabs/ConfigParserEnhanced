@@ -17,6 +17,7 @@ from __future__ import print_function
 
 import inspect
 import os
+from pathlib import Path
 import re
 from textwrap import dedent
 
@@ -26,8 +27,8 @@ try:
 except ImportError:                                                                                 # pragma: no cover
     pass                                                                                            # pragma: no cover
 
+
 from configparserenhanced import *
-import pathlib
 
 from . import ModuleHelper
 
@@ -285,9 +286,8 @@ class SetEnvironment(ConfigParserEnhanced):
 
     @actions.setter
     def actions(self, value) -> dict:
-        if not isinstance(value, (dict)):
-            self.exception_control_event("CATASTROPHIC", TypeError,
-                                         "actions_cache must be a dict.")
+        self._validate_parameter(value, (dict))
+
         self._var_actions_cache = value
         return self._var_actions_cache
 
@@ -313,9 +313,8 @@ class SetEnvironment(ConfigParserEnhanced):
         Todo:
             - Replace this function with actions_cache use. Add parameters for section_name
         """
-        if not isinstance(section, (str)):
-            self.exception_control_event("CATASTROPHIC", TypeError,
-                                         "`secton` must be a str type.")
+        self._validate_parameter(section, (str))
+
         output = 0
 
         # kick off a parse of the section.
@@ -364,6 +363,8 @@ class SetEnvironment(ConfigParserEnhanced):
         Args:
             section (str): The desired *section* from the .ini file for this operation.
         """
+        self._validate_parameter(section, (str))
+
         # Trigger a parse of the section if we don't already have it.
         self.configparserenhanceddata[section]
 
@@ -450,8 +451,8 @@ class SetEnvironment(ConfigParserEnhanced):
         Returns:
             int 0
         """
-        if envvar_filter is not None:
-            assert isinstance(envvar_filter, list)
+        self._validate_parameter(envvar_filter, (list, None))
+        self._validate_parameter(filtered_keys_only, (bool))
 
         # Prefix for each envvar line
         prefix="[envvar]:"
@@ -516,6 +517,13 @@ class SetEnvironment(ConfigParserEnhanced):
             In the future, generate options to write out the actions as
             "python".
         """
+        self._validate_parameter(filename,        (str, Path))
+        self._validate_parameter(section,         (str))
+        self._validate_parameter(include_header,  (bool))
+        self._validate_parameter(include_body,    (bool))
+        self._validate_parameter(include_shebang, (bool))
+        self._validate_parameter(interpreter,     (str))
+
         allowable_interpreter_list = ["bash", "python"]
         if interpreter not in allowable_interpreter_list:
             errmsg  = "Invalid interpreter provided: {}\n".format(interpreter)
@@ -564,9 +572,11 @@ class SetEnvironment(ConfigParserEnhanced):
         Returns:
             str: containing the bash script that can be written.
         """
-        if not isinstance(section, (str)):
-            self.exception_control_event("CATASTROPHIC", TypeError,
-                                         "Section names must be a str type.")
+        self._validate_parameter(section,      (str))
+        self._validate_parameter(incl_hdr,     (bool))
+        self._validate_parameter(incl_body,    (bool))
+        self._validate_parameter(incl_shebang, (bool))
+        self._validate_parameter(interp,       (str))
 
         allowable_interpreter_list = ["bash", "python"]
         if interp not in allowable_interpreter_list:
@@ -1097,12 +1107,9 @@ class SetEnvironment(ConfigParserEnhanced):
             TypeError: if any of the parameters fail a typecheck on method entry.
             ValueError: if the operation provided is invalid.
         """
-        if not isinstance(operation, (str)):
-            raise TypeError("operation must be a string.")
-        if not isinstance(envvar_name, (str)):
-            raise TypeError("envvar_name must be a string.")
-        if not isinstance(envvar_value, (str, type(None))):
-            raise TypeError("envvar_value must be either `string` or `None` types.")
+        self._validate_parameter(operation, (str))
+        self._validate_parameter(envvar_name, (str))
+        self._validate_parameter(envvar_value, (str, None))
 
         self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value))         # Console
 
@@ -1145,12 +1152,9 @@ class SetEnvironment(ConfigParserEnhanced):
             TypeError: if any of the parameters fail a typecheck on method entry.
             ValueError: if the operation provided is invalid.
         """
-        if not isinstance(operation, (str)):
-            raise TypeError("operation must be a string.")
-        if not isinstance(module_name, (str, type(None))):
-            raise TypeError("module_name must be either `string` or `None` types.")
-        if not isinstance(module_value, (str, type(None))):
-            raise TypeError("module_value must be either `string` or `None` types.")
+        self._validate_parameter(operation, (str))
+        self._validate_parameter(module_name, (str, None))
+        self._validate_parameter(module_value, (str, None))
 
         self.debug_message(2, "{} :: {} - {}".format(operation, module_name, module_value))         # Console
 
@@ -1216,6 +1220,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
+        self._validate_parameter(section_name, (str))
         self.enter_handler(handler_parameters)
 
         operation_ref    = handler_parameters.op_params[0]
@@ -1272,6 +1277,7 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
+        self._validate_parameter(section_name, (str))
         self.enter_handler(handler_parameters)
 
         operation_ref    = handler_parameters.op_params[0]
@@ -1306,6 +1312,9 @@ class SetEnvironment(ConfigParserEnhanced):
             handler_parameters (object): A HandlerParameters object containing
                 the state data we need for this handler.
         """
+        self._validate_parameter(section_name, (str))
+        self._validate_handlerparameters(handler_parameters)
+
         data_shared_ref = handler_parameters.data_shared
         if 'setenvironment' not in data_shared_ref.keys():
             data_shared_ref['setenvironment'] = []
@@ -1401,6 +1410,9 @@ class SetEnvironment(ConfigParserEnhanced):
             ValueError: If the interpreter is not in the list of available interpreters.
 
         """
+        self._validate_parameter(op, (str))
+        self._validate_parameter(interp, (str))
+
         output = ""
         op = self._remove_prefix(op, "envvar_")
 
@@ -1495,6 +1507,9 @@ class SetEnvironment(ConfigParserEnhanced):
             interp (str): Interpreter to generate code for. ``bash`` or ``python``
                 are currently allowed.
         """
+        self._validate_parameter(op, (str))
+        self._validate_parameter(interp, (str))
+
         output = ""
         op = self._remove_prefix(op, "module_")
 
@@ -1725,6 +1740,8 @@ class SetEnvironment(ConfigParserEnhanced):
     def _gen_shebang_line(self, interp="bash") -> str:
         """
         """
+        self._validate_parameter(interp, (str))
+
         output = "#!/usr/bin/env "
         if interp == "bash":
             output += "bash"
@@ -1738,6 +1755,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
     def _output_comment_col0_str(self, interp="bash") -> str:
+        """
+        """
+        self._validate_parameter(interp, (str))
+
         output="#"
         if interp in ["bash", "python"]:
             output="#"
@@ -1769,10 +1790,9 @@ class SetEnvironment(ConfigParserEnhanced):
         Raises:
             TypeError: if ``text`` or ``prefix`` are not both strings.
         """
-        if not isinstance(text, (str)):
-            raise TypeError("`text` must be a string type.")
-        if not isinstance(prefix, (str)):
-            raise TypeError("`prefix` must be a string type.")
+        self._validate_parameter(text, (str))
+        self._validate_parameter(prefix, (str))
+
         prefix = str(prefix)
         if text.startswith(prefix):
             return text[len(prefix):]
