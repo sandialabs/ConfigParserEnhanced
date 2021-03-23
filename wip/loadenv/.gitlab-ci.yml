@@ -7,7 +7,9 @@ before_script:
   - cat /etc/issue
 
   # Pull required packages
-  - python3 -m pip install pytest pytest-cov
+  - python3 -m pip install -U py pytest pytest-cov
+  - python3 -m pip install -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+  - python3 -m pip install -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git@master#egg=setenvironment
 
   # Get ConfigParserEnhanced
   # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
@@ -20,7 +22,7 @@ pytest:
   stage: test
   timeout: 20m
   script:
-    - python3 -m pytest --cov=src --cov-report html --cov-report term
+    - python3 -m pytest --color=yes -rs -vv --cov=load_env --cov=src --cov-report html --cov-report term
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 sphinx:
@@ -28,7 +30,7 @@ sphinx:
   timeout: 20m
   script:
     - cd doc/
-    - python3 -m pip install -r requirements.txt
+    - python3 -m pip install -U -r requirements.txt
     - bash make_html_docs.sh
 
 publish coverage:
@@ -37,7 +39,7 @@ publish coverage:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -m pytest --cov=src --cov-report html --cov-report term
+    - python3 -m pytest --cov=load_env --cov=src --cov-report html --cov-report term
     - rm -rf /home/josbrau/html_files/LoadEnv/coverage
     - mkdir -p /home/josbrau/html_files/LoadEnv/coverage
     - mv htmlcov/* /home/josbrau/html_files/LoadEnv/coverage/
@@ -50,7 +52,7 @@ publish docs:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - cd doc/
-    - python3 -m pip install -r requirements.txt
+    - python3 -m pip install -U -r requirements.txt
     - bash make_html_docs.sh
     - rm -rf /home/josbrau/html_files/LoadEnv/doc
     - mkdir -p /home/josbrau/html_files/LoadEnv/doc

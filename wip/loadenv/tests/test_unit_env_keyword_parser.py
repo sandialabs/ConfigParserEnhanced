@@ -2,10 +2,11 @@ from pathlib import Path
 import pytest
 import sys
 
-sys.path.append(str(Path.cwd()/"src")
-                if (Path.cwd()/"src/env_keyword_parser.py").exists()
-                else str(Path.cwd().parent/"src"))
-from env_keyword_parser import EnvKeywordParser
+root_dir = (Path.cwd()/".."
+            if (Path.cwd()/"conftest.py").exists()
+            else Path.cwd())
+sys.path.append(str(root_dir))
+from src.env_keyword_parser import EnvKeywordParser
 
 
 def test_supported_envs_ini_is_read_correctly():
@@ -89,17 +90,17 @@ def test_nonexistent_env_name_or_alias_raises():
 
 
 @pytest.mark.parametrize("inputs", [
-    {"system_name": "machine-type-1", "keyword_str": "intel-20",
+    {"system_name": "machine-type-1", "build_name": "intel-20",
      "unsupported_component": "intel-20"},
-    {"system_name": "machine-type-1", "keyword_str": "intel-19-mpich-7.2",
+    {"system_name": "machine-type-1", "build_name": "intel-19-mpich-7.2",
      "unsupported_component": "mpich-7.2"},
-    {"system_name": "machine-type-4", "keyword_str": "arm-20.2",
+    {"system_name": "machine-type-4", "build_name": "arm-20.2",
      "unsupported_component": "arm-20.2"},
-    {"system_name": "machine-type-4", "keyword_str": "arm-20.1-openmpi-4.0.2",
+    {"system_name": "machine-type-4", "build_name": "arm-20.1-openmpi-4.0.2",
      "unsupported_component": "arm-20.1-openmpi-4.0.2"},
 ])
 def test_unsupported_versions_are_rejected(inputs):
-    ekp = EnvKeywordParser(inputs["keyword_str"], inputs["system_name"],
+    ekp = EnvKeywordParser(inputs["build_name"], inputs["system_name"],
                            "test_supported_envs.ini")
 
     with pytest.raises(SystemExit) as excinfo:
