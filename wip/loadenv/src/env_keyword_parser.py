@@ -435,7 +435,8 @@ class EnvKeywordParser(LoadEnvCommon):
         # Make sure the component versions combination is supported
         versioned_match = "-".join(versioned_components)
         try:
-            assert [en for en in self.env_names if versioned_match in en] != []
+            assert [en for en in self.env_names+self.aliases if versioned_match
+                    in en] != []
         except AssertionError:
             sys.exit(self.get_err_msg_showing_supported_environments(
                 f"'{versioned_match}' is not a supported version."
