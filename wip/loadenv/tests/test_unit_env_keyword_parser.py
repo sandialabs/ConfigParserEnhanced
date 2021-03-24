@@ -44,23 +44,28 @@ def test_invalid_supported_envs_filename_raises():
 #####################
 @pytest.mark.parametrize("keyword", [
     {
-        "str": "machine-type-1-hsw_intel-19.0.4_mpich-7.7.6_openmp_static_dbg",
-        "qualified_env_name": "machine-type-1-intel-19.0.4-mpich-7.7.6",
+        "str": "machine-type-1-intel-19.0.4_mpich-7.7.15_hsw_openmp_static_dbg",
+        "qualified_env_name": "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp",
         "system_name": "machine-type-1",
     },
     {
-        "str": "default-env",
-        "qualified_env_name": "machine-type-1-intel-18.0.5-mpich-7.7.6",
+        "str": "default-env-knl",
+        "qualified_env_name": "machine-type-1-intel-19.0.4-mpich-7.7.15-knl-openmp",
         "system_name": "machine-type-1",
     },
     {
-        "str": "intel-18",
-        "qualified_env_name": "machine-type-1-intel-18.0.5-mpich-7.7.6",
+        "str": "intel_hsw",
+        "qualified_env_name": "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp",
         "system_name": "machine-type-1",
     },
     {
         "str": "machine-type-4-arm-20.1",
-        "qualified_env_name": "machine-type-4-arm-20.1-openmpi-4.0.3",
+        "qualified_env_name": "machine-type-4-arm-20.1-openmpi-4.0.3-openmp",
+        "system_name": "machine-type-4",
+    },
+    {
+        "str": "arm-serial",
+        "qualified_env_name": "machine-type-4-arm-20.0-openmpi-4.0.2-serial",
         "system_name": "machine-type-4",
     },
 ])
@@ -70,11 +75,11 @@ def test_keyword_parser_matches_correctly(keyword):
     assert ekp.qualified_env_name == keyword["qualified_env_name"]
 
 
-@pytest.mark.parametrize("kw_str", ["intel-19.0.4-mpich-7.7.6",
-                                    "intel_19.0.4_mpich_7.7.6"])
+@pytest.mark.parametrize("kw_str", ["intel-19.0.4-mpich-7.7.15-hsw-openmp",
+                                    "intel_19.0.4_mpich_7.7.15-hsw-openmp"])
 def test_underscores_hyphens_dont_matter_for_kw_str(kw_str):
     ekp = EnvKeywordParser(kw_str, "machine-type-1", "test_supported_envs.ini")
-    assert ekp.qualified_env_name == "machine-type-1-intel-19.0.4-mpich-7.7.6"
+    assert ekp.qualified_env_name == "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp"
 
 
 def test_nonexistent_env_name_or_alias_raises():
@@ -111,15 +116,20 @@ def test_unsupported_versions_are_rejected(inputs):
             "version") in exc_msg
 
     if inputs["system_name"] == "machine-type-1":
-        assert "intel-18.0.5-mpich-7.7.6" in exc_msg
-        assert "- intel-18\n" in exc_msg
+        assert "intel-19.0.4-mpich-7.7.15-hsw-openmp" in exc_msg
+        assert "- intel-hsw-openmp\n" in exc_msg
+        assert "- intel-hsw\n" in exc_msg
         assert "- intel\n" in exc_msg
-        assert "- default-env\n" in exc_msg
-        assert "intel-19.0.4-mpich-7.7.6" in exc_msg
-        assert "- intel-19\n" in exc_msg
+        assert "- default-env-hsw\n" in exc_msg
+        assert "intel-19.0.4-mpich-7.7.15-knl-openmp" in exc_msg
+        assert "- intel-knl-openmp\n" in exc_msg
+        assert "- intel-knl\n" in exc_msg
+        assert "- default-env-knl\n" in exc_msg
     else:
-        assert "arm-20.0-openmpi-4.0.2" in exc_msg
-        assert "arm-20.1-openmpi-4.0.3" in exc_msg
+        assert "arm-20.0-openmpi-4.0.2-openmp" in exc_msg
+        assert "arm-20.0-openmpi-4.0.2-serial" in exc_msg
+        assert "arm-20.1-openmpi-4.0.3-openmp" in exc_msg
+        assert "arm-20.1-openmpi-4.0.3-serial" in exc_msg
 
 
 #############
@@ -129,10 +139,9 @@ def test_underscores_hyphens_dont_matter_for_aliases():
     # "intel-18" and "intel_default" are aliases for "machine-type-1"
     ekp = EnvKeywordParser("intel-18", "machine-type-1", "test_supported_envs.ini")
     aliases = ekp.get_aliases()
-    assert "intel-18" in aliases
-    assert "intel-default" in aliases
-    assert "intel_default" not in aliases  # Even though this is how it's
-    #                                        defined in the .ini
+    assert "intel-hsw" in aliases
+    assert "intel_hsw" not in aliases  # Even though this is how it's
+    #                                    defined in the .ini
 
 
 @pytest.mark.parametrize("bad_alias", [
@@ -141,12 +150,12 @@ def test_underscores_hyphens_dont_matter_for_aliases():
         "err_msg": "ERROR:  Aliases for 'machine-type-1' contains duplicates:",
     },
     {
-        "alias": "intel-18.0.5-mpich-7.7.6",
+        "alias": "intel-18.0.5-mpich-7.7.15",
         "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an environment"
                     " name:"),
     },
     {
-        "alias": "intel-19.0.4-mpich-7.7.6",
+        "alias": "intel-19.0.4-mpich-7.7.15",
         "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an environment"
                     " name:"),
     },
@@ -154,11 +163,11 @@ def test_underscores_hyphens_dont_matter_for_aliases():
 def test_alias_values_are_unique(bad_alias):
     bad_supported_envs = (
         "[machine-type-1]\n"
-        "intel-18.0.5-mpich-7.7.6: # Comment here\n"
+        "intel-18.0.5-mpich-7.7.15: # Comment here\n"
         "    intel-18              # Comment here\n"
         "    intel                 # Comment here too\n"
         "    default-env           # It's the default\n"
-        "intel-19.0.4-mpich-7.7.6:\n"
+        "intel-19.0.4-mpich-7.7.15:\n"
         "    intel-19\n"
         f"    {bad_alias['alias']}\n"
     )
@@ -178,7 +187,7 @@ def test_alias_values_are_unique(bad_alias):
 def test_alias_values_do_not_contain_whitespace(multiple_aliases):
     bad_supported_envs = (
         "[machine-type-1]\n"
-        "intel-18.0.5-mpich-7.7.6: # Comment here\n"
+        "intel-18.0.5-mpich-7.7.15: # Comment here\n"
         "    intel 18              # Space in this alias\n" +
         ("    intel default\n" if multiple_aliases is True else "") +
         "    intel                 # Comment here too\n"
@@ -202,13 +211,13 @@ def test_alias_values_do_not_contain_whitespace(multiple_aliases):
 @pytest.mark.parametrize("general_section_order", ["first", "last"])
 def test_general_alias_matches_correct_env_name(general_section_order):
     general_section = (
-        "intel-18.0.5-mpich-7.7.6: # Comment here\n"
+        "intel-18.0.5-mpich-7.7.15: # Comment here\n"
         "    intel-18              # Comment here\n"
         "    intel                 # This is the general alias\n"
         "    default-env           # It's the default"
     )
     other_section = (
-        "intel-19.0.4-mpich-7.7.6:\n"
+        "intel-19.0.4-mpich-7.7.15:\n"
         "    intel-19"
     )
     supported_envs = "\n".join([
@@ -222,7 +231,7 @@ def test_general_alias_matches_correct_env_name(general_section_order):
         f.write(supported_envs)
 
     ekp = EnvKeywordParser("intel", "machine-type-1", filename)
-    assert ekp.get_env_name_for_alias("intel") == "intel-18.0.5-mpich-7.7.6"
+    assert ekp.get_env_name_for_alias("intel") == "intel-18.0.5-mpich-7.7.15"
 
 
 def test_matched_alias_not_in_supported_envs_raises():
