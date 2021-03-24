@@ -1,5 +1,6 @@
 Operation,Usage,Description
 **envvar-set**,``envvar-set envvar: value``,Sets (or overwrites) an envvar.
+**envvar-set-if-empty**,``envvar-set-if-empty envvar: value``, Sets an envvar only if it doesn't exist or is empty.
 **envvar-append**,``envvar-append envvar: value``, Append a value to an existing envvar using ``os.pathsep`` as the delimiter.
 **envvar-prepend**,``envvar-prepend envvar: value``, Prepend a value to an existing envvar using ``os.pathsep`` as the delimiter.
 **envvar-remove**,``envvar-remove envvar:``, Removes all occurrences of envvar from actions.

@@ -48,6 +48,17 @@ function envvar_set_or_create() {
     export ${1:?}="${2}"
 }
 
+# envvar_set_if_empty
+# Param1: Envvar name
+# Param2: Envvar value
+function envvar_set_if_empty() {
+    local ENVVAR_NAME=${1:?}
+    local ENVVAR_VALUE=${2}
+    if [[ -z "${!ENVVAR_NAME}" ]]; then
+        export ${ENVVAR_NAME}="${ENVVAR_VALUE}"
+    fi
+}
+
 # envvar_remove_substr
 # $1 = envvar name
 # $2 = substring to remove
@@ -93,19 +104,21 @@ function envvar_op() {
     local arg1=${2:?}
     local arg2=${3}
     if [[ "${op:?}" == "set" ]]; then
-        envvar_set_or_create ${arg1:?} ${arg2}
+        envvar_set_or_create ${arg1:?} "${arg2}"
     elif [[ "${op:?}" == "unset" ]]; then
         unset ${arg1:?}
     elif [[ "${op:?}" == "append" ]]; then
-        envvar_append_or_create ${arg1:?} ${arg2:?}
+        envvar_append_or_create ${arg1:?} "${arg2:?}"
     elif [[ "${op:?}" == "prepend" ]]; then
-        envvar_prepend_or_create ${arg1:?} ${arg2:?}
+        envvar_prepend_or_create ${arg1:?} "${arg2:?}"
     elif [[ "${op:?}" == "remove_substr" ]]; then
-        envvar_remove_substr ${arg1:?} ${arg2:?}
+        envvar_remove_substr ${arg1:?} "${arg2:?}"
     elif [[ "${op:?}" == "find_in_path" ]]; then
-        envvar_set_or_create ${arg1:?} $(which ${arg2:?})
+        envvar_set_or_create ${arg1:?} "$(which ${arg2:?})"
     elif [[ "${op:?}" == "assert_not_empty" ]]; then
         envvar_assert_not_empty "${arg1:?}" "${arg2}"
+    elif [[ "${op:?}" == "set_if_empty" ]]; then
+        envvar_set_if_empty "${arg1:?}" "${arg2}"
     else
         echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
     fi

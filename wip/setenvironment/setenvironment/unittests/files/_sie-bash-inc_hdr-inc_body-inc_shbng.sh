@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # ---------------------------------------------------
 #   S E T E N V I R O N M E N T   F U N C T I O N S
 # ---------------------------------------------------
@@ -123,5 +124,20 @@ function envvar_op() {
         echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
     fi
 }
+
+
+# -------------------------------------------------
+#   S E T E N V I R O N M E N T   C O M M A N D S
+# -------------------------------------------------
+envvar_op unset FOO_VAR
+envvar_op unset BAR_VAR
+envvar_op unset BAZ_VAR
+envvar_op unset BIF_VAR
+envvar_op set FOO_VAR FOO_VAL
+envvar_op set BAR_VAR ""
+envvar_op set_if_empty FOO_VAR BAR_VAL
+envvar_op set_if_empty BAR_VAR BAR_VAL
+envvar_op set_if_empty BAZ_VAR BAZ_VAL
+envvar_op set_if_empty BIF_VAR ""
 
 

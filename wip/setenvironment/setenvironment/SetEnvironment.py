@@ -39,7 +39,7 @@ from . import ModuleHelper
 # ==============================
 
 
-def envvar_assign(envvar_name, envvar_value, allow_empty=True):
+def envvar_set(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> int:
     """Assign an environment variable.
 
     Assigns an environment variable (envvar) to a set value.
@@ -62,16 +62,49 @@ def envvar_assign(envvar_name, envvar_value, allow_empty=True):
 
             - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
     """
-    if not isinstance(envvar_name, (str)):
-        raise TypeError("`envvar_name` must be a string.")
-    if not isinstance(envvar_value, (str)):
-        raise TypeError("`envvar_value` must be a string.")
-    if not isinstance(allow_empty, (bool)):
-        raise TypeError("`allow_empty` must be a boolean.")
-    if not allow_empty and envvar_value == "":
-        raise ValueError("`envvar_value` must not be empty.")
+    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+
     os.environ[envvar_name] = envvar_value
-    return
+    return 0
+
+
+def envvar_set_if_empty(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> int:
+    """Set an environment variable if it is empty or not set.
+
+    Assigns an environment variable (envvar) to a value if
+    the envvar either does not exist or is empty.
+
+    Args:
+        envvar_name (str): The name of the envvar.
+        envvar_value (str): The value to set to the envvar.
+        allow_empty (bool): If False, we throw a ``ValueError`` if
+            ``envvar_value`` is empty. Default: True.
+
+    Returns:
+        int: Returns a zero.
+
+    Raises:
+        TypeError: if:
+
+            - ``envvar_value`` is not a string.
+            - ``envvar_value`` is not a string.
+            - ``allow_empty`` is not a bool.
+
+        ValueError if:
+
+            - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
+    """
+    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+
+    if envvar_name not in os.environ.keys() or os.environ[envvar_name]=="":
+        os.environ[envvar_name] = envvar_value
+    return 0
 
 
 def envvar_find_in_path(exe_file) -> str:
@@ -104,7 +137,7 @@ def envvar_find_in_path(exe_file) -> str:
     return str(output)
 
 
-def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
+def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True) -> int:
     """Envvar operation helper
 
     This function generates a wrapper for envvar operations.
@@ -125,9 +158,12 @@ def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
             need to set a value. Default: ""
         allow_empty (bool): If False, we throw a ``ValueError`` if
             assignment of an empty value is attempted. Default: True.
-
-
     """
+    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+
     envvar_exists    = envvar_name in os.environ.keys()
     envvar_value_old = [os.environ[envvar_name]] if envvar_exists else []
 
@@ -135,34 +171,36 @@ def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
         envvar_value = expand_envvars_in_string(envvar_value)
 
     if op == "set":
-        envvar_assign(envvar_name, envvar_value, allow_empty)
+        envvar_set(envvar_name, envvar_value, allow_empty)
+    elif op == "set_if_empty":
+        envvar_set_if_empty(envvar_name, envvar_value, allow_empty)
     elif op == "append":
         tmp = envvar_value_old + [ envvar_value ]
         newval = os.pathsep.join(tmp)
-        envvar_assign(envvar_name, newval, allow_empty)
+        envvar_set(envvar_name, newval, allow_empty)
     elif op == "prepend":
         tmp = [ envvar_value ] + envvar_value_old
         newval = os.pathsep.join(tmp)
-        envvar_assign(envvar_name, newval, allow_empty)
+        envvar_set(envvar_name, newval, allow_empty)
     elif op == "unset":
         if envvar_exists:
             del os.environ[envvar_name]
     elif op == "remove_substr":
         if envvar_exists:
             newval = os.environ[envvar_name].replace(envvar_value,"")
-            envvar_assign(envvar_name, newval, allow_empty)
+            envvar_set(envvar_name, newval, allow_empty)
     elif op == "remove_path_entry":
         if envvar_exists:
             entry_list_old = os.environ[envvar_name].split(os.pathsep)
             entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
             newval = os.pathsep.join(entry_list_new)
-            envvar_assign(envvar_name, newval, allow_empty)
+            envvar_set(envvar_name, newval, allow_empty)
     elif op == "find_in_path":
         try:
             envvar_value = envvar_find_in_path(envvar_value)
         except FileNotFoundError:
             envvar_value = ""
-        envvar_assign(envvar_name, envvar_value, allow_empty)
+        envvar_set(envvar_name, envvar_value, allow_empty)
     elif op == "assert_not_empty":
         if not envvar_exists or os.environ[envvar_name] == "":
             message = "ERROR: Required envvar `{}` is not set.".format(envvar_name)
@@ -174,7 +212,7 @@ def envvar_op(op, envvar_name, envvar_value="", allow_empty=True):
     return 0
 
 
-def expand_envvars_in_string(string_in) -> str:
+def expand_envvars_in_string(string_in: str) -> str:
     """
     Take an input string that may contain environment variables in the style
     of BASH shell environment vars (i.e., "${foobar}") and replace them with
@@ -368,23 +406,33 @@ class SetEnvironment(ConfigParserEnhanced):
         # Trigger a parse of the section if we don't already have it.
         self.configparserenhanceddata[section]
 
+        max_op_len = 14
+        for iaction in self.actions[section]:
+            max_op_len = max(max_op_len, len(iaction['op']))
+
         print("Actions")
         print("=======")
         for iaction in self.actions[section]:
             operation = iaction['op']
 
-            print("--> {:<14} : ".format(operation), end="")
+            print("--> {:<{width}} : ".format(operation,width=max_op_len), end="")
             if operation == "module_purge":
                 print("")
             elif operation == "module_use":
                 print("{}".format(iaction['value']))
+            elif operation == "module_unload":
+                print("{}".format(iaction['module']))
             elif operation == "module_load":
                 print("{}/{}".format(iaction['module'], iaction['value']))
             elif operation == "module_swap":
                 print("{} {}".format(iaction['module'], iaction['value']))
-            elif operation == "module_unload":
-                print("{}".format(iaction['module']))
+            elif operation == "envvar_unset":
+                print("{}".format(iaction['envvar']))
             elif operation == "envvar_set":
+                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
+            elif operation == "envvar_set_if_empty":
+                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
+            elif operation == "envvar_find_in_path":
                 print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
             elif operation == "envvar_prepend":
                 arg = "${%s}"%(iaction['envvar'])
@@ -392,16 +440,12 @@ class SetEnvironment(ConfigParserEnhanced):
             elif operation == "envvar_append":
                 arg = "${%s}"%(iaction['envvar'])
                 print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
-            elif operation == "envvar_unset":
-                print("{}".format(iaction['envvar']))
             elif operation == "envvar_remove_substr":
                 arg = "${%s}"%(iaction['envvar'])
-                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
+                print("remove string `{}` from `{}`".format(iaction['value'], arg, iaction['envvar']))
             elif operation == "envvar_remove_path_entry":
                 arg = "${%s}"%(iaction['envvar'])
-                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
-            elif operation == "envvar_find_in_path":
-                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
+                print("remove path `{}` from `{}`".format(iaction['value'],iaction['envvar']))
             else:
                 print("(unhandled) {}".format(iaction))
 
@@ -880,6 +924,21 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    def _handler_envvar_set_if_empty(self, section_name, handler_parameters) -> int:
+        """Handler: for envvar-set-if-empty operations.
+
+        Handles operations that wish to *set* an environment variable
+        only if it is empty or does not exist.
+
+        Returns:
+            integer: An integer value indicating if the handler was successful.
+                - 0     : SUCCESS
+                - [1-10]: Reserved for future use (WARNING)
+                - > 10  : An unknown failure occurred (SERIOUS)
+        """
+        return self._helper_handler_common_envvar(section_name, handler_parameters)
+
+
     def _handler_envvar_unset(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-unset operations.
 
@@ -1337,34 +1396,44 @@ class SetEnvironment(ConfigParserEnhanced):
         |                       |          | - arg1: *envvar name*                             |
         |                       |          | - arg2: *envvar value*                            |
         +-----------------------+----------+---------------------------------------------------+
+        | ``assert_not_empty``  |        2 | Trigger an error if the envvar is empty or unset  |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *OPTIONAL message*                        |
+        +-----------------------+----------+---------------------------------------------------+
         | ``prepend``           |        2 | Prepend a value to an existing environment var.   |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
         |                       |          | - arg2: *envvar value*                            |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``remove_path_entry`` |        2 | Remove an entry from a PATH type envvar.          |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *path entry to remove*                    |
         +-----------------------+----------+---------------------------------------------------+
         | ``set``               |        2 | Set an environment variable to a value.           |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
         |                       |          | - arg2: *envvar value*                            |
         +-----------------------+----------+---------------------------------------------------+
-        | ``unset``             |        1 | Unset the environment variable if it exists.      |
-        +-----------------------+----------+                                                   +
-        |                       |          | - arg1: *module name* (i.e., ``gcc``)             |
-        +-----------------------+----------+---------------------------------------------------+
-        | ``remove_substr``     |        2 | Remove a substring from an envvar if it exists.   |
+        | ``set_if_empty``      |        2 | Set an envvar to a value if it is unset or empty  |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *substring to remove*                     |
+        |                       |          | - arg2: *envvar value*                            |
         +-----------------------+----------+---------------------------------------------------+
         | ``remove_path_entry`` |        2 | Remove a substring from an envvar if it exists.   |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
         |                       |          | - arg2: *substring to remove*                     |
         +-----------------------+----------+---------------------------------------------------+
-        | ``assert_not_empty``  |        2 | Trigger an error if the envvar is empty or unset  |
+        | ``remove_substr``     |        2 | Remove a substring from an envvar if it exists.   |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *OPTIONAL message*                        |
+        |                       |          | - arg2: *substring to remove*                     |
+        +-----------------------+----------+---------------------------------------------------+
+        | ``unset``             |        1 | Unset the environment variable if it exists.      |
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *module name* (i.e., ``gcc``)             |
         +-----------------------+----------+---------------------------------------------------+
 
         This method is invoked like this
@@ -1427,14 +1496,14 @@ class SetEnvironment(ConfigParserEnhanced):
 
         oplist_argcount_1 = ["unset"
                             ]
-        oplist_argcount_2 = ["set",
-                             "append",
-                             "prepend",
-                             "remove_substr",
-                             "remove_path_entry",
-                             "find_in_path",
-                             "assert_not_empty"
-                             ]
+        oplist_argcount_2 = ['append',
+                             'assert_not_empty',
+                             'find_in_path',
+                             'prepend',
+                             'remove_path_entry',
+                             'remove_substr',
+                             'set',
+                             'set_if_empty']
 
         arglist = [ op ]
 
@@ -1626,6 +1695,17 @@ class SetEnvironment(ConfigParserEnhanced):
             export ${1:?}="${2}"
         }
 
+        # envvar_set_if_empty
+        # Param1: Envvar name
+        # Param2: Envvar value
+        function envvar_set_if_empty() {
+            local ENVVAR_NAME=${1:?}
+            local ENVVAR_VALUE=${2}
+            if [[ -z "${!ENVVAR_NAME}" ]]; then
+                export ${ENVVAR_NAME}="${ENVVAR_VALUE}"
+            fi
+        }
+
         # envvar_remove_substr
         # $1 = envvar name
         # $2 = substring to remove
@@ -1671,19 +1751,21 @@ class SetEnvironment(ConfigParserEnhanced):
             local arg1=${2:?}
             local arg2=${3}
             if [[ "${op:?}" == "set" ]]; then
-                envvar_set_or_create ${arg1:?} ${arg2}
+                envvar_set_or_create ${arg1:?} "${arg2}"
             elif [[ "${op:?}" == "unset" ]]; then
                 unset ${arg1:?}
             elif [[ "${op:?}" == "append" ]]; then
-                envvar_append_or_create ${arg1:?} ${arg2:?}
+                envvar_append_or_create ${arg1:?} "${arg2:?}"
             elif [[ "${op:?}" == "prepend" ]]; then
-                envvar_prepend_or_create ${arg1:?} ${arg2:?}
+                envvar_prepend_or_create ${arg1:?} "${arg2:?}"
             elif [[ "${op:?}" == "remove_substr" ]]; then
-                envvar_remove_substr ${arg1:?} ${arg2:?}
+                envvar_remove_substr ${arg1:?} "${arg2:?}"
             elif [[ "${op:?}" == "find_in_path" ]]; then
-                envvar_set_or_create ${arg1:?} $(which ${arg2:?})
+                envvar_set_or_create ${arg1:?} "$(which ${arg2:?})"
             elif [[ "${op:?}" == "assert_not_empty" ]]; then
                 envvar_assert_not_empty "${arg1:?}" "${arg2}"
+            elif [[ "${op:?}" == "set_if_empty" ]]; then
+                envvar_set_if_empty "${arg1:?}" "${arg2}"
             else
                 echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
             fi
@@ -1726,9 +1808,11 @@ class SetEnvironment(ConfigParserEnhanced):
         # Note: We use `inspect` here to pull in the same code that's
         #       used in SetEnvironment itself to reduce technical debt.
 
-        output += inspect.getsource(envvar_find_in_path)
+        output += inspect.getsource(envvar_set)
         output += "\n\n"
-        output += inspect.getsource(envvar_assign)
+        output += inspect.getsource(envvar_set_if_empty)
+        output += "\n\n"
+        output += inspect.getsource(envvar_find_in_path)
         output += "\n\n"
         output += inspect.getsource(expand_envvars_in_string)
         output += "\n\n"

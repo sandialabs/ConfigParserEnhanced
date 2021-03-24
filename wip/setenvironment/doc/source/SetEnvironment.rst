@@ -86,5 +86,7 @@ Helpers (Private - Writers)
 Free Functions
 ++++++++++++++
 .. autofunction:: setenvironment.SetEnvironment.expand_envvars_in_string
+.. autofunction:: setenvironment.SetEnvironment.envvar_find_in_path
 .. autofunction:: setenvironment.SetEnvironment.envvar_op
-
+.. autofunction:: setenvironment.SetEnvironment.envvar_set
+.. autofunction:: setenvironment.SetEnvironment.envvar_set_if_empty
