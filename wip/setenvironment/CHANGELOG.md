@@ -19,10 +19,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [0.3.0] - Unreleased
+## [X.Y.Z] - YYYY-MM-DD or [Unreleased]
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+#### Security
+#### Internal
+#### Todo (for Unreleased)
+
+
+
+## [0.3.0] - 2021-03-23
 #### Added
 - New envvar command: `envvar-assert-not-empty` as part of ISSUE #12
+- New envvar command: `envvar-set-if-empty` as part of ISSUE #15
 #### Changed
+- Rename free function `envvar_assign` to `envvar_set`
 #### Deprecated
 #### Removed
 #### Fixed

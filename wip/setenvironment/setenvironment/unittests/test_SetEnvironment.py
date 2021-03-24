@@ -1318,6 +1318,117 @@ class SetEnvironmentTest(TestCase):
         return
 
 
+    def test_SetEnvironment_handler_envvar_set_if_empty_01(self):
+        """
+        Test the ``envvar_set_if_empty`` handler.
+        """
+        # Toggle generate-new-ground-truth-files mode. This should never be left True when checked in.
+        gen_new_ground_truth = global_gen_new_ground_truth_files
+        # ATTN: LEAVING THIS ENABLED SHOULD FAIL THIS TEST AFTER FILE GENERATION
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+        parser.exception_control_compact_warnings = True
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+
+        section = "ENVVAR_SET_IF_EMPTY_01"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions(section)
+
+        parser.apply(section)
+        parser.pretty_print_envvars(envvar_filter=["FOO_","BAR_","BAZ_","BIF_"],
+                                    filtered_keys_only=True)
+
+        envvar_foo_expect = "FOO_VAL"
+        envvar_foo_actual = os.environ["FOO_VAR"]
+        self.assertEqual(envvar_foo_expect, envvar_foo_actual)
+
+        envvar_bar_expect = "BAR_VAL"
+        envvar_bar_actual = os.environ["BAR_VAR"]
+        self.assertEqual(envvar_bar_expect, envvar_bar_actual)
+
+        envvar_baz_expect = "BAZ_VAL"
+        envvar_baz_actual = os.environ["BAZ_VAR"]
+        self.assertEqual(envvar_baz_expect, envvar_baz_actual)
+
+        envvar_bif_expect = ""
+        envvar_bif_actual = os.environ["BIF_VAR"]
+        self.assertEqual(envvar_bif_expect, envvar_bif_actual)
+
+        options = {"prefix": "sie", "section": section, "header": True, "body": True, "shebang": True, "interpreter": "bash" }
+        self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
+
+        options["interpreter"] = "python"
+        self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        self.assertFalse(gen_new_ground_truth,
+                         "Testing should not also generate new ground truth.")
+
+        print("OK")
+        return
+
+
+    def test_SetEnvironment_helper_envvar_set_if_empty_01(self):
+        """
+        Test the envvar_set_if_empty HELPER
+        """
+        print("\n")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        print("Verify type-checking in envvar_set_if_empty")
+
+        with self.assertRaises(TypeError):
+            envvar_set_if_empty(None, "FOO", allow_empty=True)
+        with self.assertRaises(TypeError):
+            envvar_set_if_empty("FOO", None,  allow_empty=True)
+        with self.assertRaises(TypeError):
+            envvar_set_if_empty("FOO", "FOO", allow_empty=None)
+        with self.assertRaises(ValueError):
+            envvar_set_if_empty("FOO", "",    allow_empty=False)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return 0
+
+
+    def test_SetEnvironment_helper_envvar_op_01(self):
+        """
+        Test the envvar_op HELPER
+        """
+        print("\n")
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        print("Verify type-checking in envvar_set_if_empty")
+
+        with self.assertRaises(TypeError):
+            envvar_op("set_if_empty",  None, "FOO", allow_empty=True)
+        with self.assertRaises(TypeError):
+            envvar_op("set_if_empty", "FOO", None,  allow_empty=True)
+        with self.assertRaises(TypeError):
+            envvar_op("set_if_empty", "FOO", "FOO", allow_empty=None)
+        with self.assertRaises(ValueError):
+            envvar_op("set_if_empty", "FOO", "",    allow_empty=False)
+
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return 0
+
+
     def test_SetEnvironment_handler_envvar_remove_substr(self):
         """
         Test the ``envvar_remove_substr`` handler.
@@ -1487,10 +1598,10 @@ class SetEnvironmentTest(TestCase):
         options["interpreter"] = "python"
         self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
 
+        print("-----[ TEST END ]------------------------------------------")
+
         self.assertFalse(gen_new_ground_truth,
                          "Testing should not also generate new ground truth.")
-
-        print("-----[ TEST END ]------------------------------------------")
 
         print("OK")
         return
@@ -1607,20 +1718,20 @@ class SetEnvironmentTest(TestCase):
         print("-----[ TEST BEGIN ]----------------------------------------")
 
         with self.assertRaises(TypeError):
-            envvar_assign(None, "BAR")
+            envvar_set(None, "BAR")
 
         with self.assertRaises(TypeError):
-            envvar_assign("FOO", None)
+            envvar_set("FOO", None)
 
         with self.assertRaises(TypeError):
-            envvar_assign("FOO", "BAR", None)
+            envvar_set("FOO", "BAR", None)
 
-        envvar_assign("FOO", "", True)
+        envvar_set("FOO", "", True)
         self.assertEqual("", os.environ["FOO"])
         del os.environ["FOO"]
 
         with self.assertRaises(ValueError):
-            envvar_assign("FOO", "", False)
+            envvar_set("FOO", "", False)
 
         print("-----[ TEST END ]------------------------------------------")
         print("OK")

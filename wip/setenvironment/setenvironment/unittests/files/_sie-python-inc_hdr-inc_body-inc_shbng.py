@@ -236,15 +236,15 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
 # -------------------------------------------------
 #   S E T E N V I R O N M E N T   C O M M A N D S
 # -------------------------------------------------
-envvar_op("set","TEST_ENVVAR_VALUE_01","FOO")
-envvar_op("assert_not_empty","TEST_ENVVAR_VALUE_01","")
-envvar_op("set","TEST_ENVVAR_VALUE_02","")
-envvar_op("assert_not_empty","TEST_ENVVAR_VALUE_02","")
-envvar_op("set","TEST_ENVVAR_VALUE_03","")
-envvar_op("assert_not_empty","TEST_ENVVAR_VALUE_03","ERROR - TEST_ENVVAR_VALUE_03 is missing or empty.")
-envvar_op("unset","TEST_ENVVAR_VALUE_04")
-envvar_op("assert_not_empty","TEST_ENVVAR_VALUE_04","")
-envvar_op("unset","TEST_ENVVAR_VALUE_05")
-envvar_op("assert_not_empty","TEST_ENVVAR_VALUE_05","ERROR - TEST_ENVVAR_VALUE_05 is missing or empty.")
+envvar_op("unset","FOO_VAR")
+envvar_op("unset","BAR_VAR")
+envvar_op("unset","BAZ_VAR")
+envvar_op("unset","BIF_VAR")
+envvar_op("set","FOO_VAR","FOO_VAL")
+envvar_op("set","BAR_VAR","")
+envvar_op("set_if_empty","FOO_VAR","BAR_VAL")
+envvar_op("set_if_empty","BAR_VAR","BAR_VAL")
+envvar_op("set_if_empty","BAZ_VAR","BAZ_VAL")
+envvar_op("set_if_empty","BIF_VAR","")
 
 
