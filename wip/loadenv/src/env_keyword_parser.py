@@ -91,6 +91,9 @@ class EnvKeywordParser(LoadEnvCommon):
               :func:`assert_kw_str_versions_for_env_name_components_are_supported`
               to make sure component versions specified in the
               :attr:`build_name` are supported.
+            * Run :func:`assert_kw_str_node_type_is_supported` to make sure the
+              node type (``serial`` or ``openmp``) specified in the
+              :attr:`build_name` is supported on the system.
             * Done
 
         Returns:
@@ -119,11 +122,10 @@ class EnvKeywordParser(LoadEnvCommon):
 
             matched_env_name = self.get_env_name_for_alias(matched_alias)
 
-        # i.e. 'intel' could be a match in 'intel-20' even though
-        #      'intel-20' is not supported.
         self.assert_kw_str_versions_for_env_name_components_are_supported(
             matched_env_name
         )
+        self.assert_kw_str_node_type_is_supported(matched_env_name)
 
         self._qualified_env_name = f"{self.system_name}-{matched_env_name}"
 
@@ -323,6 +325,9 @@ class EnvKeywordParser(LoadEnvCommon):
 
         Parameters:
             alias_list (str): A list of aliases to check for environemnt names.
+
+        Raises:
+            SystemExit:  If the user requests an unsupported version.
         """
         duplicates = [_ for _ in alias_list if _ in self.env_names]
         try:
@@ -335,6 +340,19 @@ class EnvKeywordParser(LoadEnvCommon):
             sys.exit(msg)
 
     def assert_aliases_do_not_contain_whitespace(self, alias_list):
+        """
+        Ensure there are no whitespaces in aliases; that is::
+
+            env-name:
+                alias-1 # This is okay.
+                alias 2 # This is not.
+
+        Parameters:
+            alias_list (str): A list of aliases to check for environemnt names.
+
+        Raises:
+            SystemExit:  If the user requests an unsupported version.
+        """
         aliases_w_whitespace = [_ for _ in alias_list if " " in _]
         try:
             assert aliases_w_whitespace == []
@@ -346,6 +364,49 @@ class EnvKeywordParser(LoadEnvCommon):
                 aliases_w_whitespace
             )
             sys.exit(msg)
+
+    def get_versioned_components_from_str(self, input_str, str_to_check):
+        """
+        When parsing a :attr:`build_name`, we split on delimiters; however,
+        we'd actually like to treat versioned components in the
+        :attr:`build_name` as single 'words'.  For instance, we'd like to treat
+        ``intel-19.0.4`` as a single word, instead of splitting it into
+        ``intel`` and ``19.0.4``.  This routine creates those compound words
+        from the naive split.
+
+        Parameters:
+            input_str (str): The string you would like to split and create
+                versioned components from.
+            str_to_check (str): This routine will only keep versioned
+                components that are also found in this string.
+
+        Returns:
+            list:  A list of strings containing the versioned components.
+        """
+        matched_components = input_str.split("-")
+        regex_list = [f"{mc}[^A-Z^a-z]*" for mc in matched_components]
+        # Regex Explanation
+        # =================
+        # (intel[^A-Z^a-z']*|mpich[^A-Z^a-z']*)(?:-|$)
+        #  ^^^^^^^^^^^^^^^^^^^^^^^             ^^^^^^^
+        #  |                |                  |
+        #  |                |                  Non-matching group. The previous
+        #  |                |                  pattern is followed by either a
+        #  |                |                  '-' or end of string '$'.
+        #  |                |
+        #  |                Or mpich, followed by... -|
+        #  |                                          |
+        #  intel, followed by 0 or more <-------------|
+        #  non-alphabetical characters
+        #
+        # So, given the string:
+        #     intel-20-mpich-7.1.3
+        #
+        # re.findall would return ['intel-20', 'mpich-7.1.3']
+        versioned_components = re.findall(
+            f"({'|'.join(regex_list)})(?:-|$)", str_to_check
+        )
+        return versioned_components
 
     def assert_kw_str_versions_for_env_name_components_are_supported(
         self, matched_env_name
@@ -394,32 +455,15 @@ class EnvKeywordParser(LoadEnvCommon):
         not supported and raise an exception.
 
         Parameters:
-            str:  The matched environment name to check component versions for.
+            matched_env_name (str):  The matched environment name to check
+                component versions for.
+
+        Raises:
+            SystemExit:  If the user requests an unsupported version.
         """
-        # e.g. `intel-mpich` has two components, each with a version number
-        matched_components = matched_env_name.split("-")
-        regex_list = [f"{mc}[^A-Z^a-z]*" for mc in matched_components]
-        versioned_components = re.findall(
-            f"({'|'.join(regex_list)})(?:-|$)", self.build_name
+        versioned_components = self.get_versioned_components_from_str(
+            matched_env_name, self.build_name
         )
-        # Regex Explanation
-        # =================
-        # (intel[^A-Z^a-z']*|mpich[^A-Z^a-z']*)(?:-|$)
-        #  ^^^^^^^^^^^^^^^^^^^^^^^             ^^^^^^^
-        #  |                |                  |
-        #  |                |                  Non-matching group. The previous
-        #  |                |                  pattern is followed by either a
-        #  |                |                  '-' or end of string '$'.
-        #  |                |
-        #  |                Or mpich, followed by... -|
-        #  |                                          |
-        #  intel, followed by 0 or more <-------------|
-        #  non-alphabetical characters
-        #
-        # So, given the string:
-        #     intel-20-mpich-7.1.3
-        #
-        # re.findall would return ['intel-20', 'mpich-7.1.3']
 
         # Make sure each component version is supported
         for vc in versioned_components:
@@ -440,4 +484,44 @@ class EnvKeywordParser(LoadEnvCommon):
         except AssertionError:
             sys.exit(self.get_err_msg_showing_supported_environments(
                 f"'{versioned_match}' is not a supported version."
+            ))
+
+    def assert_kw_str_node_type_is_supported(self, matched_env_name):
+        """
+        Ensure the node type (``serial`` or ``openmp``) specified in the
+        :attr:`build_name` is actually supported on the system.  For instance,
+        if the user specified ``intel-serial``, we don't want to match an alias
+        of ``intel`` and map that back to an ``openmp`` environment.
+
+        Parameters:
+            matched_env_name (str):  The matched environment name to check for
+                the presence of the node type.
+
+        Raises:
+            SystemExit:  If the user requests an unsupported node type.
+        """
+        build_name_vcs = self.get_versioned_components_from_str(
+            self.build_name, self.build_name
+        )
+        matched_env_name_vcs = self.get_versioned_components_from_str(
+            matched_env_name, matched_env_name
+        )
+
+        if "openmp" in build_name_vcs and "serial" in matched_env_name_vcs:
+            sys.exit(self.get_err_msg_showing_supported_environments(
+                "'openmp' was specified in the build name, but only the "
+                "'serial'\nnode type is supported for your selected "
+                "environment"
+            ))
+        if "serial" in build_name_vcs and "openmp" in matched_env_name_vcs:
+            sys.exit(self.get_err_msg_showing_supported_environments(
+                "'serial' was specified in the build name, but only the "
+                "'openmp'\nnode type is supported for your selected "
+                "environment"
+            ))
+        if (any(["cuda" in _ for _ in matched_env_name_vcs]) and
+            any([_ in build_name_vcs for _ in ["serial", "openmp"]])):
+            sys.exit(self.get_err_msg_showing_supported_environments(
+                "The 'serial' and 'openmp' node types are not applicable to "
+                "CUDA\nenvironments"
             ))

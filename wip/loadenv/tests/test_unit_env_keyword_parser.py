@@ -95,6 +95,35 @@ def test_nonexistent_env_name_or_alias_raises():
 
 
 @pytest.mark.parametrize("inputs", [
+    {"system_name": "machine-type-1",
+     "build_name": "intel-19.0.4-mpich-7.7.15-hsw-openmp",
+     "matched_env_name": "intel-19.0.4-mpich-7.7.15-hsw-openmp",
+     "versioned_components": ["intel-19.0.4", "mpich-7.7.15", "hsw",
+                              "openmp"]},
+    {"system_name": "machine-type-4",
+     "build_name": "arm-20.0-openmpi-4.0.2-openmp",
+     "matched_env_name": "arm-20.0-openmpi-4.0.2-openmp",
+     "versioned_components": ["arm-20.0", "openmpi-4.0.2", "openmp"]},
+    {"system_name": "machine-type-4",
+     "build_name": "arm-serial",
+     "matched_env_name": "arm-20.0-openmpi-4.0.2-serial",
+     "versioned_components": ["arm", "serial"]},
+    {"system_name": "machine-type-4",
+     "build_name": "arm-20.0-serial",
+     "matched_env_name": "arm-20.0-openmpi-4.0.2-serial",
+     "versioned_components": ["arm-20.0", "serial"]}
+])
+def test_versioned_components_determined_correctly(inputs):
+    ekp = EnvKeywordParser(inputs["build_name"], inputs["system_name"],
+                           "test_supported_envs.ini")
+    ekp.qualified_env_name
+    versioned_components = ekp.get_versioned_components_from_str(
+        inputs["matched_env_name"], inputs["build_name"]
+    )
+    assert versioned_components == inputs["versioned_components"]
+
+
+@pytest.mark.parametrize("inputs", [
     {"system_name": "machine-type-1", "build_name": "intel-20",
      "unsupported_component": "intel-20"},
     {"system_name": "machine-type-1", "build_name": "intel-19-mpich-7.2",
@@ -119,6 +148,7 @@ def test_unsupported_versions_are_rejected(inputs):
         assert "intel-19.0.4-mpich-7.7.15-hsw-openmp" in exc_msg
         assert "- intel-hsw-openmp\n" in exc_msg
         assert "- intel-hsw\n" in exc_msg
+        assert "- intel-openmp\n" in exc_msg
         assert "- intel\n" in exc_msg
         assert "- default-env-hsw\n" in exc_msg
         assert "intel-19.0.4-mpich-7.7.15-knl-openmp" in exc_msg
@@ -130,6 +160,54 @@ def test_unsupported_versions_are_rejected(inputs):
         assert "arm-20.0-openmpi-4.0.2-serial" in exc_msg
         assert "arm-20.1-openmpi-4.0.3-openmp" in exc_msg
         assert "arm-20.1-openmpi-4.0.3-serial" in exc_msg
+
+
+@pytest.mark.parametrize("inputs", [
+    {"system_name": "machine-type-1", "build_name": "intel-hsw-serial",
+     "unsupported_component": "serial"},
+    {"system_name": "machine-type-1", "build_name": "intel-serial",
+     "unsupported_component": "serial"},
+    {"system_name": "test-system", "build_name": "env-name-openmp",
+     "unsupported_component": "openmp"},
+    {"system_name": "ride", "build_name": "cuda-serial",
+     "unsupported_component": "static"},
+    {"system_name": "ride", "build_name": "cuda-10-openmp",
+     "unsupported_component": "openmp"},
+])
+def test_unsupported_node_types_are_rejected(inputs):
+    ekp = EnvKeywordParser(inputs["build_name"], inputs["system_name"],
+                           "test_supported_envs.ini")
+
+    with pytest.raises(SystemExit) as excinfo:
+        ekp.qualified_env_name
+    exc_msg = excinfo.value.args[0]
+    print(exc_msg)
+
+    if inputs["system_name"] == "ride":
+        assert ("ERROR:  The 'serial' and 'openmp' node types are not "
+                "applicable to CUDA") in exc_msg
+    else:
+        assert (f"ERROR:  '{inputs['unsupported_component']}' was specified "
+                "in the build name, but only") in exc_msg
+
+    if inputs["system_name"] == "machine-type-1":
+        assert "intel-19.0.4-mpich-7.7.15-hsw-openmp" in exc_msg
+        assert "- intel-hsw-openmp\n" in exc_msg
+        assert "- intel-hsw\n" in exc_msg
+        assert "- intel-openmp\n" in exc_msg
+        assert "- intel\n" in exc_msg
+        assert "- default-env-hsw\n" in exc_msg
+        assert "intel-19.0.4-mpich-7.7.15-knl-openmp" in exc_msg
+        assert "- intel-knl-openmp\n" in exc_msg
+        assert "- intel-knl\n" in exc_msg
+        assert "- default-env-knl\n" in exc_msg
+    elif inputs["system_name"] == "ride":
+        assert "cuda-9.2-gnu-7.2.0-openmpi-2.1.2" in exc_msg
+        assert "- cuda-9" in exc_msg
+        assert "- cuda" in exc_msg
+    elif inputs["system_name"] == "machine-type-4":
+        assert "env-name-serial" in exc_msg
+        assert "- env-name" in exc_msg
 
 
 #############
