@@ -44,7 +44,7 @@ Todo:
     - William C. McLendon III <wcmclen@sandia.gov>
     - Jason M. Gates <jmgate@sandia.gov>
 
-:Version: 0.3.0
+:Version: 0.3.1
 
 """
 from __future__ import print_function
@@ -775,7 +775,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             cascade into a lot of changes.
 
         See Also:
-            - `regex tester <https://regexr.com/>` A useful REGEX tester.
+            - `regex tester <https://regex101.com/>` A useful REGEX tester that has
+              a Python regex mode for testing Python based regular expressions.
         """
         if not hasattr(self, '_regex_op_splitter_value'):
             # This is the regex op splitter to extract op1 and op2.  This is
@@ -815,13 +816,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #     addition of the 'A' and 'B' will differentiate these keys from
             #     the ConfigParser's perspective.
 
-            regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"
-            #                  ^^^^^^^^^^    ^^^^^^^^^^^^^    ^^^^^^^^^^
-            #                      \              \                \-- op2 : group 3
-            #                       \              \--- op2 : group 2
-            #                        \--- op1 : group 1
+            #regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"    # (Deprecated but keep for now)
+            regex_string = r"^([\w\-]+)[^\S\r\n]*((?:'[^:='\"]+')|(?:[^:=\s]+))?.*"
+            #                  ^^^^^^^          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            #                      \                    \
+            #                       \                    \--- op2 : group 1
+            #                        \--- op1 : group 0
             #
-            # Note: group 0 is the _full_ match
+            # Note: we still will need to strip the single-quotes from op2
+            #
             self._regex_op_splitter_value = re.compile(regex_string)
 
         return self._regex_op_splitter_value
@@ -883,12 +886,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         output = None
 
-        # op2 matches group 2 or 3 depending on whether or not there were quotes.
-        # (there are 4 groups)
-        if regex_match.groups()[2]:
-            output = str(regex_match.groups()[2]).strip()
-        elif regex_match.groups()[3]:
-            output = str(regex_match.groups()[3]).strip()
+        if regex_match.groups()[1]:
+            output = str(regex_match.groups()[1]).strip()
+            output = output.strip("' ")
 
         return output
 
@@ -1194,7 +1194,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if not isinstance(parameter, type_restriction):
             output = 1
             self.exception_control_event(exception_class, TypeError,
-                "`{}`` must be a `{}` type.".format(parameter, type_restriction))
+                "`{}` must be a `{}` type.".format(parameter, type_restriction))
         return output
 
 
