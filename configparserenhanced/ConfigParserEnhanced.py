@@ -44,7 +44,7 @@ Todo:
     - William C. McLendon III <wcmclen@sandia.gov>
     - Jason M. Gates <jmgate@sandia.gov>
 
-:Version: 0.3.0
+:Version: 0.3.1
 
 """
 from __future__ import print_function

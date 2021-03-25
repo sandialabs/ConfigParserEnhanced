@@ -15,12 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+
 ## [0.3.1] - [Unreleased]
 ### Added
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- Issue #10: Bugfix: dots `.` in section names confused the `use` command.
 ### Internal
 - Add `_validate_parameter` internal function to wrap the parameter
   check operation that we do around the code. This simplifies some
