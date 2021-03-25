@@ -817,7 +817,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             #     the ConfigParser's perspective.
 
             #regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"    # (Deprecated but keep for now)
-            regex_string = r"^([\w\-]+)[^\S\r]*((?:'[^:='\"]+')|(?:[^:=\s]+))?.*"
+            regex_string = r"^([\w\-]+)[^\S\r\n]*((?:'[^:='\"]+')|(?:[^:=\s]+))?.*"
             #                  ^^^^^^^          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             #                      \                    \
             #                       \                    \--- op2 : group 1
@@ -1194,7 +1194,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if not isinstance(parameter, type_restriction):
             output = 1
             self.exception_control_event(exception_class, TypeError,
-                "`{}`` must be a `{}` type.".format(parameter, type_restriction))
+                "`{}` must be a `{}` type.".format(parameter, type_restriction))
         return output
 
 
