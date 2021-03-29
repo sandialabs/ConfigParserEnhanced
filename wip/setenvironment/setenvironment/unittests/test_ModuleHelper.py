@@ -272,9 +272,10 @@ class ModuleHelperTest(TestCase):
         return
 
 
-    def test_ModuleHeler_module_load_success_by_mlstatus(self):
-        with patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_success):
-            r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
+    @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_success)
+    @patch('os.system', side_effect=mock_system_status_ok)
+    def test_ModuleHeler_module_load_success_by_mlstatus(self, arg_system, arg_popen):
+        r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(0, r)
         return
