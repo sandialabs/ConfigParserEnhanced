@@ -183,7 +183,15 @@ def mock_shutil_which_returns_none(*args, **kwargs):
     print("[mock] `shutil.which({})` -> None".format(argstr))
     return None
 
-
+original_system = os.system
+def mock_system_status_mlstatus_error(cmd):
+    """
+    Override of system mock that will return with error (status==1)
+    """
+    print("mock_system> system(" + cmd +")")
+    # Run the original system command too but ignore the return code
+    ret = original_system(cmd)
+    return 1
 
 # =======================================
 #   M O D U L E H E L P E R   T E S T S
@@ -262,13 +270,13 @@ class ModuleHelperTest(TestCase):
         return
 
 
-    def test_ModuleHeler_module_load_error_by_mlstatus(self):
-        with patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error):
-            r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
+    @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error) # modulecmd based systems
+    @patch('os.system', side_effect=mock_system_status_mlstatus_error)       # for LMOD based systems
+    def test_ModuleHeler_module_load_error_by_mlstatus(self, arg_system, arg_popen):
+        r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(1, r)
         return
-
 
     def test_ModuleHeler_module_load_error_no_modulecmd(self):
         with patch('distutils.spawn.find_executable', side_effect=Exception("mock side-effect error")):
