@@ -1,17 +1,18 @@
 Operation,Usage,Description
-**envvar-set**,``envvar-set envvar: value``,Sets (or overwrites) an envvar.
-**envvar-set-if-empty**,``envvar-set-if-empty envvar: value``, Sets an envvar only if it doesn't exist or is empty.
-**envvar-append**,``envvar-append envvar: value``, Append a value to an existing envvar using ``os.pathsep`` as the delimiter.
-**envvar-prepend**,``envvar-prepend envvar: value``, Prepend a value to an existing envvar using ``os.pathsep`` as the delimiter.
-**envvar-remove**,``envvar-remove envvar:``, Removes all occurrences of envvar from actions.
-**envvar-unset**, ``envvar-unset envvar:``, Unsets (removes) an envvar if it exists.
-**envvar-remove-substr**, ``envvar-remove-substr envvar: substr``, Remove all occurrences of *substr* from *envvar*.
-**envvar-remove-path-entry**, ``envvar-remove-path-entry envvar: path``, Remove occurrences of a *path* from a path *envvar*.
-**envvar-find-in-path**, ``envvar-find-in-path envvar: executable``, Locate an executable in a **path list** style *envvar*.
-**envvar-assert-not-empty**, ``envvar-assert-not-empty envvar: optional message``, Throw an error if an envvar is not set or is empty.
-**module-load**,``module-load module_name: version``,Load a module.
+**envvar-set**,``envvar-set <envvar_name>: <envvar_val>``,Sets (or overwrites) an envvar.
+**envvar-set-if-empty**,``envvar-set-if-empty <envvar_name>: <envvar_val>``, Sets an envvar only if it doesn't exist or is empty.
+**envvar-append**,``envvar-append <envvar_name>: <envvar_val>``, Append a value to an existing envvar using ``os.pathsep`` as the delimiter.
+**envvar-prepend**,``envvar-prepend <envvar_name>: <envvar_val>``, Prepend a value to an existing envvar using ``os.pathsep`` as the delimiter.
+**envvar-remove**,``envvar-remove <envvar_name>:``, Removes all occurrences of envvar from actions.
+**envvar-unset**, ``envvar-unset <envvar_name>:``, Unsets (removes) an envvar if it exists.
+**envvar-remove-substr**, ``envvar-remove-substr <envvar_name>: <substr>``, Remove all occurrences of *substr* from *envvar*.
+**envvar-remove-path-entry**, ``envvar-remove-path-entry <envvar_name>: <path>``, Remove occurrences of a *path* from a path *envvar*.
+**envvar-find-in-path**, ``envvar-find-in-path <envvar_name>: <exe_name>``, Locate an executable in a **path list** style *envvar*.
+**envvar-assert-not-empty**, ``envvar-assert-not-empty <envvar_name>: <optional_msg>``, Throw an error if an envvar is not set or is empty.
+**module-load**,``module-load <module_name>``,Load a module using the *default* module.
+**module-load**,``module-load <module_name> : <module_ver>``,Load a specific version of a module file. ``module load <module_name>/<module_ver>``.
 **module-purge**,``module-purge:``,Purge all loaded modules.
-**module-remove**,``module-remove module_name:``,Removes all uses of <module_name> from actions.
-**module-swap**,``module-swap: module_old: module_new/version``,Swaps two modules.
-**module-unload**,``module-unload module_name:``,Unloads a module.
-**module-use**,``module-use: path``,Adds a path to modulefiles.
+**module-remove**,``module-remove <module_name>:``,Removes all uses of <module_name> from actions.
+**module-swap**,``module-swap: <module_old>: <module_new/version>``,Swaps two modules.
+**module-unload**,``module-unload <module_name>:``,Unloads a module.
+**module-use**,``module-use: <path>``,Adds a path to modulefiles.

@@ -19,12 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [X.Y.Z] - YYYY-MM-DD or [Unreleased]
+## [0.3.1] [Unreleased]
 #### Added
 #### Changed
 #### Deprecated
 #### Removed
 #### Fixed
+- BUG (Issue #16) - `module-load` would fail if loading a _default_ module.
+  That is, `module-load <module_name>`, would fail because we expected a 2nd
+  argument providing the version number. This has been fixed so that we now
+  allow 1 or 2 arguments to `module-load` where 1 argument will use the default
+  argument as set up in the modulefiles.
 #### Security
 #### Internal
 #### Todo (for Unreleased)
