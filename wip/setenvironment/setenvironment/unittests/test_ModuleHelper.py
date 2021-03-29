@@ -221,7 +221,7 @@ class ModuleHelperTest(TestCase):
     def test_ModuleHeler_module_load_status_error(self, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
-        self.assertEqual(1, r)
+        self.assertNotEqual(0, r)
         return
 
 
@@ -229,7 +229,7 @@ class ModuleHelperTest(TestCase):
     def test_ModuleHeler_module_load_status_error(self, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
-        self.assertEqual(1, r)
+        self.assertNotEqual(0, r)
         return
 
 
@@ -275,7 +275,7 @@ class ModuleHelperTest(TestCase):
     def test_ModuleHeler_module_load_error_by_mlstatus(self, arg_system, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
-        self.assertEqual(1, r)
+        self.assertNotEqual(0, r)
         return
 
     def test_ModuleHeler_module_load_error_no_modulecmd(self):
@@ -283,7 +283,7 @@ class ModuleHelperTest(TestCase):
             with patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error):
                 r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
-        self.assertEqual(1, r)
+        self.assertNotEqual(0, r)
         return
 
 
