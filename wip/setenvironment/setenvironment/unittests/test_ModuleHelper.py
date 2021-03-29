@@ -184,7 +184,7 @@ def mock_shutil_which_returns_none(*args, **kwargs):
     return None
 
 original_system = os.system
-def mock_system_status_mlstatus_error(cmd):
+def mock_system_status_error(cmd):
     """
     Override of system mock that will return with error (status==1)
     """
@@ -192,6 +192,15 @@ def mock_system_status_mlstatus_error(cmd):
     # Run the original system command too but ignore the return code
     ret = original_system(cmd)
     return 1
+
+def mock_system_status_ok(cmd):
+    """
+    Override of system mock that will return with success (status==0)
+    """
+    print("mock_system> system(" + cmd +")")
+    # Run the original system command too but ignore the return code
+    ret = original_system(cmd)
+    return 0
 
 # =======================================
 #   M O D U L E H E L P E R   T E S T S
@@ -210,7 +219,8 @@ class ModuleHelperTest(TestCase):
 
 
     @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
-    def test_ModuleHeler_module_load_status_ok(self, arg_popen):
+    @patch('os.system', side_effect=mock_system_status_ok)
+    def test_ModuleHeler_module_load_status_ok(self, arg_system, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(0, r)
@@ -270,8 +280,8 @@ class ModuleHelperTest(TestCase):
         return
 
 
-    @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error) # modulecmd based systems
-    @patch('os.system', side_effect=mock_system_status_mlstatus_error)       # for LMOD based systems
+    @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error)
+    @patch('os.system', side_effect=mock_system_status_error)
     def test_ModuleHeler_module_load_error_by_mlstatus(self, arg_system, arg_popen):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
