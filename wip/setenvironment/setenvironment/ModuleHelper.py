@@ -74,14 +74,38 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
         status = 0
 
         try:
-
-            status = env_modules_python.module(command, *arguments)
+            # env_modules_python.module does not support command as a list type, so we splat command here.
+            if isinstance(command, (list)):
+                _command = command
+                env_modules_python.module(*command, *arguments)
+            else:
+                _command = []
+                _command.append(command)
+                env_modules_python.module(command, *arguments)
 
         except BaseException as error:
             print("")
             print("An ERROR occurred during execution of module command")
             print("")
             raise error
+
+        # Check for module command success with short circuiting
+        _arguments = _command[1:] + list(arguments)
+        shell_cmd = []
+        if _command[0] == 'load':
+            shell_cmd = 'module is-loaded ' + _arguments[0] + ' && true  || false'
+        elif _command[0] == 'unload':
+            shell_cmd = 'module is-loaded ' + _arguments[0] + ' && false || true'
+        elif _command[0] == 'swap':
+            # TODO: Check that _arguments[0] is unloaded too
+            shell_cmd = 'module is-loaded ' + _arguments[1] + ' && true ||  false'
+        # TODO: elif _command[0] == 'purge':
+
+        # NOTE: mock.py does not recognize keyword argument 'shell' in __init__
+        # so we bypass mock.py via os.system here instead of running:
+        # proc = subprocess.run(shell_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if len(shell_cmd) != 0:
+            status = os.system(shell_cmd)
 
         return status
 
@@ -196,4 +220,3 @@ except ImportError:
             raise TypeError("ERROR: the errorcode can not be `None`")
 
         return errcode
-
