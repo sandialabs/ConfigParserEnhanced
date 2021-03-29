@@ -1831,11 +1831,9 @@ class SetEnvironmentTest(TestCase):
         return
 
 
-
     # =================
     #   H E L P E R S
     # =================
-
 
 
     def _helper_parse_section(self, section, actions_expect, rval_expect_cped):

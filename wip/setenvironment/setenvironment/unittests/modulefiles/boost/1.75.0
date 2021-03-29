@@ -1,0 +1,8 @@
+#%Module1.0
+
+set name    BOOST
+set version 1.75.0
+
+setenv TEST_SETENVIRONMENT_${name}_VER  $version
+
+
