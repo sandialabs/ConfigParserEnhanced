@@ -11,7 +11,7 @@ Todo:
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
 
-:Version: 0.3.0
+:Version: 0.3.1
 """
 from __future__ import print_function
 
@@ -416,36 +416,42 @@ class SetEnvironment(ConfigParserEnhanced):
             operation = iaction['op']
 
             print("--> {:<{width}} : ".format(operation,width=max_op_len), end="")
-            if operation == "module_purge":
+
+            if operation == "module_load":
+                if iaction['value'] in [ None, '' ]:
+                    print("{} (default)".format(iaction['module']))
+                else:
+                    print("{}/{}".format(iaction['module'], iaction['value']))
+            elif operation == "module_purge":
                 print("")
-            elif operation == "module_use":
-                print("{}".format(iaction['value']))
-            elif operation == "module_unload":
-                print("{}".format(iaction['module']))
-            elif operation == "module_load":
-                print("{}/{}".format(iaction['module'], iaction['value']))
             elif operation == "module_swap":
                 print("{} {}".format(iaction['module'], iaction['value']))
-            elif operation == "envvar_unset":
+            elif operation == "module_unload":
+                print("{}".format(iaction['module']))
+            elif operation == "module_use":
+                print("{}".format(iaction['value']))
+            elif operation == "envvar_append":
+                arg = "${%s}"%(iaction['envvar'])
+                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
+            elif operation == "envvar_assert_not_empty":
                 print("{}".format(iaction['envvar']))
-            elif operation == "envvar_set":
-                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
-            elif operation == "envvar_set_if_empty":
-                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
             elif operation == "envvar_find_in_path":
                 print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
             elif operation == "envvar_prepend":
                 arg = "${%s}"%(iaction['envvar'])
                 print("{}=\"{}:{}\"".format(iaction['envvar'],iaction['value'],arg))
-            elif operation == "envvar_append":
-                arg = "${%s}"%(iaction['envvar'])
-                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
-            elif operation == "envvar_remove_substr":
-                arg = "${%s}"%(iaction['envvar'])
-                print("remove string `{}` from `{}`".format(iaction['value'], arg, iaction['envvar']))
             elif operation == "envvar_remove_path_entry":
                 arg = "${%s}"%(iaction['envvar'])
                 print("remove path `{}` from `{}`".format(iaction['value'],iaction['envvar']))
+            elif operation == "envvar_remove_substr":
+                arg = "${%s}"%(iaction['envvar'])
+                print("remove string `{}` from `{}`".format(iaction['value'], arg, iaction['envvar']))
+            elif operation == "envvar_set":
+                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
+            elif operation == "envvar_set_if_empty":
+                print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
+            elif operation == "envvar_unset":
+                print("{}".format(iaction['envvar']))
             else:
                 print("(unhandled) {}".format(iaction))
 
@@ -1215,7 +1221,7 @@ class SetEnvironment(ConfigParserEnhanced):
         self._validate_parameter(module_name, (str, None))
         self._validate_parameter(module_value, (str, None))
 
-        self.debug_message(2, "{} :: {} - {}".format(operation, module_name, module_value))         # Console
+        self.debug_message(2, "{} :: `{}` - `{}`".format(operation, module_name, module_value))         # Console
 
         command = self._gen_actioncmd_module(operation, module_name, module_value)
         output  = self._exec_helper(command)
@@ -1538,7 +1544,7 @@ class SetEnvironment(ConfigParserEnhanced):
         +-------------+----------+---------------------------------------------------+
         | Operation   | Req Args | Description & required positional args            |
         +=============+==========+===================================================+
-        | ``load``    |        2 | Load the specified module.                        |
+        | ``load``    |   1 or 2 | Load the specified module.                        |
         +-------------+----------+                                                   +
         |             |          |  - arg1: *module name* (``gcc``)                  |
         |             |          |  - arg2: *module version* (``7.3.0``)             |
@@ -1612,7 +1618,10 @@ class SetEnvironment(ConfigParserEnhanced):
             #                                 "`module use` PATH is not a dir: `{}`".format(arg2))
             arglist += [ args[1] ]
         elif op == "load":
-            arglist += [ args[0] + "/" + args[1] ]
+            if args[1] in [ None, '']:
+                arglist += [ args[0] ]
+            else:
+                arglist += [ args[0] + "/" + args[1] ]
         elif op == "unload":
             arglist += [ args[0] ]
         elif op == "swap":

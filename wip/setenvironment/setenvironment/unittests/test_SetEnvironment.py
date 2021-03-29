@@ -1831,6 +1831,52 @@ class SetEnvironmentTest(TestCase):
         return
 
 
+    def test_SetEnvironment_module_load_default(self):
+        """
+        Tests loading a *default* module via ``module-load``, for
+        example ``module-load gcc`` instead of ``module-load gcc : 7.3.0``.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+        print("-----[ TEST BEGIN ]----------------------------------------")
+        section = "MODULE_LOAD_NO_VERSION"
+        print("Section  : {}".format(section))
+
+        # parse a section
+        data_expect_subset_01 = {'op': 'module_load', 'module': 'gcc', 'value': None}
+        data_expect_subset_02 = {'op': 'module_load', 'module': 'boost', 'value': ''}
+
+        data_actual = parser.parse_section(section)
+
+        self.assertDictEqual(data_actual['setenvironment'][2], parser.actions[section][2])
+        self.assertDictEqual(data_actual['setenvironment'][3], parser.actions[section][3])
+
+        self.assertDictEqual(data_actual['setenvironment'][2], data_expect_subset_01)
+        self.assertDictEqual(data_actual['setenvironment'][3], data_expect_subset_02)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions(section)
+
+        print("")
+        parser.apply(section)
+
+        parser.pretty_print_envvars(envvar_filter=["TEST_SETENVIRONMENT_"],
+                                    filtered_keys_only=True)
+
+        self.assertEqual("7.3.0", os.environ["TEST_SETENVIRONMENT_GCC_VER"])
+        print("-----[ TEST END ]------------------------------------------")
+
+        print("OK")
+        return
+
+
+
     # =================
     #   H E L P E R S
     # =================
