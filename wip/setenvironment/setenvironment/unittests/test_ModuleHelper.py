@@ -244,7 +244,8 @@ class ModuleHelperTest(TestCase):
 
 
     @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
-    def test_ModuleHeler_module_swap_status_ok(self, arg_popen):
+    @patch('os.system', side_effect=mock_system_status_ok)
+    def test_ModuleHeler_module_swap_status_ok(self, arg_system, arg_popen):
         r = ModuleHelper.module("swap", "dummy-gcc/4.8.4", "dummy-gcc/7.3.0")
         print("result = {}".format(r))
         self.assertEqual(0, r)
