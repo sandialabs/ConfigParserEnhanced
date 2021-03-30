@@ -1290,9 +1290,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         operation_ref    = handler_parameters.op
         envvar_value_ref = handler_parameters.value
-        envvar_name_ref  = None
-
-        envvar_name_ref = handler_parameters.params[0]
+        envvar_name_ref  = handler_parameters.params[0]
 
         self._initialize_handler_parameters(section_name, handler_parameters)
 
