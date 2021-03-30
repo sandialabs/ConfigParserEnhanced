@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 from src.load_env_common import LoadEnvCommon
 import sys
+import textwrap
 
 
 class EnvKeywordParser(LoadEnvCommon):
@@ -479,8 +480,9 @@ class EnvKeywordParser(LoadEnvCommon):
             else:
                 for i in range(len(versioned_components) - 1):
                     msg += f"'{versioned_components[i]}', "
-                msg += (f" and '{versioned_components[-1]}' are not supported "
+                msg += (f"and '{versioned_components[-1]}' are not supported "
                         "together.")
+            msg = textwrap.fill(msg)
             sys.exit(self.get_err_msg_showing_supported_environments(msg))
 
     def assert_kw_str_node_type_is_supported(self, matched_env_name):

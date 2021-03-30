@@ -1,5 +1,6 @@
 from pathlib import Path
 import pytest
+import re
 import sys
 
 root_dir = (Path.cwd()/".."
@@ -132,6 +133,10 @@ def test_versioned_components_determined_correctly(inputs):
      "unsupported_components": ["arm-20.2"]},
     {"system_name": "machine-type-4", "build_name": "arm-20.1-openmpi-4.0.2",
      "unsupported_components": ["arm-20.1", "openmpi-4.0.2"]},
+    {"system_name": "machine-type-1",
+     "build_name": "intel-20.0.4-mpich-8.7.15-hsw-1.2.3-openmp-4.5.6",
+     "unsupported_components": ["intel-20.0.4", "mpich-8.7.15", "hsw-1.2.3",
+                                "openmp-4.5.6"]}
 ])
 def test_unsupported_versions_are_rejected(inputs):
     ekp = EnvKeywordParser(inputs["build_name"], inputs["system_name"],
@@ -141,17 +146,21 @@ def test_unsupported_versions_are_rejected(inputs):
         ekp.qualified_env_name
     exc_msg = excinfo.value.args[0]
 
+    msgs_expected = []
     if len(inputs["unsupported_components"]) == 1:
-        assert (f"ERROR:  '{inputs['unsupported_components'][0]}' is not "
-                "supported") in exc_msg
+        msgs_expected += [(f"ERROR:  '{inputs['unsupported_components'][0]}' "
+                           "is not supported")]
     elif len(inputs["unsupported_components"]) == 2:
-        assert (f"ERROR:  '{inputs['unsupported_components'][0]}' and "
-                f"'{inputs['unsupported_components'][1]}' are not supported "
-                "together") in exc_msg
+        msgs_expected += [(f"ERROR:  '{inputs['unsupported_components'][0]}' "
+                           f"and '{inputs['unsupported_components'][1]}' are "
+                           "not supported together")]
     else:
-        assert (f"ERROR:  '{inputs['unsupported_components'][0]}', "
-                f"'{inputs['unsupported_components'][1]}', ") in exc_msg
-        assert "are not supported together" in exc_msg
+        msgs_expected += [(f"ERROR:  '{inputs['unsupported_components'][0]}', "
+                           f"'{inputs['unsupported_components'][1]}', "),
+                           "are not supported together"]
+    for msg in msgs_expected:
+        msg = msg.replace(" ", r"\s+\|?\s*") # account for line breaks
+        assert re.search(msg, exc_msg) is not None
 
     if inputs["system_name"] == "machine-type-1":
         assert "intel-19.0.4-mpich-7.7.15-hsw-openmp" in exc_msg
@@ -190,7 +199,6 @@ def test_unsupported_node_types_are_rejected(inputs):
     with pytest.raises(SystemExit) as excinfo:
         ekp.qualified_env_name
     exc_msg = excinfo.value.args[0]
-    print(exc_msg)
 
     if inputs["system_name"] == "ride":
         assert ("ERROR:  The 'serial' and 'openmp' node types are not "
