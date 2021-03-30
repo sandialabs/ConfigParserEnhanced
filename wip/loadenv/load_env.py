@@ -47,12 +47,12 @@ class LoadEnv(LoadEnvCommon):
         build_name_sys_name = self.get_sys_name_from_build_name()
 
         if hostname_sys_name is None and build_name_sys_name is None:
-            err_msg = self.get_formatted_err_msg(
+            msg = self.get_formatted_msg(
                 f"Unable to find valid system name in the build name or "
                 f"for the hostname '{hostname}'\n in "
                 f"'{self.supported_systems_file}'."
             )
-            sys.exit(err_msg)
+            sys.exit(msg)
 
         # Use system name in build_name if hostname_sys_name is None
         if build_name_sys_name is not None:
@@ -60,7 +60,7 @@ class LoadEnv(LoadEnvCommon):
             if (hostname_sys_name is not None
                     and hostname_sys_name != self._system_name
                     and self.force_build_name_sys_name is False):
-                err_msg = self.get_formatted_err_msg(
+                msg = self.get_formatted_msg(
                     f"Hostname '{hostname}' matched to system "
                     f"'{hostname_sys_name}'\n in "
                     f"'{self.supported_systems_file}', but you specified "
@@ -68,7 +68,7 @@ class LoadEnv(LoadEnvCommon):
                     f"to force the use of '{self._system_name}', add "
                     "the --force flag."
                 )
-                sys.exit(err_msg)
+                sys.exit(msg)
 
         return self._system_name
 
@@ -124,11 +124,11 @@ class LoadEnv(LoadEnvCommon):
                      if s != "DEFAULT"]
         build_name_sys_names = [_ for _ in sys_names if _ in self.build_name]
         if len(build_name_sys_names) > 1:
-            err_msg = self.get_err_msg_for_list(
+            msg = self.get_msg_for_list(
                 "Cannot specify more than one system name in the build name\n"
                 "You specified", build_name_sys_names
             )
-            sys.exit(err_msg)
+            sys.exit(msg)
         elif len(build_name_sys_names) == 0:
             build_name_sys_name = None
         else:
