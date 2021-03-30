@@ -15,6 +15,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.4.0] - [Unreleased]
+Removed the regular expression based splitting method for keys into tokens
+for the use of `shlex.split`, which looks to do a better job of extracting
+tokens in the manner we would like without requiring a complex REGEX.
+
+HandlerParameters was also changed to remove `op_params` in favor of two new
+properties: `op` and `params`, where `op` is a string and `params` is a list
+of strings.
+
+### Added
+- HandlerParams property: `HandlerParams.op`
+- HandlerParams property: `HandlerParams.params`
+### Changed
+### Deprecated
+### Removed
+- ConfigParserEnhanced method: `ConfigParserEnhanced._regex_splitter()`
+- ConfigParserEnhanced method: `ConfigParserEnhanced._regex_op_matcher()`
+- ConfigParserEnhanced method: `ConfigParserEnhanced._get_op1_from_regex_match()`
+- ConfigParserEnhanced method: `ConfigParserEnhanced._get_op2_from_regex_match()`
+- HandlerParameters property : `HandlerParams.op_params`
+### Fixed
+### Internal
+### Security
+
+
 
 ## [0.3.1] - 2021-03-24
 ### Added

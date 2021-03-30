@@ -45,7 +45,7 @@ def print_section(parser, section_name):
     Args:
         section_name (str): The name of the section to be printed.
     """
-    print("Get {}".format(section_name))
+    print(">>> Get section `{}`:".format(section_name))
     section = parser.configparserenhanceddata[section_name]
     print(section)
     print("")
@@ -57,7 +57,7 @@ def test_configparserEnhanced(filename="config.ini"):
     print("")
 
     parser = ConfigParserEnhanced(filename=filename)
-    parser.debug_level = 1
+    parser.debug_level = 5
     parser.exception_control_level = 4
     parser.exception_control_compact_warnings = True
     parser.exception_control_silent_warnings  = False

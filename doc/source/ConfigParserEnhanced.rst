@@ -121,12 +121,6 @@ Parser Helpers (Private)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. automethod:: configparserenhanced.ConfigParserEnhanced._parse_section_r
 
-.. autoattribute:: configparserenhanced.ConfigParserEnhanced._regex_op_splitter
-.. automethod:: configparserenhanced.ConfigParserEnhanced._regex_op_matcher
-
-.. automethod:: configparserenhanced.ConfigParserEnhanced._get_op1_from_regex_match
-.. automethod:: configparserenhanced.ConfigParserEnhanced._get_op2_from_regex_match
-
 .. automethod:: configparserenhanced.ConfigParserEnhanced._apply_transformation_to_operation
 .. automethod:: configparserenhanced.ConfigParserEnhanced._apply_transformation_to_parameter
 

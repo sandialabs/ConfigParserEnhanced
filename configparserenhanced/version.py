@@ -2,6 +2,6 @@
 
 # Note, when updating this, the docstring in ConfigParserEnhanced
 # and in pyproject.toml should also be updated
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 

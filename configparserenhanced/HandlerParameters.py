@@ -90,41 +90,49 @@ class HandlerParameters(object):
 
 
     @property
-    def op_params(self) -> tuple:
-        """Processed operation and parameter extracted from an option key.
-
-        Processed operation, parameter pair for this option if it is processed
-        as a command that has an associated *handler*. For example, in the following
-        ``.ini`` file snippet:
-
-            [section]
-            operation parameter uniquestr: value
-
-        ``op_params`` will contain the tuple ``("operation", "parameter")``.
-        Generally, the first entry (the operation) will always be a string but the
-        second parameter might be a ``NoneType`` in some cases.
+    def op(self) -> str:
+        """Operation value for a Handler.
 
         Returns:
-            tuple: A tuple ``(op1, op2)`` containing the operations extracted from
-            the current operation.
+            str: A string containing the operation
 
         Raises:
-            TypeError: If the value isn't a tuple.
-            ValueError: If the value is a tuple with length other than 2.
+            TypeError: A TypeError is raised on assignment if the assigned
+                type is not a string.
         """
-        if not hasattr(self, '_op_params'):
-            self._op_params = (None, None)
-        return self._op_params
+        if not hasattr(self, '_op'):
+            self._op = ''
+        return self._op
 
 
-    @op_params.setter
-    def op_params(self, value) -> tuple:
-        if not isinstance(value, tuple):
-            raise TypeError("op_params must be a tuple.")
-        if len(value) != 2:
-            raise ValueError("op_params must have 2 entries.")
-        self._op_params = value
-        return self._op_params
+    @op.setter
+    def op(self, value) -> str:
+        if not isinstance(value, (str)):
+            raise TypeError("op must be a string.")
+        self._op = value
+        return self._op
+
+
+    @property
+    def params(self) -> list:
+        """Parameters for an operation being passed to a handler.
+
+        This should contain a list of strings.
+
+        Raises:
+            TypeError: if not given a list or tuple on assignment.
+        """
+        if not hasattr(self, '_params'):
+            self._params = []
+        return self._params
+
+
+    @params.setter
+    def params(self, value) -> list:
+        if not isinstance(value, (list,tuple)):
+            raise TypeError("params must be a list or tuple")
+        self._params = list(value)
+        return self._params
 
 
     @property
