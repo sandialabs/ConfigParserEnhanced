@@ -73,25 +73,59 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
         """
         status = 0
 
+        # LMOD does not capture stdout and stderr in an object, the locals below are used to capture
+        # those descriptors for error checking in this function.
+        stdout = ""
+        stderr = ""
+
+        # Check whether the LMOD module command exists on the system
+        # We cannot use declare -F module via os.system or subprocess.Popen because
+        # they are both "patched" for unit testing.... I am settling for os.getenv
+        # of LMOD_CMD, which is not a bash function, for now. Note that declare -F
+        # is the more robust approach.
+        lmod_cmd_env = os.getenv("LMOD_CMD")
+        if len(lmod_cmd_env) == 0:
+            raise FileNotFoundError("Unable to find module function")          # pragma: no cover
+
+        # We cannot control whether module is passed to exec, that happens within
+        # the env_modules_python.modules method.
         try:
+            import io
+            from contextlib import redirect_stdout
+            from contextlib import redirect_stderr
+
             # env_modules_python.module does not support command as a list type, so we splat command here.
             if isinstance(command, (list)):
                 _command = command
-                env_modules_python.module(*command, *arguments)
+                with io.StringIO() as err, redirect_stderr(err), io.StringIO() as out, redirect_stdout(out):
+                    env_modules_python.module(*command, *arguments)
+                    stdout = out.getvalue()
+                    stderr = err.getvalue()
+
             else:
                 _command = []
                 _command.append(command)
-                env_modules_python.module(command, *arguments)
+
+                with io.StringIO() as err, redirect_stderr(err), io.StringIO() as out, redirect_stdout(out):
+                    env_modules_python.module(command, *arguments)
+                    stdout = out.getvalue()
+                    stderr = err.getvalue()
 
         except BaseException as error:
-            print("")
+            print("!!")
             print("An ERROR occurred during execution of module command")
-            print("")
+            print("!!")
             raise error
+
+        # Check the module function output for errors
+        stderr_ok = True
+        if "error:" in stderr.lower():
+            stderr_ok = False
 
         # Check for module command success with short circuiting
         _arguments = _command[1:] + list(arguments)
         shell_cmd = []
+        # TODO: handle other commands: purge, etc.
         if _command[0] == 'load':
             shell_cmd = 'module is-loaded ' + _arguments[0] + ' && true  || false'
         elif _command[0] == 'unload':
@@ -99,7 +133,8 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
         elif _command[0] == 'swap':
             # TODO: Check that _arguments[0] is unloaded too
             shell_cmd = 'module is-loaded ' + _arguments[1] + ' && true ||  false'
-        # TODO: elif _command[0] == 'purge':
+        elif _command[0] == 'use':
+            shell_cmd = '[ -e ' + _arguments[0] + ' ] && true || false'
 
         # NOTE: mock.py does not recognize keyword argument 'shell' in __init__
         # so we bypass mock.py via os.system here instead of running:
@@ -107,7 +142,22 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
         if len(shell_cmd) != 0:
             status = os.system(shell_cmd)
 
-        return status
+            if status != 0:
+                print("!!")
+                print(stdout)
+                print(stderr)
+                print("!!")
+                return status
+
+        if not stderr_ok:
+            print("!!")
+            print("An ERROR occurred during execution of module command")
+            print(stdout)
+            print(stderr)
+            print("!!")
+            raise BaseException
+
+        return 0
 
 
 
