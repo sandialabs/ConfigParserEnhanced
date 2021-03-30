@@ -19,9 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [0.3.1] [Unreleased]
+## [0.4.0] [Unreleased]
 #### Added
 #### Changed
+- Updated to 0.4.0 to sync modifications required by ConfigParserEnhanced 0.4.0.
 #### Deprecated
 #### Removed
 #### Fixed
