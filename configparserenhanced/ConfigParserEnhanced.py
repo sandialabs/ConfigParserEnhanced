@@ -990,7 +990,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._reset_lazy_attr("_configparserdata")
         self._reset_lazy_attr("_configparserenhanceddata")
         self._reset_lazy_attr("_parse_section_last_result")
-        self._reset_lazy_attr("_configparser_delimiters")
         return 0
 
 
