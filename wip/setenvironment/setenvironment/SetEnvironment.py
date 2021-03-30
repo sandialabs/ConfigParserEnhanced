@@ -11,7 +11,7 @@ Todo:
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
 
-:Version: 0.3.1
+:Version: 0.4.0
 """
 from __future__ import print_function
 
@@ -832,7 +832,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         # -----[ Handler Content Start ]-------------------
         data_shared = handler_parameters.data_shared['setenvironment']
-        envvar_name = handler_parameters.op_params[1]
+        envvar_name = handler_parameters.params[0]
 
         new_data_shared = []
         for idata in data_shared:
@@ -1016,7 +1016,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         # -----[ Handler Content Start ]-------------------
         data_shared = handler_parameters.data_shared['setenvironment']
-        module_name = handler_parameters.op_params[1]
+        module_name = handler_parameters.params[0]
 
         # do it all in a lambda? Look ma, I did it all in "one line" that nobody can read.
         # yeah, let's not do this. Keeping the comment here though until I can capture this
@@ -1288,9 +1288,11 @@ class SetEnvironment(ConfigParserEnhanced):
         self._validate_parameter(section_name, (str))
         self.enter_handler(handler_parameters)
 
-        operation_ref    = handler_parameters.op_params[0]
-        envvar_name_ref  = handler_parameters.op_params[1]
+        operation_ref    = handler_parameters.op
         envvar_value_ref = handler_parameters.value
+        envvar_name_ref  = None
+
+        envvar_name_ref = handler_parameters.params[0]
 
         self._initialize_handler_parameters(section_name, handler_parameters)
 
@@ -1345,9 +1347,13 @@ class SetEnvironment(ConfigParserEnhanced):
         self._validate_parameter(section_name, (str))
         self.enter_handler(handler_parameters)
 
-        operation_ref    = handler_parameters.op_params[0]
-        module_name_ref  = handler_parameters.op_params[1]
+        operation_ref    = handler_parameters.op
         module_value_ref = handler_parameters.value
+        module_name_ref  = None
+
+        if len(handler_parameters.params) > 0:
+            module_name_ref = handler_parameters.params[0]
+
 
         self._initialize_handler_parameters(section_name, handler_parameters)
 
