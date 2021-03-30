@@ -125,13 +125,13 @@ def test_versioned_components_determined_correctly(inputs):
 
 @pytest.mark.parametrize("inputs", [
     {"system_name": "machine-type-1", "build_name": "intel-20",
-     "unsupported_component": "intel-20"},
+     "unsupported_components": ["intel-20"]},
     {"system_name": "machine-type-1", "build_name": "intel-19-mpich-7.2",
-     "unsupported_component": "mpich-7.2"},
+     "unsupported_components": ["intel-19", "mpich-7.2"]},
     {"system_name": "machine-type-4", "build_name": "arm-20.2",
-     "unsupported_component": "arm-20.2"},
+     "unsupported_components": ["arm-20.2"]},
     {"system_name": "machine-type-4", "build_name": "arm-20.1-openmpi-4.0.2",
-     "unsupported_component": "arm-20.1-openmpi-4.0.2"},
+     "unsupported_components": ["arm-20.1", "openmpi-4.0.2"]},
 ])
 def test_unsupported_versions_are_rejected(inputs):
     ekp = EnvKeywordParser(inputs["build_name"], inputs["system_name"],
@@ -141,8 +141,17 @@ def test_unsupported_versions_are_rejected(inputs):
         ekp.qualified_env_name
     exc_msg = excinfo.value.args[0]
 
-    assert (f"ERROR:  '{inputs['unsupported_component']}' is not a supported "
-            "version") in exc_msg
+    if len(inputs["unsupported_components"]) == 1:
+        assert (f"ERROR:  '{inputs['unsupported_components'][0]}' is not "
+                "supported") in exc_msg
+    elif len(inputs["unsupported_components"]) == 2:
+        assert (f"ERROR:  '{inputs['unsupported_components'][0]}' and "
+                f"'{inputs['unsupported_components'][1]}' are not supported "
+                "together") in exc_msg
+    else:
+        assert (f"ERROR:  '{inputs['unsupported_components'][0]}', "
+                f"'{inputs['unsupported_components'][1]}', ") in exc_msg
+        assert "are not supported together" in exc_msg
 
     if inputs["system_name"] == "machine-type-1":
         assert "intel-19.0.4-mpich-7.7.15-hsw-openmp" in exc_msg

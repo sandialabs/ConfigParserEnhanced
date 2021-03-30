@@ -464,27 +464,24 @@ class EnvKeywordParser(LoadEnvCommon):
         versioned_components = self.get_versioned_components_from_str(
             matched_env_name, self.build_name
         )
-
-        # Make sure each component version is supported
-        for vc in versioned_components:
-            try:
-                assert [en for en in self.env_names if vc in en] != []
-            except AssertionError:
-                sys.exit(
-                    self.get_err_msg_showing_supported_environments(
-                        f"'{vc}' is not a supported version."
-                    )
-                )
-
-        # Make sure the component versions combination is supported
-        versioned_match = "-".join(versioned_components)
-        try:
-            assert [en for en in self.env_names+self.aliases if versioned_match
-                    in en] != []
-        except AssertionError:
-            sys.exit(self.get_err_msg_showing_supported_environments(
-                f"'{versioned_match}' is not a supported version."
-            ))
+        vcs_in_env_names = []
+        for env in self.env_names:
+            vcs_in_env_names += [all([vc in env for vc in
+                                      versioned_components])]
+        if not any(vcs_in_env_names):
+            msg = ""
+            if len(versioned_components) == 1:
+                msg = f"'{versioned_components[0]}' is not supported."
+            elif len(versioned_components) == 2:
+                msg = (f"'{versioned_components[0]}' and "
+                       f"'{versioned_components[1]}' are not supported "
+                       "together.")
+            else:
+                for i in range(len(versioned_components) - 1):
+                    msg += f"'{versioned_components[i]}', "
+                msg += (f" and '{versioned_components[-1]}' are not supported "
+                        "together.")
+            sys.exit(self.get_err_msg_showing_supported_environments(msg))
 
     def assert_kw_str_node_type_is_supported(self, matched_env_name):
         """
