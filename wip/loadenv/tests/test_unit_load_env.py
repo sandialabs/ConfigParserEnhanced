@@ -62,6 +62,7 @@ def test_args_overwrite_programmatic_file_assignments():
         supported_systems_file="prog/supported-systems.ini",
         supported_envs_file="prog/supported-envs.ini",
         environment_specs_file="prog/environment_specs.ini",
+        force_build_name_sys_name=False,
         argv=[
             "--supported-systems",
             "arg/supported-systems.ini",
@@ -69,6 +70,7 @@ def test_args_overwrite_programmatic_file_assignments():
             "arg/supported-envs.ini",
             "--environment-specs",
             "arg/environment_specs.ini",
+            "--force",
             "keyword-str-arg"
         ],
     )
@@ -77,6 +79,7 @@ def test_args_overwrite_programmatic_file_assignments():
     assert le.supported_systems_file == Path("arg/supported-systems.ini")
     assert le.supported_envs_file == Path("arg/supported-envs.ini")
     assert le.environment_specs_file == Path("arg/environment_specs.ini")
+    assert le.force_build_name_sys_name is True
 
 
 @pytest.mark.parametrize("blank_value", [
@@ -139,11 +142,93 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     )
 
 
+###############################
+#  System Name Determination  #
+###############################
+@pytest.mark.parametrize("data", [
+    {"hostname": "mutrino", "sys_name": "machine-type-1"},
+    {"hostname": "vortex", "sys_name": "machine-type-2"},
+    {"hostname": "eclipse", "sys_name": "machine-type-3"},
+    {"hostname": "cee-build007", "sys_name": "rhel7"},
+    {"hostname": "cee-compute004", "sys_name": "rhel7"},
+])
+@patch("load_env.socket")
+def test_system_name_determination_correct_for_hostname(mock_socket, data):
+    mock_socket.gethostname.return_value = data["hostname"]
+
+    le = LoadEnv(build_name="build_name")
+    assert le.system_name == data["sys_name"]
+
+
+@patch("load_env.socket")
+def test_sys_name_in_build_name_not_matching_hostname_raises(mock_socket):
+    mock_socket.gethostname.return_value = "stria"
+
+    le = LoadEnv(build_name="machine-type-1-build-name")
+    with pytest.raises(SystemExit) as excinfo:
+        le.system_name
+    exc_msg = excinfo.value.args[0]
+
+    assert "Hostname 'stria' matched to system 'machine-type-4'" in exc_msg
+    assert "but you specified 'machine-type-1' in the build name" in exc_msg
+    assert "add the --force flag" in exc_msg
+
+
+@patch("load_env.socket")
+def tests_sys_name_in_build_name_overrides_hostname_match_when_forced(
+    mock_socket
+):
+    mock_socket.gethostname.return_value = "stria"
+    le = LoadEnv(build_name="machine-type-1-build-name", force_build_name_sys_name=True)
+    assert le.system_name == "machine-type-1"
+
+
+@pytest.mark.parametrize("hostname", ["stria", "unsupported_hostname"])
+@patch("load_env.socket")
+def test_multiple_sys_names_in_build_name_raises_regardless_of_hostname_match(
+    mock_socket, hostname
+):
+    mock_socket.gethostname.return_value = hostname
+
+    le = LoadEnv(build_name="machine-type-1-rhel7-build-name")
+    with pytest.raises(SystemExit) as excinfo:
+        le.system_name
+    exc_msg = excinfo.value.args[0]
+
+    assert ("Cannot specify more than one system name in the build name"
+            in exc_msg)
+    assert "- machine-type-1" in exc_msg
+    assert "- rhel7" in exc_msg
+
+
+@pytest.mark.parametrize("data", [
+    {"build_name": "no-system-here", "sys_name": None, "raises": True},
+    {"build_name": "machine-type-1-build-name", "sys_name": "machine-type-1", "raises": False},
+])
+@patch("load_env.socket")
+def test_unsupported_hostname_handled_correctly(mock_socket, data):
+    mock_socket.gethostname.return_value = "unsupported_hostname"
+
+    le = LoadEnv(build_name=data["build_name"])
+    if data["raises"]:
+        with pytest.raises(SystemExit) as excinfo:
+            le.system_name
+        exc_msg = excinfo.value.args[0]
+
+        assert ("Unable to find valid system name in the build name or for "
+                "the hostname 'unsupported_hostname'" in exc_msg)
+        assert str(le.supported_systems_file) in exc_msg
+    else:
+        assert le.system_name == data["sys_name"]
+
+
 ######################################################################
 #  EnvKeywordParser (ekp) Basic Interaction (not integration tests)  #
 ######################################################################
 @patch("load_env.EnvKeywordParser")
-def test_correct_arguments_are_passed_to_ekp_object(mock_ekp):
+@patch("load_env.socket")
+def test_correct_arguments_are_passed_to_ekp_object(mock_socket, mock_ekp):
+    mock_socket.gethostname.return_value = "mutrino"
     le = LoadEnv(argv=["build_name"])
     le.parsed_env_name
 
@@ -152,7 +237,10 @@ def test_correct_arguments_are_passed_to_ekp_object(mock_ekp):
 
 
 @patch("load_env.EnvKeywordParser")
-def test_ekp_qualified_env_name_gets_set_as_parsed_env_name(mock_ekp):
+@patch("load_env.socket")
+def test_ekp_qualified_env_name_gets_set_as_parsed_env_name(mock_socket,
+                                                            mock_ekp):
+    mock_socket.gethostname.return_value = "mutrino"
     qualified_env_name = "machine-type-1-intel-18.0.5-mpich-7.7.6"
     mock_ekp_obj = mock.Mock()
     mock_ekp_obj.qualified_env_name = qualified_env_name
@@ -167,9 +255,11 @@ def test_ekp_qualified_env_name_gets_set_as_parsed_env_name(mock_ekp):
 ########################################################
 @patch("load_env.EnvKeywordParser")
 @patch("load_env.SetEnvironment")
+@patch("load_env.socket")
 def test_correct_arguments_are_passed_to_set_environment_object(
-    mock_se, mock_ekp
+    mock_socket, mock_se, mock_ekp
 ):
+    mock_socket.gethostname.return_value = "mutrino"
     qualified_env_name = "machine-type-1-intel-18.0.5-mpich-7.7.6"
     mock_ekp_obj = mock.Mock()
     mock_ekp_obj.qualified_env_name = qualified_env_name
@@ -192,12 +282,14 @@ def test_correct_arguments_are_passed_to_set_environment_object(
                          [None, "test_dir/load_matching_env.sh"])
 @patch("load_env.EnvKeywordParser")
 @patch("load_env.SetEnvironment")
+@patch("load_env.socket")
 def test_load_matching_env_is_set_correctly_and_directories_are_created(
-    mock_se, mock_ekp, output
+    mock_socket, mock_se, mock_ekp, output
 ):
     if output is not None:
         assert Path(output).exists() is False
 
+    mock_socket.gethostname.return_value = "mutrino"
     mock_se_obj = mock.Mock()
     mock_se.return_value = mock_se_obj
 
