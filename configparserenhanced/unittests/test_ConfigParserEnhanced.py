@@ -245,8 +245,8 @@ class ConfigParserEnhancedTest(TestCase):
         entries from a variety of different configurations in the .ini file.
 
         Examples, the following `key` options should properly be evaluated:
-        - `op1`             --> op1: "op1"   op2: None
-        - `op1 op2`         --> op1: "op1"   op2: "op2"
+        - `op1`             -->
+        - `op1 op2`         -->
         - `op1 'op2'`       --> op1: "op1"   op2: "op2"
         - `op1 'op 2'`      --> op1: "op1"   op2: "op 2"
         - `op1 op2 op3`     --> op1: "op1"   op2: "op2"
@@ -275,30 +275,30 @@ class ConfigParserEnhancedTest(TestCase):
         data = parser.parse_section(section)
         print(data)
 
-        results_expected = [ ('op1', None),
-                             ('op1', 'op2'),
-                             ('op1', 'op2'),
-                             ('op1', 'op 2'),
-                             ('op1', 'op2'),
-                             ('op1', 'op2'),
-                             ('op_1', None),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op2'),
-                             ('op_1', 'op 2'),
-                             ('op_1', 'op 2'),
-                             ('op_1', 'op-2'),
-                             ('op_1', 'op_2'),
-                             ('op1',  'op2'),
-                             ('op1',  'op2'),
-                             ('opA',  None),
-                             ('op_A', None),
+        results_expected = [ ('op1', []),
+                             ('op1', ['op2']),
+                             ('op1', ['op2']),
+                             ('op1', ['op 2']),
+                             ('op1', ['op2', 'op3']),
+                             ('op1', ['op2', 'op3']),
+                             ('op_1', []),
+                             ('op_1', ['op2']),
+                             ('op_1', ['op2', 'op3']),
+                             ('op_1', ['op2']),
+                             ('op_1', ['op2', 'op3']),
+                             ('op_1', ['op 2']),
+                             ('op_1', ['op 2', 'op3']),
+                             ('op_1', ['op-2']),
+                             ('op_1', ['op_2']),
+                             ('op1',  ['op2']),
+                             ('op1',  ['op2','+++']),
+                             ('opA',  []),
+                             ('op_A', []),
         ]
         print("results_expected ({}):".format(len(results_expected)))
         pprint(results_expected)
 
-        results_actual = [ (d['op1'],d['op2']) for d in parser._loginfo if d['type']=='section-operands']
+        results_actual = [ (d['op'],d['params']) for d in parser._loginfo if d['type']=='section-operation']
         print("results_actual ({}):".format(len(results_actual)))
         pprint(results_actual)
 

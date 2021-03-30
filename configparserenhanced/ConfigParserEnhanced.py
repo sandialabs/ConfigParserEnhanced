@@ -44,7 +44,7 @@ Todo:
     - William C. McLendon III <wcmclen@sandia.gov>
     - Jason M. Gates <jmgate@sandia.gov>
 
-:Version: 0.3.1
+:Version: 0.4.0
 
 """
 from __future__ import print_function
@@ -53,6 +53,7 @@ import configparser
 import os
 from pathlib import Path
 import re
+import shlex
 import sys
 
 try:
@@ -334,9 +335,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
             Unless :class:`~.HandlerParameters` is changed, this wil be a ``dict`` type.
         """
-        self.debug_message(1, "[" + "-"*40)
-        self.debug_message(1, "Parse section `{}` START".format(section))
-        self.debug_message(1, "[" + "-"*40)
+        self.debug_message(1, "[" + "-"*38 + ']')
+        self.debug_message(1, "  Parse section `{}` START".format(section))
+        self.debug_message(1, "[" + "-"*38 + ']')
         self._validate_parameter(section, (str) )
 
         if section == "":
@@ -351,9 +352,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # Cache the result
         self.parse_section_last_result = result
 
-        self.debug_message(1, "[" + "-"*40)
-        self.debug_message(1, "Parse section `{}` FINISH".format(section))
-        self.debug_message(1, "[" + "-"*40)
+        self.debug_message(1, "[" + "-"*38 + ']')
+        self.debug_message(1, "  Parse section `{}` FINISH".format(section))
+        self.debug_message(1, "[" + "-"*38 + ']')
         return result
 
 
@@ -378,7 +379,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Enter handler    : {}".format(handler_name))                         # Console
         self.debug_message(2, "--> option       : {}".format(handler_parameters.raw_option))        # Console
-        self.debug_message(2, "--> op_params    : {}".format(handler_parameters.op_params))         # Console
+        self.debug_message(2, "--> op           : {}".format(handler_parameters.op))                # Console
+        self.debug_message(2, "--> params       : {}".format(handler_parameters.params))            # Console
         self.debug_message(2, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
         self.debug_message(3, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
 
@@ -589,13 +591,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_handlerparameters(handler_parameters)
         handler_parameters.data_internal['processed_sections'].add(section_name)
 
-        # Todo: add an 'empty' section to configparserenhanceddata here
-        #       if the section doesn't exist (needs a new function to
-        #       configparserenhanceddata I think)
-        #       This is to handle the case where we access data through
-        #       the configparserenhanceddata[section] getter (__getitem__)
-        #       and the section in question _only_ has operations (i.e., no generic handlers)
-
         for sec_k,sec_v in current_section.items():
             sec_k = str(sec_k).strip()
 
@@ -611,58 +606,48 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 sec_v = sec_v.strip('"')
 
             handler_parameters.raw_option = (sec_k, sec_v)
-            handler_parameters.value = sec_v
+            handler_parameters.value      = sec_v
 
-            self.debug_message(2, "- Entry: `{}` : `{}`".format(sec_k, sec_v))                      # Console
+            self.debug_message(2, "--> Entry   : `{}` : `{}`".format(sec_k, sec_v))                 # Console
             self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
-
-            # Extract the operation parameters (op1, op2) using the regex matcher.
-            regex_op_splitter_m = self._regex_op_matcher(sec_k)
 
             # Initialze the handler return value.
             handler_rval = 0
 
-            if regex_op_splitter_m is None:
-                # Call generic_handler if the option key did not expand to an 'operation'.
+            sec_k_tok = shlex.split(sec_k)
+
+            if not re.match(r"^[\w\-]+$", sec_k_tok[0]):
+                # Call generic_handler if the first entry has invalid characters
                 handler_rval = self._launch_generic_option_handler(section_name,
                                                             handler_parameters,
                                                             sec_k,
                                                             sec_v)
-
             else:
-                # If we have a regex match, process the operation code and launch the
-                # operation-specific handler if it exists or the generic handler if
-                # it does not.
+                # Otherwise, it _could_ be a 'handled' operation
+                op = sec_k_tok[0]
+                params = sec_k_tok[1:]
 
-                self.debug_message(5, "regex-groups {}".format(regex_op_splitter_m.groups()))       # Console
+                op = self._apply_transformation_to_operation(op)
+                params = [ self._apply_transformation_to_parameter(x) for x in params ]
 
-                op1 = self._get_op1_from_regex_match(regex_op_splitter_m)
-                op1 = self._apply_transformation_to_operation(op1)
+                handler_parameters.op = op
+                handler_parameters.params = params
 
-                op2 = self._get_op2_from_regex_match(regex_op_splitter_m)
-                op2 = self._apply_transformation_to_parameter(op2)
+                self._loginfo_add('section-operation', {'op': op, 'params': params } )              # Logging
+                self.debug_message(2, "--> op      : {}".format(handler_parameters.op))             # Console
+                self.debug_message(2, "--> params  : {}".format(handler_parameters.params))         # Console
+                self.debug_message(2, "--> value   : {}".format(handler_parameters.value))          # Console
 
-                handler_parameters.op_params = (op1, op2)
+                handler_name,ophandler_f = self._locate_handler_method(handler_parameters.op)
 
-                self._loginfo_add('section-operands', {'op1': op1, 'op2': op2})                     # Logging
-                self.debug_message(2, "- op1: {}".format(op1))                                      # Console
-                self.debug_message(2, "- op2: {}".format(op2))                                      # Console
-                self.debug_message(2, "- val: {}".format(handler_parameters.value))                 # Console
-
-                # Generate the handler name and check if we have one defined.
-                handler_name,ophandler_f = self._locate_handler_method(op1)
-
-                # Call the appropriate 'handler' for this entry.
                 if ophandler_f is not None:
-                    # Call the computed handler for the detected operation.
                     handler_parameters.handler_name = handler_name
                     handler_rval = ophandler_f(section_name, handler_parameters)
                 else:
-                    # Call generic_handler if no operation handler is found.
                     handler_rval = self._launch_generic_option_handler(section_name,
-                                                                handler_parameters,
-                                                                sec_k,
-                                                                sec_v)
+                                                                       handler_parameters,
+                                                                       sec_k,
+                                                                       sec_v)
 
             # Check the return code from the handler.
             self._check_handler_rval(handler_parameters.handler_name, handler_rval)
@@ -744,155 +729,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return new_handler_parameters
 
 
-    @property
-    def _regex_op_splitter(self) -> re.Pattern:
-        """Regular expression-based key splitter to op(param) pairs.
-
-        This parameter stores the regex used to match operation lines in the parser.
-
-        We provide this as a property in case a subclass needs to override it.
-
-        **Warning: There be dragons here!**
-
-        This is only something you should do if you **really** understand the
-        core parser engine. If this is changed significantly, you will likely also
-        need to override the following methods too:
-
-        This function is tasked with generating the regular expression
-        that parses out the *key* field of a ``configparser`` option
-        into ``<operation> <parameter>`` fields that are used by *handlers*.
-
-        * :meth:`~ConfigParserEnhanced.get_op1_from_regex_match()`
-        * :meth:`~ConfigParserEnhanced.get_op2_from_regex_match()`
-        * :meth:`~ConfigParserEnhanced.regex_op_matcher()`
-
-        Returns:
-            re.Pattern: A compiled regular expression pattern.
-
-        Note:
-            This should not be overridden unless you *really* know what you're
-            doing since it'll probably also break the parser. Changing this could
-            cascade into a lot of changes.
-
-        See Also:
-            - `regex tester <https://regex101.com/>` A useful REGEX tester that has
-              a Python regex mode for testing Python based regular expressions.
-        """
-        if not hasattr(self, '_regex_op_splitter_value'):
-            # This is the regex op splitter to extract op1 and op2.  This is
-            # pretty complicated, so here are the details:
-            # - The goal is to capture op1 and op2 into groups from a regex match.
-            # - op1 will always be captured by group1. We only allow this to be letters,
-            #   numbers, dashes, or underscores.
-            #   - No spaces are ever allowed for op1 because this will get mapped to a
-            #     handler method name of the form `_handler_{op1}()`
-            # - op2 is captured by group 2 or 3
-            #   - group2 if op2 is single-quoted (i.e., 'op 2' or 'op2' or 'op-2')
-            #   - group3 if op2 is not quoted.
-            # - op2 is just a string that gets passed down to the handler function
-            #   so we will let this include spaces, but if you do include spaces it
-            #   _must_ be single quoted otherwise we treat everything after the
-            #   space as 'extra' stuff.
-            #   - This 'extra' stuff is discarded by ConfigParserEnhanced so that
-            #     it can be used to differentiate multiple commands in a section
-            #     from one another that might otherwise map to the same key. Note,
-            #     in a normal `ConfigParser` `.ini` file each section is a list of
-            #     key:value pairs. The keys must be unique but that can be problematic
-            #     if we're implementing a simple parsed language on top of it.
-            #     For example, if we're setting envvars and wanted multiple entries for PATH:
-            #
-            #         envvar-prepend PATH: /something/to/prepend/to/path
-            #         envvar-prepend PATH: /another/path/to/prepend
-            #
-            #     Here, the keys would be invalid for configparser because
-            #     they're identical. By allowing 'extra' entries after op2
-            #     we can allow a user to make each one unique. So our example
-            #     above could be changed to:
-            #
-            #         envvar-prepend PATH A: /something/to/prepend/to/path
-            #         envvar-prepend PATH B: /another/path/to/prepend
-            #
-            #     In both cases, op1 = 'envvar-prepend' and op2 = 'PATH' but the
-            #     addition of the 'A' and 'B' will differentiate these keys from
-            #     the ConfigParser's perspective.
-
-            #regex_string = r"^([\w\d\-_]+) *('([\w\d\-_ ]+)'|([\w\d\-_]+)(?: .*)*)?"    # (Deprecated but keep for now)
-            regex_string = r"^([\w\-]+)[^\S\r\n]*((?:'[^:='\"]+')|(?:[^:=\s]+))?.*"
-            #                  ^^^^^^^          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            #                      \                    \
-            #                       \                    \--- op2 : group 1
-            #                        \--- op1 : group 0
-            #
-            # Note: we still will need to strip the single-quotes from op2
-            #
-            self._regex_op_splitter_value = re.compile(regex_string)
-
-        return self._regex_op_splitter_value
-
-
-    def _regex_op_matcher(self, text):
-        """Execute the regex match operation for operations.
-
-        Executes the regex match operation using the regex returned by
-        :meth:`~ConfigParserEnhanced._regex_op_splitter`.
-
-        This method adds the ability to add in extra checks for sanity
-        that can be inserted into the parser. If the result of the match
-        fails the extra scrutiny, then return None.
-
-        Args:
-            text (str): The string in which we're searching.
-
-        Returns:
-            re.Match: If one exists and we pass any sanity checks that are
-            added to this method.
-        """
-        m = self._regex_op_splitter.match(text)
-
-        # Sanity checks: Change match to None if we fail.
-        if m != None:
-            if m.groups()[0] != text.split()[0]:
-                m = None
-        return m
-
-
-    def _get_op1_from_regex_match(self, regex_match) -> str:
-        """Extracts op1 from the regular expression match groups.
-
-        Args:
-            regex_match (re.Match): The regex match object.
-
-        Returns:
-            str: The op1 parameter, formatted properly for use
-            as part of a handler name.
-
-        Note:
-            op1 must be a string that could be used in a method name, since this gets
-            used by the parser to call a function of the pattern ``_handler_{op1}()``.
-        """
-        output = str(regex_match.groups()[0])
-        output = output.strip()
-        return output
-
-
-    def _get_op2_from_regex_match(self, regex_match) -> str:
-        """Extracts op2 from the regular expression match groups.
-
-        Args:
-            regex_match (re.Match): The regex match object.
-
-        Returns:
-            String containing the op2 parameter or None if one doesn't exist.
-        """
-        output = None
-
-        if regex_match.groups()[1]:
-            output = str(regex_match.groups()[1]).strip()
-            output = output.strip("' ")
-
-        return output
-
-
     def _apply_transformation_to_operation(self, operation) -> str:
         """
         Apply transformations to the **operator** parameters which are necessary
@@ -925,9 +761,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     def _locate_handler_method(self, operation) -> str:
-        """Convert op1 to a handler name and get the reference to the handler.
+        """Convert ``operation`` to a handler name and get the reference to the handler.
 
-        This method converts the *operation* parameter (op1) to a
+        This method converts the *operation* parameter (op) to a
         handler name and searches for the existence of a matching
         method.
 
@@ -935,6 +771,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         internal/private handlers (that should not be overridden)
         or ``handler_<operation>`` for handlers that are considered
         fair game for subclasses to override and customize.
+
+        In the case where there are both public and private handlers for
+        the same operation defined, we will optionally raise a
+        ``AmbiguousHandlerErorr`` if the ``exception_control_level`` is set
+        high enough to trigger "SERIOUS" events. Otherwise, we will choose
+        the *PUBLIC* handler definition to execute.
 
         Args:
             operation (str): The operation parameter that is converted to
@@ -946,6 +788,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
               - ``handler_name`` is a string.
               - ``handler_method`` is either a reference to the handler method
                 if it exists, or None if it does not exist.
+
+        Raises:
+            AmbiguousHandlerError: An ``AmbiguousHandlerError`` might be raised
+                if both a *public* and a *private* handler of the same name are
+                defined and the ``exception_control_level`` is set to raise
+                exceptions for "SERIOUS" events.
         """
         self._validate_parameter(operation, (str) )
 
@@ -965,14 +813,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.exception_control_event("SERIOUS", AmbiguousHandlerError, message)
 
         output = (None, None)
-        if handler_private_f is not None:
-            self.debug_message(5, "- Using _private_ handler: `{}`".format(handler_name_private))   # Console
-            output = (handler_name_private, handler_private_f)
-        elif handler_public_f is not None:
-            self.debug_message(5, "- Using _public_ handler `{}`".format(handler_name_public))      # Console
+        if handler_public_f is not None:
+            self.debug_message(5, "--> Using _public_ handler : `{}`".format(handler_name_public))      # Console
             output = (handler_name_public, handler_public_f)
+        elif handler_private_f is not None:
+            self.debug_message(5, "--> Using _private_ handler: `{}`".format(handler_name_private))   # Console
+            output = (handler_name_private, handler_private_f)
         else:
-            self.debug_message(5, "- No handler found for operation `{}`".format(handler_name))     # Console
+            self.debug_message(5, "--> No handler found for operation `{}`".format(handler_name))     # Console
 
         return output
 
@@ -1072,7 +920,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         entry        = handler_parameters.raw_option
         handler_name = handler_parameters.handler_name
-        op1,op2      = handler_parameters.op_params
+        op1          = handler_parameters.op
+        op2          = handler_parameters.params[0]
 
         if op2 not in handler_parameters.data_internal['processed_sections']:
             self._parse_section_r(op2, handler_parameters, finalize=False)
@@ -1171,8 +1020,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return
 
 
-    def _validate_parameter(self, parameter, type_restriction,
-                         exception_class="CATASTROPHIC") -> int:
+    def _validate_parameter(self,
+                            parameter,
+                            type_restriction,
+                            exception_class="CATASTROPHIC") -> int:
         """Parameter validation with ExcpetionControl event on failure.
 
         Returns:

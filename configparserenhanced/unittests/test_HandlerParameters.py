@@ -111,36 +111,7 @@ class HandlerParametersTest(TestCase):
         rval = hp.raw_option = expected
         self.assertEqual(expected, hp.raw_option)
         self.assertEqual(rval, hp.raw_option)
-
-
-    def test_HandlerParameters_property_op_params(self):
-        """
-        Validate the property `op_params`
-        """
-        hp = HandlerParameters()
-
-        # Validate default value
-        expected = tuple([None, None])
-        self.assertEqual(hp.op_params, expected,
-                         "default `op_params` should be: {}".format(expected))
-
-        # Validate assignment checks.
-        # 1. Validate type-check (must be a tuple)
-        with self.assertRaises(TypeError):
-            hp.op_params = None
-
-        # 2. Validate tuple must be of length=2
-        with self.assertRaises(ValueError):
-            hp.op_params = tuple()
-        with self.assertRaises(ValueError):
-            hp.op_params = tuple([1])
-        with self.assertRaises(ValueError):
-            hp.op_params = tuple([1,2,3])
-
-        # 3. Validate a proper assignment
-        rval = hp.op_params = expected
-        self.assertEqual(expected, hp.op_params)
-        self.assertEqual(rval, hp.op_params)
+        return 0
 
 
     def test_HandlerParameters_property_data_shared(self):
@@ -168,6 +139,7 @@ class HandlerParametersTest(TestCase):
         expected_new = {"data_shared_test": True}
         hp.data_shared = expected_new
         self.assertDictEqual(hp.data_shared, expected_new)
+        return 0
 
 
     def test_HandlerParameters_property_data_internal(self):
@@ -195,7 +167,7 @@ class HandlerParametersTest(TestCase):
         expected_new = {"data_internal_test": True}
         hp.data_internal = expected_new
         self.assertDictEqual(hp.data_internal, expected_new)
-        return
+        return 0
 
 
     def test_HandlerParameters_property_value(self):
@@ -222,7 +194,7 @@ class HandlerParametersTest(TestCase):
         hp.value = expected
         self.assertEqual(expected, hp.value, "value should be `{}`".format(expected))
 
-        return
+        return 0
 
 
     def test_HandlerParameters_property_handler_name(self):
@@ -240,9 +212,53 @@ class HandlerParametersTest(TestCase):
         # - Setter only allows string types to be assigned.
         with self.assertRaises(TypeError):
             hp.handler_name = None
-        return
+        return 0
 
 
+    def test_HandlerParameters_property_op(self):
+        """
+        Validate the property ``op``
+        """
+        hp = HandlerParameters()
+
+        # Test 1
+        expected = ""
+        self.assertEqual(hp.op, expected, "default `op` should be: '{}'".format(expected))
+
+        # Verify the type checking on the setter
+        # - Setter only allows string types to be assigned.
+        with self.assertRaises(TypeError):
+            hp.op = None
+
+        return 0
+
+
+    def test_HandlerParameters_property_params(self):
+        """
+        Validate the property ``params``
+        """
+        hp = HandlerParameters()
+
+        # Test 1
+        expected = []
+        self.assertListEqual(hp.params, expected, "default `params` should be: '{}'".format(expected))
+
+        # Test 2
+        # Verify the type checking on the setter
+        # - Setter only allows string types to be assigned.
+        with self.assertRaises(TypeError):
+            hp.params = None
+
+        # Test 3
+        input_list = [1,2,3]
+        hp.params = input_list
+        self.assertListEqual(input_list, hp.params)
+
+        # Test 4
+        hp.params = tuple(input_list)
+        self.assertListEqual(input_list, hp.params)
+
+        return 0
 
 
 # EOF
