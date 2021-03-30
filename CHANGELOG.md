@@ -15,7 +15,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
-## [0.4.0] - [Unreleased]
+## [0.4.1] - YYYY-MM-DD or [Unreleased]
+### Added
+- ConfigParserEnhanced property: `configparser_delimiters` which exposes the ability to
+  modify the delimiters in the underlying `ConfigParser` parser for .ini files. Default
+  value is `('=',':')` and it allows assignment as a list, tuple, or str but gets converted
+  to a tuple internally.
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Internal
+### Security
+
+
+## [0.4.0] - 2021-03-30
 Removed the regular expression based splitting method for keys into tokens
 for the use of `shlex.split`, which looks to do a better job of extracting
 tokens in the manner we would like without requiring a complex REGEX.

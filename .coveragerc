@@ -8,7 +8,7 @@ source = configparserenhanced
 
 [report]
 skip_covered = False
-fail_under = 95
+fail_under = 98
 show_missing = True
 
 [html]

@@ -1433,14 +1433,57 @@ class ConfigParserEnhancedDataTest(TestCase):
         parser.exception_control_compact_warnings = False
 
         print("-----[ TEST START ]--------------------------------------------------")
+        print("<description>")
 
         section = "SECTION-A"
         print("Section  : {}".format(section))
 
-        print("-----[ TEST END   ]--------------------------------------------------")
+        print("-----[ TEST END   ]--------------------------------------------------\n")
 
         print("OK")
-        return
+        return 0
+
+
+    def test_ConfigParserDataEnhanced_property_configparser_delimiters(self):
+        """
+        Test the ``configparser_delimiters`` property
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 5
+        parser.exception_control_compact_warnings = False
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        print("Get the default value when the property doesn't already exist")
+        parser._reset_configparserdata()
+        rval_expect = ('=',':')
+        rval_actual = parser.configparser_delimiters
+        self.assertTupleEqual(rval_expect, rval_actual)
+        print("-----[ TEST END   ]--------------------------------------------------\n")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        print("assign a new value to the delimiters")
+        parser.configparser_delimiters = '='
+        print("-----[ TEST END   ]--------------------------------------------------\n")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        print("Load the existing internal value.")
+        rval_expect = ('=',)
+        rval_actual = parser.configparser_delimiters
+        self.assertTupleEqual(rval_expect, rval_actual)
+        print("-----[ TEST END   ]--------------------------------------------------\n")
+
+        print("-----[ TEST START ]--------------------------------------------------")
+        print("assign an invalid type to the delimiters.")
+        with self.assertRaises(TypeError):
+            parser.configparser_delimiters = None
+        print("-----[ TEST END   ]--------------------------------------------------\n")
+
+        print("OK")
+        return 0
 
 
     def test_ConfigParserDataEnhanced_method_parse_all_sections(self):
@@ -1485,9 +1528,8 @@ class ConfigParserEnhancedDataTest(TestCase):
         self.assertTrue("DEFAULT" in parser.configparserenhanceddata.data.keys())
         print("-----[ TEST END   ]--------------------------------------------------")
 
-
         print("OK")
-        return
+        return 0
 
 
     def test_ConfigParserEnhancedData_Miscellaneous_01(self):
@@ -1938,7 +1980,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         # Round 2 - Everything would be cached so we shouldn't need to re-parse things.
 
         # Wipe the loginfo, it should remain empty the 2nd time we list the sections.
-        parser._loginfo_reset()
+        parser._reset_lazy_attr("_loginfo")
 
         sections = parser.configparserenhanceddata.sections(parse=True)
 
@@ -1955,7 +1997,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         # case we should now have a _loginfo object created.
 
         # Wipe the loginfo, it should remain empty the 2nd time we list the sections.
-        parser._loginfo_reset()
+        parser._reset_lazy_attr("_loginfo")
 
         sections = parser.configparserenhanceddata.sections(parse="force")
 

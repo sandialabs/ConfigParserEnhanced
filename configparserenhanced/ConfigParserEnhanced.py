@@ -44,7 +44,7 @@ Todo:
     - William C. McLendon III <wcmclen@sandia.gov>
     - Jason M. Gates <jmgate@sandia.gov>
 
-:Version: 0.4.0
+:Version: 0.4.1
 
 """
 from __future__ import print_function
@@ -153,7 +153,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, '_inifilepath'):
             if hasattr(self, '_configparserdata'):
                 delattr(self, '_configparserdata')
-            self._loginfo_reset()
+            self._reset_lazy_attr("_loginfo")
 
         # Internally we represent the inifile as a `list of Path` objects.
         # Do the necessary conversions to make that so.
@@ -196,7 +196,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
               reference and user-guide.
         """
         if not hasattr(self, '_configparserdata'):
-            self._configparserdata = configparser.ConfigParser(allow_no_value=True)
+            self._configparserdata = configparser.ConfigParser(allow_no_value=True,
+                                                               delimiters=self.configparser_delimiters)
 
             # Prevent ConfigParser from lowercasing the keys.
             self._configparserdata.optionxform = str
@@ -237,6 +238,40 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 raise ex
 
         return self._configparserdata
+
+
+    @property
+    def configparser_delimiters(self) -> tuple:
+        """Delimiters for the configparser
+
+        Changing the value of this will trigger a **reset** of
+        the cached data in the class since this fundamentally
+        changes how `ConfigParser` will parse the .ini file.
+
+        This defaults to ``('=', ':')`` which is the default
+        in ConfigParser (https://docs.python.org/3/library/configparser.html)
+
+        Returns:
+            tuple: Returns a tuple containing the delimiters.
+
+        Raises:
+            TypeError: If assignment of something other than a ``tuple``,
+                a ``list``, or a ``str`` is attempted.
+        """
+        if not hasattr(self, '_configparser_delimiters'):
+            self._configparser_delimiters = ('=', ':')
+        return self._configparser_delimiters
+
+
+    @configparser_delimiters.setter
+    def configparser_delimiters(self, value) -> tuple:
+        self._validate_parameter(value, (tuple,list,str))
+
+        self._reset_configparserdata()
+
+        self._configparser_delimiters = tuple(value)
+
+        return self._configparser_delimiters
 
 
     @property
@@ -307,10 +342,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return self._parse_section_last_result
 
 
-
     # -------------------------------------
     #   P A R S E R   P U B L I C   A P I
     # -------------------------------------
+
 
     def parse_all_sections(self):
         """Parse ALL sections in the .ini file.
@@ -344,7 +379,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise ValueError("`section` cannot be empty.")
 
         # If a previous run generated _loginfo, clear it before this run.
-        self._loginfo_reset()
+        self._reset_lazy_attr("_loginfo")
 
         # Parse the requested section.
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
@@ -942,6 +977,35 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # -------------------------------------
 
 
+    def _reset_configparserdata(self) -> int:
+        """Reset the internal state for all of the ConfigParser data.
+
+        Resets these properties to their initial state:
+        - ``configparserdata``
+        - ``configparserenhanceddata``
+        - ``parse_section_last_result``
+        - ``_loginfo``
+        """
+        self._reset_lazy_attr("_loginfo")
+        self._reset_lazy_attr("_configparserdata")
+        self._reset_lazy_attr("_configparserenhanceddata")
+        self._reset_lazy_attr("_parse_section_last_result")
+        self._reset_lazy_attr("_configparser_delimiters")
+        return 0
+
+
+    def _reset_lazy_attr(self, attribute: str) -> int:
+        """Deletes an attribute of the class if it exists.
+
+        This is used to reset lazy-evaluated property private storage
+        back down to the initial ground-state.
+        """
+        self._validate_parameter(attribute, (str))
+        if hasattr(self, attribute):
+            delattr(self, attribute)
+        return 0
+
+
     def _loginfo_add(self, typeinfo, entry) -> None:
         """
         If in debug mode, we can use this to log operations by appending to ``_loginfo``.
@@ -968,15 +1032,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             self._loginfo.append(entry)
 
-        return
-
-
-    def _loginfo_reset(self) -> None:
-        """
-        Reset the ``_loginfo`` data.
-        """
-        if hasattr(self, '_loginfo'):
-            delattr(self, '_loginfo')
         return
 
 
