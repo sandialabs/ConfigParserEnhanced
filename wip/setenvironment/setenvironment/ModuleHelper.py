@@ -44,7 +44,7 @@ else:                                                                           
 
 
 
-try:    # pragma: no cover  (don't report until we have a system we can test on with LMOD available)
+try: # pragma: cover if on lmod
 
     # Try to import the LMOD version of the module() function.
     # See: https://github.com/TACC/Lmod/blob/master/init/env_modules_python.py.in
@@ -166,7 +166,7 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
 
 
 
-except ImportError:
+except ImportError: # pragma: cover if not on lmod
     # print("NOTICE> [ModuleHelper.py] Using the modulecmd based environment modules handler.")
 
 

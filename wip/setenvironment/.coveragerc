@@ -12,6 +12,7 @@ fail_under = 99
 show_missing = True
 exclude_lines =
     pragma: no cover
+    pragma: cover if on lmod
     if 0:
 
 [html]
