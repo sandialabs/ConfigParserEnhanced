@@ -371,9 +371,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
             Unless :class:`~.HandlerParameters` is changed, this wil be a ``dict`` type.
         """
-        self.debug_message(1, "[" + "-"*38 + ']')
+        self.debug_message(1, "[" + "-"*58 + ']')
         self.debug_message(1, "  Parse section `{}` START".format(section))
-        self.debug_message(1, "[" + "-"*38 + ']')
+        self.debug_message(1, "[" + "-"*58 + ']')
         self._validate_parameter(section, (str) )
 
         if section == "":
@@ -388,9 +388,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # Cache the result
         self.parse_section_last_result = result
 
-        self.debug_message(1, "[" + "-"*38 + ']')
+        self.debug_message(1, "[" + "-"*58 + ']')
         self.debug_message(1, "  Parse section `{}` FINISH".format(section))
-        self.debug_message(1, "[" + "-"*38 + ']')
+        self.debug_message(1, "[" + "-"*58 + ']')
         return result
 
 
@@ -414,12 +414,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Enter handler    : {}".format(handler_name))                         # Console
-        self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(1, "--> raw_option   : {}".format(handler_parameters.raw_option))        # Console
         self.debug_message(2, "--> op           : {}".format(handler_parameters.op))                # Console
         self.debug_message(2, "--> params       : {}".format(handler_parameters.params))            # Console
         self.debug_message(2, "--> value        : {}".format(handler_parameters.value))             # Console
-        self.debug_message(3, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
-        self.debug_message(4, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(3, "--> data_shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(4, "--> data_internal: {}".format(handler_parameters.data_shared))       # Console
 
         self._loginfo_add('handler-entry', {'name': handler_name,                                   # Logging
                                             'entry': handler_parameters.raw_option,                 # Logging
@@ -442,7 +442,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Exit handler     : {}".format(handler_name))                              # Console
-        self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(1, "--> raw_option   : {}".format(handler_parameters.raw_option))        # Console
         self.debug_message(3, "--> data_shared  : {}".format(handler_parameters.data_shared))       # Console
         self.debug_message(4, "--> data_internal: {}".format(handler_parameters.data_shared))       # Console
 
