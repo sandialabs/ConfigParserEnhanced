@@ -85,7 +85,7 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
         # is the more robust approach.
         lmod_cmd_env = os.getenv("LMOD_CMD")
         if len(lmod_cmd_env) == 0:
-            raise FileNotFoundError("Unable to find module function")          # pragma: no cover
+            raise FileNotFoundError("Unable to find module function")
 
         # We cannot control whether module is passed to exec, that happens within
         # the env_modules_python.modules method.
@@ -114,6 +114,8 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
         except BaseException as error:
             print("!!")
             print("An ERROR occurred during execution of module command")
+            print(stdout)
+            print(stderr)
             print("!!")
             raise error
 
