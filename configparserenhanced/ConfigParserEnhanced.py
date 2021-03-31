@@ -414,12 +414,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Enter handler    : {}".format(handler_name))                         # Console
-        self.debug_message(1, "--> raw_option   : {}".format(handler_parameters.raw_option))        # Console
-        self.debug_message(2, "--> op           : {}".format(handler_parameters.op))                # Console
-        self.debug_message(2, "--> params       : {}".format(handler_parameters.params))            # Console
-        self.debug_message(2, "--> value        : {}".format(handler_parameters.value))             # Console
-        self.debug_message(3, "--> data_shared  : {}".format(handler_parameters.data_shared))       # Console
-        self.debug_message(4, "--> data_internal: {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(1, " -> raw_option   : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(2, " -> op           : {}".format(handler_parameters.op))                # Console
+        self.debug_message(2, " -> params       : {}".format(handler_parameters.params))            # Console
+        self.debug_message(2, " -> value        : {}".format(handler_parameters.value))             # Console
+        self.debug_message(3, " -> data_shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(4, " -> data_internal: {}".format(handler_parameters.data_shared))       # Console
 
         self._loginfo_add('handler-entry', {'name': handler_name,                                   # Logging
                                             'entry': handler_parameters.raw_option,                 # Logging
@@ -441,10 +441,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_handlerparameters(handler_parameters)
 
         handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Exit handler     : {}".format(handler_name))                              # Console
-        self.debug_message(1, "--> raw_option   : {}".format(handler_parameters.raw_option))        # Console
-        self.debug_message(3, "--> data_shared  : {}".format(handler_parameters.data_shared))       # Console
-        self.debug_message(4, "--> data_internal: {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(1, "Exit handler     : {}".format(handler_name))                         # Console
+        self.debug_message(1, " -> raw_option   : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(3, " -> data_shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(4, " -> data_internal: {}".format(handler_parameters.data_shared))       # Console
 
         self._loginfo_add('handler-exit', {'name': handler_name,                                    # Logging
                                            'entry': handler_parameters.raw_option,                  # Logging
@@ -647,7 +647,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_parameters.raw_option = (sec_k, sec_v)
             handler_parameters.value      = sec_v
 
-            self.debug_message(2, "--> Entry        : `{}` : `{}`".format(sec_k, sec_v))            # Console
+            self.debug_message(2, "==>")
+            self.debug_message(2, "==> Entry        : `{}` : `{}`".format(sec_k, sec_v))            # Console
+            self.debug_message(2, "==>")
             self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
 
             # Initialze the handler return value.
@@ -673,9 +675,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 handler_parameters.params = params
 
                 self._loginfo_add('section-operation', {'op': op, 'params': params } )              # Logging
-                self.debug_message(2, "--> op           : {}".format(handler_parameters.op))             # Console
-                self.debug_message(2, "--> params       : {}".format(handler_parameters.params))         # Console
-                self.debug_message(2, "--> value        : {}".format(handler_parameters.value))          # Console
+                self.debug_message(2, " -> op           : {}".format(handler_parameters.op))             # Console
+                self.debug_message(2, " -> params       : {}".format(handler_parameters.params))         # Console
+                self.debug_message(2, " -> value        : {}".format(handler_parameters.value))          # Console
 
                 handler_name,ophandler_f = self._locate_handler_method(handler_parameters.op)
 
@@ -853,13 +855,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         output = (None, None)
         if handler_public_f is not None:
-            self.debug_message(5, "--> Using _public_ handler : `{}`".format(handler_name_public))      # Console
+            self.debug_message(5, " -> Using _public_ handler : `{}`".format(handler_name_public))      # Console
             output = (handler_name_public, handler_public_f)
         elif handler_private_f is not None:
-            self.debug_message(5, "--> Using _private_ handler: `{}`".format(handler_name_private))   # Console
+            self.debug_message(5, " -> Using _private_ handler: `{}`".format(handler_name_private))   # Console
             output = (handler_name_private, handler_private_f)
         else:
-            self.debug_message(5, "--> No handler found for operation `{}`".format(handler_name))     # Console
+            self.debug_message(5, " -> No handler found for operation `{}`".format(handler_name))     # Console
 
         return output
 
