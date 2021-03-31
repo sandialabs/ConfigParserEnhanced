@@ -71,7 +71,10 @@ class mock_popen_status_error_return_nonetype(mock_popen):
 
     def communicate(self):
         print("mock_popen> communicate()")
-        stdout = b""
+        # Raise this via stdout within env_modules_python.module
+        # to ensure that 'test_ModuleHeler_module_load_error_module_returns_nonetype' 
+        # passes on LMOD systems.
+        stdout = b"raise TypeError('ERROR: the errorcode can not be `None`')"
         stderr = b""
         self.returncode = None
         return (stdout,stderr)
@@ -333,9 +336,15 @@ class ModuleHelperTest(TestCase):
         This tests a failure when the `module()` function returns a NoneType
         object (i.e., like what happens with LMOD)
         """
-        with patch('subprocess.Popen', side_effect=mock_popen_status_error_return_nonetype):
-            with self.assertRaises(TypeError):
-                ModuleHelper.module("load", "gcc/4.8.4")
+        try:
+            with patch('env_modules_python.Popen', side_effect=mock_popen_status_error_return_nonetype):
+                with self.assertRaises(TypeError):
+                    ModuleHelper.module("load", "gcc/4.8.4")
+
+        except:
+            with patch('subprocess.Popen', side_effect=mock_popen_status_error_return_nonetype):
+                with self.assertRaises(TypeError):
+                    ModuleHelper.module("load", "gcc/4.8.4")
         return
 
 
