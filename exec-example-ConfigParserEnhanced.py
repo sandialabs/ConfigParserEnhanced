@@ -63,7 +63,7 @@ def test_configparserEnhanced(filename="config.ini"):
     parser.exception_control_silent_warnings  = False
 
     section = "SECTION-A+"
-    section = "SECTION C+"
+    #section = "SECTION C+"
     #section = "OPERAND_TEST"
 
     #

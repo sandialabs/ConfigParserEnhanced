@@ -197,7 +197,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         if not hasattr(self, '_configparserdata'):
             self._configparserdata = configparser.ConfigParser(allow_no_value=True,
-                                                               delimiters=self.configparser_delimiters)
+                                                               delimiters=self.configparser_delimiters
+                                                               )
 
             # Prevent ConfigParser from lowercasing the keys.
             self._configparserdata.optionxform = str
@@ -413,11 +414,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Enter handler    : {}".format(handler_name))                         # Console
-        self.debug_message(2, "--> option       : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
         self.debug_message(2, "--> op           : {}".format(handler_parameters.op))                # Console
         self.debug_message(2, "--> params       : {}".format(handler_parameters.params))            # Console
-        self.debug_message(2, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
-        self.debug_message(3, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(2, "--> value        : {}".format(handler_parameters.value))             # Console
+        self.debug_message(3, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(4, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
 
         self._loginfo_add('handler-entry', {'name': handler_name,                                   # Logging
                                             'entry': handler_parameters.raw_option,                 # Logging
@@ -440,6 +442,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         handler_name = handler_parameters.handler_name
         self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
+        self.debug_message(3, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(4, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
+
         self._loginfo_add('handler-exit', {'name': handler_name,                                    # Logging
                                            'entry': handler_parameters.raw_option,                  # Logging
                                            'parameters': handler_parameters})                       # Logging
@@ -473,8 +479,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         self._validate_parameter(section_name, (str) )
         self.enter_handler(handler_parameters)
-
-        self.debug_message(1, "--> option: {}".format(handler_parameters.raw_option))
 
         # -----[ Handler Content Start ]-------------------
 
@@ -654,9 +658,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not re.match(r"^[\w\-]+$", sec_k_tok[0]):
                 # Call generic_handler if the first entry has invalid characters
                 handler_rval = self._launch_generic_option_handler(section_name,
-                                                            handler_parameters,
-                                                            sec_k,
-                                                            sec_v)
+                                                                   handler_parameters,
+                                                                   sec_k,
+                                                                   sec_v)
             else:
                 # Otherwise, it _could_ be a 'handled' operation
                 op = sec_k_tok[0]
