@@ -62,6 +62,22 @@ class mock_popen_status_ok(mock_popen):
 
 
 
+class mock_popen_status_error_return_nonetype(mock_popen):
+    """
+    Specialization of popen mock that will return with error.
+    """
+    def __init__(self, cmd, stdout=None, stderr=None):
+        super(mock_popen_status_error_return_nonetype, self).__init__(cmd,stdout,stderr)
+
+    def communicate(self):
+        print("mock_popen> communicate()")
+        stdout = b""
+        stderr = b""
+        self.returncode = None
+        return (stdout,stderr)
+
+
+
 class mock_popen_status_error_rc1(mock_popen):
     """
     Specialization of popen mock that will return with error.
@@ -298,6 +314,17 @@ class ModuleHelperTest(TestCase):
         """
         with patch('subprocess.Popen.communicate', side_effect=mock_popen_communicate_stdout_throws_on_exec):
             with self.assertRaises(BaseException):
+                ModuleHelper.module("load", "gcc/4.8.4")
+        return
+
+
+    def test_ModuleHeler_module_load_error_module_returns_nonetype(self):
+        """
+        This tests a failure when the `module()` function returns a NoneType
+        object (i.e., like what happens with LMOD)
+        """
+        with patch('subprocess.Popen', side_effect=mock_popen_status_error_return_nonetype):
+            with self.assertRaises(TypeError):
                 ModuleHelper.module("load", "gcc/4.8.4")
         return
 
