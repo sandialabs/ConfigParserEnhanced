@@ -1,6 +1,6 @@
 #%Module1.0
 
-set name    DUMMY-GCC
+set name    DUMMY_GCC
 set version 7.3.0
 
 setenv TEST_SETENVIRONMENT_${name}_VER  $version
