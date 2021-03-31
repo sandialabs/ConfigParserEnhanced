@@ -124,23 +124,26 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
 
         # Check for module command success with short circuiting
         _arguments = _command[1:] + list(arguments)
-        shell_cmd = []
+        shell_cmds = []
+        is_loaded   = "module is-loaded {0} && true  || false"
+        is_unloaded = "module is-loaded {0} && false || true"
+        is_file     = "[ -e {0} ] && true || false"
         # TODO: handle other commands: purge, etc.
         if _command[0] == 'load':
-            shell_cmd = 'module is-loaded ' + _arguments[0] + ' && true  || false'
+            shell_cmds += [is_loaded.format(_arguments[0])]
         elif _command[0] == 'unload':
-            shell_cmd = 'module is-loaded ' + _arguments[0] + ' && false || true'
+            shell_cmds += [is_unloaded.format(_arguments[0])]
         elif _command[0] == 'swap':
-            # TODO: Check that _arguments[0] is unloaded too
-            shell_cmd = 'module is-loaded ' + _arguments[1] + ' && true ||  false'
+            shell_cmds += [is_unloaded.format(_arguments[0])]
+            shell_cmds += [is_loaded.format(_arguments[1])]
         elif _command[0] == 'use':
-            shell_cmd = '[ -e ' + _arguments[0] + ' ] && true || false'
+            shell_cmds += [is_file.format(_arguments[0])]
 
         # NOTE: mock.py does not recognize keyword argument 'shell' in __init__
         # so we bypass mock.py via os.system here instead of running:
-        # proc = subprocess.run(shell_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if len(shell_cmd) != 0:
-            status = os.system(shell_cmd)
+        # proc = subprocess.run(shell_cmds, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        for cmd in shell_cmds:
+            status = os.system(cmd)
 
             if status != 0:
                 print("!!")
