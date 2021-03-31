@@ -87,6 +87,7 @@ try: # pragma: cover if on lmod
         if len(lmod_cmd_env) == 0:
             raise FileNotFoundError("Unable to find module function")
 
+        # Attempt running the 'module' command
         # We cannot control whether module is passed to exec, that happens within
         # the env_modules_python.modules method.
         try:
@@ -124,7 +125,7 @@ try: # pragma: cover if on lmod
         if "error:" in stderr.lower():
             stderr_ok = False
 
-        # Check for module command success with short circuiting
+        # Check for 'module' command success with short circuiting
         _arguments = _command[1:] + list(arguments)
         shell_cmds = []
         is_loaded   = "module is-loaded {0} && true  || false"
@@ -147,7 +148,7 @@ try: # pragma: cover if on lmod
         for cmd in shell_cmds:
             status = os.system(cmd)
 
-            if status != 0:
+            if stderr_ok and status != 0:
                 print("!!")
                 print(stdout)
                 print(stderr)
@@ -160,7 +161,7 @@ try: # pragma: cover if on lmod
             print(stdout)
             print(stderr)
             print("!!")
-            raise BaseException
+            return 1
 
         return 0
 

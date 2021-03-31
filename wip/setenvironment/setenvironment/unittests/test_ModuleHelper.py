@@ -226,6 +226,7 @@ class ModuleHelperTest(TestCase):
     ModuleHelper.py file
     """
     def setUp(self):
+        ModuleHelper.module("use", "setenvironment/unittests/modulefiles")
         return
 
 
@@ -239,17 +240,22 @@ class ModuleHelperTest(TestCase):
         return
 
 
-    @patch('subprocess.Popen', side_effect=mock_popen_status_error_rc1)
-    def test_ModuleHelper_module_load_status_error(self, arg_popen):
-        r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
+    def test_ModuleHelper_module_load_status_error_return(self):
+        with patch('subprocess.Popen', side_effect=mock_popen_status_error_rc1):
+            with patch('os.system', side_effect=mock_system_status_error):
+                r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertNotEqual(0, r)
         return
 
 
-    @patch('subprocess.Popen', side_effect=mock_popen_status_error_rc0)
-    def test_ModuleHelper_module_load_status_error(self, arg_popen):
-        r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
+    def test_ModuleHelper_module_load_status_error_stderr(self):
+        try:
+            with patch('env_modules_python.Popen', side_effect=mock_popen_status_error_rc0):
+                r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
+        except:
+            with patch('subprocess.Popen', side_effect=mock_popen_status_error_rc0):
+                r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertNotEqual(0, r)
         return
