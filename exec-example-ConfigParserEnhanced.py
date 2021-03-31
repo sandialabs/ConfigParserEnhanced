@@ -62,8 +62,8 @@ def test_configparserEnhanced(filename="config.ini"):
     parser.exception_control_compact_warnings = True
     parser.exception_control_silent_warnings  = False
 
-    section = "SECTION-A+"
-    #section = "SECTION C+"
+    #section = "SECTION-A+"
+    section = "SECTION C+"
     #section = "OPERAND_TEST"
 
     #
@@ -77,7 +77,7 @@ def test_configparserEnhanced(filename="config.ini"):
         value = parser.configparserenhanceddata.get(section, option)
         print("---> [{}][{}] == '{}'".format(section, option, value))
     else:
-        print("---> NO")
+        print("---> SECTION/OPTION `{}`.`{}` NOT FOUND".format(section,option))
     print("")
 
     print_section(parser, "NOVALUE_TEST")

@@ -441,10 +441,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_handlerparameters(handler_parameters)
 
         handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Exit handler: {}".format(handler_name))                              # Console
+        self.debug_message(1, "Exit handler     : {}".format(handler_name))                              # Console
         self.debug_message(1, "--> option       : {}".format(handler_parameters.raw_option))        # Console
-        self.debug_message(3, "--> data shared  : {}".format(handler_parameters.data_shared))       # Console
-        self.debug_message(4, "--> data internal: {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(3, "--> data_shared  : {}".format(handler_parameters.data_shared))       # Console
+        self.debug_message(4, "--> data_internal: {}".format(handler_parameters.data_shared))       # Console
 
         self._loginfo_add('handler-exit', {'name': handler_name,                                    # Logging
                                            'entry': handler_parameters.raw_option,                  # Logging
@@ -612,7 +612,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_rval = self.handler_initialize(section_name, handler_initialize_params)
             self._check_handler_rval("handler_initialize", handler_rval)
 
-        self.debug_message(1, "Enter section: `{}`".format(section_name))                           # Console Logging
+        self.debug_message(1, "Enter section    : `{}`".format(section_name))                       # Console Logging
         self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
 
         # Load the section from the configparser.ConfigParser data.
@@ -647,7 +647,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_parameters.raw_option = (sec_k, sec_v)
             handler_parameters.value      = sec_v
 
-            self.debug_message(2, "--> Entry   : `{}` : `{}`".format(sec_k, sec_v))                 # Console
+            self.debug_message(2, "--> Entry        : `{}` : `{}`".format(sec_k, sec_v))            # Console
             self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
 
             # Initialze the handler return value.
@@ -673,9 +673,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 handler_parameters.params = params
 
                 self._loginfo_add('section-operation', {'op': op, 'params': params } )              # Logging
-                self.debug_message(2, "--> op      : {}".format(handler_parameters.op))             # Console
-                self.debug_message(2, "--> params  : {}".format(handler_parameters.params))         # Console
-                self.debug_message(2, "--> value   : {}".format(handler_parameters.value))          # Console
+                self.debug_message(2, "--> op           : {}".format(handler_parameters.op))             # Console
+                self.debug_message(2, "--> params       : {}".format(handler_parameters.params))         # Console
+                self.debug_message(2, "--> value        : {}".format(handler_parameters.value))          # Console
 
                 handler_name,ophandler_f = self._locate_handler_method(handler_parameters.op)
 
