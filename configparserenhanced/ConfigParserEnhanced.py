@@ -801,7 +801,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
-    def _locate_handler_method(self, operation) -> str:
+    def _locate_handler_method(self, operation) -> tuple:
         """Convert ``operation`` to a handler name and get the reference to the handler.
 
         This method converts the *operation* parameter (op) to a
@@ -844,24 +844,44 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         handler_name_private = "_handler_{}".format(handler_name)
         handler_name_public  = "handler_{}".format(handler_name)
 
-        handler_private_f = getattr(self, handler_name_private, None)
-        handler_public_f  = getattr(self, handler_name_public,  None)
+        handler_public  = self._locate_class_method(handler_name_public)
+        handler_private = self._locate_class_method(handler_name_private)
 
-        if (handler_private_f is not None) and (handler_public_f is not None):
+        if (handler_private[1] is not None) and (handler_public[1] is not None):
             message  = "Ambiguous handler name."
             message += " Both `{}` and `{}` exist".format(handler_name_private, handler_name_public)
             message += " but only one is allowed."
             self.exception_control_event("SERIOUS", AmbiguousHandlerError, message)
 
         output = (None, None)
-        if handler_public_f is not None:
-            self.debug_message(5, " -> Using _public_ handler : `{}`".format(handler_name_public))      # Console
-            output = (handler_name_public, handler_public_f)
-        elif handler_private_f is not None:
-            self.debug_message(5, " -> Using _private_ handler: `{}`".format(handler_name_private))   # Console
-            output = (handler_name_private, handler_private_f)
+        if handler_public[1] is not None:
+            self.debug_message(4, " -> Using _public_ handler : `{}`".format(handler_name_public))  # Console
+            output = handler_public
+        elif handler_private[1] is not None:
+            self.debug_message(4, " -> Using _private_ handler: `{}`".format(handler_name_private)) # Console
+            output = handler_private
         else:
-            self.debug_message(5, " -> No handler found for operation `{}`".format(handler_name))     # Console
+            self.debug_message(4, " -> No handler found for operation `{}`".format(handler_name))   # Console
+
+        return output
+
+
+    def _locate_class_method(self, method_name) -> tuple:
+        """Helper that locates a class method (if it exists)
+
+        Args:
+            method_name (str): The name of the class method we're searching for.
+
+        Returns:
+            tuple: A tuple containing the name and a reference to the method if it
+                is found or None if not found. ``(method_name, method_ref or None)``
+        """
+        output = (None, None)
+        method_f = getattr(self, method_name, None)
+        output = (method_name, method_f)
+
+        if output[1]==None:
+            self.debug_message(5, " -> Class method `{}` was not found.".format(method_name))       # Console
 
         return output
 

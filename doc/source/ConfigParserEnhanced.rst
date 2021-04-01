@@ -124,12 +124,13 @@ Parser Helpers (Private)
 .. automethod:: configparserenhanced.ConfigParserEnhanced._apply_transformation_to_operation
 .. automethod:: configparserenhanced.ConfigParserEnhanced._apply_transformation_to_parameter
 
-.. automethod:: configparserenhanced.ConfigParserEnhanced._validate_handlerparameters
 .. automethod:: configparserenhanced.ConfigParserEnhanced._new_handler_parameters
+.. automethod:: configparserenhanced.ConfigParserEnhanced._validate_handlerparameters
 
-.. automethod:: configparserenhanced.ConfigParserEnhanced._locate_handler_method
-.. automethod:: configparserenhanced.ConfigParserEnhanced._launch_generic_option_handler
 .. automethod:: configparserenhanced.ConfigParserEnhanced._check_handler_rval
+.. automethod:: configparserenhanced.ConfigParserEnhanced._launch_generic_option_handler
+.. automethod:: configparserenhanced.ConfigParserEnhanced._locate_class_method
+.. automethod:: configparserenhanced.ConfigParserEnhanced._locate_handler_method
 
 
 Private Methods

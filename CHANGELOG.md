@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modify the delimiters in the underlying `ConfigParser` parser for .ini files. Default
   value is `('=',':')` and it allows assignment as a list, tuple, or str but gets converted
   to a tuple internally.
+- Internal helper method `_locate_class_method(method_name)` which finds a class method
+  if it is defined.
 ### Changed
 ### Deprecated
 ### Removed
