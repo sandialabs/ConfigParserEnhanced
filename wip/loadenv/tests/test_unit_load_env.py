@@ -61,7 +61,7 @@ def test_argument_parser_functions_correctly(data):
     assert le.args.supported_systems_file == Path(
         data["supported_sys_expected"]
     ).resolve()
-    assert le.supported_envs_file == Path(data["supported_envs_expected"])
+    assert le.args.supported_envs_file == Path(data["supported_envs_expected"])
     assert le.environment_specs_file == Path(
         data["environment_specs_expected"]
     )
@@ -79,12 +79,11 @@ def test_args_overwrite_programmatic_file_assignments():
             "--force",
             "keyword-str-arg"
         ],
-        supported_envs_file="prog/supported-envs.ini",
         environment_specs_file="prog/environment_specs.ini",
     )
     assert le.args.build_name == "keyword-str-arg"
     assert le.args.supported_systems_file == Path("arg/supported-systems.ini")
-    assert le.supported_envs_file == Path("arg/supported-envs.ini")
+    assert le.args.supported_envs_file == Path("arg/supported-envs.ini")
     assert le.environment_specs_file == Path("arg/environment_specs.ini")
     assert le.args.force is True
 
@@ -94,7 +93,9 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     assert le.args.supported_systems_file == Path(
         load_env_ini_data["supported-systems"]
     )
-    assert le.supported_envs_file == Path(load_env_ini_data["supported-envs"])
+    assert le.args.supported_envs_file == Path(
+        load_env_ini_data["supported-envs"]
+    )
     assert le.environment_specs_file == Path(
         load_env_ini_data["environment-specs"]
     )
@@ -185,7 +186,7 @@ def test_correct_arguments_are_passed_to_ekp_object(mock_socket, mock_ekp):
     le.parsed_env_name
 
     mock_ekp.assert_called_once_with(le.args.build_name, le.system_name,
-                                     le.supported_envs_file)
+                                     le.args.supported_envs_file)
 
 
 @patch("load_env.EnvKeywordParser")

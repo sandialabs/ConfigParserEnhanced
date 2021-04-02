@@ -22,7 +22,6 @@ class LoadEnv(LoadEnvCommon):
 
     def __init__(
         self, argv, load_env_ini="load_env.ini",
-        supported_envs_file=None,
         environment_specs_file=None
     ):
         if not isinstance(argv, list):
@@ -30,7 +29,6 @@ class LoadEnv(LoadEnvCommon):
                             "command line arguments.")
         self.argv = argv
         self._load_env_ini_file = load_env_ini
-        self._supported_envs_file = supported_envs_file
         self._environment_specs_file = environment_specs_file
 
     @property
@@ -140,15 +138,15 @@ class LoadEnv(LoadEnvCommon):
         """
         This property instantiates an :class:`EnvKeywordParser` object with
         this object's :attr:`build_name`, :attr:`system_name`, and
-        :attr:`supported_envs_file`. From this object, the qualified
-        environment name is retrieved and returned.
+        ``supported-envs.ini``. From this object, the qualified environment
+        name is retrieved and returned.
 
         Returns:
             str:  The qualified environment name from parsing the
             :attr:`build_name`.
         """
         ekp = EnvKeywordParser(self.args.build_name, self.system_name,
-                               self.supported_envs_file)
+                               self.args.supported_envs_file)
         self._parsed_env_name = ekp.qualified_env_name
 
         return self._parsed_env_name
@@ -200,32 +198,6 @@ class LoadEnv(LoadEnvCommon):
         return self._supported_systems
 
     @property
-    def supported_envs_file(self):
-        """
-        Gives the path to ``supported-envs.ini``. Any value that exists for
-        this in :attr:`args` or that was explicitly passed in the class
-        initializer overrides the value that is in ``load_env.ini``.
-
-        Returns:
-            pathlib.Path:  The path to ``supported-envs.ini``.
-        """
-        if (self.args is not None and
-                self.args.supported_envs_file is not None):
-            self._supported_envs_file = self.args.supported_envs_file
-
-        if self._supported_envs_file is None:
-            self._supported_envs_file = (
-                self.load_env_ini["load-env"]["supported-envs"]
-            )
-
-        if self._supported_envs_file == "":
-            raise ValueError('Path for supported-envs.ini cannot be "".')
-
-        self._supported_envs_file = Path(self._supported_envs_file)
-
-        return self._supported_envs_file
-
-    @property
     def environment_specs_file(self):
         """
         Gives the path to ``environment-specs.ini``. Any value that exists for
@@ -262,6 +234,7 @@ class LoadEnv(LoadEnvCommon):
             argparse.Namespace:  The parsed arguments.
         """
         args = self.__parser().parse_args(self.argv)
+
         if args.supported_systems_file is None:
             args.supported_systems_file = (
                 self.load_env_ini["load-env"]["supported-systems"]
@@ -269,6 +242,15 @@ class LoadEnv(LoadEnvCommon):
         if args.supported_systems_file == "":
             raise ValueError('Path for supported-systems.ini cannot be "".')
         args.supported_systems_file = Path(args.supported_systems_file)
+
+        if args.supported_envs_file is None:
+            args.supported_envs_file = (
+                self.load_env_ini["load-env"]["supported-envs"]
+            )
+        if args.supported_envs_file == "":
+            raise ValueError('Path for supported-envs.ini cannot be "".')
+        args.supported_envs_file = Path(args.supported_envs_file)
+
         return args
 
     def __parser(self):
