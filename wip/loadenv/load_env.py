@@ -31,38 +31,36 @@ class LoadEnv(LoadEnvCommon):
 
     @property
     def system_name(self):
-        if hasattr("self", "_system_name"):
-            return self._system_name
+        if not hasattr("self", "_system_name"):
+            hostname = socket.gethostname()
+            hostname_sys_name = self.get_sys_name_from_hostname(hostname)
+            self._system_name = hostname_sys_name
 
-        hostname = socket.gethostname()
-        hostname_sys_name = self.get_sys_name_from_hostname(hostname)
-        self._system_name = hostname_sys_name
+            build_name_sys_name = self.get_sys_name_from_build_name()
 
-        build_name_sys_name = self.get_sys_name_from_build_name()
-
-        if hostname_sys_name is None and build_name_sys_name is None:
-            msg = self.get_formatted_msg(
-                f"Unable to find valid system name in the build name or "
-                f"for the hostname '{hostname}'\n in "
-                f"'{self.args.supported_systems_file}'."
-            )
-            sys.exit(msg)
-
-        # Use system name in build_name if hostname_sys_name is None
-        if build_name_sys_name is not None:
-            self._system_name = build_name_sys_name
-            if (hostname_sys_name is not None
-                    and hostname_sys_name != self._system_name
-                    and self.args.force is False):
+            if hostname_sys_name is None and build_name_sys_name is None:
                 msg = self.get_formatted_msg(
-                    f"Hostname '{hostname}' matched to system "
-                    f"'{hostname_sys_name}'\n in "
-                    f"'{self.args.supported_systems_file}', but you specified "
-                    f"'{self._system_name}' in the build name.\nIf you want "
-                    f"to force the use of '{self._system_name}', add "
-                    "the --force flag."
+                    f"Unable to find valid system name in the build name or "
+                    f"for the hostname '{hostname}'\n in "
+                    f"'{self.args.supported_systems_file}'."
                 )
                 sys.exit(msg)
+
+            # Use system name in build_name if hostname_sys_name is None
+            if build_name_sys_name is not None:
+                self._system_name = build_name_sys_name
+                if (hostname_sys_name is not None
+                        and hostname_sys_name != self._system_name
+                        and self.args.force is False):
+                    msg = self.get_formatted_msg(
+                        f"Hostname '{hostname}' matched to system "
+                        f"'{hostname_sys_name}'\n in "
+                        f"'{self.args.supported_systems_file}', but you "
+                        f"specified '{self._system_name}' in the build name.\n"
+                        "If you want to force the use of "
+                        f"'{self._system_name}', add the --force flag."
+                    )
+                    sys.exit(msg)
 
         return self._system_name
 
@@ -143,10 +141,10 @@ class LoadEnv(LoadEnvCommon):
             str:  The qualified environment name from parsing the
             :attr:`build_name`.
         """
-        ekp = EnvKeywordParser(self.args.build_name, self.system_name,
-                               self.args.supported_envs_file)
-        self._parsed_env_name = ekp.qualified_env_name
-
+        if not hasattr(self, "_parsed_env_name"):
+            ekp = EnvKeywordParser(self.args.build_name, self.system_name,
+                                   self.args.supported_envs_file)
+            self._parsed_env_name = ekp.qualified_env_name
         return self._parsed_env_name
 
     def write_load_matching_env(self):
@@ -190,9 +188,10 @@ class LoadEnv(LoadEnvCommon):
             configparserenhanced.ConfigParserEnhancedData:  The data from
             ``supported-systems.ini``.
         """
-        self._supported_systems = ConfigParserEnhanced(
-            self.args.supported_systems_file
-        ).configparserenhanceddata
+        if not hasattr(self, "_supported_systems"):
+            self._supported_systems = ConfigParserEnhanced(
+                self.args.supported_systems_file
+            ).configparserenhanceddata
         return self._supported_systems
 
     def get_valid_file_path(self, args_path, flag):
