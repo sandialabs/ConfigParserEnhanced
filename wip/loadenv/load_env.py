@@ -23,7 +23,7 @@ class LoadEnv(LoadEnvCommon):
     def __init__(
         self, argv, load_env_ini="load_env.ini",
         supported_systems_file=None, supported_envs_file=None,
-        environment_specs_file=None, output=None,
+        environment_specs_file=None
     ):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of "
@@ -33,7 +33,6 @@ class LoadEnv(LoadEnvCommon):
         self._supported_systems_file = supported_systems_file
         self._supported_envs_file = supported_envs_file
         self._environment_specs_file = environment_specs_file
-        self._output = output
 
     @property
     def system_name(self):
@@ -166,8 +165,8 @@ class LoadEnv(LoadEnvCommon):
         """
         se = SetEnvironment(filename=self.environment_specs_file)
         files = [Path("/tmp/load_matching_env.sh").resolve()]
-        if self.output:
-            files += [self.output]
+        if self.args.output:
+            files += [self.args.output]
         for f in files:
             if f.exists():
                 f.unlink()
@@ -187,7 +186,6 @@ class LoadEnv(LoadEnvCommon):
             self._load_env_ini = ConfigParserEnhanced(
                 self._load_env_ini_file
             ).configparserenhanceddata
-
         return self._load_env_ini
 
     @property
@@ -228,7 +226,6 @@ class LoadEnv(LoadEnvCommon):
         self._supported_systems = ConfigParserEnhanced(
             self.supported_systems_file
         ).configparserenhanceddata
-
         return self._supported_systems
 
     @property
@@ -286,25 +283,6 @@ class LoadEnv(LoadEnvCommon):
         return self._environment_specs_file
 
     @property
-    def output(self):
-        """
-        Gives the path to a file to output a bash script that when sourced will
-        give the user the same environment that was loaded by this tool. Any
-        value that exists for this in :attr:`args` overrides the value that is
-        passed through the class initializer.
-
-        Returns:
-            pathlib.Path, None:  The path to the script, if the user has
-            specified it.
-        """
-        if (self.args is not None and
-                self.args.output is not None):
-            self._output = Path(
-                self.args.output
-            ).resolve()
-        return self._output
-
-    @property
     def args(self):
         """
         The parsed command line arguments to the script.
@@ -344,9 +322,10 @@ class LoadEnv(LoadEnvCommon):
                             "you wish to load the environment.")
 
         parser.add_argument("-o", "--output", action="store", default=None,
-                            help="Output a bash script that when sourced will "
-                            "give you an environment identical to the one "
-                            "loaded when using this tool.")
+                            type=lambda p: Path(p).resolve(), help="Output a "
+                            "bash script that when sourced will give you an "
+                            "environment identical to the one loaded when "
+                            "using this tool.")
 
         parser.add_argument("-f", "--force", action="store_true",
                             default=False, help="Forces load_env to use the "
