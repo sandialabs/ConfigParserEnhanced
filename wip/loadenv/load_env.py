@@ -20,6 +20,16 @@ class LoadEnv(LoadEnvCommon):
         argv:  The command line arguments passed to ``load_env.sh``.
     """
 
+    def parse_supported_systems_file(self):
+        """
+        Parse the ``supported-systems.ini`` file and store the corresponding
+        ``configparserenhanceddata`` object as :attr:`supported_systems_data`.
+        """
+        if self.supported_systems_data is None:
+            self.supported_systems_data = ConfigParserEnhanced(
+                self.args.supported_systems_file
+            ).configparserenhanceddata
+
     def __init__(
         self, argv, load_env_ini="load_env.ini"
     ):
@@ -28,6 +38,8 @@ class LoadEnv(LoadEnvCommon):
                             "command line arguments.")
         self.argv = argv
         self._load_env_ini_file = load_env_ini
+        self.supported_systems_data = None
+        self.parse_supported_systems_file()
 
     @property
     def system_name(self):
@@ -76,7 +88,7 @@ class LoadEnv(LoadEnvCommon):
         Returns:
             str:  The matched system name, or ``None`` if nothing is matched.
         """
-        sys_names = [s for s in self.supported_systems_ini.sections()
+        sys_names = [s for s in self.supported_systems_data.sections()
                      if s != "DEFAULT"]
         hostname_sys_name = None
         for sys_name in sys_names:
@@ -88,7 +100,7 @@ class LoadEnv(LoadEnvCommon):
             #        a '#' or whitespace.      |
             #                      vvvvv    vvvvvvvv
             keys = [re.findall(r"([^#^\s]*)(?:\s*#.*)?", key)[0]
-                    for key in self.supported_systems_ini[sys_name].keys()]
+                    for key in self.supported_systems_data[sys_name].keys()]
 
             # Keys are treated as REGEXes
             matches = []
@@ -112,7 +124,7 @@ class LoadEnv(LoadEnvCommon):
             str:  The matched system name in the build name, if it exists. If
             not, return ``None``.
         """
-        sys_names = [s for s in self.supported_systems_ini.sections()
+        sys_names = [s for s in self.supported_systems_data.sections()
                      if s != "DEFAULT"]
         build_name_sys_names = [_ for _ in sys_names if _ in
                                 self.args.build_name]
@@ -180,19 +192,6 @@ class LoadEnv(LoadEnvCommon):
                 self._load_env_ini_file
             ).configparserenhanceddata
         return self._load_env_ini
-
-    @property
-    def supported_systems_ini(self):
-        """
-        Returns:
-            configparserenhanced.ConfigParserEnhancedData:  The data from
-            ``supported-systems.ini``.
-        """
-        if not hasattr(self, "_supported_systems"):
-            self._supported_systems = ConfigParserEnhanced(
-                self.args.supported_systems_file
-            ).configparserenhanceddata
-        return self._supported_systems
 
     def get_valid_file_path(self, args_path, flag):
         """
