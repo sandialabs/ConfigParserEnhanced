@@ -195,6 +195,34 @@ class LoadEnv(LoadEnvCommon):
         ).configparserenhanceddata
         return self._supported_systems
 
+    def get_valid_file_path(self, args_path, flag):
+        """
+        Check to see if the path specified for a given configuration file is
+        valid.  If not, try to grab it from the ``load-env.ini`` file.
+
+        Parameters:
+            args_path (Path, None):  A path from :attr:`args`.
+            flag (str):  The corresponding flag in both the ``load-env.ini``
+                file and on the command line.
+
+        Throws:
+            ValueError:  If the ``load-env.ini`` file doesn't specify a path to
+                the given configuration file.
+
+        Returns:
+            Path:  The valid path to the configuration file.
+        """
+        file_path = args_path
+        if file_path is None:
+            file_path = self.load_env_ini["load-env"][flag]
+        if file_path == "" or file_path is None:
+            msg = (f"You must specify a path to the `{flag}.ini` file either "
+                   f"in the `load-env.ini` file or via `--{flag}` on the "
+                   "command line.")
+            raise ValueError(self.get_formatted_msg(msg))
+        file_path = Path(file_path).resolve()
+        return file_path
+
     @property
     def args(self):
         """
@@ -203,37 +231,22 @@ class LoadEnv(LoadEnvCommon):
         Returns:
             argparse.Namespace:  The parsed arguments.
         """
-        args = self.__parser().parse_args(self.argv)
-
-        if args.supported_systems_file is None:
-            args.supported_systems_file = (
-                self.load_env_ini["load-env"]["supported-systems"]
+        if not hasattr(self, "_args"):
+            args = self.__parser().parse_args(self.argv)
+            args.supported_systems_file = self.get_valid_file_path(
+                args.supported_systems_file,
+                "supported-systems"
             )
-        if args.supported_systems_file == "":
-            raise ValueError('Path for supported-systems.ini cannot be "".')
-        args.supported_systems_file = Path(
-            args.supported_systems_file
-        ).resolve()
-
-        if args.supported_envs_file is None:
-            args.supported_envs_file = (
-                self.load_env_ini["load-env"]["supported-envs"]
+            args.supported_envs_file = self.get_valid_file_path(
+                args.supported_envs_file,
+                "supported-envs"
             )
-        if args.supported_envs_file == "":
-            raise ValueError('Path for supported-envs.ini cannot be "".')
-        args.supported_envs_file = Path(args.supported_envs_file).resolve()
-
-        if args.environment_specs_file is None:
-            args.environment_specs_file = (
-                self.load_env_ini["load-env"]["environment-specs"]
+            args.environment_specs_file = self.get_valid_file_path(
+                args.environment_specs_file,
+                "environment-specs"
             )
-        if args.environment_specs_file == "":
-            raise ValueError('Path for environment-specs.ini cannot be "".')
-        args.environment_specs_file = Path(
-            args.environment_specs_file
-        ).resolve()
-
-        return args
+            self._args = args
+        return self._args
 
     def __parser(self):
         """
