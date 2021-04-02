@@ -32,8 +32,10 @@ def test_argv_non_list_raises(data):
 ######################
 @pytest.mark.parametrize("data", [
     {
-        "argv": ["--supported-systems",
-                 "non_default/supported-systems.ini", "keyword-str"],
+        "argv": [
+            "--supported-systems", "non_default/supported-systems.ini",
+            "keyword-str"
+        ],
         "build_name_expected": "keyword-str",
         "supported_sys_expected": "non_default/supported-systems.ini",
         "supported_envs_expected": load_env_ini_data["supported-envs"],
@@ -41,12 +43,9 @@ def test_argv_non_list_raises(data):
     },
     {
         "argv": [
-            "--supported-systems",
-            "non_default/supported-systems.ini",
-            "--supported-envs",
-            "non_default/supported-envs.ini",
-            "--environment-specs",
-            "non_default/environment_specs.ini",
+            "--supported-systems", "non_default/supported-systems.ini",
+            "--supported-envs", "non_default/supported-envs.ini",
+            "--environment-specs", "non_default/environment_specs.ini",
             "keyword-str"
         ],
         "build_name_expected": "keyword-str",
@@ -62,30 +61,9 @@ def test_argument_parser_functions_correctly(data):
         data["supported_sys_expected"]
     ).resolve()
     assert le.args.supported_envs_file == Path(data["supported_envs_expected"])
-    assert le.environment_specs_file == Path(
+    assert le.args.environment_specs_file == Path(
         data["environment_specs_expected"]
     )
-
-
-def test_args_overwrite_programmatic_file_assignments():
-    le = LoadEnv(
-        [
-            "--supported-systems",
-            "arg/supported-systems.ini",
-            "--supported-envs",
-            "arg/supported-envs.ini",
-            "--environment-specs",
-            "arg/environment_specs.ini",
-            "--force",
-            "keyword-str-arg"
-        ],
-        environment_specs_file="prog/environment_specs.ini",
-    )
-    assert le.args.build_name == "keyword-str-arg"
-    assert le.args.supported_systems_file == Path("arg/supported-systems.ini")
-    assert le.args.supported_envs_file == Path("arg/supported-envs.ini")
-    assert le.environment_specs_file == Path("arg/environment_specs.ini")
-    assert le.args.force is True
 
 
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
@@ -96,7 +74,7 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     assert le.args.supported_envs_file == Path(
         load_env_ini_data["supported-envs"]
     )
-    assert le.environment_specs_file == Path(
+    assert le.args.environment_specs_file == Path(
         load_env_ini_data["environment-specs"]
     )
 
@@ -224,7 +202,7 @@ def test_correct_arguments_are_passed_to_set_environment_object(
     le = LoadEnv(argv=["build_name"])
     le.write_load_matching_env()
 
-    mock_se.assert_called_once_with(filename=le.environment_specs_file)
+    mock_se.assert_called_once_with(filename=le.args.environment_specs_file)
     mock_se_obj.write_actions_to_file.assert_called_once_with(
         Path("/tmp/load_matching_env.sh").resolve(), qualified_env_name,
         include_header=True, interpreter="bash"

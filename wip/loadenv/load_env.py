@@ -21,15 +21,13 @@ class LoadEnv(LoadEnvCommon):
     """
 
     def __init__(
-        self, argv, load_env_ini="load_env.ini",
-        environment_specs_file=None
+        self, argv, load_env_ini="load_env.ini"
     ):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of "
                             "command line arguments.")
         self.argv = argv
         self._load_env_ini_file = load_env_ini
-        self._environment_specs_file = environment_specs_file
 
     @property
     def system_name(self):
@@ -160,7 +158,7 @@ class LoadEnv(LoadEnvCommon):
             Path:  The path to the script that was written, either the default,
             or whatever the user requested with ``--output``.
         """
-        se = SetEnvironment(filename=self.environment_specs_file)
+        se = SetEnvironment(filename=self.args.environment_specs_file)
         files = [Path("/tmp/load_matching_env.sh").resolve()]
         if self.args.output:
             files += [self.args.output]
@@ -198,34 +196,6 @@ class LoadEnv(LoadEnvCommon):
         return self._supported_systems
 
     @property
-    def environment_specs_file(self):
-        """
-        Gives the path to ``environment-specs.ini``. Any value that exists for
-        this in :attr:`args` or that was explicitly passed in the class
-        initializer overrides the value that is in ``load_env.ini``.
-
-        Returns:
-            pathlib.Path:  The path to ``environment-specs.ini``.
-        """
-        if (self.args is not None and
-                self.args.environment_specs_file is not None):
-            self._environment_specs_file = (
-                self.args.environment_specs_file
-            )
-
-        if self._environment_specs_file is None:
-            self._environment_specs_file = (
-                self.load_env_ini["load-env"]["environment-specs"]
-            )
-
-        if self._environment_specs_file == "":
-            raise ValueError('Path for environment-specs.ini cannot be "".')
-
-        self._environment_specs_file = Path(self._environment_specs_file)
-
-        return self._environment_specs_file
-
-    @property
     def args(self):
         """
         The parsed command line arguments to the script.
@@ -250,6 +220,14 @@ class LoadEnv(LoadEnvCommon):
         if args.supported_envs_file == "":
             raise ValueError('Path for supported-envs.ini cannot be "".')
         args.supported_envs_file = Path(args.supported_envs_file)
+
+        if args.environment_specs_file is None:
+            args.environment_specs_file = (
+                self.load_env_ini["load-env"]["environment-specs"]
+            )
+        if args.environment_specs_file == "":
+            raise ValueError('Path for environment-specs.ini cannot be "".')
+        args.environment_specs_file = Path(args.environment_specs_file)
 
         return args
 
