@@ -144,15 +144,15 @@ class LoadEnv(LoadEnvCommon):
         If ``True``, load_env is forced to use the configurations
         for the system name specified in the build_name rather than the system
         name matched via the hostname and the supported-systems.ini file. The
-        value that exists for this in :attr:`parsed_args` overrides the value
-        that is passed through the class initializer.
+        value that exists for this in :attr:`args` overrides the value that is
+        passed through the class initializer.
 
         Returns:
             bool:  The ``force_build_name_sys_name`` flag.
         """
-        if self.parsed_args is not None:
+        if self.args is not None:
             self._force_build_name_sys_name = (
-                self.parsed_args.force_build_name_sys_name
+                self.args.force_build_name_sys_name
             )
 
         return self._force_build_name_sys_name
@@ -204,7 +204,7 @@ class LoadEnv(LoadEnvCommon):
         Returns:
             str:  The build name given by the user.
         """
-        return self.parsed_args.build_name
+        return self.args.build_name
 
     @property
     def load_env_ini(self):
@@ -224,17 +224,16 @@ class LoadEnv(LoadEnvCommon):
     def supported_systems_file(self):
         """
         Gives the path to ``supported-systems.ini``. Any value that exists for
-        this in :attr:`parsed_args` or that was explicitly passed
-        in the class initializer overrides the value that is in
-        ``load_env.ini``.
+        this in :attr:`args` or that was explicitly passed in the class
+        initializer overrides the value that is in ``load_env.ini``.
 
         Returns:
             pathlib.Path:  The path to ``supported-systems.ini``.
         """
-        if (self.parsed_args is not None and
-                self.parsed_args.supported_systems_file is not None):
+        if (self.args is not None and
+                self.args.supported_systems_file is not None):
             self._supported_systems_file = (
-                self.parsed_args.supported_systems_file
+                self.args.supported_systems_file
             )
 
         if self._supported_systems_file is None:
@@ -266,16 +265,15 @@ class LoadEnv(LoadEnvCommon):
     def supported_envs_file(self):
         """
         Gives the path to ``supported-envs.ini``. Any value that exists for
-        this in :attr:`parsed_args` or that was explicitly passed
-        in the class initializer overrides the value that is in
-        ``load_env.ini``.
+        this in :attr:`args` or that was explicitly passed in the class
+        initializer overrides the value that is in ``load_env.ini``.
 
         Returns:
             pathlib.Path:  The path to ``supported-envs.ini``.
         """
-        if (self.parsed_args is not None and
-                self.parsed_args.supported_envs_file is not None):
-            self._supported_envs_file = self.parsed_args.supported_envs_file
+        if (self.args is not None and
+                self.args.supported_envs_file is not None):
+            self._supported_envs_file = self.args.supported_envs_file
 
         if self._supported_envs_file is None:
             self._supported_envs_file = (
@@ -293,17 +291,16 @@ class LoadEnv(LoadEnvCommon):
     def environment_specs_file(self):
         """
         Gives the path to ``environment-specs.ini``. Any value that exists for
-        this in :attr:`parsed_args` or that was explicitly passed
-        in the class initializer overrides the value that is in
-        ``load_env.ini``.
+        this in :attr:`args` or that was explicitly passed in the class
+        initializer overrides the value that is in ``load_env.ini``.
 
         Returns:
             pathlib.Path:  The path to ``environment-specs.ini``.
         """
-        if (self.parsed_args is not None and
-                self.parsed_args.environment_specs_file is not None):
+        if (self.args is not None and
+                self.args.environment_specs_file is not None):
             self._environment_specs_file = (
-                self.parsed_args.environment_specs_file
+                self.args.environment_specs_file
             )
 
         if self._environment_specs_file is None:
@@ -323,24 +320,24 @@ class LoadEnv(LoadEnvCommon):
         """
         Gives the path to a file to output a bash script that when sourced will
         give the user the same environment that was loaded by this tool. Any
-        value that exists for this in :attr:`parsed_args` overrides the value
-        that is passed through the class initializer.
+        value that exists for this in :attr:`args` overrides the value that is
+        passed through the class initializer.
 
         Returns:
             pathlib.Path, None:  The path to the script, if the user has
             specified it.
         """
-        if (self.parsed_args is not None and
-                self.parsed_args.output is not None):
+        if (self.args is not None and
+                self.args.output is not None):
             self._output = Path(
-                self.parsed_args.output
+                self.args.output
             ).resolve()
         return self._output
 
     @property
-    def parsed_args(self):
+    def args(self):
         """
-        The result of calling ``parsed_args(self.argv)`` on :func:`__parser`.
+        The parsed command line arguments to the script.
 
         Returns:
             argparse.Namespace:  The parsed arguments.
@@ -352,7 +349,7 @@ class LoadEnv(LoadEnvCommon):
         Returns:
             argparse.ArgumentParser:  The parser bject with properly configured
             argument options.  This is to be used in conjunction with
-            :attr:`parsed_args`.
+            :attr:`args`.
         """
         if hasattr(self, "_parser"):
             return self._parser
