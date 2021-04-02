@@ -4,6 +4,7 @@ import pytest
 import sys
 from unittest import mock
 from unittest.mock import patch
+import tempfile
 
 root_dir = (Path.cwd()/".."
             if (Path.cwd()/"conftest.py").exists()
@@ -24,6 +25,50 @@ def test_argv_non_list_raises(data):
         le = LoadEnv(data)
     exc_msg = excinfo.value.args[0]
     assert "must be instantiated with a list" in exc_msg
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        """
+        [foo] # bad section name
+        supported-systems : /path/to/supported-systems.ini
+        supported-envs    : /path/to/supported-envs.ini
+        environment-specs : /path/to/environment-specs.ini
+        """,
+        """
+        [load-env]
+        foo               : /path/to/supported-systems.ini # no supported-systems
+        supported-envs    : /path/to/supported-envs.ini
+        environment-specs : /path/to/environment-specs.ini
+        """,
+        """
+        [load-env]
+        supported-systems : /path/to/supported-systems.ini
+        foo               : /path/to/supported-envs.ini    # no supported-envs
+        environment-specs : /path/to/environment-specs.ini
+        """,
+        """
+        [load-env]
+        supported-systems : /path/to/supported-systems.ini
+        supported-envs    : /path/to/supported-envs.ini
+        foo               : /path/to/environment-specs.ini # no environment-specs
+        """
+    ],
+    ids=[
+        "bad section name",
+        "no supported-systems",
+        "no supported-envs",
+        "no environment-specs"
+    ]
+)
+def test_bad_load_env_ini_raises(data):
+    with tempfile.NamedTemporaryFile() as tmp:
+        tmp.write(data.encode())
+        le = LoadEnv(["build_name"], load_env_ini=tmp.name)
+        with pytest.raises(ValueError) as excinfo:
+            le.supported_systems_file
+        exc_msg = excinfo.value.args[0]
+        assert "mal-formed" in exc_msg
 
 
 

@@ -214,9 +214,22 @@ class LoadEnv(LoadEnvCommon):
             ``load_env.ini``.
         """
         if not hasattr(self, "_load_env_ini"):
-            self._load_env_ini = ConfigParserEnhanced(
-                self._load_env_ini_file
-            ).configparserenhanceddata
+            cpe = ConfigParserEnhanced(self._load_env_ini_file)
+            data = cpe.configparserenhanceddata
+            if ("load-env" not in data or
+                    "supported-systems" not in data["load-env"] or
+                    "supported-envs" not in data["load-env"] or
+                    "environment-specs" not in data["load-env"]):
+                msg = (f"'{self._load_env_ini_file}' is mal-formed.  It must "
+                       "contain")
+                extras = (
+                    "\n  [load-env]\n"
+                    "  supported-systems : /path/to/supported-systems.ini\n"
+                    "  supported-envs    : /path/to/supported-envs.ini\n"
+                    "  environment-specs : /path/to/environment-specs.ini"
+                )
+                raise ValueError(self.get_formatted_msg(msg, extras=extras))
+            self._load_env_ini = cpe.configparserenhanceddata
 
         return self._load_env_ini
 
