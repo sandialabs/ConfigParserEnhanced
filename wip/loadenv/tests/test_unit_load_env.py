@@ -29,36 +29,78 @@ def test_argv_non_list_raises(data):
 @pytest.mark.parametrize(
     "data",
     [
+#        """
+#        [foo] # bad section name
+#        supported-systems : /path/to/supported-systems.ini
+#        supported-envs    : /path/to/supported-envs.ini
+#        environment-specs : /path/to/environment-specs.ini
+#        """,
+#        """
+#        [load-env]
+#        foo               : /path/to/supported-systems.ini # no supported-systems key
+#        supported-envs    : /path/to/supported-envs.ini
+#        environment-specs : /path/to/environment-specs.ini
+#        """,
+#        """
+#        [load-env]
+#        supported-systems : /path/to/supported-systems.ini
+#        foo               : /path/to/supported-envs.ini    # no supported-envs key
+#        environment-specs : /path/to/environment-specs.ini
+#        """,
+#        """
+#        [load-env]
+#        supported-systems : /path/to/supported-systems.ini
+#        supported-envs    : /path/to/supported-envs.ini
+#        foo               : /path/to/environment-specs.ini # no environment-specs key
+#        """,
         """
-        [foo] # bad section name
-        supported-systems : /path/to/supported-systems.ini
+        [load-env]
+        supported-systems :                                # supported-systems value empty
         supported-envs    : /path/to/supported-envs.ini
         environment-specs : /path/to/environment-specs.ini
         """,
-        """
-        [load-env]
-        foo               : /path/to/supported-systems.ini # no supported-systems
-        supported-envs    : /path/to/supported-envs.ini
-        environment-specs : /path/to/environment-specs.ini
-        """,
-        """
-        [load-env]
-        supported-systems : /path/to/supported-systems.ini
-        foo               : /path/to/supported-envs.ini    # no supported-envs
-        environment-specs : /path/to/environment-specs.ini
-        """,
-        """
-        [load-env]
-        supported-systems : /path/to/supported-systems.ini
-        supported-envs    : /path/to/supported-envs.ini
-        foo               : /path/to/environment-specs.ini # no environment-specs
-        """
+#        """
+#        [load-env]
+#        supported-systems : /path/to/supported-systems.ini
+#        supported-envs    :                                # supported-envs value empty
+#        environment-specs : /path/to/environment-specs.ini
+#        """,
+#        """
+#        [load-env]
+#        supported-systems : /path/to/supported-systems.ini
+#        supported-envs    : /path/to/supported-envs.ini
+#        environment-specs :                                # environment-specs value empty
+#        """,
+#        """
+#        [load-env]
+#        supported-systems                                  # no supported-systems value
+#        supported-envs    : /path/to/supported-envs.ini
+#        environment-specs : /path/to/environment-specs.ini
+#        """,
+#        """
+#        [load-env]
+#        supported-systems : /path/to/supported-systems.ini
+#        supported-envs                                     # no supported-envs value
+#        environment-specs : /path/to/environment-specs.ini
+#        """,
+#        """
+#        [load-env]
+#        supported-systems : /path/to/supported-systems.ini
+#        supported-envs    : /path/to/supported-envs.ini
+#        environment-specs                                  # no environment-specs value
+#        """
     ],
     ids=[
-        "bad section name",
-        "no supported-systems",
-        "no supported-envs",
-        "no environment-specs"
+#        "bad section name",
+#        "no supported-systems key",
+#        "no supported-envs key",
+#        "no environment-spec key",
+        "supported-systems value empty",
+#        "supported-envs value empty",
+#        "environment-spec value empty",
+#        "no supported-systems value",
+#        "no supported-envs value",
+#        "no environment-spec value"
     ]
 )
 def test_bad_load_env_ini_raises(data):
@@ -68,7 +110,9 @@ def test_bad_load_env_ini_raises(data):
         with pytest.raises(ValueError) as excinfo:
             le.supported_systems_file
         exc_msg = excinfo.value.args[0]
+        print(exc_msg)
         assert "mal-formed" in exc_msg
+    assert False
 
 
 

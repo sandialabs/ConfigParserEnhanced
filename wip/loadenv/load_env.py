@@ -216,10 +216,16 @@ class LoadEnv(LoadEnvCommon):
         if not hasattr(self, "_load_env_ini"):
             cpe = ConfigParserEnhanced(self._load_env_ini_file)
             data = cpe.configparserenhanceddata
-            if ("load-env" not in data or
-                    "supported-systems" not in data["load-env"] or
-                    "supported-envs" not in data["load-env"] or
-                    "environment-specs" not in data["load-env"]):
+            from pprint import pprint
+            print(data.sections())
+            print(data.has_section("load-env"))
+            print(data.has_option("load-env", "supported-systems"))
+            print(data.has_option("load-env", "supported-envs"))
+            print(data.has_option("load-env", "environment-specs"))
+            if (not data.has_section("load-env") or
+                    not data.has_option("load-env", "supported-systems") or
+                    not data.has_option("load-env", "supported-envs") or
+                    not data.has_option("load-env", "environment-specs")):
                 msg = (f"'{self._load_env_ini_file}' is mal-formed.  It must "
                        "contain")
                 extras = (
@@ -229,6 +235,10 @@ class LoadEnv(LoadEnvCommon):
                     "  environment-specs : /path/to/environment-specs.ini"
                 )
                 raise ValueError(self.get_formatted_msg(msg, extras=extras))
+            for f in ["supported-systems", "supported-envs", "environment-specs"]:
+                if not data["load-env"][f]:
+                    msg = f"'{self._load_env_ini_file}' is missing '{f}'."
+                    raise ValueError(self.get_formatted_msg(msg))
             self._load_env_ini = cpe.configparserenhanceddata
 
         return self._load_env_ini
