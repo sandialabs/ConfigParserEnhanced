@@ -60,23 +60,25 @@ def test_argument_parser_functions_correctly(data):
     assert le.args.supported_systems_file == Path(
         data["supported_sys_expected"]
     ).resolve()
-    assert le.args.supported_envs_file == Path(data["supported_envs_expected"])
+    assert le.args.supported_envs_file == Path(
+        data["supported_envs_expected"]
+    ).resolve()
     assert le.args.environment_specs_file == Path(
         data["environment_specs_expected"]
-    )
+    ).resolve()
 
 
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     le = LoadEnv(["build_name"])
     assert le.args.supported_systems_file == Path(
         load_env_ini_data["supported-systems"]
-    )
+    ).resolve()
     assert le.args.supported_envs_file == Path(
         load_env_ini_data["supported-envs"]
-    )
+    ).resolve()
     assert le.args.environment_specs_file == Path(
         load_env_ini_data["environment-specs"]
-    )
+    ).resolve()
 
 
 ###############################

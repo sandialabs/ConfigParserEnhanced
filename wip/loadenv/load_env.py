@@ -211,7 +211,9 @@ class LoadEnv(LoadEnvCommon):
             )
         if args.supported_systems_file == "":
             raise ValueError('Path for supported-systems.ini cannot be "".')
-        args.supported_systems_file = Path(args.supported_systems_file)
+        args.supported_systems_file = Path(
+            args.supported_systems_file
+        ).resolve()
 
         if args.supported_envs_file is None:
             args.supported_envs_file = (
@@ -219,7 +221,7 @@ class LoadEnv(LoadEnvCommon):
             )
         if args.supported_envs_file == "":
             raise ValueError('Path for supported-envs.ini cannot be "".')
-        args.supported_envs_file = Path(args.supported_envs_file)
+        args.supported_envs_file = Path(args.supported_envs_file).resolve()
 
         if args.environment_specs_file is None:
             args.environment_specs_file = (
@@ -227,7 +229,9 @@ class LoadEnv(LoadEnvCommon):
             )
         if args.environment_specs_file == "":
             raise ValueError('Path for environment-specs.ini cannot be "".')
-        args.environment_specs_file = Path(args.environment_specs_file)
+        args.environment_specs_file = Path(
+            args.environment_specs_file
+        ).resolve()
 
         return args
 
@@ -284,12 +288,14 @@ class LoadEnv(LoadEnvCommon):
                                   "``load_env.ini``.")
         config_files.add_argument("--supported-envs", default=None,
                                   dest="supported_envs_file", action="store",
+                                  type=lambda p: Path(p).resolve(),
                                   help="Path to ``supported-envs.ini``.  "
                                   "Overrides loading the file specified in "
                                   "``load_env.ini``.")
         config_files.add_argument("--environment-specs",
                                   dest="environment_specs_file",
                                   action="store", default=None,
+                                  type=lambda p: Path(p).resolve(),
                                   help="Path to ``environment-specs.ini``.  "
                                   "Overrides loading the file specified in "
                                   "``load_env.ini``.")
