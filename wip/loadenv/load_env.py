@@ -122,7 +122,8 @@ class LoadEnv(LoadEnvCommon):
         """
         sys_names = [s for s in self.supported_systems_ini.sections()
                      if s != "DEFAULT"]
-        build_name_sys_names = [_ for _ in sys_names if _ in self.build_name]
+        build_name_sys_names = [_ for _ in sys_names if _ in
+                                self.args.build_name]
         if len(build_name_sys_names) > 1:
             msg = self.get_msg_for_list(
                 "Cannot specify more than one system name in the build name\n"
@@ -148,7 +149,7 @@ class LoadEnv(LoadEnvCommon):
             str:  The qualified environment name from parsing the
             :attr:`build_name`.
         """
-        ekp = EnvKeywordParser(self.build_name, self.system_name,
+        ekp = EnvKeywordParser(self.args.build_name, self.system_name,
                                self.supported_envs_file)
         self._parsed_env_name = ekp.qualified_env_name
 
@@ -174,16 +175,6 @@ class LoadEnv(LoadEnvCommon):
             se.write_actions_to_file(f, self.parsed_env_name,
                                      include_header=True, interpreter="bash")
         return files[-1]
-
-    @property
-    def build_name(self):
-        """
-        The :attr:`build_name` value passed in by the user.
-
-        Returns:
-            str:  The build name given by the user.
-        """
-        return self.args.build_name
 
     @property
     def load_env_ini(self):

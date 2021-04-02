@@ -57,7 +57,7 @@ def test_argv_non_list_raises(data):
 ])
 def test_argument_parser_functions_correctly(data):
     le = LoadEnv(data["argv"])
-    assert le.build_name == data["build_name_expected"]
+    assert le.args.build_name == data["build_name_expected"]
     assert le.supported_systems_file == Path(data["supported_sys_expected"])
     assert le.supported_envs_file == Path(data["supported_envs_expected"])
     assert le.environment_specs_file == Path(
@@ -81,7 +81,7 @@ def test_args_overwrite_programmatic_file_assignments():
         supported_envs_file="prog/supported-envs.ini",
         environment_specs_file="prog/environment_specs.ini",
     )
-    assert le.build_name == "keyword-str-arg"
+    assert le.args.build_name == "keyword-str-arg"
     assert le.supported_systems_file == Path("arg/supported-systems.ini")
     assert le.supported_envs_file == Path("arg/supported-envs.ini")
     assert le.environment_specs_file == Path("arg/environment_specs.ini")
@@ -125,7 +125,7 @@ def test_empty_string_values_raise_ValueError(mock_cpe, blank_value):
     with pytest.raises(ValueError) as excinfo:
         # Error is only raised when grabbing the property because they are
         # lazily evaluated (only when needed).
-        le.build_name
+        le.args.build_name
         le.supported_systems_file
         le.supported_envs_file
         le.environment_specs_file
@@ -233,7 +233,7 @@ def test_correct_arguments_are_passed_to_ekp_object(mock_socket, mock_ekp):
     le = LoadEnv(argv=["build_name"])
     le.parsed_env_name
 
-    mock_ekp.assert_called_once_with(le.build_name, le.system_name,
+    mock_ekp.assert_called_once_with(le.args.build_name, le.system_name,
                                      le.supported_envs_file)
 
 
