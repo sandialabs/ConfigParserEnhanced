@@ -354,10 +354,10 @@ class LoadEnv(LoadEnvCommon):
             argparse.Namespace:  The parsed arguments, or ``None`` if
             ``self.argv is None``.
         """
-        if self.argv is None:
-            return None
-
-        return self.__parser().parse_args(self.argv)
+        parsed_args = None
+        if self.argv is not None:
+            parsed_args = self.__parser().parse_args(self.argv)
+        return parsed_args
 
     def __parser(self):
         """
