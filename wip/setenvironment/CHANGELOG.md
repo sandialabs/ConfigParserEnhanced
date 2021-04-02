@@ -31,6 +31,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   argument providing the version number. This has been fixed so that we now
   allow 1 or 2 arguments to `module-load` where 1 argument will use the default
   argument as set up in the modulefiles.
+- BUGS (Issue #51) - 12/57 tests would fail when running pytest on TLCC2
+  machines. Here is a summary of what was causing each test to fail:
+  - `load_args_as_list`: env_modules_python.module does not accept lists
+  - `load_error_by_mlstatus`: LMOD error checking not present
+  - `load_error_exception`: LMOD error checking not present
+  - `load_error_module_returns_nonetype`: missing mock patch for Popen
+  - `load_error_no_modulecmd`: LMOD error checking not present
+  - `load_status_error`: LMOD error checking not present
+  - `load_status_ok`: LMOD error checking not present, missing module
+  - `load_success_by_mlstatus`: LMOD error checking not present, missing module
+  - `swap_status_ok`: LMOD error checking not present, missing modules
+  - `unload_status_ok`: LMOD error checking not present
+  - `modulecmd_not_found`: LMOD error checking not present
+  - `method_apply_module_test`: capturing return code of env_modules_python.module, which is always `None`
+
 #### Security
 #### Internal
 #### Todo (for Unreleased)

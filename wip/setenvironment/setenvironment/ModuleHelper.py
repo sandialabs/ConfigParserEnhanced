@@ -44,7 +44,7 @@ else:                                                                           
 
 
 
-try:    # pragma: no cover  (don't report until we have a system we can test on with LMOD available)
+try: # pragma: cover if on lmod
 
     # Try to import the LMOD version of the module() function.
     # See: https://github.com/TACC/Lmod/blob/master/init/env_modules_python.py.in
@@ -73,21 +73,101 @@ try:    # pragma: no cover  (don't report until we have a system we can test on 
         """
         status = 0
 
-        try:
+        # LMOD does not capture stdout and stderr in an object, the locals below are used to capture
+        # those descriptors for error checking in this function.
+        stdout = ""
+        stderr = ""
 
-            status = env_modules_python.module(command, *arguments)
+        # Check whether the LMOD module command exists on the system
+        # We cannot use declare -F module via os.system or subprocess.Popen because
+        # they are both "patched" for unit testing.... I am settling for os.getenv
+        # of LMOD_CMD, which is not a bash function, for now. Note that declare -F
+        # is the more robust approach.
+        lmod_cmd_env = os.getenv("LMOD_CMD")
+        if len(lmod_cmd_env) == 0:
+            raise FileNotFoundError("Unable to find module function")
+
+        # Attempt running the 'module' command
+        # We cannot control whether module is passed to exec, that happens within
+        # the env_modules_python.modules method.
+        try:
+            import io
+            from contextlib import redirect_stdout
+            from contextlib import redirect_stderr
+
+            # env_modules_python.module does not support command as a list type, so we splat command here.
+            if isinstance(command, (list)):
+                _command = command
+                with io.StringIO() as err, redirect_stderr(err), io.StringIO() as out, redirect_stdout(out):
+                    env_modules_python.module(*command, *arguments)
+                    stdout = out.getvalue()
+                    stderr = err.getvalue()
+
+            else:
+                _command = []
+                _command.append(command)
+
+                with io.StringIO() as err, redirect_stderr(err), io.StringIO() as out, redirect_stdout(out):
+                    env_modules_python.module(command, *arguments)
+                    stdout = out.getvalue()
+                    stderr = err.getvalue()
 
         except BaseException as error:
-            print("")
+            print("!!")
             print("An ERROR occurred during execution of module command")
-            print("")
+            print(stdout)
+            print(stderr)
+            print("!!")
             raise error
 
-        return status
+        # Check the module function output for errors
+        stderr_ok = True
+        if "error:" in stderr.lower():
+            stderr_ok = False
+
+        # Check for 'module' command success with short circuiting
+        _arguments = _command[1:] + list(arguments)
+        shell_cmds = []
+        is_loaded   = "module is-loaded {0} && true  || false"
+        is_unloaded = "module is-loaded {0} && false || true"
+        is_file     = "[ -e {0} ] && true || false"
+        # TODO: handle other commands: purge, etc.
+        if _command[0] == 'load':
+            shell_cmds += [is_loaded.format(_arguments[0])]
+        elif _command[0] == 'unload':
+            shell_cmds += [is_unloaded.format(_arguments[0])]
+        elif _command[0] == 'swap':
+            shell_cmds += [is_unloaded.format(_arguments[0])]
+            shell_cmds += [is_loaded.format(_arguments[1])]
+        elif _command[0] == 'use':
+            shell_cmds += [is_file.format(_arguments[0])]
+
+        # NOTE: mock.py does not recognize keyword argument 'shell' in __init__
+        # so we bypass mock.py via os.system here instead of running:
+        # proc = subprocess.run(shell_cmds, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        for cmd in shell_cmds:
+            status = os.system(cmd)
+
+            if stderr_ok and status != 0:
+                print("!!")
+                print(stdout)
+                print(stderr)
+                print("!!")
+                return status
+
+        if not stderr_ok:
+            print("!!")
+            print("An ERROR occurred during execution of module command")
+            print(stdout)
+            print(stderr)
+            print("!!")
+            return 1
+
+        return 0
 
 
 
-except ImportError:
+except ImportError: # pragma: cover if not on lmod
     # print("NOTICE> [ModuleHelper.py] Using the modulecmd based environment modules handler.")
 
 
@@ -196,4 +276,3 @@ except ImportError:
             raise TypeError("ERROR: the errorcode can not be `None`")
 
         return errcode
-
