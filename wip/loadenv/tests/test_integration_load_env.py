@@ -31,24 +31,14 @@ load_env_ini_data = ConfigParserEnhanced(
         "expected_env": "machine-type-4-arm-20.0-openmpi-4.0.2-openmp"
     }
 ])
-@pytest.mark.parametrize("prog_cmd", ["prog", "cmd"])
 @patch("load_env.socket")
-def test_ekp_matches_correct_env_name(mock_socket, prog_cmd, inputs):
+def test_ekp_matches_correct_env_name(mock_socket, inputs):
     ###########################################################################
     # **This will need to change later once we have a more sophisticated**
     # **system determination in place.**
     ###########################################################################
     mock_socket.gethostname.return_value = inputs["hostname"]
-
-    if prog_cmd == "prog":
-        le = LoadEnv(
-            build_name=inputs["build_name"],
-        )
-    else:
-        le = LoadEnv(argv=[
-            inputs["build_name"],
-        ])
-
+    le = LoadEnv(argv=[inputs["build_name"]])
     assert le.parsed_env_name == inputs["expected_env"]
 
 
@@ -117,24 +107,14 @@ def test_ekp_matches_correct_env_name(mock_socket, prog_cmd, inputs):
         ]
     }
 ])
-@pytest.mark.parametrize("prog_cmd", ["prog", "cmd"])
 @patch("load_env.socket")
-def test_correct_commands_are_saved(mock_socket, prog_cmd, inputs):
+def test_correct_commands_are_saved(mock_socket, inputs):
     ###########################################################################
     # **This will need to change later once we have a more sophisticated**
     # **system determination in place.**
     ###########################################################################
     mock_socket.gethostname.return_value = inputs["hostname"]
-
-    if prog_cmd == "prog":
-        le = LoadEnv(
-            build_name=inputs["build_name"],
-        )
-    else:
-        le = LoadEnv(argv=[
-            inputs["build_name"],
-        ])
-
+    le = LoadEnv(argv=[inputs["build_name"]])
     assert le.parsed_env_name == inputs["expected_env"]
 
     le.write_load_matching_env()

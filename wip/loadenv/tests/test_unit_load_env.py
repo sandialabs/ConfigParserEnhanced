@@ -17,6 +17,16 @@ load_env_ini_data = ConfigParserEnhanced(
 ).configparserenhanceddata["load-env"]
 
 
+
+@pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
+def test_argv_non_list_raises(data):
+    with pytest.raises(TypeError) as excinfo:
+        le = LoadEnv(data)
+    exc_msg = excinfo.value.args[0]
+    assert "must be instantiated with a list" in exc_msg
+
+
+
 ######################
 #  Argument Parsing  #
 ######################
@@ -83,8 +93,7 @@ def test_args_overwrite_programmatic_file_assignments():
 
 
 @pytest.mark.parametrize("blank_value", [
-    "build_name", "supported_systems_file", "supported_envs_file",
-    "environment_specs_file"
+    "supported_systems_file", "supported_envs_file", "environment_specs_file"
 ])
 @patch("load_env.ConfigParserEnhanced")
 def test_empty_string_values_raise_ValueError(mock_cpe, blank_value):
@@ -107,12 +116,15 @@ def test_empty_string_values_raise_ValueError(mock_cpe, blank_value):
     }
     data[blank_value] = ""
 
-    le = LoadEnv(
-        build_name=data["build_name"],
-        supported_systems_file=data["supported_systems_file"],
-        supported_envs_file=data["supported_envs_file"],
-        environment_specs_file=data["environment_specs_file"],
-    )
+    argv = []
+    if blank_value == "supported_systems_file":
+        argv += ["--supported-systems", data["supported_systems_file"]]
+    if blank_value == "supported_envs_file":
+        argv += ["--supported-envs", data["supported_envs_file"]]
+    if blank_value == "environment_specs_file":
+        argv += ["--environment-specs", data["environment_specs_file"]]
+    argv += [data["build_name"]]
+    le = LoadEnv(argv)
 
     with pytest.raises(ValueError) as excinfo:
         # Error is only raised when grabbing the property because they are
@@ -131,8 +143,7 @@ def test_empty_string_values_raise_ValueError(mock_cpe, blank_value):
 
 
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
-    le = LoadEnv(build_name="build_name")
-
+    le = LoadEnv(["build_name"])
     assert le.supported_systems_file == Path(
         load_env_ini_data["supported-systems"]
     )
@@ -155,20 +166,17 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
 @patch("load_env.socket")
 def test_system_name_determination_correct_for_hostname(mock_socket, data):
     mock_socket.gethostname.return_value = data["hostname"]
-
-    le = LoadEnv(build_name="build_name")
+    le = LoadEnv(["build_name"])
     assert le.system_name == data["sys_name"]
 
 
 @patch("load_env.socket")
 def test_sys_name_in_build_name_not_matching_hostname_raises(mock_socket):
     mock_socket.gethostname.return_value = "stria"
-
-    le = LoadEnv(build_name="machine-type-1-build-name")
+    le = LoadEnv(["machine-type-1-build-name"])
     with pytest.raises(SystemExit) as excinfo:
         le.system_name
     exc_msg = excinfo.value.args[0]
-
     assert "Hostname 'stria' matched to system 'machine-type-4'" in exc_msg
     assert "but you specified 'machine-type-1' in the build name" in exc_msg
     assert "add the --force flag" in exc_msg
@@ -179,7 +187,7 @@ def tests_sys_name_in_build_name_overrides_hostname_match_when_forced(
     mock_socket
 ):
     mock_socket.gethostname.return_value = "stria"
-    le = LoadEnv(build_name="machine-type-1-build-name", force_build_name_sys_name=True)
+    le = LoadEnv(["machine-type-1-build-name", "--force"])
     assert le.system_name == "machine-type-1"
 
 
@@ -189,12 +197,10 @@ def test_multiple_sys_names_in_build_name_raises_regardless_of_hostname_match(
     mock_socket, hostname
 ):
     mock_socket.gethostname.return_value = hostname
-
-    le = LoadEnv(build_name="machine-type-1-rhel7-build-name")
+    le = LoadEnv(["machine-type-1-rhel7-build-name"])
     with pytest.raises(SystemExit) as excinfo:
         le.system_name
     exc_msg = excinfo.value.args[0]
-
     assert ("Cannot specify more than one system name in the build name"
             in exc_msg)
     assert "- machine-type-1" in exc_msg
@@ -208,8 +214,7 @@ def test_multiple_sys_names_in_build_name_raises_regardless_of_hostname_match(
 @patch("load_env.socket")
 def test_unsupported_hostname_handled_correctly(mock_socket, data):
     mock_socket.gethostname.return_value = "unsupported_hostname"
-
-    le = LoadEnv(build_name=data["build_name"])
+    le = LoadEnv([data["build_name"]])
     if data["raises"]:
         with pytest.raises(SystemExit) as excinfo:
             le.system_name

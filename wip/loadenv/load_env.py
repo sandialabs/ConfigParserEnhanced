@@ -21,11 +21,15 @@ class LoadEnv(LoadEnvCommon):
     """
 
     def __init__(
-        self, build_name="", load_env_ini="load_env.ini",
+        self, argv, build_name="", load_env_ini="load_env.ini",
         supported_systems_file=None, supported_envs_file=None,
         environment_specs_file=None, output=None,
-        force_build_name_sys_name=False, argv=None
+        force_build_name_sys_name=False
     ):
+        if not isinstance(argv, list):
+            raise TypeError("LoadEnv must be instantiated with a list of "
+                            "command line arguments.")
+        self.argv = argv
         self._build_name = build_name
         self._load_env_ini_file = load_env_ini
         self._supported_systems_file = supported_systems_file
@@ -33,7 +37,6 @@ class LoadEnv(LoadEnvCommon):
         self._environment_specs_file = environment_specs_file
         self._output = output
         self._force_build_name_sys_name = force_build_name_sys_name
-        self.argv = argv
 
     @property
     def system_name(self):
@@ -348,16 +351,11 @@ class LoadEnv(LoadEnvCommon):
     def parsed_args(self):
         """
         The result of calling ``parsed_args(self.argv)`` on :func:`__parser`.
-        If ``self.argv is None``, then this property also returns ``None``.
 
         Returns:
-            argparse.Namespace:  The parsed arguments, or ``None`` if
-            ``self.argv is None``.
+            argparse.Namespace:  The parsed arguments.
         """
-        parsed_args = None
-        if self.argv is not None:
-            parsed_args = self.__parser().parse_args(self.argv)
-        return parsed_args
+        return self.__parser().parse_args(self.argv)
 
     def __parser(self):
         """
@@ -427,10 +425,6 @@ class LoadEnv(LoadEnvCommon):
         return parser
 
 
-def main(argv):
-    le = LoadEnv(argv=argv)
-    le.write_load_matching_env()
-
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    le = LoadEnv(sys.argv[1:])
+    le.write_load_matching_env()
