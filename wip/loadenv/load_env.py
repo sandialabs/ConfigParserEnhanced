@@ -24,7 +24,6 @@ class LoadEnv(LoadEnvCommon):
         self, argv, load_env_ini="load_env.ini",
         supported_systems_file=None, supported_envs_file=None,
         environment_specs_file=None, output=None,
-        force=False
     ):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of "
@@ -35,7 +34,6 @@ class LoadEnv(LoadEnvCommon):
         self._supported_envs_file = supported_envs_file
         self._environment_specs_file = environment_specs_file
         self._output = output
-        self._force = force
 
     @property
     def system_name(self):
@@ -61,7 +59,7 @@ class LoadEnv(LoadEnvCommon):
             self._system_name = build_name_sys_name
             if (hostname_sys_name is not None
                     and hostname_sys_name != self._system_name
-                    and self.force is False):
+                    and self.args.force is False):
                 msg = self.get_formatted_msg(
                     f"Hostname '{hostname}' matched to system "
                     f"'{hostname_sys_name}'\n in "
@@ -137,25 +135,6 @@ class LoadEnv(LoadEnvCommon):
             build_name_sys_name = build_name_sys_names[0]
 
         return build_name_sys_name
-
-    @property
-    def force(self):
-        """
-        If ``True``, load_env is forced to use the configurations
-        for the system name specified in the build_name rather than the system
-        name matched via the hostname and the supported-systems.ini file. The
-        value that exists for this in :attr:`args` overrides the value that is
-        passed through the class initializer.
-
-        Returns:
-            bool:  The ``force`` flag.
-        """
-        if self.args is not None:
-            self._force = (
-                self.args.force
-            )
-
-        return self._force
 
     @property
     def parsed_env_name(self):
