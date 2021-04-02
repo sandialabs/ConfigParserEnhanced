@@ -56,8 +56,7 @@ def test_argv_non_list_raises(data):
     },
 ])
 def test_argument_parser_functions_correctly(data):
-    le = LoadEnv(build_name="", argv=data["argv"])
-
+    le = LoadEnv(data["argv"])
     assert le.build_name == data["build_name_expected"]
     assert le.supported_systems_file == Path(data["supported_sys_expected"])
     assert le.supported_envs_file == Path(data["supported_envs_expected"])
@@ -68,12 +67,7 @@ def test_argument_parser_functions_correctly(data):
 
 def test_args_overwrite_programmatic_file_assignments():
     le = LoadEnv(
-        build_name="keyword-str-prog",
-        supported_systems_file="prog/supported-systems.ini",
-        supported_envs_file="prog/supported-envs.ini",
-        environment_specs_file="prog/environment_specs.ini",
-        force_build_name_sys_name=False,
-        argv=[
+        [
             "--supported-systems",
             "arg/supported-systems.ini",
             "--supported-envs",
@@ -83,8 +77,11 @@ def test_args_overwrite_programmatic_file_assignments():
             "--force",
             "keyword-str-arg"
         ],
+        supported_systems_file="prog/supported-systems.ini",
+        supported_envs_file="prog/supported-envs.ini",
+        environment_specs_file="prog/environment_specs.ini",
+        force_build_name_sys_name=False,
     )
-
     assert le.build_name == "keyword-str-arg"
     assert le.supported_systems_file == Path("arg/supported-systems.ini")
     assert le.supported_envs_file == Path("arg/supported-envs.ini")

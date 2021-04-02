@@ -21,7 +21,7 @@ class LoadEnv(LoadEnvCommon):
     """
 
     def __init__(
-        self, argv, build_name="", load_env_ini="load_env.ini",
+        self, argv, load_env_ini="load_env.ini",
         supported_systems_file=None, supported_envs_file=None,
         environment_specs_file=None, output=None,
         force_build_name_sys_name=False
@@ -30,7 +30,6 @@ class LoadEnv(LoadEnvCommon):
             raise TypeError("LoadEnv must be instantiated with a list of "
                             "command line arguments.")
         self.argv = argv
-        self._build_name = build_name
         self._load_env_ini_file = load_env_ini
         self._supported_systems_file = supported_systems_file
         self._supported_envs_file = supported_envs_file
@@ -200,21 +199,12 @@ class LoadEnv(LoadEnvCommon):
     @property
     def build_name(self):
         """
-        Returns the :attr:`build_name` value passed by the user. Any value
-        that exists for this in :attr:`parsed_args` overrides the value that is
-        passed through the class initializer.
+        The :attr:`build_name` value passed in by the user.
 
         Returns:
-            str:  The keyword string given by the user.
+            str:  The build name given by the user.
         """
-        if (self.parsed_args is not None and
-                self.parsed_args.build_name is not None):
-            self._build_name = self.parsed_args.build_name
-
-        if self._build_name == "":
-            raise ValueError('Keyword string cannot be "".')
-
-        return self._build_name
+        return self.parsed_args.build_name
 
     @property
     def load_env_ini(self):
