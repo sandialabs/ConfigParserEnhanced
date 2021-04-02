@@ -24,7 +24,7 @@ class LoadEnv(LoadEnvCommon):
         self, argv, load_env_ini="load_env.ini",
         supported_systems_file=None, supported_envs_file=None,
         environment_specs_file=None, output=None,
-        force_build_name_sys_name=False
+        force=False
     ):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of "
@@ -35,7 +35,7 @@ class LoadEnv(LoadEnvCommon):
         self._supported_envs_file = supported_envs_file
         self._environment_specs_file = environment_specs_file
         self._output = output
-        self._force_build_name_sys_name = force_build_name_sys_name
+        self._force = force
 
     @property
     def system_name(self):
@@ -61,7 +61,7 @@ class LoadEnv(LoadEnvCommon):
             self._system_name = build_name_sys_name
             if (hostname_sys_name is not None
                     and hostname_sys_name != self._system_name
-                    and self.force_build_name_sys_name is False):
+                    and self.force is False):
                 msg = self.get_formatted_msg(
                     f"Hostname '{hostname}' matched to system "
                     f"'{hostname_sys_name}'\n in "
@@ -139,7 +139,7 @@ class LoadEnv(LoadEnvCommon):
         return build_name_sys_name
 
     @property
-    def force_build_name_sys_name(self):
+    def force(self):
         """
         If ``True``, load_env is forced to use the configurations
         for the system name specified in the build_name rather than the system
@@ -148,14 +148,14 @@ class LoadEnv(LoadEnvCommon):
         passed through the class initializer.
 
         Returns:
-            bool:  The ``force_build_name_sys_name`` flag.
+            bool:  The ``force`` flag.
         """
         if self.args is not None:
-            self._force_build_name_sys_name = (
-                self.args.force_build_name_sys_name
+            self._force = (
+                self.args.force
             )
 
-        return self._force_build_name_sys_name
+        return self._force
 
     @property
     def parsed_env_name(self):
@@ -370,23 +370,19 @@ class LoadEnv(LoadEnvCommon):
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
-        parser.add_argument("build_name", help=(
-            "The keyword string for which you wish to load the environment."
-        ))
+        parser.add_argument("build_name", help="The keyword string for which "
+                            "you wish to load the environment.")
 
-        parser.add_argument("-o", "--output",
-                            dest="output", action="store",
-                            default=None,
+        parser.add_argument("-o", "--output", action="store", default=None,
                             help="Output a bash script that when sourced will "
                             "give you an environment identical to the one "
                             "loaded when using this tool.")
 
-        parser.add_argument("-f", "--force", dest="force_build_name_sys_name",
-                            action="store_true", default=False,
-                            help="Forces load_env to use the system name "
-                            "specified in the build_name rather than the "
-                            "system name matched via the hostname and the "
-                            "supported-systems.ini file.")
+        parser.add_argument("-f", "--force", action="store_true",
+                            default=False, help="Forces load_env to use the "
+                            "system name specified in the build_name rather "
+                            "than the system name matched via the hostname "
+                            "and the supported-systems.ini file.")
 
         config_files = parser.add_argument_group(
             "configuration file overrides"

@@ -80,13 +80,13 @@ def test_args_overwrite_programmatic_file_assignments():
         supported_systems_file="prog/supported-systems.ini",
         supported_envs_file="prog/supported-envs.ini",
         environment_specs_file="prog/environment_specs.ini",
-        force_build_name_sys_name=False,
+        force=False,
     )
     assert le.build_name == "keyword-str-arg"
     assert le.supported_systems_file == Path("arg/supported-systems.ini")
     assert le.supported_envs_file == Path("arg/supported-envs.ini")
     assert le.environment_specs_file == Path("arg/environment_specs.ini")
-    assert le.force_build_name_sys_name is True
+    assert le.force is True
 
 
 @pytest.mark.parametrize("blank_value", [
