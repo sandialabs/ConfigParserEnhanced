@@ -22,7 +22,7 @@ class LoadEnv(LoadEnvCommon):
 
     def __init__(
         self, argv, load_env_ini="load_env.ini",
-        supported_systems_file=None, supported_envs_file=None,
+        supported_envs_file=None,
         environment_specs_file=None
     ):
         if not isinstance(argv, list):
@@ -30,7 +30,6 @@ class LoadEnv(LoadEnvCommon):
                             "command line arguments.")
         self.argv = argv
         self._load_env_ini_file = load_env_ini
-        self._supported_systems_file = supported_systems_file
         self._supported_envs_file = supported_envs_file
         self._environment_specs_file = environment_specs_file
 
@@ -49,7 +48,7 @@ class LoadEnv(LoadEnvCommon):
             msg = self.get_formatted_msg(
                 f"Unable to find valid system name in the build name or "
                 f"for the hostname '{hostname}'\n in "
-                f"'{self.supported_systems_file}'."
+                f"'{self.args.supported_systems_file}'."
             )
             sys.exit(msg)
 
@@ -62,7 +61,7 @@ class LoadEnv(LoadEnvCommon):
                 msg = self.get_formatted_msg(
                     f"Hostname '{hostname}' matched to system "
                     f"'{hostname_sys_name}'\n in "
-                    f"'{self.supported_systems_file}', but you specified "
+                    f"'{self.args.supported_systems_file}', but you specified "
                     f"'{self._system_name}' in the build name.\nIf you want "
                     f"to force the use of '{self._system_name}', add "
                     "the --force flag."
@@ -74,11 +73,11 @@ class LoadEnv(LoadEnvCommon):
     def get_sys_name_from_hostname(self, hostname):
         """
         Helper function to match the given hostname to a system name, as
-        defined by the :attr:`supported_systems_file`. If nothing is matched,
+        defined by the ``supported-systems.ini``.  If nothing is matched,
         ``None`` is returned.
 
         Parameters:
-            hostname:  The hostname to match a system name to.
+            hostname (str):  The hostname to match a system name to.
 
         Returns:
             str:  The matched system name, or ``None`` if nothing is matched.
@@ -110,10 +109,10 @@ class LoadEnv(LoadEnvCommon):
 
     def get_sys_name_from_build_name(self):
         """
-        Helper function that finds any system name in
-        :attr:`supported_systems_file` that exists in the :attr:`build_name`.
-        If more than 1 system name is matched, an exception is raised, and if
-        no system names are matched, then ``None`` is returned.
+        Helper function that finds any system name in ``supported-systems.ini``
+        that exists in the ``build_name``.  If more than one system name is
+        matched, an exception is raised, and if no system names are matched,
+        then ``None`` is returned.
 
         Returns:
             str:  The matched system name in the build name, if it exists. If
@@ -189,34 +188,6 @@ class LoadEnv(LoadEnvCommon):
         return self._load_env_ini
 
     @property
-    def supported_systems_file(self):
-        """
-        Gives the path to ``supported-systems.ini``. Any value that exists for
-        this in :attr:`args` or that was explicitly passed in the class
-        initializer overrides the value that is in ``load_env.ini``.
-
-        Returns:
-            pathlib.Path:  The path to ``supported-systems.ini``.
-        """
-        if (self.args is not None and
-                self.args.supported_systems_file is not None):
-            self._supported_systems_file = (
-                self.args.supported_systems_file
-            )
-
-        if self._supported_systems_file is None:
-            self._supported_systems_file = (
-                self.load_env_ini["load-env"]["supported-systems"]
-            )
-
-        if self._supported_systems_file == "":
-            raise ValueError('Path for supported-systems.ini cannot be "".')
-
-        self._supported_systems_file = Path(self._supported_systems_file)
-
-        return self._supported_systems_file
-
-    @property
     def supported_systems_ini(self):
         """
         Returns:
@@ -224,7 +195,7 @@ class LoadEnv(LoadEnvCommon):
             ``supported-systems.ini``.
         """
         self._supported_systems = ConfigParserEnhanced(
-            self.supported_systems_file
+            self.args.supported_systems_file
         ).configparserenhanceddata
         return self._supported_systems
 
@@ -290,7 +261,15 @@ class LoadEnv(LoadEnvCommon):
         Returns:
             argparse.Namespace:  The parsed arguments.
         """
-        return self.__parser().parse_args(self.argv)
+        args = self.__parser().parse_args(self.argv)
+        if args.supported_systems_file is None:
+            args.supported_systems_file = (
+                self.load_env_ini["load-env"]["supported-systems"]
+            )
+        if args.supported_systems_file == "":
+            raise ValueError('Path for supported-systems.ini cannot be "".')
+        args.supported_systems_file = Path(args.supported_systems_file)
+        return args
 
     def __parser(self):
         """
@@ -339,6 +318,7 @@ class LoadEnv(LoadEnvCommon):
         config_files.add_argument("--supported-systems",
                                   dest="supported_systems_file",
                                   action="store", default=None,
+                                  type=lambda p: Path(p).resolve(),
                                   help="Path to ``supported-systems.ini``.  "
                                   "Overrides loading the file specified in "
                                   "``load_env.ini``.")

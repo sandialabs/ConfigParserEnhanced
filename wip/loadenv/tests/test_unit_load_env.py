@@ -58,7 +58,9 @@ def test_argv_non_list_raises(data):
 def test_argument_parser_functions_correctly(data):
     le = LoadEnv(data["argv"])
     assert le.args.build_name == data["build_name_expected"]
-    assert le.supported_systems_file == Path(data["supported_sys_expected"])
+    assert le.args.supported_systems_file == Path(
+        data["supported_sys_expected"]
+    ).resolve()
     assert le.supported_envs_file == Path(data["supported_envs_expected"])
     assert le.environment_specs_file == Path(
         data["environment_specs_expected"]
@@ -77,70 +79,19 @@ def test_args_overwrite_programmatic_file_assignments():
             "--force",
             "keyword-str-arg"
         ],
-        supported_systems_file="prog/supported-systems.ini",
         supported_envs_file="prog/supported-envs.ini",
         environment_specs_file="prog/environment_specs.ini",
     )
     assert le.args.build_name == "keyword-str-arg"
-    assert le.supported_systems_file == Path("arg/supported-systems.ini")
+    assert le.args.supported_systems_file == Path("arg/supported-systems.ini")
     assert le.supported_envs_file == Path("arg/supported-envs.ini")
     assert le.environment_specs_file == Path("arg/environment_specs.ini")
     assert le.args.force is True
 
 
-@pytest.mark.parametrize("blank_value", [
-    "supported_systems_file", "supported_envs_file", "environment_specs_file"
-])
-@patch("load_env.ConfigParserEnhanced")
-def test_empty_string_values_raise_ValueError(mock_cpe, blank_value):
-    # load-env.ini also has blank values
-    mock_cpe_obj = mock.Mock()
-    mock_cpe.return_value = mock_cpe_obj
-    mock_cpe_obj.configparserenhanceddata = {
-        "load-env": {
-            "supported-systems": "",
-            "supported-envs": "",
-            "environment-specs": "",
-        }
-    }
-
-    data = {
-        "build_name": "keyword-str-prog",
-        "supported_systems_file": "prog/supported-systems.ini",
-        "supported_envs_file": "prog/supported-envs.ini",
-        "environment_specs_file": "prog/environment_specs.ini",
-    }
-    data[blank_value] = ""
-
-    argv = []
-    if blank_value == "supported_systems_file":
-        argv += ["--supported-systems", data["supported_systems_file"]]
-    if blank_value == "supported_envs_file":
-        argv += ["--supported-envs", data["supported_envs_file"]]
-    if blank_value == "environment_specs_file":
-        argv += ["--environment-specs", data["environment_specs_file"]]
-    argv += [data["build_name"]]
-    le = LoadEnv(argv)
-
-    with pytest.raises(ValueError) as excinfo:
-        # Error is only raised when grabbing the property because they are
-        # lazily evaluated (only when needed).
-        le.args.build_name
-        le.supported_systems_file
-        le.supported_envs_file
-        le.environment_specs_file
-    exc_msg = excinfo.value.args[0]
-
-    if blank_value != "build_name":
-        assert "Path for" in exc_msg
-        assert 'cannot be "".' in exc_msg
-    else:
-        assert 'Keyword string cannot be "".' in exc_msg
-
-
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     le = LoadEnv(["build_name"])
-    assert le.supported_systems_file == Path(
+    assert le.args.supported_systems_file == Path(
         load_env_ini_data["supported-systems"]
     )
     assert le.supported_envs_file == Path(load_env_ini_data["supported-envs"])
@@ -218,7 +169,7 @@ def test_unsupported_hostname_handled_correctly(mock_socket, data):
 
         assert ("Unable to find valid system name in the build name or for "
                 "the hostname 'unsupported_hostname'" in exc_msg)
-        assert str(le.supported_systems_file) in exc_msg
+        assert str(le.args.supported_systems_file) in exc_msg
     else:
         assert le.system_name == data["sys_name"]
 
