@@ -15,6 +15,34 @@ from load_env import LoadEnv
 
 
 
+@pytest.mark.parametrize("system_name", ["machine-type-1", "test-system"])
+def test_list_envs(system_name):
+    le = LoadEnv([
+        "--supported-systems", "test_supported_systems.ini",
+        "--supported-envs", "test_supported_envs.ini",
+        "--list-envs",
+        system_name
+    ])
+    le.determine_system()
+    le.load_env_keyword_parser()
+    with pytest.raises(SystemExit) as excinfo:
+        le.list_envs()
+    exc_msg = excinfo.value.args[0]
+    if system_name == "machine-type-1":
+        for line in ["Supported Environments for 'machine-type-1':",
+                     "intel-19.0.4-mpich-7.7.15-hsw-openmp",
+                     "intel-hsw-openmp",
+                     "intel-19.0.4-mpich-7.7.15-knl-openmp",
+                     "default-env-knl"]:
+            assert line in exc_msg
+    elif system_name == "test-system":
+        for line in ["Supported Environments for 'test-system':",
+                     "env-name-aliases-empty-string",
+                     "env-name-aliases-none",
+                     "env-name-serial",
+                     "env-name"]:
+            assert line in exc_msg
+
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
     with pytest.raises(TypeError) as excinfo:

@@ -4,7 +4,6 @@
 TODO:
 
     * Create routine to load SetEnvironment.
-    * Add --list-envs feature.
     * Ensure we apply() the environment before writing load_matching_env.sh so
       SetEnvironment ensures the environment is valid first.
     * Increase test coverage.
@@ -208,6 +207,21 @@ class LoadEnv(LoadEnvCommon):
                 self.args.supported_envs_file
             )
 
+    def list_envs(self):
+        """
+        List the environments available on the current machine.
+
+        Raises:
+            SystemExit:  With the message displaying the available environments
+            from which to choose.
+        """
+        sys.exit(
+            self.env_keyword_parser.get_msg_showing_supported_environments(
+                "Please select one of the following.",
+                kind="INFO"
+            )
+        )
+
     def parsed_env_name(self):
         """
         Determine the environent name from the :class:`EnvKeywordParser`.
@@ -344,9 +358,7 @@ def main(argv):
     le.determine_system()
     le.load_env_keyword_parser()
     if le.args.list_envs:
-        sys.exit(le.env_keyword_parser.get_msg_showing_supported_environments(
-            "Please select one of the following.", kind="INFO"
-        ))
+        le.list_envs()
     le.write_load_matching_env()
 
 
