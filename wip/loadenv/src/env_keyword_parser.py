@@ -145,7 +145,8 @@ class EnvKeywordParser(LoadEnvCommon):
         """
         # e.g. aliases = ['\ngnu  # GNU\ndefault-env # The default',
         #                 '\ncuda-gnu\ncuda']
-        aliases = [_ for _ in self.supported_envs[self.system_name].values()]
+        aliases = [_ for _ in self.supported_envs[self.system_name].values()
+                   if _ is not None]
         alias_str = "\n".join(aliases)
 
         uncommented_alias_list = re.findall(
@@ -216,6 +217,8 @@ class EnvKeywordParser(LoadEnvCommon):
 
         matched_index = None
         for idx, a in enumerate(unparsed_aliases):
+            if a is None:
+                a = ""
             # Regex explained in :func:`get_aliases`
             uncommented_alias_list = re.findall(
                 r"(?:\s*?#.*\n*)*([^#^\n]*)", a
