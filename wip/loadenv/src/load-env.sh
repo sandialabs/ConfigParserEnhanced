@@ -14,15 +14,18 @@ fi
 #  return 1                                                                      #
 #fi                                                                              #
 
-# Ensure that an argument is supplied.
+# Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+load_env_py=${script_dir}/../load_env.py
+
+# Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
-  ${script_dir}/src/LoadEnv.py --help                                            # Might need to change this help text slightly.
+  ${load_env_py} --help                                                          # Might need to change this help text slightly.
   return 1
 fi
 
 # Pass the input on to LoadEnv.py to do the real work.
-${script_dir}/src/LoadEnv.py $@
+${load_env_py} $@
 if [[ $? -ne 0 ]]; then
   return $?
 fi
@@ -33,7 +36,7 @@ if [ -f ${env_file} ]; then
   source ${env_file}
   rm ${env_file}
 else
-  echo "LoadEnv.py failed to generate ${env_file}."
+  echo "load_env.py failed to generate ${env_file}."
   echo "Unable to load the environment."
   return 1
 fi

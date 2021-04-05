@@ -292,20 +292,22 @@ class LoadEnv(LoadEnvCommon):
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
-        parser.add_argument("build_name", help="The keyword string for which "
-                            "you wish to load the environment.")
-
+        parser.add_argument("build_name", nargs="?", default="", help="The "
+                            "keyword string for which you wish to load the "
+                            "environment.")
         parser.add_argument("-o", "--output", action="store", default=None,
                             type=lambda p: Path(p).resolve(), help="Output a "
                             "bash script that when sourced will give you an "
                             "environment identical to the one loaded when "
                             "using this tool.")
-
         parser.add_argument("-f", "--force", action="store_true",
                             default=False, help="Forces load_env to use the "
                             "system name specified in the build_name rather "
                             "than the system name matched via the hostname "
                             "and the supported-systems.ini file.")
+        parser.add_argument("-l", "--list-envs", action="store_true",
+                            default=False, help="List the environments "
+                            "available on your current machine.")
 
         config_files = parser.add_argument_group(
             "configuration file overrides"
@@ -339,9 +341,13 @@ def main(argv):
     DOCSTRING
     """
     le = LoadEnv(argv)
-    le.write_load_matching_env()
     le.determine_system()
     le.load_env_keyword_parser()
+    if le.args.list_envs:
+        sys.exit(le.env_keyword_parser.get_msg_showing_supported_environments(
+            "Please select one of the following.", kind="INFO"
+        ))
+    le.write_load_matching_env()
 
 
 if __name__ == "__main__":
