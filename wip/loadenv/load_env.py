@@ -8,12 +8,12 @@ TODO:
     * Ensure we apply() the environment before writing load_matching_env.sh so
       SetEnvironment ensures the environment is valid first.
     * Increase test coverage.
-    * Ensure load-env.ini is well-formed.
 
 """
 
 import argparse
 from configparserenhanced import ConfigParserEnhanced
+import os
 from pathlib import Path
 import re
 from setenvironment import SetEnvironment
@@ -39,8 +39,33 @@ class LoadEnv(LoadEnvCommon):
         """
         if self.load_env_config_data is None:
             self.load_env_config_data = ConfigParserEnhanced(
-                self._load_env_ini_file
+                self.load_env_ini_file
             ).configparserenhanceddata
+            if not self.load_env_config_data.has_section("load-env"):
+                raise ValueError(self.get_formatted_msg(
+                    f"'{self.load_env_ini_file}' must contain a 'load-env' "
+                    "section."
+                ))
+            for key in ["supported-systems", "supported-envs",
+                        "environment-specs"]:
+                if not self.load_env_config_data.has_option("load-env", key):
+                    raise ValueError(self.get_formatted_msg(
+                        f"'{self.load_env_ini_file}' must contain the "
+                        "following in the 'load-env' section:",
+                        extras=f"  {key} : /path/to/{key}.ini"
+                    ))
+                value = self.load_env_config_data["load-env"][key]
+                if value == "" or value is None:
+                    raise ValueError(self.get_formatted_msg(
+                        f"The path specified for '{key}' in "
+                        f"'{self.load_env_ini_file}' must be non-empty, e.g.:",
+                        extras=f"  {key} : /path/to/{key}.ini"
+                    ))
+                else:
+                    if not Path(value).is_absolute():
+                        self.load_env_config_data["load-env"][key] = str(
+                            self.load_env_ini_file.parent / value
+                        )
 
     def parse_supported_systems_file(self):
         """
@@ -52,14 +77,13 @@ class LoadEnv(LoadEnvCommon):
                 self.args.supported_systems_file
             ).configparserenhanceddata
 
-    def __init__(
-        self, argv, load_env_ini="load_env.ini"
-    ):
+    def __init__(self, argv):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of "
                             "command line arguments.")
         self.argv = argv
-        self._load_env_ini_file = load_env_ini
+        self.load_env_ini_file = (Path(os.path.realpath(__file__)).parent /
+                                  "src/load-env.ini")
         self.load_env_config_data = None
         self.parse_top_level_config_file()
         self.supported_systems_data = None
@@ -143,11 +167,14 @@ class LoadEnv(LoadEnvCommon):
             sys_name_from_build_name = self.get_sys_name_from_build_name()
             if (sys_name_from_hostname is None and
                     sys_name_from_build_name is None):
-                msg = self.get_formatted_msg(
+                msg = self.get_formatted_msg(textwrap.fill(
                     f"Unable to find valid system name in the build name or "
-                    f"for the hostname '{hostname}'\n in "
-                    f"'{self.args.supported_systems_file}'."
-                )
+                    f"for the hostname '{hostname}' in "
+                    f"'{self.args.supported_systems_file}'.",
+                    width=68,
+                    break_on_hyphens=False,
+                    break_long_words=False
+                ))
                 sys.exit(msg)
 
             # Use the system name in build_name if sys_name_from_hostname is
@@ -214,34 +241,6 @@ class LoadEnv(LoadEnvCommon):
                                      include_header=True, interpreter="bash")
         return files[-1]
 
-    def get_valid_file_path(self, args_path, flag):
-        """
-        Check to see if the path specified for a given configuration file is
-        valid.  If not, try to grab it from the ``load-env.ini`` file.
-
-        Parameters:
-            args_path (Path, None):  A path from :attr:`args`.
-            flag (str):  The corresponding flag in both the ``load-env.ini``
-                file and on the command line.
-
-        Throws:
-            ValueError:  If the ``load-env.ini`` file doesn't specify a path to
-                the given configuration file.
-
-        Returns:
-            Path:  The valid path to the configuration file.
-        """
-        file_path = args_path
-        if file_path is None:
-            file_path = self.load_env_config_data["load-env"][flag]
-        if file_path == "" or file_path is None:
-            msg = (f"You must specify a path to the `{flag}.ini` file either "
-                   f"in the `load-env.ini` file or via `--{flag}` on the "
-                   "command line.")
-            raise ValueError(self.get_formatted_msg(msg))
-        file_path = Path(file_path).resolve()
-        return file_path
-
     @property
     def args(self):
         """
@@ -252,18 +251,18 @@ class LoadEnv(LoadEnvCommon):
         """
         if not hasattr(self, "_args"):
             args = self.__parser().parse_args(self.argv)
-            args.supported_systems_file = self.get_valid_file_path(
-                args.supported_systems_file,
-                "supported-systems"
-            )
-            args.supported_envs_file = self.get_valid_file_path(
-                args.supported_envs_file,
-                "supported-envs"
-            )
-            args.environment_specs_file = self.get_valid_file_path(
-                args.environment_specs_file,
-                "environment-specs"
-            )
+            if args.supported_systems_file is None:
+                args.supported_systems_file = Path(
+                    self.load_env_config_data["load-env"]["supported-systems"]
+                ).resolve()
+            if args.supported_envs_file is None:
+                args.supported_envs_file = Path(
+                    self.load_env_config_data["load-env"]["supported-envs"]
+                ).resolve()
+            if args.environment_specs_file is None:
+                args.environment_specs_file = Path(
+                    self.load_env_config_data["load-env"]["environment-specs"]
+                ).resolve()
             self._args = args
         return self._args
 

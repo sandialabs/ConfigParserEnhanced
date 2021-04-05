@@ -1,6 +1,7 @@
 from configparserenhanced import ConfigParserEnhanced
 from pathlib import Path
 import pytest
+import re
 import sys
 from unittest import mock
 from unittest.mock import patch
@@ -11,10 +12,6 @@ root_dir = (Path.cwd()/".."
 
 sys.path.append(str(root_dir))
 from load_env import LoadEnv
-
-load_env_ini_data = ConfigParserEnhanced(
-    root_dir/"tests/supporting_files/test_load_env.ini"
-).configparserenhanceddata["load-env"]
 
 
 
@@ -38,32 +35,46 @@ def test_argv_non_list_raises(data):
         ],
         "build_name_expected": "keyword-str",
         "supported_sys_expected": "non_default/supported-systems.ini",
-        "supported_envs_expected": load_env_ini_data["supported-envs"],
-        "environment_specs_expected": load_env_ini_data["environment-specs"],
+        "supported_envs_expected": "default",
+        "environment_specs_expected": "default",
     },
     {
         "argv": [
-            "--supported-systems", "non_default/supported-systems.ini",
             "--supported-envs", "non_default/supported-envs.ini",
-            "--environment-specs", "non_default/environment_specs.ini",
             "keyword-str"
         ],
         "build_name_expected": "keyword-str",
-        "supported_sys_expected": "non_default/supported-systems.ini",
+        "supported_sys_expected": "default",
         "supported_envs_expected": "non_default/supported-envs.ini",
-        "environment_specs_expected": "non_default/environment_specs.ini",
+        "environment_specs_expected": "default",
+    },
+    {
+        "argv": [
+            "--environment-specs", "non_default/environment-specs.ini",
+            "keyword-str"
+        ],
+        "build_name_expected": "keyword-str",
+        "supported_sys_expected": "default",
+        "supported_envs_expected": "default",
+        "environment_specs_expected": "non_default/environment-specs.ini",
     },
 ])
 def test_argument_parser_functions_correctly(data):
     le = LoadEnv(data["argv"])
     assert le.args.build_name == data["build_name_expected"]
     assert le.args.supported_systems_file == Path(
+        le.load_env_config_data["load-env"]["supported-systems"]
+        if data["supported_sys_expected"] == "default" else
         data["supported_sys_expected"]
     ).resolve()
     assert le.args.supported_envs_file == Path(
+        le.load_env_config_data["load-env"]["supported-envs"]
+        if data["supported_envs_expected"] == "default" else
         data["supported_envs_expected"]
     ).resolve()
     assert le.args.environment_specs_file == Path(
+        le.load_env_config_data["load-env"]["environment-specs"]
+        if data["environment_specs_expected"] == "default" else
         data["environment_specs_expected"]
     ).resolve()
 
@@ -71,13 +82,13 @@ def test_argument_parser_functions_correctly(data):
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     le = LoadEnv(["build_name"])
     assert le.args.supported_systems_file == Path(
-        load_env_ini_data["supported-systems"]
+        le.load_env_config_data["load-env"]["supported-systems"]
     ).resolve()
     assert le.args.supported_envs_file == Path(
-        load_env_ini_data["supported-envs"]
+        le.load_env_config_data["load-env"]["supported-envs"]
     ).resolve()
     assert le.args.environment_specs_file == Path(
-        load_env_ini_data["environment-specs"]
+        le.load_env_config_data["load-env"]["environment-specs"]
     ).resolve()
 
 
@@ -149,9 +160,11 @@ def test_unsupported_hostname_handled_correctly(mock_socket, data):
         with pytest.raises(SystemExit) as excinfo:
             le.determine_system()
         exc_msg = excinfo.value.args[0]
-
-        assert ("Unable to find valid system name in the build name or for "
-                "the hostname 'unsupported_hostname'" in exc_msg)
+        msg = ("Unable to find valid system name in the build name or for "
+                "the hostname 'unsupported_hostname'")
+        msg = msg.replace(" ", r"\s+\|?\s*") # account for line breaks
+        assert re.search(msg, exc_msg) is not None
+        print(exc_msg)
         assert str(le.args.supported_systems_file) in exc_msg
     else:
         le.determine_system()
