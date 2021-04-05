@@ -37,6 +37,23 @@ def mock_function_fail(*args):
 
 
 
+class mock_run_status_ok(object):
+    """
+    Mock for ``subprocess.run``. Has ``returncode=0``. In ModuleHelper,
+    ``subprocess.run`` is only used to check for the path of modulecmd via the
+    module bash function. So, we want to mock the output of ``$ type module``.
+    """
+    def __init__(self, cmd, stdout=None, stderr=None, shell=True):
+        print(f"mock_run> {cmd}")
+        self.stdout = (
+            b"module is a function\nmodule () \n{ \n    eval "
+            b"`/opt/cray/pe/modules/3.2.11.4/bin/modulecmd bash $*`\n}\n"
+        )
+        self.stderr = stderr
+        self.returncode = 0
+
+
+
 #===============================================================================
 #
 # General Utility Functions

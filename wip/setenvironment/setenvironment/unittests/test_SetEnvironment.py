@@ -581,7 +581,8 @@ class SetEnvironmentTest(TestCase):
         return
 
 
-    def test_SetEnvironment_method_apply_module_test(self):
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
+    def test_SetEnvironment_method_apply_module_test(self, arg_run):
         """
         """
         section = "CONFIG_B"   # envvars
@@ -689,8 +690,9 @@ class SetEnvironmentTest(TestCase):
             # platforms.
             # This should ensure that we take the 'right' path in ModuleHelper.module
             # that we want to test here and trigger the RuntimeError.
-            with patch('subprocess.Popen', side_effect=mock_popen_status_error_rc0):
-                parser.apply(section)
+            with patch('subprocess.run', side_effect=mock_run_status_ok):
+                with patch('subprocess.Popen', side_effect=mock_popen_status_error_rc0):
+                    parser.apply(section)
 
         print("OK")
         return
@@ -1831,7 +1833,8 @@ class SetEnvironmentTest(TestCase):
         return
 
 
-    def test_SetEnvironment_module_load_default(self):
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
+    def test_SetEnvironment_module_load_default(self, arg_run):
         """
         Tests loading a *default* module via ``module-load``, for
         example ``module-load gcc`` instead of ``module-load gcc : 7.3.0``.
