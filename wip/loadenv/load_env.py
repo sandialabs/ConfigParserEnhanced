@@ -3,7 +3,6 @@
 """
 TODO:
 
-    * Create routine to load EnvKeywordParser.
     * Create routine to load SetEnvironment.
     * Add --list-envs feature.
     * Ensure we apply() the environment before writing load_matching_env.sh so
@@ -66,6 +65,7 @@ class LoadEnv(LoadEnvCommon):
         self.supported_systems_data = None
         self.parse_supported_systems_file()
         self.system_name = None
+        self.env_keyword_parser = None
 
     def get_sys_name_from_hostname(self, hostname):
         """
@@ -167,24 +167,31 @@ class LoadEnv(LoadEnvCommon):
                     )
                     sys.exit(msg)
 
-    @property
+    def load_env_keyword_parser(self):
+        """
+        Instantiate an :class:`EnvKeywordParser` object with this object's
+        :attr:`build_name`, :attr:`system_name`, and ``supported-envs.ini``.
+        Save the resulting object as :attr:`env_keyword_parser`.
+        """
+        if self.env_keyword_parser is None:
+            self.determine_system()
+            self.env_keyword_parser = EnvKeywordParser(
+                self.args.build_name,
+                self.system_name,
+                self.args.supported_envs_file
+            )
+
     def parsed_env_name(self):
         """
-        This property instantiates an :class:`EnvKeywordParser` object with
-        this object's :attr:`build_name`, :attr:`system_name`, and
-        ``supported-envs.ini``. From this object, the qualified environment
-        name is retrieved and returned.
+        Determine the environent name from the :class:`EnvKeywordParser`.
 
         Returns:
             str:  The qualified environment name from parsing the
             :attr:`build_name`.
         """
-        if not hasattr(self, "_parsed_env_name"):
-            self.determine_system()
-            ekp = EnvKeywordParser(self.args.build_name, self.system_name,
-                                   self.args.supported_envs_file)
-            self._parsed_env_name = ekp.qualified_env_name
-        return self._parsed_env_name
+        if self.env_keyword_parser is None:
+            self.load_env_keyword_parser()
+        return self.env_keyword_parser.qualified_env_name
 
     def write_load_matching_env(self):
         """
@@ -203,7 +210,7 @@ class LoadEnv(LoadEnvCommon):
             if f.exists():
                 f.unlink()
             f.parent.mkdir(parents=True, exist_ok=True)
-            se.write_actions_to_file(f, self.parsed_env_name,
+            se.write_actions_to_file(f, self.parsed_env_name(),
                                      include_header=True, interpreter="bash")
         return files[-1]
 
@@ -335,6 +342,7 @@ def main(argv):
     le = LoadEnv(argv)
     le.write_load_matching_env()
     le.determine_system()
+    le.load_env_keyword_parser()
 
 
 if __name__ == "__main__":

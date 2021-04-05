@@ -39,7 +39,7 @@ def test_ekp_matches_correct_env_name(mock_socket, inputs):
     ###########################################################################
     mock_socket.gethostname.return_value = inputs["hostname"]
     le = LoadEnv(argv=[inputs["build_name"]])
-    assert le.parsed_env_name == inputs["expected_env"]
+    assert le.parsed_env_name() == inputs["expected_env"]
 
 
 ###################################################
@@ -115,7 +115,7 @@ def test_correct_commands_are_saved(mock_socket, inputs):
     ###########################################################################
     mock_socket.gethostname.return_value = inputs["hostname"]
     le = LoadEnv(argv=[inputs["build_name"]])
-    assert le.parsed_env_name == inputs["expected_env"]
+    assert le.parsed_env_name() == inputs["expected_env"]
 
     le.write_load_matching_env()
     load_matching_env_file = Path("/tmp/load_matching_env.sh")
