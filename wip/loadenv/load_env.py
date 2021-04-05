@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
 
+"""
+TODO:
+
+    * Create routine to load EnvKeywordParser.
+    * Create routine to load SetEnvironment.
+    * Add --list-envs feature.
+    * Ensure we apply() the environment before writing load_matching_env.sh so
+      SetEnvironment ensures the environment is valid first.
+    * Increase test coverage.
+    * Ensure load-env.ini is well-formed.
+
+"""
+
 import argparse
 from configparserenhanced import ConfigParserEnhanced
 from pathlib import Path
@@ -20,6 +33,16 @@ class LoadEnv(LoadEnvCommon):
         argv:  The command line arguments passed to ``load_env.sh``.
     """
 
+    def parse_top_level_config_file(self):
+        """
+        Parse the ``load-env.ini`` file and store the corresponding
+        ``configparserenhanceddata`` object as :attr:`load_env_config_data`.
+        """
+        if self.load_env_config_data is None:
+            self.load_env_config_data = ConfigParserEnhanced(
+                self._load_env_ini_file
+            ).configparserenhanceddata
+
     def parse_supported_systems_file(self):
         """
         Parse the ``supported-systems.ini`` file and store the corresponding
@@ -38,6 +61,8 @@ class LoadEnv(LoadEnvCommon):
                             "command line arguments.")
         self.argv = argv
         self._load_env_ini_file = load_env_ini
+        self.load_env_config_data = None
+        self.parse_top_level_config_file()
         self.supported_systems_data = None
         self.parse_supported_systems_file()
 
@@ -180,19 +205,6 @@ class LoadEnv(LoadEnvCommon):
                                      include_header=True, interpreter="bash")
         return files[-1]
 
-    @property
-    def load_env_ini(self):
-        """
-        Returns:
-            configparserenhanced.ConfigParserEnhancedData:  The data from
-            ``load_env.ini``.
-        """
-        if not hasattr(self, "_load_env_ini"):
-            self._load_env_ini = ConfigParserEnhanced(
-                self._load_env_ini_file
-            ).configparserenhanceddata
-        return self._load_env_ini
-
     def get_valid_file_path(self, args_path, flag):
         """
         Check to see if the path specified for a given configuration file is
@@ -212,7 +224,7 @@ class LoadEnv(LoadEnvCommon):
         """
         file_path = args_path
         if file_path is None:
-            file_path = self.load_env_ini["load-env"][flag]
+            file_path = self.load_env_config_data["load-env"][flag]
         if file_path == "" or file_path is None:
             msg = (f"You must specify a path to the `{flag}.ini` file either "
                    f"in the `load-env.ini` file or via `--{flag}` on the "
