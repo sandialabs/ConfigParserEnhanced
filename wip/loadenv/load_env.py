@@ -65,41 +65,7 @@ class LoadEnv(LoadEnvCommon):
         self.parse_top_level_config_file()
         self.supported_systems_data = None
         self.parse_supported_systems_file()
-
-    @property
-    def system_name(self):
-        if not hasattr("self", "_system_name"):
-            hostname = socket.gethostname()
-            hostname_sys_name = self.get_sys_name_from_hostname(hostname)
-            self._system_name = hostname_sys_name
-
-            build_name_sys_name = self.get_sys_name_from_build_name()
-
-            if hostname_sys_name is None and build_name_sys_name is None:
-                msg = self.get_formatted_msg(
-                    f"Unable to find valid system name in the build name or "
-                    f"for the hostname '{hostname}'\n in "
-                    f"'{self.args.supported_systems_file}'."
-                )
-                sys.exit(msg)
-
-            # Use system name in build_name if hostname_sys_name is None
-            if build_name_sys_name is not None:
-                self._system_name = build_name_sys_name
-                if (hostname_sys_name is not None
-                        and hostname_sys_name != self._system_name
-                        and self.args.force is False):
-                    msg = self.get_formatted_msg(
-                        f"Hostname '{hostname}' matched to system "
-                        f"'{hostname_sys_name}'\n in "
-                        f"'{self.args.supported_systems_file}', but you "
-                        f"specified '{self._system_name}' in the build name.\n"
-                        "If you want to force the use of "
-                        f"'{self._system_name}', add the --force flag."
-                    )
-                    sys.exit(msg)
-
-        return self._system_name
+        self.system_name = None
 
     def get_sys_name_from_hostname(self, hostname):
         """
@@ -115,7 +81,7 @@ class LoadEnv(LoadEnvCommon):
         """
         sys_names = [s for s in self.supported_systems_data.sections()
                      if s != "DEFAULT"]
-        hostname_sys_name = None
+        sys_name_from_hostname = None
         for sys_name in sys_names:
             # Strip the keys of comments:
             #
@@ -127,16 +93,14 @@ class LoadEnv(LoadEnvCommon):
             keys = [re.findall(r"([^#^\s]*)(?:\s*#.*)?", key)[0]
                     for key in self.supported_systems_data[sys_name].keys()]
 
-            # Keys are treated as REGEXes
+            # Keys are treated as REGEXes.
             matches = []
             for key in keys:
                 matches += re.findall(key, hostname)
-
             if len(matches) > 0:
-                hostname_sys_name = sys_name
+                sys_name_from_hostname = sys_name
                 break
-
-        return hostname_sys_name
+        return sys_name_from_hostname
 
     def get_sys_name_from_build_name(self):
         """
@@ -151,20 +115,57 @@ class LoadEnv(LoadEnvCommon):
         """
         sys_names = [s for s in self.supported_systems_data.sections()
                      if s != "DEFAULT"]
-        build_name_sys_names = [_ for _ in sys_names if _ in
-                                self.args.build_name]
-        if len(build_name_sys_names) > 1:
+        sys_name_from_build_names = [_ for _ in sys_names if _ in
+                                     self.args.build_name]
+        if len(sys_name_from_build_names) > 1:
             msg = self.get_msg_for_list(
                 "Cannot specify more than one system name in the build name\n"
-                "You specified", build_name_sys_names
+                "You specified", sys_name_from_build_names
             )
             sys.exit(msg)
-        elif len(build_name_sys_names) == 0:
-            build_name_sys_name = None
+        elif len(sys_name_from_build_names) == 0:
+            sys_name_from_build_name = None
         else:
-            build_name_sys_name = build_name_sys_names[0]
+            sys_name_from_build_name = sys_name_from_build_names[0]
+        return sys_name_from_build_name
 
-        return build_name_sys_name
+    def determine_system(self):
+        """
+        Determine which system from ``supported-envs.ini`` to use, either by
+        grabbing what's specified in the :attr:`build_name`, or by using the
+        hostname and ``supported-systems.ini``.  Store the result as
+        :attr:`system_name`.
+        """
+        if self.system_name is None:
+            hostname = socket.gethostname()
+            sys_name_from_hostname = self.get_sys_name_from_hostname(hostname)
+            self.system_name = sys_name_from_hostname
+            sys_name_from_build_name = self.get_sys_name_from_build_name()
+            if (sys_name_from_hostname is None and
+                    sys_name_from_build_name is None):
+                msg = self.get_formatted_msg(
+                    f"Unable to find valid system name in the build name or "
+                    f"for the hostname '{hostname}'\n in "
+                    f"'{self.args.supported_systems_file}'."
+                )
+                sys.exit(msg)
+
+            # Use the system name in build_name if sys_name_from_hostname is
+            # None.
+            if sys_name_from_build_name is not None:
+                self.system_name = sys_name_from_build_name
+                if (sys_name_from_hostname is not None
+                        and sys_name_from_hostname != self.system_name
+                        and self.args.force is False):
+                    msg = self.get_formatted_msg(
+                        f"Hostname '{hostname}' matched to system "
+                        f"'{sys_name_from_hostname}'\n in "
+                        f"'{self.args.supported_systems_file}', but you "
+                        f"specified '{self.system_name}' in the build name.\n"
+                        "If you want to force the use of "
+                        f"'{self.system_name}', add the --force flag."
+                    )
+                    sys.exit(msg)
 
     @property
     def parsed_env_name(self):
@@ -179,6 +180,7 @@ class LoadEnv(LoadEnvCommon):
             :attr:`build_name`.
         """
         if not hasattr(self, "_parsed_env_name"):
+            self.determine_system()
             ekp = EnvKeywordParser(self.args.build_name, self.system_name,
                                    self.args.supported_envs_file)
             self._parsed_env_name = ekp.qualified_env_name
@@ -326,6 +328,14 @@ class LoadEnv(LoadEnvCommon):
         return parser
 
 
-if __name__ == "__main__":
-    le = LoadEnv(sys.argv[1:])
+def main(argv):
+    """
+    DOCSTRING
+    """
+    le = LoadEnv(argv)
     le.write_load_matching_env()
+    le.determine_system()
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
