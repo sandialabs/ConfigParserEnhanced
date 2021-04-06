@@ -126,6 +126,7 @@ class mock_popen_status_error_rc0(mock_popen):
     """
     def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
         super(mock_popen_status_error_rc0, self).__init__(cmd,bufsize=bufsize,shell=shell,stdout=stdout,stderr=stderr)
+        sys.stderr.write("ERROR: Something wrong happened.")
 
     def communicate(self):
         print("mock_popen> communicate()")
