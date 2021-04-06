@@ -107,19 +107,22 @@ try: # pragma: cover if on lmod
             else:
                 _command = []
                 _command.append(command)
-
                 with io.StringIO() as err, redirect_stderr(err), io.StringIO() as out, redirect_stdout(out):
                     env_modules_python.module(command, *arguments)
                     stdout = out.getvalue()
                     stderr = err.getvalue()
+        except NameError as error:
+            raise RuntimeError(str(error))
 
         except BaseException as error:
+            raise error
+
+        finally:
             print("!!")
             print("An ERROR occurred during execution of module command")
             print(stdout)
             print(stderr)
             print("!!")
-            raise error
 
         # Check the module function output for errors
         stderr_ok = True

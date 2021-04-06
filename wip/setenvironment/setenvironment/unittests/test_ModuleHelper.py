@@ -27,7 +27,6 @@ except ImportError:
 from setenvironment import ModuleHelper
 
 from .common import *
-import subprocess
 
 
 # ===========================
@@ -43,37 +42,6 @@ class mock_run_status_error_rc1(object):
         self.stdout = b''
         self.stderr = b'Error for subprocess.run here'
         self.returncode = 1
-
-
-
-class mock_popen(subprocess.Popen):
-    """
-    Abstract base class for popen mock
-    """
-    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
-        print("mock_popen> {}".format(cmd))
-        self.bufsize = bufsize
-        self.shell = shell
-        self.stdout = stdout
-        self.stderr = stderr
-        self.returncode = None
-        super(mock_popen, self).__init__(cmd,bufsize=bufsize,shell=shell,stdout=stdout,stderr=stderr)
-
-    def communicate(self):
-        print("mock_popen> communicate()")
-        stdout = b"os.environ['__foobar__'] ='baz'\ndel os.environ['__foobar__']"
-        stderr = b"stderr=1"
-        self.returncode = 0
-        return (stdout,stderr)
-
-
-
-class mock_popen_status_ok(mock_popen):
-    """
-    Specialization of popen mock that will return with success.
-    """
-    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
-        super(mock_popen_status_ok, self).__init__(cmd,bufsize,shell,stdout,stderr)
 
 
 
