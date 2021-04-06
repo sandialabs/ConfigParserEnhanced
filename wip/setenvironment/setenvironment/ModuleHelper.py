@@ -238,7 +238,10 @@ except ImportError: # pragma: cover if not on lmod
 
         numArgs = len(arguments)
 
-        cmd = [ modulecmd, "python", command ]
+        if isinstance(command, (list)):
+            cmd = [ modulecmd, "python", *command ]
+        else:
+            cmd = [ modulecmd, "python", command ]
 
         if (numArgs == 1):
             cmd += arguments[0].split()
