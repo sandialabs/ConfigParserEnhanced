@@ -27,7 +27,7 @@ except ImportError:
 from setenvironment import ModuleHelper
 
 from .common import *
-
+import subprocess
 
 
 # ===========================
@@ -46,15 +46,18 @@ class mock_run_status_error_rc1(object):
 
 
 
-class mock_popen(object):
+class mock_popen(subprocess.Popen):
     """
     Abstract base class for popen mock
     """
-    def __init__(self, cmd, stdout=None, stderr=None):
+    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
         print("mock_popen> {}".format(cmd))
+        self.bufsize = bufsize
+        self.shell = shell
         self.stdout = stdout
         self.stderr = stderr
         self.returncode = None
+        super(mock_popen, self).__init__(cmd,bufsize=bufsize,shell=shell,stdout=stdout,stderr=stderr)
 
     def communicate(self):
         print("mock_popen> communicate()")
@@ -69,8 +72,8 @@ class mock_popen_status_ok(mock_popen):
     """
     Specialization of popen mock that will return with success.
     """
-    def __init__(self, cmd, stdout=None, stderr=None):
-        super(mock_popen_status_ok, self).__init__(cmd,stdout,stderr)
+    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
+        super(mock_popen_status_ok, self).__init__(cmd,bufsize,shell,stdout,stderr)
 
 
 
@@ -100,8 +103,8 @@ class mock_popen_status_error_rc1(mock_popen):
     Test the condition where modulecmd returned a status of 1 and
     has `ERROR:` in its stderr field.
     """
-    def __init__(self, cmd, stdout=None, stderr=None):
-        super(mock_popen_status_error_rc1, self).__init__(cmd,stdout,stderr)
+    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
+        super(mock_popen_status_error_rc1, self).__init__(cmd,bufsize,shell,stdout,stderr)
 
     def communicate(self):
         print("mock_popen> communicate()")
@@ -121,8 +124,8 @@ class mock_popen_status_error_rc0(mock_popen):
     to have a message like "ERROR: could not load module" in its stderr
     field but it will generally return an exit status of 0.
     """
-    def __init__(self, cmd, stdout=None, stderr=None):
-        super(mock_popen_status_error_rc0, self).__init__(cmd,stdout,stderr)
+    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
+        super(mock_popen_status_error_rc0, self).__init__(cmd,bufsize=bufsize,shell=shell,stdout=stdout,stderr=stderr)
 
     def communicate(self):
         print("mock_popen> communicate()")
@@ -138,8 +141,8 @@ class mock_popen_status_mlstatus_success(mock_popen):
     Specialization of popen mock that will return with error (status==1)
     and stderr containing '_mlstatus = True' which happens on some systems.
     """
-    def __init__(self, cmd, stdout=None, stderr=None):
-        super(mock_popen_status_mlstatus_success, self).__init__(cmd,stdout,stderr)
+    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
+        super(mock_popen_status_mlstatus_success, self).__init__(cmd,bufsize,shell,stdout,stderr)
 
     def communicate(self):
         print("mock_popen> communicate()")
@@ -155,8 +158,8 @@ class mock_popen_status_mlstatus_error(mock_popen):
     Specialization of popen mock that will return with error (status==1)
     and stderr containing '_mlstatus = False' which happens on some systems.
     """
-    def __init__(self, cmd, stdout=None, stderr=None):
-        super(mock_popen_status_mlstatus_error, self).__init__(cmd,stdout,stderr)
+    def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
+        super(mock_popen_status_mlstatus_error, self).__init__(cmd,bufsize,shell,stdout,stderr)
 
     def communicate(self):
         print("mock_popen> communicate()")

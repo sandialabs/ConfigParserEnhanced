@@ -164,6 +164,9 @@ try: # pragma: cover if on lmod
             print("!!")
             return 1
 
+        print(stdout)
+        print(stderr)
+
         return 0
 
 
