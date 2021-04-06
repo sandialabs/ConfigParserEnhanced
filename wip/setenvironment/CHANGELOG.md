@@ -45,6 +45,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `unload_status_ok`: LMOD error checking not present
   - `modulecmd_not_found`: LMOD error checking not present
   - `method_apply_module_test`: capturing return code of env_modules_python.module, which is always `None`
+- BUGS (Issue #53) - 10/57 tests would fail when running pytest on a particular machine
+  machines. Here is a summary of what was causing each to test fail:
+  - `test_ModuleHelper_module_load_args_as_list`: mock_popen attributes and named params missing; list 'command' not handled
+  - `test_ModuleHeler_module_load_error_by_mlstatus`: mock_popen attributes and named params missing
+  - `test_ModuleHeler_module_load_error_exception`: mock_popen attributes and named params missing
+  - `test_ModuleHeler_module_load_error_module_returns_nonetype`: mock_popen attributes and named params missing
+  - `test_ModuleHeler_module_load_error_no_modulecmd`: mock_popen attributes and named params missing
+  - `test_ModuleHeler_module_load_status_error_return`: mock_popen attributes and named params missing
+  - `test_ModuleHeler_module_load_status_error_stderr`: stderr not populated via os.popen
+  - `test_ModuleHeler_modulecmd_not_found`: mock_popen attributes and named params missing
+  - `test_SetEnvironment_method_apply_module_load_noexist`: NamedError raised instead of RuntimeError in python 3.7.2
+  - `test_SetEnvironment_method_apply_module_use_badpath`: mock_popen attributes and named params missing
 
 #### Security
 #### Internal
@@ -155,5 +167,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.1] - 2021-02-22
 - `0.0.1` - Initial development version
-
-
