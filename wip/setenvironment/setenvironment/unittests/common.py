@@ -58,6 +58,12 @@ class mock_run_status_ok(object):
 class mock_popen(subprocess.Popen):
     """
     Abstract base class for popen mock
+
+    os.popen is used by the env_modules_python which is provided
+    by python 3.7.2 on a particular machine. os.popen uses the named parameters
+    'shell' and 'bufsize' when invoking subprocess.Popen and, as a result,
+    these unit tests must provide Popen constructors that support those named
+    parameters.
     """
     def __init__(self, cmd, bufsize=None, shell=None, stdout=None, stderr=None):
         print("mock_popen> {}".format(cmd))
