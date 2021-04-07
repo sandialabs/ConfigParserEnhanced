@@ -31,6 +31,7 @@ desired environment.
 from __future__ import print_function
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -198,8 +199,39 @@ except ImportError: # pragma: cover if not on lmod
         except:
             modulecmd = shutil.which("modulecmd")
 
-        if modulecmd is None:
-            raise FileNotFoundError("Unable to find modulecmd")
+        if modulecmd is None:                                                # pragma: no cover
+            # 'module' may be a bash function that points to modulecmd
+            # A `module purge` might clear the location of `modulecmd` from the
+            # PATH but preserve the bash function that points to `modulecmd`.
+            # Use the output of `type module` to find the location.
+            try:
+                # $ type module
+                #   - Returns something like:
+                #
+                #       module is a function
+                #       module ()
+                #       {
+                #           eval `/opt/cray/pe/modules/3.2.11.4/bin/modulecmd bash $*`
+                #       }
+
+                module_func = subprocess.run(
+                    "type module", stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE, shell=True
+                )
+                matches = re.findall(r"eval `(\S*) bash.*",
+                                     module_func.stdout.decode())
+                if len(matches) != 1:
+                    raise RuntimeError("Unable to find path to modulecmd from "
+                                       "output of bash command: 'type module'")
+
+                modulecmd = matches[0]
+                if shutil.which(modulecmd) is None:
+                    raise FileNotFoundError(
+                        "Path to modulecmd, found by output of bash command "
+                        "'type module', cannot be found by 'which' command."
+                    )
+            except:
+                raise FileNotFoundError("Unable to find modulecmd")
 
         numArgs = len(arguments)
 
@@ -214,7 +246,7 @@ except ImportError: # pragma: cover if not on lmod
         # but we don't actually set the environment. If successful, the STDOUT will
         # contain a sequence of Python commands that we can later execute to set up
         # the proper environment for the module operation
-        proc = subprocess.Popen( cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (output,stderr) = proc.communicate()
         errcode = proc.returncode
 

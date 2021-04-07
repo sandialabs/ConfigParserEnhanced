@@ -26,11 +26,23 @@ except ImportError:
 
 from setenvironment import ModuleHelper
 
+from .common import *
+
 
 
 # ===========================
 #   M O C K   H E L P E R S
 # ===========================
+
+class mock_run_status_error_rc1(object):
+    """
+    Mock for ``subprocess.run``. Has ``returncode=1``.
+    """
+    def __init__(self, cmd, stdout=None, stderr=None, shell=True):
+        print(f"mock_run> {cmd}")
+        self.stdout = b''
+        self.stderr = b'Error for subprocess.run here'
+        self.returncode = 1
 
 
 
@@ -231,16 +243,18 @@ class ModuleHelperTest(TestCase):
 
 
 
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
     @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
     @patch('os.system', side_effect=mock_system_status_ok)
-    def test_ModuleHelper_module_load_status_ok(self, arg_system, arg_popen):
+    def test_ModuleHelper_module_load_status_ok(self, arg_system, arg_popen, arg_run):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(0, r)
         return
 
 
-    def test_ModuleHelper_module_load_status_error_return(self):
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
+    def test_ModuleHelper_module_load_status_error_return(self, arg_run):
         with patch('subprocess.Popen', side_effect=mock_popen_status_error_rc1):
             with patch('os.system', side_effect=mock_system_status_error):
                 r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
@@ -249,7 +263,8 @@ class ModuleHelperTest(TestCase):
         return
 
 
-    def test_ModuleHelper_module_load_status_error_stderr(self):
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
+    def test_ModuleHelper_module_load_status_error_stderr(self, arg_run):
         try:
             with patch('env_modules_python.Popen', side_effect=mock_popen_status_error_rc0):
                 r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
@@ -261,17 +276,19 @@ class ModuleHelperTest(TestCase):
         return
 
 
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
     @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
     @patch('os.system', side_effect=mock_system_status_ok)
-    def test_ModuleHelper_module_swap_status_ok(self, arg_system, arg_popen):
+    def test_ModuleHelper_module_swap_status_ok(self, arg_system, arg_popen, arg_run):
         r = ModuleHelper.module("swap", "dummy-gcc/4.8.4", "dummy-gcc/7.3.0")
         print("result = {}".format(r))
         self.assertEqual(0, r)
         return
 
 
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
     #@patch('subprocess.Popen', side_effect=mock_popen_status_ok)
-    def test_ModuleHelper_module_unload_status_ok(self):
+    def test_ModuleHelper_module_unload_status_ok(self, arg_run):
         with patch('subprocess.Popen', side_effect=mock_popen_status_ok):
             r = ModuleHelper.module("unload", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
@@ -279,7 +296,8 @@ class ModuleHelperTest(TestCase):
         return
 
 
-    def test_ModuleHelper_module_load_args_as_list(self):
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
+    def test_ModuleHelper_module_load_args_as_list(self, arg_run):
         """
         The `module()` function can take arguments in as a list.
         This tests that module works when the parameter is a list of arguments.
@@ -291,34 +309,39 @@ class ModuleHelperTest(TestCase):
         return
 
 
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
     @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_success)
     @patch('os.system', side_effect=mock_system_status_ok)
-    def test_ModuleHelper_module_load_success_by_mlstatus(self, arg_system, arg_popen):
+    def test_ModuleHelper_module_load_success_by_mlstatus(self, arg_system, arg_popen, arg_run):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertEqual(0, r)
         return
 
 
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
     @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error)
     @patch('os.system', side_effect=mock_system_status_error)
-    def test_ModuleHelper_module_load_error_by_mlstatus(self, arg_system, arg_popen):
+    def test_ModuleHelper_module_load_error_by_mlstatus(self, arg_system, arg_popen, arg_run):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertNotEqual(0, r)
         return
 
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
     @patch('distutils.spawn.find_executable', side_effect=Exception("mock side-effect error"))
     @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error)
     @patch('os.system', side_effect=mock_system_status_error)
-    def test_ModuleHelper_module_load_error_no_modulecmd(self, arg_system, arg_popen, arg_find_executable):
+    def test_ModuleHelper_module_load_error_no_modulecmd(self, arg_system, arg_popen, arg_find_executable,
+                                                         arg_run):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertNotEqual(0, r)
         return
 
 
-    def test_ModuleHelper_module_load_error_exception(self):
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
+    def test_ModuleHelper_module_load_error_exception(self, arg_run):
         """
         This tests the execution path in ModuleHelper in which the exec() command would
         throw an exception.
@@ -337,7 +360,8 @@ class ModuleHelperTest(TestCase):
         return
 
 
-    def test_ModuleHeler_module_load_error_module_returns_nonetype(self):
+    @patch('subprocess.run', side_effect=mock_run_status_ok)
+    def test_ModuleHeler_module_load_error_module_returns_nonetype(self, arg_run):
         """
         This tests a failure when the `module()` function returns a NoneType
         object (i.e., like what happens with LMOD)
@@ -353,12 +377,13 @@ class ModuleHelperTest(TestCase):
                     ModuleHelper.module("load", "gcc/4.8.4")
         return
 
-
+    @patch('subprocess.run', side_effect=mock_run_status_error_rc1)
     @patch('subprocess.Popen', side_effect=mock_popen_status_ok)
     @patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_raise)
     @patch('shutil.which', side_effect=mock_shutil_which_returns_none)
     @patch('os.getenv', side_effect=mock_getenv_empty)
-    def test_ModuleHelper_modulecmd_not_found(self, arg_getenv, arg_shutil, arg_distutils, arg_popen):
+    def test_ModuleHelper_modulecmd_not_found(self, arg_getenv, arg_shutil,
+                                              arg_distutils, arg_popen, arg_run):
         """
         Test a failure to find a `modulecmd` binary with the environment
         modules subsystem.
@@ -369,6 +394,3 @@ class ModuleHelperTest(TestCase):
             ModuleHelper.module("load", "dummy-gcc/4.8.4")
 
         return
-
-
-# EOF
