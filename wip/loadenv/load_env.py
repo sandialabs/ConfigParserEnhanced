@@ -3,8 +3,6 @@
 """
 TODO:
 
-    * Ensure we apply() the environment before writing load_matching_env.sh so
-      SetEnvironment ensures the environment is valid first.
     * Increase test coverage.
 
 """
@@ -265,6 +263,21 @@ class LoadEnv(LoadEnvCommon):
                 filename=self.args.environment_specs_file
             )
 
+    def apply_env(self):
+        """
+        Apply the selected environment to ensure it works on the given machine.
+        """
+        if self.set_environment is None:
+            self.load_set_environment()
+        rval = self.set_environment.apply(self.parsed_env_name)
+        if rval != 0:
+            raise RuntimeError(self.get_formatted_msg(
+                "Something unexpected went wrong in applying the "
+                f"environment.  Ensure that the '{self.parsed_env_name}' "
+                "environment is fully supported on the "
+                f"'{socket.gethostname()}' host."
+            ))
+
     def write_load_matching_env(self):
         """
         Write a bash script that when sourced will give you the same
@@ -394,6 +407,7 @@ def main(argv):
     le = LoadEnv(argv)
     if le.args.list_envs:
         le.list_envs()
+    le.apply_env()
     le.write_load_matching_env()
 
 
