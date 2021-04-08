@@ -23,8 +23,6 @@ def test_list_envs(system_name):
         "--list-envs",
         system_name
     ])
-    le.determine_system()
-    le.load_env_keyword_parser()
     with pytest.raises(SystemExit) as excinfo:
         le.list_envs()
     exc_msg = excinfo.value.args[0]
@@ -134,7 +132,6 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
 def test_system_name_determination_correct_for_hostname(mock_socket, data):
     mock_socket.gethostname.return_value = data["hostname"]
     le = LoadEnv(["build_name"])
-    le.determine_system()
     assert le.system_name == data["sys_name"]
 
 
@@ -143,7 +140,7 @@ def test_sys_name_in_build_name_not_matching_hostname_raises(mock_socket):
     mock_socket.gethostname.return_value = "stria"
     le = LoadEnv(["machine-type-1-build-name"])
     with pytest.raises(SystemExit) as excinfo:
-        le.determine_system()
+        le.system_name
     exc_msg = excinfo.value.args[0]
     assert "Hostname 'stria' matched to system 'machine-type-4'" in exc_msg
     assert "but you specified 'machine-type-1' in the build name" in exc_msg
@@ -156,7 +153,6 @@ def tests_sys_name_in_build_name_overrides_hostname_match_when_forced(
 ):
     mock_socket.gethostname.return_value = "stria"
     le = LoadEnv(["machine-type-1-build-name", "--force"])
-    le.determine_system()
     assert le.system_name == "machine-type-1"
 
 
@@ -168,7 +164,7 @@ def test_multiple_sys_names_in_build_name_raises_regardless_of_hostname_match(
     mock_socket.gethostname.return_value = hostname
     le = LoadEnv(["machine-type-1-rhel7-build-name"])
     with pytest.raises(SystemExit) as excinfo:
-        le.determine_system()
+        le.system_name
     exc_msg = excinfo.value.args[0]
     assert ("Cannot specify more than one system name in the build name"
             in exc_msg)
@@ -186,7 +182,7 @@ def test_unsupported_hostname_handled_correctly(mock_socket, data):
     le = LoadEnv([data["build_name"]])
     if data["raises"]:
         with pytest.raises(SystemExit) as excinfo:
-            le.determine_system()
+            le.system_name
         exc_msg = excinfo.value.args[0]
         msg = ("Unable to find valid system name in the build name or for "
                 "the hostname 'unsupported_hostname'")
@@ -195,7 +191,6 @@ def test_unsupported_hostname_handled_correctly(mock_socket, data):
         print(exc_msg)
         assert str(le.args.supported_systems_file) in exc_msg
     else:
-        le.determine_system()
         assert le.system_name == data["sys_name"]
 
 

@@ -87,7 +87,6 @@ class LoadEnv(LoadEnvCommon):
         self.parse_top_level_config_file()
         self.supported_systems_data = None
         self.parse_supported_systems_file()
-        self.system_name = None
         self.env_keyword_parser = None
 
     def get_sys_name_from_hostname(self, hostname):
@@ -159,10 +158,10 @@ class LoadEnv(LoadEnvCommon):
         hostname and ``supported-systems.ini``.  Store the result as
         :attr:`system_name`.
         """
-        if self.system_name is None:
+        if not hasattr(self, "_system_name"):
             hostname = socket.gethostname()
             sys_name_from_hostname = self.get_sys_name_from_hostname(hostname)
-            self.system_name = sys_name_from_hostname
+            self._system_name = sys_name_from_hostname
             sys_name_from_build_name = self.get_sys_name_from_build_name()
             if (sys_name_from_hostname is None and
                     sys_name_from_build_name is None):
@@ -179,19 +178,39 @@ class LoadEnv(LoadEnvCommon):
             # Use the system name in build_name if sys_name_from_hostname is
             # None.
             if sys_name_from_build_name is not None:
-                self.system_name = sys_name_from_build_name
+                self._system_name = sys_name_from_build_name
                 if (sys_name_from_hostname is not None
-                        and sys_name_from_hostname != self.system_name
+                        and sys_name_from_hostname != self._system_name
                         and self.args.force is False):
                     msg = self.get_formatted_msg(
                         f"Hostname '{hostname}' matched to system "
                         f"'{sys_name_from_hostname}'\n in "
                         f"'{self.args.supported_systems_file}', but you "
-                        f"specified '{self.system_name}' in the build name.\n"
+                        f"specified '{self._system_name}' in the build name.\n"
                         "If you want to force the use of "
-                        f"'{self.system_name}', add the --force flag."
+                        f"'{self._system_name}', add the --force flag."
                     )
                     sys.exit(msg)
+
+    @property
+    def system_name(self):
+        """
+        The name of the system from which the tool will select an environment.
+        """
+        if not hasattr(self, "_system_name"):
+            self.determine_system()
+            """
+            When pulling this system determination piece out into its own
+            utility, here's what I'm guessing this'll look like after the fact:
+
+            ds = DetermineSystem(self.args.supported_systems_file)
+            self._system_name = ds.system_name
+
+            We'll need to move determine_system() and
+            parse_supported_systems_file() and any associated data over to
+            DetermineSystem.
+            """
+        return self._system_name
 
     def load_env_keyword_parser(self):
         """
@@ -200,7 +219,6 @@ class LoadEnv(LoadEnvCommon):
         Save the resulting object as :attr:`env_keyword_parser`.
         """
         if self.env_keyword_parser is None:
-            self.determine_system()
             self.env_keyword_parser = EnvKeywordParser(
                 self.args.build_name,
                 self.system_name,
@@ -215,6 +233,8 @@ class LoadEnv(LoadEnvCommon):
             SystemExit:  With the message displaying the available environments
             from which to choose.
         """
+        if self.env_keyword_parser is None:
+            self.load_env_keyword_parser()
         sys.exit(
             self.env_keyword_parser.get_msg_showing_supported_environments(
                 "Please select one of the following.",
