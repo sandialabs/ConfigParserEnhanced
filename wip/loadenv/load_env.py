@@ -337,9 +337,6 @@ class LoadEnv(LoadEnvCommon):
             argument options.  This is to be used in conjunction with
             :attr:`args`.
         """
-        if hasattr(self, "_parser"):
-            return self._parser
-
         description = "[ Load Environment Utility ]".center(79, "-")
 
         examples = """
