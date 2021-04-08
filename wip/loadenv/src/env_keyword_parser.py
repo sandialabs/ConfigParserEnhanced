@@ -246,6 +246,7 @@ class EnvKeywordParser(LoadEnvCommon):
 
             +=================================================================+
             |   {kind}:  {msg}
+            |
             |   - Supported Environments for 'machine-type-1':
             |     - intel-18.0.5-mpich-7.7.6
             |       * Aliases:
@@ -255,6 +256,7 @@ class EnvKeywordParser(LoadEnvCommon):
             |     - intel-19.0.4-mpich-7.7.6
             |       * Aliases:
             |         - intel-19
+            |   See {self.supported_envs_filename} for details.
             +=================================================================+
 
         Parameters:
@@ -267,7 +269,7 @@ class EnvKeywordParser(LoadEnvCommon):
         Returns:
             str:  The formatted message.
         """
-        extras = f"- Supported Environments for '{self.system_name}':\n"
+        extras = f"\n- Supported Environments for '{self.system_name}':\n"
         for name in self.env_names:
             extras += f"  - {name}\n"
             aliases_for_env = [a for a in self.aliases
@@ -275,6 +277,7 @@ class EnvKeywordParser(LoadEnvCommon):
             extras += ("    * Aliases:\n" if len(aliases_for_env) > 0 else "")
             for a in aliases_for_env:
                 extras += (f"      - {a}\n")
+        extras += f"\nSee {self.supported_envs_filename} for details."
         msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg
 
