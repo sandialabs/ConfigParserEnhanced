@@ -3,7 +3,6 @@
 """
 TODO:
 
-    * Create routine to load SetEnvironment.
     * Ensure we apply() the environment before writing load_matching_env.sh so
       SetEnvironment ensures the environment is valid first.
     * Increase test coverage.
@@ -88,6 +87,7 @@ class LoadEnv(LoadEnvCommon):
         self.supported_systems_data = None
         self.parse_supported_systems_file()
         self.env_keyword_parser = None
+        self.set_environment = None
 
     def get_sys_name_from_hostname(self, hostname):
         """
@@ -254,16 +254,29 @@ class LoadEnv(LoadEnvCommon):
             self._parsed_env_name = self.env_keyword_parser.qualified_env_name
         return self._parsed_env_name
 
+    def load_set_environment(self):
+        """
+        Instantiate a :class:`SetEnvironment` object with this object's
+        :attr:`build_name`, :attr:`system_name`, and ``supported-envs.ini``.
+        Save the resulting object as :attr:`env_keyword_parser`.
+        """
+        if self.set_environment is None:
+            self.set_environment = SetEnvironment(
+                filename=self.args.environment_specs_file
+            )
+
     def write_load_matching_env(self):
         """
         Write a bash script that when sourced will give you the same
         environment loaded by this tool.
 
         Returns:
-            Path:  The path to the script that was written, either the default,
-            or whatever the user requested with ``--output``.
+            Path:  The path to the script that was written, either the default
+            (which always gets written to), or whatever the user requested with
+            ``--output``.
         """
-        se = SetEnvironment(filename=self.args.environment_specs_file)
+        if self.set_environment is None:
+            self.load_set_environment()
         files = [Path("/tmp/load_matching_env.sh").resolve()]
         if self.args.output:
             files += [self.args.output]
@@ -271,8 +284,12 @@ class LoadEnv(LoadEnvCommon):
             if f.exists():
                 f.unlink()
             f.parent.mkdir(parents=True, exist_ok=True)
-            se.write_actions_to_file(f, self.parsed_env_name,
-                                     include_header=True, interpreter="bash")
+            self.set_environment.write_actions_to_file(
+                f,
+                self.parsed_env_name,
+                include_header=True,
+                interpreter="bash"
+            )
         return files[-1]
 
     @property
@@ -375,8 +392,6 @@ def main(argv):
     DOCSTRING
     """
     le = LoadEnv(argv)
-    le.determine_system()
-    le.load_env_keyword_parser()
     if le.args.list_envs:
         le.list_envs()
     le.write_load_matching_env()
