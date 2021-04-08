@@ -217,8 +217,6 @@ class EnvKeywordParser(LoadEnvCommon):
 
         matched_index = None
         for idx, a in enumerate(unparsed_aliases):
-            if a is None:
-                a = ""
             # Regex explained in :func:`get_aliases`
             uncommented_alias_list = re.findall(
                 r"(?:\s*?#.*\n*)*([^#^\n]*)", a
