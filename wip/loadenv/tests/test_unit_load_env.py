@@ -202,7 +202,7 @@ def test_unsupported_hostname_handled_correctly(mock_socket, data):
 def test_correct_arguments_are_passed_to_ekp_object(mock_socket, mock_ekp):
     mock_socket.gethostname.return_value = "mutrino"
     le = LoadEnv(argv=["build_name"])
-    le.parsed_env_name()
+    le.parsed_env_name
 
     mock_ekp.assert_called_once_with(le.args.build_name, le.system_name,
                                      le.args.supported_envs_file)
@@ -219,7 +219,7 @@ def test_ekp_qualified_env_name_gets_set_as_parsed_env_name(mock_socket,
     mock_ekp.return_value = mock_ekp_obj
 
     le = LoadEnv(argv=["intel"])
-    assert le.parsed_env_name() == qualified_env_name
+    assert le.parsed_env_name == qualified_env_name
 
 
 ########################################################

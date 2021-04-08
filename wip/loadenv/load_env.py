@@ -242,17 +242,17 @@ class LoadEnv(LoadEnvCommon):
             )
         )
 
+    @property
     def parsed_env_name(self):
         """
-        Determine the environent name from the :class:`EnvKeywordParser`.
-
-        Returns:
-            str:  The qualified environment name from parsing the
-            :attr:`build_name`.
+        The environent name parsed from the :attr:`build_name` via the
+        :class:`EnvKeywordParser`.
         """
-        if self.env_keyword_parser is None:
-            self.load_env_keyword_parser()
-        return self.env_keyword_parser.qualified_env_name
+        if not hasattr(self, "_parsed_env_name"):
+            if self.env_keyword_parser is None:
+                self.load_env_keyword_parser()
+            self._parsed_env_name = self.env_keyword_parser.qualified_env_name
+        return self._parsed_env_name
 
     def write_load_matching_env(self):
         """
@@ -271,7 +271,7 @@ class LoadEnv(LoadEnvCommon):
             if f.exists():
                 f.unlink()
             f.parent.mkdir(parents=True, exist_ok=True)
-            se.write_actions_to_file(f, self.parsed_env_name(),
+            se.write_actions_to_file(f, self.parsed_env_name,
                                      include_header=True, interpreter="bash")
         return files[-1]
 
