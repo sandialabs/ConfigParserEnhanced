@@ -114,12 +114,12 @@ class EnvKeywordParser(LoadEnvCommon):
                     break
 
             if matched_alias is None:
-                err_msg = self.get_err_msg_showing_supported_environments(
+                msg = self.get_msg_showing_supported_environments(
                     "Unable to find alias or environment name for system "
                     f"'{self.system_name}' in\nkeyword string "
                     f"'{self.build_name}'."
                 )
-                sys.exit(err_msg)
+                sys.exit(msg)
 
             matched_env_name = self.get_env_name_for_alias(matched_alias)
 
@@ -145,7 +145,8 @@ class EnvKeywordParser(LoadEnvCommon):
         """
         # e.g. aliases = ['\ngnu  # GNU\ndefault-env # The default',
         #                 '\ncuda-gnu\ncuda']
-        aliases = [_ for _ in self.supported_envs[self.system_name].values()]
+        aliases = [_ for _ in self.supported_envs[self.system_name].values()
+                   if _ is not None]
         alias_str = "\n".join(aliases)
 
         uncommented_alias_list = re.findall(
@@ -227,23 +228,23 @@ class EnvKeywordParser(LoadEnvCommon):
                 break
 
         if matched_index is None:
-            msg = ("\n+" + "="*78 + "+\n"
-                   f"|   ERROR:  Unable to find alias '{matched_alias}' in "
-                   f"aliases for '{self.system_name}'.\n")
-            msg += ("+" + "="*78 + "+\n")
+            msg = self.get_formatted_msg("Unable to find alias "
+                                         f"'{matched_alias}' in aliases "
+                                         f"for '{self.system_name}'.\n")
             sys.exit(msg)
 
         matched_env_name = unsorted_env_names[matched_index]
 
         return matched_env_name
 
-    def get_err_msg_showing_supported_environments(self, err_msg):
+    def get_msg_showing_supported_environments(self, msg, kind="ERROR"):
         """
-        Similar to :func:`get_err_msg_for_list`, except it's a bit more
-        specific. Produces an error message like::
+        Similar to :func:`get_msg_for_list`, except it's a bit more specific.
+        Produces an error message like::
 
             +=================================================================+
-            |   ERROR:  {err_msg}
+            |   {kind}:  {msg}
+            |
             |   - Supported Environments for 'machine-type-1':
             |     - intel-18.0.5-mpich-7.7.6
             |       * Aliases:
@@ -253,32 +254,29 @@ class EnvKeywordParser(LoadEnvCommon):
             |     - intel-19.0.4-mpich-7.7.6
             |       * Aliases:
             |         - intel-19
+            |   See {self.supported_envs_filename} for details.
             +=================================================================+
 
         Parameters:
-            err_msg (str):  The main error message to be displayed.  Can be
-            multiline.
+            msg (str):  The main error message to be displayed.  Can be
+                multiline.
+            kind (str):  The kind of message being generated, e.g., "ERROR",
+
+                "WARNING", "INFO", etc.
 
         Returns:
-            str:  The formatted error message.
+            str:  The formatted message.
         """
-        msg = (
-            "\n+" + "="*78 + "+\n" +
-            self.get_formatted_err_msg(err_msg) +
-            f"|   - Supported Environments for '{self.system_name}':\n"
-        )
-
+        extras = f"\n- Supported Environments for '{self.system_name}':\n"
         for name in self.env_names:
-            msg += f"|     - {name}\n"
-
+            extras += f"  - {name}\n"
             aliases_for_env = [a for a in self.aliases
                                if self.get_env_name_for_alias(a) == name]
-            msg += ("|       * Aliases:\n" if len(aliases_for_env) > 0 else "")
+            extras += ("    * Aliases:\n" if len(aliases_for_env) > 0 else "")
             for a in aliases_for_env:
-                msg += ("|" + " "*9 + f"- {a}\n")
-
-        msg += ("+" + "="*78 + "+\n")
-
+                extras += (f"      - {a}\n")
+        extras += f"\nSee {self.supported_envs_filename} for details."
+        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg
 
     def assert_alias_list_values_are_unique(self, alias_list):
@@ -303,7 +301,7 @@ class EnvKeywordParser(LoadEnvCommon):
         try:
             assert duplicates == []
         except AssertionError:
-            msg = self.get_err_msg_for_list(
+            msg = self.get_msg_for_list(
                 f"Aliases for '{self.system_name}' contains duplicates:",
                 duplicates
             )
@@ -334,7 +332,7 @@ class EnvKeywordParser(LoadEnvCommon):
         try:
             assert duplicates == []
         except AssertionError:
-            msg = self.get_err_msg_for_list(
+            msg = self.get_msg_for_list(
                 f"Alias found for '{self.system_name}' that matches an "
                 "environment name:", duplicates
             )
@@ -360,7 +358,7 @@ class EnvKeywordParser(LoadEnvCommon):
         except AssertionError:
             es = "es" if len(aliases_w_whitespace) > 1 else ""
             s = "s" if len(aliases_w_whitespace) == 1 else ""
-            msg = self.get_err_msg_for_list(
+            msg = self.get_msg_for_list(
                 f"The following alias{es} contain{s} whitespace:",
                 aliases_w_whitespace
             )
@@ -483,7 +481,7 @@ class EnvKeywordParser(LoadEnvCommon):
                 msg += (f"and '{versioned_components[-1]}' are not supported "
                         "together.")
             msg = textwrap.fill(msg)
-            sys.exit(self.get_err_msg_showing_supported_environments(msg))
+            sys.exit(self.get_msg_showing_supported_environments(msg))
 
     def assert_kw_str_node_type_is_supported(self, matched_env_name):
         """
@@ -507,20 +505,20 @@ class EnvKeywordParser(LoadEnvCommon):
         )
 
         if "openmp" in build_name_vcs and "serial" in matched_env_name_vcs:
-            sys.exit(self.get_err_msg_showing_supported_environments(
+            sys.exit(self.get_msg_showing_supported_environments(
                 "'openmp' was specified in the build name, but only the "
                 "'serial'\nnode type is supported for your selected "
                 "environment"
             ))
         if "serial" in build_name_vcs and "openmp" in matched_env_name_vcs:
-            sys.exit(self.get_err_msg_showing_supported_environments(
+            sys.exit(self.get_msg_showing_supported_environments(
                 "'serial' was specified in the build name, but only the "
                 "'openmp'\nnode type is supported for your selected "
                 "environment"
             ))
         if (any(["cuda" in _ for _ in matched_env_name_vcs]) and
             any([_ in build_name_vcs for _ in ["serial", "openmp"]])):
-            sys.exit(self.get_err_msg_showing_supported_environments(
+            sys.exit(self.get_msg_showing_supported_environments(
                 "The 'serial' and 'openmp' node types are not applicable to "
                 "CUDA\nenvironments"
             ))

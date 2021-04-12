@@ -28,7 +28,7 @@ def test_supported_envs_ini_is_read_correctly():
     """
     assert [_ for _ in se.keys()] != ["DEFAULT"]
     assert [_ for _ in se["machine-type-1"].keys()] != []
-    assert "default-env" in "\n".join([_ for _ in se["machine-type-1"].values()])
+    assert "default-env-hsw" in ekp.get_aliases()
 
 
 def test_invalid_supported_envs_filename_raises():

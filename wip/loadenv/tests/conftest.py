@@ -12,8 +12,6 @@ def use_tmpdir(monkeypatch, request, tmpdir):
     these tests.
     """
 
-    shutil.copyfile(Path.cwd()/"tests/supporting_files/test_load_env.ini",
-                    tmpdir.join("load_env.ini"))
     shutil.copyfile(Path.cwd()/("tests/supporting_files/"
                                 "test_supported_systems.ini"),
                     tmpdir.join("test_supported_systems.ini"))

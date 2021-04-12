@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 
+"""
+TODO:
+
+    * Increase test coverage.
+
+"""
+
 import argparse
 from configparserenhanced import ConfigParserEnhanced
+import os
 from pathlib import Path
 import re
 from setenvironment import SetEnvironment
@@ -20,73 +28,80 @@ class LoadEnv(LoadEnvCommon):
         argv:  The command line arguments passed to ``load_env.sh``.
     """
 
-    def __init__(
-        self, build_name="", load_env_ini="load_env.ini",
-        supported_systems_file=None, supported_envs_file=None,
-        environment_specs_file=None, output=None,
-        force_build_name_sys_name=False, argv=None
-    ):
-        self._build_name = build_name
-        self._load_env_ini_file = load_env_ini
-        self._supported_systems_file = supported_systems_file
-        self._supported_envs_file = supported_envs_file
-        self._environment_specs_file = environment_specs_file
-        self._output = output
-        self._force_build_name_sys_name = force_build_name_sys_name
+    def parse_top_level_config_file(self):
+        """
+        Parse the ``load-env.ini`` file and store the corresponding
+        ``configparserenhanceddata`` object as :attr:`load_env_config_data`.
+        """
+        if self.load_env_config_data is None:
+            self.load_env_config_data = ConfigParserEnhanced(
+                self.load_env_ini_file
+            ).configparserenhanceddata
+            if not self.load_env_config_data.has_section("load-env"):
+                raise ValueError(self.get_formatted_msg(
+                    f"'{self.load_env_ini_file}' must contain a 'load-env' "
+                    "section."
+                ))
+            for key in ["supported-systems", "supported-envs",
+                        "environment-specs"]:
+                if not self.load_env_config_data.has_option("load-env", key):
+                    raise ValueError(self.get_formatted_msg(
+                        f"'{self.load_env_ini_file}' must contain the "
+                        "following in the 'load-env' section:",
+                        extras=f"  {key} : /path/to/{key}.ini"
+                    ))
+                value = self.load_env_config_data["load-env"][key]
+                if value == "" or value is None:
+                    raise ValueError(self.get_formatted_msg(
+                        f"The path specified for '{key}' in "
+                        f"'{self.load_env_ini_file}' must be non-empty, e.g.:",
+                        extras=f"  {key} : /path/to/{key}.ini"
+                    ))
+                else:
+                    if not Path(value).is_absolute():
+                        self.load_env_config_data["load-env"][key] = str(
+                            self.load_env_ini_file.parent / value
+                        )
+
+    def parse_supported_systems_file(self):
+        """
+        Parse the ``supported-systems.ini`` file and store the corresponding
+        ``configparserenhanceddata`` object as :attr:`supported_systems_data`.
+        """
+        if self.supported_systems_data is None:
+            self.supported_systems_data = ConfigParserEnhanced(
+                self.args.supported_systems_file
+            ).configparserenhanceddata
+
+    def __init__(self, argv):
+        if not isinstance(argv, list):
+            raise TypeError("LoadEnv must be instantiated with a list of "
+                            "command line arguments.")
         self.argv = argv
-
-    @property
-    def system_name(self):
-        if hasattr("self", "_system_name"):
-            return self._system_name
-
-        hostname = socket.gethostname()
-        hostname_sys_name = self.get_sys_name_from_hostname(hostname)
-        self._system_name = hostname_sys_name
-
-        build_name_sys_name = self.get_sys_name_from_build_name()
-
-        if hostname_sys_name is None and build_name_sys_name is None:
-            err_msg = self.get_formatted_err_msg(
-                f"Unable to find valid system name in the build name or "
-                f"for the hostname '{hostname}'\n in "
-                f"'{self.supported_systems_file}'."
-            )
-            sys.exit(err_msg)
-
-        # Use system name in build_name if hostname_sys_name is None
-        if build_name_sys_name is not None:
-            self._system_name = build_name_sys_name
-            if (hostname_sys_name is not None
-                    and hostname_sys_name != self._system_name
-                    and self.force_build_name_sys_name is False):
-                err_msg = self.get_formatted_err_msg(
-                    f"Hostname '{hostname}' matched to system "
-                    f"'{hostname_sys_name}'\n in "
-                    f"'{self.supported_systems_file}', but you specified "
-                    f"'{self._system_name}' in the build name.\nIf you want "
-                    f"to force the use of '{self._system_name}', add "
-                    "the --force flag."
-                )
-                sys.exit(err_msg)
-
-        return self._system_name
+        self.load_env_ini_file = (Path(os.path.realpath(__file__)).parent /
+                                  "src/load-env.ini")
+        self.load_env_config_data = None
+        self.parse_top_level_config_file()
+        self.supported_systems_data = None
+        self.parse_supported_systems_file()
+        self.env_keyword_parser = None
+        self.set_environment = None
 
     def get_sys_name_from_hostname(self, hostname):
         """
         Helper function to match the given hostname to a system name, as
-        defined by the :attr:`supported_systems_file`. If nothing is matched,
+        defined by the ``supported-systems.ini``.  If nothing is matched,
         ``None`` is returned.
 
         Parameters:
-            hostname:  The hostname to match a system name to.
+            hostname (str):  The hostname to match a system name to.
 
         Returns:
             str:  The matched system name, or ``None`` if nothing is matched.
         """
-        sys_names = [s for s in self.supported_systems_ini.sections()
+        sys_names = [s for s in self.supported_systems_data.sections()
                      if s != "DEFAULT"]
-        hostname_sys_name = None
+        sys_name_from_hostname = None
         for sys_name in sys_names:
             # Strip the keys of comments:
             #
@@ -96,82 +111,172 @@ class LoadEnv(LoadEnvCommon):
             #        a '#' or whitespace.      |
             #                      vvvvv    vvvvvvvv
             keys = [re.findall(r"([^#^\s]*)(?:\s*#.*)?", key)[0]
-                    for key in self.supported_systems_ini[sys_name].keys()]
+                    for key in self.supported_systems_data[sys_name].keys()]
 
-            # Keys are treated as REGEXes
+            # Keys are treated as REGEXes.
             matches = []
             for key in keys:
                 matches += re.findall(key, hostname)
-
             if len(matches) > 0:
-                hostname_sys_name = sys_name
+                sys_name_from_hostname = sys_name
                 break
-
-        return hostname_sys_name
+        return sys_name_from_hostname
 
     def get_sys_name_from_build_name(self):
         """
-        Helper function that finds any system name in
-        :attr:`supported_systems_file` that exists in the :attr:`build_name`.
-        If more than 1 system name is matched, an exception is raised, and if
-        no system names are matched, then ``None`` is returned.
+        Helper function that finds any system name in ``supported-systems.ini``
+        that exists in the ``build_name``.  If more than one system name is
+        matched, an exception is raised, and if no system names are matched,
+        then ``None`` is returned.
 
         Returns:
             str:  The matched system name in the build name, if it exists. If
             not, return ``None``.
         """
-        sys_names = [s for s in self.supported_systems_ini.sections()
+        sys_names = [s for s in self.supported_systems_data.sections()
                      if s != "DEFAULT"]
-        build_name_sys_names = [_ for _ in sys_names if _ in self.build_name]
-        if len(build_name_sys_names) > 1:
-            err_msg = self.get_err_msg_for_list(
+        sys_name_from_build_names = [_ for _ in sys_names if _ in
+                                     self.args.build_name]
+        if len(sys_name_from_build_names) > 1:
+            msg = self.get_msg_for_list(
                 "Cannot specify more than one system name in the build name\n"
-                "You specified", build_name_sys_names
+                "You specified", sys_name_from_build_names
             )
-            sys.exit(err_msg)
-        elif len(build_name_sys_names) == 0:
-            build_name_sys_name = None
+            sys.exit(msg)
+        elif len(sys_name_from_build_names) == 0:
+            sys_name_from_build_name = None
         else:
-            build_name_sys_name = build_name_sys_names[0]
+            sys_name_from_build_name = sys_name_from_build_names[0]
+        return sys_name_from_build_name
 
-        return build_name_sys_name
+    def determine_system(self):
+        """
+        Determine which system from ``supported-envs.ini`` to use, either by
+        grabbing what's specified in the :attr:`build_name`, or by using the
+        hostname and ``supported-systems.ini``.  Store the result as
+        :attr:`system_name`.
+        """
+        if not hasattr(self, "_system_name"):
+            hostname = socket.gethostname()
+            sys_name_from_hostname = self.get_sys_name_from_hostname(hostname)
+            self._system_name = sys_name_from_hostname
+            sys_name_from_build_name = self.get_sys_name_from_build_name()
+            if (sys_name_from_hostname is None and
+                    sys_name_from_build_name is None):
+                msg = self.get_formatted_msg(textwrap.fill(
+                    f"Unable to find valid system name in the build name or "
+                    f"for the hostname '{hostname}' in "
+                    f"'{self.args.supported_systems_file}'.",
+                    width=68,
+                    break_on_hyphens=False,
+                    break_long_words=False
+                ))
+                sys.exit(msg)
+
+            # Use the system name in build_name if sys_name_from_hostname is
+            # None.
+            if sys_name_from_build_name is not None:
+                self._system_name = sys_name_from_build_name
+                if (sys_name_from_hostname is not None
+                        and sys_name_from_hostname != self._system_name
+                        and self.args.force is False):
+                    msg = self.get_formatted_msg(
+                        f"Hostname '{hostname}' matched to system "
+                        f"'{sys_name_from_hostname}'\n in "
+                        f"'{self.args.supported_systems_file}', but you "
+                        f"specified '{self._system_name}' in the build name.\n"
+                        "If you want to force the use of "
+                        f"'{self._system_name}', add the --force flag."
+                    )
+                    sys.exit(msg)
 
     @property
-    def force_build_name_sys_name(self):
+    def system_name(self):
         """
-        If ``True``, load_env is forced to use the configurations
-        for the system name specified in the build_name rather than the system
-        name matched via the hostname and the supported-systems.ini file. The
-        value that exists for this in :attr:`parsed_args` overrides the value
-        that is passed through the class initializer.
+        The name of the system from which the tool will select an environment.
+        """
+        if not hasattr(self, "_system_name"):
+            self.determine_system()
+            """
+            When pulling this system determination piece out into its own
+            utility, here's what I'm guessing this'll look like after the fact:
 
-        Returns:
-            bool:  The ``force_build_name_sys_name`` flag.
+            ds = DetermineSystem(self.args.supported_systems_file)
+            self._system_name = ds.system_name
+
+            We'll need to move determine_system() and
+            parse_supported_systems_file() and any associated data over to
+            DetermineSystem.
+            """
+        return self._system_name
+
+    def load_env_keyword_parser(self):
         """
-        if self.parsed_args is not None:
-            self._force_build_name_sys_name = (
-                self.parsed_args.force_build_name_sys_name
+        Instantiate an :class:`EnvKeywordParser` object with this object's
+        :attr:`build_name`, :attr:`system_name`, and ``supported-envs.ini``.
+        Save the resulting object as :attr:`env_keyword_parser`.
+        """
+        if self.env_keyword_parser is None:
+            self.env_keyword_parser = EnvKeywordParser(
+                self.args.build_name,
+                self.system_name,
+                self.args.supported_envs_file
             )
 
-        return self._force_build_name_sys_name
+    def list_envs(self):
+        """
+        List the environments available on the current machine.
+
+        Raises:
+            SystemExit:  With the message displaying the available environments
+            from which to choose.
+        """
+        if self.env_keyword_parser is None:
+            self.load_env_keyword_parser()
+        sys.exit(
+            self.env_keyword_parser.get_msg_showing_supported_environments(
+                "Please select one of the following.",
+                kind="INFO"
+            )
+        )
 
     @property
     def parsed_env_name(self):
         """
-        This property instantiates an :class:`EnvKeywordParser` object with
-        this object's :attr:`build_name`, :attr:`system_name`, and
-        :attr:`supported_envs_file`. From this object, the qualified
-        environment name is retrieved and returned.
-
-        Returns:
-            str:  The qualified environment name from parsing the
-            :attr:`build_name`.
+        The environent name parsed from the :attr:`build_name` via the
+        :class:`EnvKeywordParser`.
         """
-        ekp = EnvKeywordParser(self.build_name, self.system_name,
-                               self.supported_envs_file)
-        self._parsed_env_name = ekp.qualified_env_name
-
+        if not hasattr(self, "_parsed_env_name"):
+            if self.env_keyword_parser is None:
+                self.load_env_keyword_parser()
+            self._parsed_env_name = self.env_keyword_parser.qualified_env_name
         return self._parsed_env_name
+
+    def load_set_environment(self):
+        """
+        Instantiate a :class:`SetEnvironment` object with this object's
+        :attr:`build_name`, :attr:`system_name`, and ``supported-envs.ini``.
+        Save the resulting object as :attr:`env_keyword_parser`.
+        """
+        if self.set_environment is None:
+            self.set_environment = SetEnvironment(
+                filename=self.args.environment_specs_file
+            )
+
+    def apply_env(self):
+        """
+        Apply the selected environment to ensure it works on the given machine.
+        """
+        if self.set_environment is None:
+            self.load_set_environment()
+        rval = self.set_environment.apply(self.parsed_env_name)
+        if rval != 0:
+            raise RuntimeError(self.get_formatted_msg(
+                "Something unexpected went wrong in applying the "
+                f"environment.  Ensure that the '{self.parsed_env_name}' "
+                "environment is fully supported on the "
+                f"'{socket.gethostname()}' host."
+            ))
 
     def write_load_matching_env(self):
         """
@@ -179,196 +284,59 @@ class LoadEnv(LoadEnvCommon):
         environment loaded by this tool.
 
         Returns:
-            Path:  The path to the script that was written, either the default,
-            or whatever the user requested with ``--output``.
+            Path:  The path to the script that was written, either the default
+            (which always gets written to), or whatever the user requested with
+            ``--output``.
         """
-        se = SetEnvironment(filename=self.environment_specs_file)
+        if self.set_environment is None:
+            self.load_set_environment()
         files = [Path("/tmp/load_matching_env.sh").resolve()]
-        if self.output:
-            files += [self.output]
+        if self.args.output:
+            files += [self.args.output]
         for f in files:
             if f.exists():
                 f.unlink()
             f.parent.mkdir(parents=True, exist_ok=True)
-            se.write_actions_to_file(f, self.parsed_env_name,
-                                     include_header=True, interpreter="bash")
+            self.set_environment.write_actions_to_file(
+                f,
+                self.parsed_env_name,
+                include_header=True,
+                interpreter="bash"
+            )
         return files[-1]
 
     @property
-    def build_name(self):
+    def args(self):
         """
-        Returns the :attr:`build_name` value passed by the user. Any value
-        that exists for this in :attr:`parsed_args` overrides the value that is
-        passed through the class initializer.
+        The parsed command line arguments to the script.
 
         Returns:
-            str:  The keyword string given by the user.
+            argparse.Namespace:  The parsed arguments.
         """
-        if (self.parsed_args is not None and
-                self.parsed_args.build_name is not None):
-            self._build_name = self.parsed_args.build_name
-
-        if self._build_name == "":
-            raise ValueError('Keyword string cannot be "".')
-
-        return self._build_name
-
-    @property
-    def load_env_ini(self):
-        """
-        Returns:
-            configparserenhanced.ConfigParserEnhancedData:  The data from
-            ``load_env.ini``.
-        """
-        if not hasattr(self, "_load_env_ini"):
-            self._load_env_ini = ConfigParserEnhanced(
-                self._load_env_ini_file
-            ).configparserenhanceddata
-
-        return self._load_env_ini
-
-    @property
-    def supported_systems_file(self):
-        """
-        Gives the path to ``supported-systems.ini``. Any value that exists for
-        this in :attr:`parsed_args` or that was explicitly passed
-        in the class initializer overrides the value that is in
-        ``load_env.ini``.
-
-        Returns:
-            pathlib.Path:  The path to ``supported-systems.ini``.
-        """
-        if (self.parsed_args is not None and
-                self.parsed_args.supported_systems_file is not None):
-            self._supported_systems_file = (
-                self.parsed_args.supported_systems_file
-            )
-
-        if self._supported_systems_file is None:
-            self._supported_systems_file = (
-                self.load_env_ini["load-env"]["supported-systems"]
-            )
-
-        if self._supported_systems_file == "":
-            raise ValueError('Path for supported-systems.ini cannot be "".')
-
-        self._supported_systems_file = Path(self._supported_systems_file)
-
-        return self._supported_systems_file
-
-    @property
-    def supported_systems_ini(self):
-        """
-        Returns:
-            configparserenhanced.ConfigParserEnhancedData:  The data from
-            ``supported-systems.ini``.
-        """
-        self._supported_systems = ConfigParserEnhanced(
-            self.supported_systems_file
-        ).configparserenhanceddata
-
-        return self._supported_systems
-
-    @property
-    def supported_envs_file(self):
-        """
-        Gives the path to ``supported-envs.ini``. Any value that exists for
-        this in :attr:`parsed_args` or that was explicitly passed
-        in the class initializer overrides the value that is in
-        ``load_env.ini``.
-
-        Returns:
-            pathlib.Path:  The path to ``supported-envs.ini``.
-        """
-        if (self.parsed_args is not None and
-                self.parsed_args.supported_envs_file is not None):
-            self._supported_envs_file = self.parsed_args.supported_envs_file
-
-        if self._supported_envs_file is None:
-            self._supported_envs_file = (
-                self.load_env_ini["load-env"]["supported-envs"]
-            )
-
-        if self._supported_envs_file == "":
-            raise ValueError('Path for supported-envs.ini cannot be "".')
-
-        self._supported_envs_file = Path(self._supported_envs_file)
-
-        return self._supported_envs_file
-
-    @property
-    def environment_specs_file(self):
-        """
-        Gives the path to ``environment-specs.ini``. Any value that exists for
-        this in :attr:`parsed_args` or that was explicitly passed
-        in the class initializer overrides the value that is in
-        ``load_env.ini``.
-
-        Returns:
-            pathlib.Path:  The path to ``environment-specs.ini``.
-        """
-        if (self.parsed_args is not None and
-                self.parsed_args.environment_specs_file is not None):
-            self._environment_specs_file = (
-                self.parsed_args.environment_specs_file
-            )
-
-        if self._environment_specs_file is None:
-            self._environment_specs_file = (
-                self.load_env_ini["load-env"]["environment-specs"]
-            )
-
-        if self._environment_specs_file == "":
-            raise ValueError('Path for environment-specs.ini cannot be "".')
-
-        self._environment_specs_file = Path(self._environment_specs_file)
-
-        return self._environment_specs_file
-
-    @property
-    def output(self):
-        """
-        Gives the path to a file to output a bash script that when sourced will
-        give the user the same environment that was loaded by this tool. Any
-        value that exists for this in :attr:`parsed_args` overrides the value
-        that is passed through the class initializer.
-
-        Returns:
-            pathlib.Path, None:  The path to the script, if the user has
-            specified it.
-        """
-        if (self.parsed_args is not None and
-                self.parsed_args.output is not None):
-            self._output = Path(
-                self.parsed_args.output
-            ).resolve()
-        return self._output
-
-    @property
-    def parsed_args(self):
-        """
-        The result of calling ``parsed_args(self.argv)`` on :func:`__parser`.
-        If ``self.argv is None``, then this property also returns ``None``.
-
-        Returns:
-            argparse.Namespace:  The parsed arguments, or ``None`` if
-            ``self.argv is None``.
-        """
-        if self.argv is None:
-            return None
-
-        return self.__parser().parse_args(self.argv)
+        if not hasattr(self, "_args"):
+            args = self.__parser().parse_args(self.argv)
+            if args.supported_systems_file is None:
+                args.supported_systems_file = Path(
+                    self.load_env_config_data["load-env"]["supported-systems"]
+                ).resolve()
+            if args.supported_envs_file is None:
+                args.supported_envs_file = Path(
+                    self.load_env_config_data["load-env"]["supported-envs"]
+                ).resolve()
+            if args.environment_specs_file is None:
+                args.environment_specs_file = Path(
+                    self.load_env_config_data["load-env"]["environment-specs"]
+                ).resolve()
+            self._args = args
+        return self._args
 
     def __parser(self):
         """
         Returns:
             argparse.ArgumentParser:  The parser bject with properly configured
             argument options.  This is to be used in conjunction with
-            :attr:`parsed_args`.
+            :attr:`args`.
         """
-        if hasattr(self, "_parser"):
-            return self._parser
-
         description = "[ Load Environment Utility ]".center(79, "-")
 
         examples = """
@@ -385,23 +353,22 @@ class LoadEnv(LoadEnvCommon):
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
-        parser.add_argument("build_name", help=(
-            "The keyword string for which you wish to load the environment."
-        ))
-
-        parser.add_argument("-o", "--output",
-                            dest="output", action="store",
-                            default=None,
-                            help="Output a bash script that when sourced will "
-                            "give you an environment identical to the one "
-                            "loaded when using this tool.")
-
-        parser.add_argument("-f", "--force", dest="force_build_name_sys_name",
-                            action="store_true", default=False,
-                            help="Forces load_env to use the system name "
-                            "specified in the build_name rather than the "
-                            "system name matched via the hostname and the "
-                            "supported-systems.ini file.")
+        parser.add_argument("build_name", nargs="?", default="", help="The "
+                            "keyword string for which you wish to load the "
+                            "environment.")
+        parser.add_argument("-o", "--output", action="store", default=None,
+                            type=lambda p: Path(p).resolve(), help="Output a "
+                            "bash script that when sourced will give you an "
+                            "environment identical to the one loaded when "
+                            "using this tool.")
+        parser.add_argument("-f", "--force", action="store_true",
+                            default=False, help="Forces load_env to use the "
+                            "system name specified in the build_name rather "
+                            "than the system name matched via the hostname "
+                            "and the supported-systems.ini file.")
+        parser.add_argument("-l", "--list-envs", action="store_true",
+                            default=False, help="List the environments "
+                            "available on your current machine.")
 
         config_files = parser.add_argument_group(
             "configuration file overrides"
@@ -409,17 +376,20 @@ class LoadEnv(LoadEnvCommon):
         config_files.add_argument("--supported-systems",
                                   dest="supported_systems_file",
                                   action="store", default=None,
+                                  type=lambda p: Path(p).resolve(),
                                   help="Path to ``supported-systems.ini``.  "
                                   "Overrides loading the file specified in "
                                   "``load_env.ini``.")
         config_files.add_argument("--supported-envs", default=None,
                                   dest="supported_envs_file", action="store",
+                                  type=lambda p: Path(p).resolve(),
                                   help="Path to ``supported-envs.ini``.  "
                                   "Overrides loading the file specified in "
                                   "``load_env.ini``.")
         config_files.add_argument("--environment-specs",
                                   dest="environment_specs_file",
                                   action="store", default=None,
+                                  type=lambda p: Path(p).resolve(),
                                   help="Path to ``environment-specs.ini``.  "
                                   "Overrides loading the file specified in "
                                   "``load_env.ini``.")
@@ -428,7 +398,13 @@ class LoadEnv(LoadEnvCommon):
 
 
 def main(argv):
-    le = LoadEnv(argv=argv)
+    """
+    DOCSTRING
+    """
+    le = LoadEnv(argv)
+    if le.args.list_envs:
+        le.list_envs()
+    le.apply_env()
     le.write_load_matching_env()
 
 
