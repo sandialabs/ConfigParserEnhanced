@@ -100,35 +100,41 @@ class EnvKeywordParser(LoadEnvCommon):
         Returns:
             str:  The fully qualified environment name.
         """
-        matched_env_name = None
-        for name in self.env_names:
-            if name in self.build_name:
-                matched_env_name = name
-                break
-
-        if matched_env_name is None:
-            matched_alias = None
-            for alias in self.aliases:
-                if alias in self.build_name:
-                    matched_alias = alias
+        if not hasattr(self, "_qualified_env_name"):
+            matched_env_name = None
+            for name in self.env_names:
+                if name in self.build_name:
+                    matched_env_name = name
+                    print(f"Matched environment name '{name}' in build name "
+                          f"'{self.build_name}'.")
                     break
 
-            if matched_alias is None:
-                msg = self.get_msg_showing_supported_environments(
-                    "Unable to find alias or environment name for system "
-                    f"'{self.system_name}' in\nkeyword string "
-                    f"'{self.build_name}'."
-                )
-                sys.exit(msg)
+            if matched_env_name is None:
+                matched_alias = None
+                for alias in self.aliases:
+                    if alias in self.build_name:
+                        matched_alias = alias
+                        break
 
-            matched_env_name = self.get_env_name_for_alias(matched_alias)
+                if matched_alias is None:
+                    msg = self.get_msg_showing_supported_environments(
+                        "Unable to find alias or environment name for system "
+                        f"'{self.system_name}' in\nkeyword string "
+                        f"'{self.build_name}'."
+                    )
+                    sys.exit(msg)
 
-        self.assert_kw_str_versions_for_env_name_components_are_supported(
-            matched_env_name
-        )
-        self.assert_kw_str_node_type_is_supported(matched_env_name)
+                matched_env_name = self.get_env_name_for_alias(matched_alias)
+                print(f"Matched alias '{matched_alias}' in build name "
+                      f"'{self.build_name}' to environment name "
+                      f"'{matched_env_name}'.")
 
-        self._qualified_env_name = f"{self.system_name}-{matched_env_name}"
+            self.assert_kw_str_versions_for_env_name_components_are_supported(
+                matched_env_name
+            )
+            self.assert_kw_str_node_type_is_supported(matched_env_name)
+
+            self._qualified_env_name = f"{self.system_name}-{matched_env_name}"
 
         return self._qualified_env_name
 
