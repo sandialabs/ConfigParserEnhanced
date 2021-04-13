@@ -187,14 +187,15 @@ class LoadEnv(LoadEnvCommon):
                 if (sys_name_from_hostname is not None
                         and sys_name_from_hostname != self._system_name
                         and self.args.force is False):
-                    msg = self.get_formatted_msg(
+                    msg = self.get_formatted_msg(textwrap.fill(
                         f"Hostname '{hostname}' matched to system "
-                        f"'{sys_name_from_hostname}'\n in "
+                        f"'{sys_name_from_hostname}' in "
                         f"'{self.args.supported_systems_file}', but you "
-                        f"specified '{self._system_name}' in the build name.\n"
+                        f"specified '{self._system_name}' in the build name.  "
                         "If you want to force the use of "
-                        f"'{self._system_name}', add the --force flag."
-                    )
+                        f"'{self._system_name}', add the --force flag.",
+                        width=68
+                    ))
                     sys.exit(msg)
 
     @property
