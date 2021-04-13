@@ -2,6 +2,7 @@ from pathlib import Path
 import pytest
 import re
 import sys
+import textwrap
 
 root_dir = (Path.cwd()/".."
             if (Path.cwd()/"conftest.py").exists()
@@ -338,3 +339,24 @@ def test_matched_alias_not_in_supported_envs_raises():
 
     assert ("ERROR:  Unable to find alias 'bad_alias' in aliases for "
             "'machine-type-1'") in exc_msg
+
+
+def test_env_name_without_alias_okay():
+    ekp = EnvKeywordParser("build-name", "test-system",
+                           "test_supported_envs.ini")
+    msg = ekp.get_msg_showing_supported_environments(
+        "Ensuring environment names without aliases don't cause problems.",
+        kind="TEST"
+    )
+    msg_expected = textwrap.dedent("""
+            |   - Supported Environments for 'test-system':
+            |     - env-name-aliases-empty-string
+            |     - env-name-aliases-none
+            |     - env-name-serial
+            |       * Aliases:
+            |         - env-name
+            |     - another-env
+            |       * Aliases:
+            |         - with-an-alias
+        """).strip()
+    assert msg_expected in msg
