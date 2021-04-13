@@ -160,6 +160,9 @@ class LoadEnv(LoadEnvCommon):
             hostname = socket.gethostname()
             sys_name_from_hostname = self.get_sys_name_from_hostname(hostname)
             self._system_name = sys_name_from_hostname
+            if self._system_name is not None:
+                print(f"Using system '{self._system_name}' based on matching "
+                      f"hostname '{hostname}'.")
             sys_name_from_build_name = self.get_sys_name_from_build_name()
             if (sys_name_from_hostname is None and
                     sys_name_from_build_name is None):
@@ -177,17 +180,22 @@ class LoadEnv(LoadEnvCommon):
             # None.
             if sys_name_from_build_name is not None:
                 self._system_name = sys_name_from_build_name
+                print(("Setting" if sys_name_from_hostname is None else
+                       "Overriding") +
+                      f" system to '{self._system_name}' based on "
+                      f"specification in build name '{self.args.build_name}'.")
                 if (sys_name_from_hostname is not None
                         and sys_name_from_hostname != self._system_name
                         and self.args.force is False):
-                    msg = self.get_formatted_msg(
+                    msg = self.get_formatted_msg(textwrap.fill(
                         f"Hostname '{hostname}' matched to system "
-                        f"'{sys_name_from_hostname}'\n in "
+                        f"'{sys_name_from_hostname}' in "
                         f"'{self.args.supported_systems_file}', but you "
-                        f"specified '{self._system_name}' in the build name.\n"
+                        f"specified '{self._system_name}' in the build name.  "
                         "If you want to force the use of "
-                        f"'{self._system_name}', add the --force flag."
-                    )
+                        f"'{self._system_name}', add the --force flag.",
+                        width=68
+                    ))
                     sys.exit(msg)
 
     @property
@@ -405,6 +413,7 @@ def main(argv):
     if le.args.list_envs:
         le.list_envs()
     le.apply_env()
+    print(f"Environment '{self.parsed_env_name}' validated.")
     le.write_load_matching_env()
 
 

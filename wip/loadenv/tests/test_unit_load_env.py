@@ -142,9 +142,11 @@ def test_sys_name_in_build_name_not_matching_hostname_raises(mock_socket):
     with pytest.raises(SystemExit) as excinfo:
         le.system_name
     exc_msg = excinfo.value.args[0]
-    assert "Hostname 'stria' matched to system 'machine-type-4'" in exc_msg
-    assert "but you specified 'machine-type-1' in the build name" in exc_msg
-    assert "add the --force flag" in exc_msg
+    for msg in ["Hostname 'stria' matched to system 'machine-type-4'",
+                "but you specified 'machine-type-1' in the build name",
+                "add the --force flag"]:
+        msg = msg.replace(" ", r"\s+\|?\s*") # account for line breaks
+        assert re.search(msg, exc_msg) is not None
 
 
 @patch("load_env.socket")
@@ -188,7 +190,6 @@ def test_unsupported_hostname_handled_correctly(mock_socket, data):
                 "the hostname 'unsupported_hostname'")
         msg = msg.replace(" ", r"\s+\|?\s*") # account for line breaks
         assert re.search(msg, exc_msg) is not None
-        print(exc_msg)
         assert str(le.args.supported_systems_file) in exc_msg
     else:
         assert le.system_name == data["sys_name"]
