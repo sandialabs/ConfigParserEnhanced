@@ -160,6 +160,9 @@ class LoadEnv(LoadEnvCommon):
             hostname = socket.gethostname()
             sys_name_from_hostname = self.get_sys_name_from_hostname(hostname)
             self._system_name = sys_name_from_hostname
+            if self._system_name is not None:
+                print(f"Using system '{self._system_name}' based on matching "
+                      f"hostname '{hostname}'.")
             sys_name_from_build_name = self.get_sys_name_from_build_name()
             if (sys_name_from_hostname is None and
                     sys_name_from_build_name is None):
@@ -177,6 +180,10 @@ class LoadEnv(LoadEnvCommon):
             # None.
             if sys_name_from_build_name is not None:
                 self._system_name = sys_name_from_build_name
+                print(("Setting" if sys_name_from_hostname is None else
+                       "Overriding") +
+                      f" system to '{self._system_name}' based on "
+                      f"specification in build name '{self.args.build_name}'.")
                 if (sys_name_from_hostname is not None
                         and sys_name_from_hostname != self._system_name
                         and self.args.force is False):
