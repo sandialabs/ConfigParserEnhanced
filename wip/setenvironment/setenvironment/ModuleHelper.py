@@ -112,17 +112,18 @@ try: # pragma: cover if on lmod
                     stdout = out.getvalue()
                     stderr = err.getvalue()
         except NameError as error:
+            print("!!")
+            print("An ERROR occurred during execution of module command")
             raise RuntimeError(str(error))
 
         except BaseException as error:
+            print("!!")
+            print("An ERROR occurred during execution of module command")
             raise error
 
         finally:
-            print("!!")
-            print("An ERROR occurred during execution of module command")
             print(stdout)
             print(stderr)
-            print("!!")
 
         # Check the module function output for errors
         stderr_ok = True
