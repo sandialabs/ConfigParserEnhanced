@@ -34,7 +34,7 @@ fi
 env_file="/tmp/load_matching_env.sh"
 if [ -f ${env_file} ]; then
   source ${env_file}
-  rm ${env_file}
+  rm -f ${env_file}
   echo "Environment loaded successfully."
 else
   echo "load_env.py failed to generate ${env_file}."
