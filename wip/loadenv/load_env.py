@@ -413,7 +413,7 @@ def main(argv):
     if le.args.list_envs:
         le.list_envs()
     le.apply_env()
-    print(f"Environment '{self.parsed_env_name}' validated.")
+    print(f"Environment '{le.parsed_env_name}' validated.")
     le.write_load_matching_env()
 
 
