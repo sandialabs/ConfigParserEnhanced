@@ -20,6 +20,7 @@ def test_list_envs(system_name):
     le = LoadEnv([
         "--supported-systems", "test_supported_systems.ini",
         "--supported-envs", "test_supported_envs.ini",
+        "--force",
         "--list-envs",
         system_name
     ])
