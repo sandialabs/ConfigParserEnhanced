@@ -13,7 +13,7 @@ class DetermineSystem:
     ``supported_systems.ini`` file, the ``hostname``, and potentially the
     ``build_name``.
 
-    Paramters:
+    Parameters:
         build_name (str):  The build name for the environment or configuration.
         supported_systems_file (Path-like):  The path to
             ``supported_systems.ini``.

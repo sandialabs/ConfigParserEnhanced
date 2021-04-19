@@ -7,6 +7,7 @@ authors = [
 ]
 readme = "README.md"
 documentation = "http://10.202.35.89.8080/DetermineSystem/doc/index.html"
+repository = "https://internal.gitlab.server/trilinos-devops-consolidation/code/determinesystem"
 classifiers = [
     'Development Status :: 3 - Alpha',
     'Intended Audience :: DevOps',
@@ -15,9 +16,8 @@ classifiers = [
     'Programming Language :: Python :: 3 :: Only',
 ]
 packages = [
-    { include = 'configparserenhanced' }
+    { include = 'determinesystem' }
 ]
-/* include = [ "CHANGELOG.md" ] */
 
 
 [tool.poetry.dependencies]
