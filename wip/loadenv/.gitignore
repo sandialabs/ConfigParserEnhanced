@@ -1,5 +1,5 @@
 .coverage
 __pycache__/
 htmlcov/
-src/__pycache__/
+loadenv/__pycache__/
 tests/__pycache__/

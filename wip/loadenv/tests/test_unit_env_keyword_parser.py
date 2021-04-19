@@ -7,7 +7,7 @@ root_dir = (Path.cwd()/".."
             if (Path.cwd()/"conftest.py").exists()
             else Path.cwd())
 sys.path.append(str(root_dir))
-from src.env_keyword_parser import EnvKeywordParser
+from loadenv.env_keyword_parser import EnvKeywordParser
 
 
 #####################

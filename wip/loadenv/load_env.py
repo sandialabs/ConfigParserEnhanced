@@ -6,7 +6,8 @@ from determinesystem import DetermineSystem
 import os
 from pathlib import Path
 from setenvironment import SetEnvironment
-from src.env_keyword_parser import EnvKeywordParser
+from loadenv.env_keyword_parser import EnvKeywordParser
+from loadenv.load_env_common import LoadEnvCommon
 import socket
 import sys
 import textwrap
