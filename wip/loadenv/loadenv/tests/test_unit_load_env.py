@@ -10,7 +10,7 @@ root_dir = (Path.cwd()/".."
             else Path.cwd())
 
 sys.path.append(str(root_dir))
-from loadenv.load_env import LoadEnv
+from loadenv.LoadEnv import LoadEnv
 
 
 
