@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "determinesystem"
+version = "0.0.1"
+description = "Simple system name determiner."
+authors = [
+    "Josh Braun <josbrau@sandia.gov>"
+]
+readme = "README.md"
+documentation = "http://10.202.35.89.8080/DetermineSystem/doc/index.html"
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: DevOps',
+    'Intended Audience :: Developers',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+]
+packages = [
+    { include = 'configparserenhanced' }
+]
+/* include = [ "CHANGELOG.md" ] */
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+configparser = "^5.0.1"
+configparserenhanced = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git", rev = "master"}
+
+
+[tool.poetry.dev-dependencies]
+mock = "^4.0.3"
+pytest = "^6.2.2"
+pytest-cov = "^2.11.1"
+Sphinx = "^3.5.1"
+sphinx-argparse = "^0.2.5"
+sphinx-rtd-theme = "^0.5.1"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
