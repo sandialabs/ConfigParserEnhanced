@@ -10,7 +10,7 @@ root_dir = (Path.cwd()/".."
             else Path.cwd())
 
 sys.path.append(str(root_dir))
-from load_env import LoadEnv
+from loadenv.load_env import LoadEnv
 
 
 
@@ -164,8 +164,8 @@ def test_invalid_load_env_file_raises(data):
 ######################################################################
 #  EnvKeywordParser (ekp) Basic Interaction (not integration tests)  #
 ######################################################################
-@patch("load_env.EnvKeywordParser")
-@patch("load_env.DetermineSystem")
+@patch("loadenv.load_env.EnvKeywordParser")
+@patch("loadenv.load_env.DetermineSystem")
 def test_correct_arguments_are_passed_to_ekp_object(mock_ds, mock_ekp):
     mock_ds_obj = mock.Mock()
     mock_ds_obj.system_name = "machine-type-1"
@@ -178,8 +178,8 @@ def test_correct_arguments_are_passed_to_ekp_object(mock_ds, mock_ekp):
                                      le.args.supported_envs_file)
 
 
-@patch("load_env.EnvKeywordParser")
-@patch("load_env.DetermineSystem")
+@patch("loadenv.load_env.EnvKeywordParser")
+@patch("loadenv.load_env.DetermineSystem")
 def test_ekp_qualified_env_name_gets_set_as_parsed_env_name(
     mock_ds, mock_ekp
 ):
@@ -222,9 +222,9 @@ def test_determined_system_n_gets_set_as_system_name(mock_ds):
 ########################################################
 #  SetEnvironment Interaction (not integration tests)  #
 ########################################################
-@patch("load_env.EnvKeywordParser")
-@patch("load_env.SetEnvironment")
-@patch("load_env.DetermineSystem")
+@patch("loadenv.load_env.EnvKeywordParser")
+@patch("loadenv.load_env.SetEnvironment")
+@patch("loadenv.load_env.DetermineSystem")
 def test_correct_arguments_are_passed_to_set_environment_object(
     mock_ds, mock_se, mock_ekp
 ):
@@ -251,9 +251,9 @@ def test_correct_arguments_are_passed_to_set_environment_object(
 
 @pytest.mark.parametrize("output",
                          [None, "test_dir/load_matching_env.sh"])
-@patch("load_env.EnvKeywordParser")
-@patch("load_env.SetEnvironment")
-@patch("load_env.DetermineSystem")
+@patch("loadenv.load_env.EnvKeywordParser")
+@patch("loadenv.load_env.SetEnvironment")
+@patch("loadenv.load_env.DetermineSystem")
 def test_load_matching_env_is_set_correctly_and_directories_are_created(
     mock_ds, mock_se, mock_ekp, output
 ):

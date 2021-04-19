@@ -8,7 +8,7 @@ root_dir = (Path.cwd()/".."
             else Path.cwd())
 
 sys.path.append(str(root_dir))
-from load_env import LoadEnv
+from loadenv.load_env import LoadEnv
 
 
 ####################################################

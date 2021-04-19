@@ -69,7 +69,7 @@ class LoadEnv:
     def __init__(
         self, argv,
         load_env_ini_file=(Path(os.path.realpath(__file__)).parent /
-                           "src/load-env.ini")
+                           "load-env.ini")
         # load_env_ini_file set here for testing purposes. It is not meant to
         # be changed by the user.
     ):
