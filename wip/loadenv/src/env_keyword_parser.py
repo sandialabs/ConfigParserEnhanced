@@ -246,7 +246,7 @@ class EnvKeywordParser(LoadEnvCommon):
 
         return matched_env_name
 
-    def get_msg_showing_supported_environments(self, msg, kind="ERROR"):
+    def get_msg_showing_supported_environments(self, msg, kind="ERROR", sort=False):
         """
         Similar to :func:`get_msg_for_list`, except it's a bit more specific.
         Produces an error message like::
@@ -276,11 +276,16 @@ class EnvKeywordParser(LoadEnvCommon):
         Returns:
             str:  The formatted message.
         """
+        env_names = self.env_names
+        if sort:
+            env_names = sorted(self.env_names)
         extras = f"\n- Supported Environments for '{self.system_name}':\n"
-        for name in self.env_names:
+        for name in env_names:
             extras += f"  - {name}\n"
             aliases_for_env = [a for a in self.aliases
                                if self.get_env_name_for_alias(a) == name]
+            if sort:
+                aliases_for_env = sorted(aliases_for_env)
             extras += ("    * Aliases:\n" if len(aliases_for_env) > 0 else "")
             for a in aliases_for_env:
                 extras += (f"      - {a}\n")
