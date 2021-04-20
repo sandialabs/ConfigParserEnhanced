@@ -244,7 +244,7 @@ class LoadEnv(LoadEnvCommon):
         sys.exit(
             self.env_keyword_parser.get_msg_showing_supported_environments(
                 "Please select one of the following.",
-                kind="INFO", sort=True
+                kind="INFO"
             )
         )
 
