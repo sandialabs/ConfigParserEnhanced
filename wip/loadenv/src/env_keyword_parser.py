@@ -125,8 +125,8 @@ class EnvKeywordParser(LoadEnvCommon):
                     sys.exit(msg)
 
                 matched_env_name = self.get_env_name_for_alias(matched_alias)
-                print(f"Matched alias '{matched_alias}' in build name "
-                      f"'{self.build_name}' to environment name "
+                print(f"NOTICE:  Matched alias '{matched_alias}' in build "
+                      f"name '{self.build_name}' to environment name "
                       f"'{matched_env_name}'.")
 
             self.assert_kw_str_versions_for_env_name_components_are_supported(
