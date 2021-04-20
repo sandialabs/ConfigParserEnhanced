@@ -122,6 +122,9 @@ class ExceptionControlTest(TestCase):
                 pass
                 return
 
+            def event_silent(self):
+                inst_testme.exception_control_event("SILENT", ValueError, message="message text")
+
             def event_warning(self):
                 inst_testme.exception_control_event("WARNING", ValueError, message="message text")
 
@@ -166,6 +169,11 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 0 (Silent Running)
         inst_testme.exception_control_level = 0
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
             self.assertEqual("", fake_out.getvalue().rstrip())
@@ -191,6 +199,11 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
         inst_testme.exception_control_level = 1
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
@@ -222,6 +235,11 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 2 (raise CRITICAL)
         inst_testme.exception_control_level = 2
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
             self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
@@ -242,6 +260,11 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
         inst_testme.exception_control_level = 3
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
@@ -265,6 +288,11 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 4 (raise CRITICAL, SERIOUS, MINOR)
         inst_testme.exception_control_level = 4
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
             self.assertRegex(fake_out.getvalue(), exception_skipped_msg_regex_01)
@@ -284,6 +312,9 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 5 (raise ALL)
         inst_testme.exception_control_level = 5
+        with self.assertRaises(ValueError):
+            inst_testme.event_silent()
+
         with self.assertRaises(ValueError):
             inst_testme.event_warning()
 
@@ -307,8 +338,10 @@ class ExceptionControlTest(TestCase):
 
         class testme(ExceptionControl):
             def __init__(self):
-                pass
                 return
+
+            def event_silent_nomsg(self):
+                inst_testme.exception_control_event("SILENT", ValueError)
 
             def event_warning_nomsg(self):
                 inst_testme.exception_control_event("WARNING", ValueError)
@@ -330,6 +363,11 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
         inst_testme.exception_control_level = 1
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent_nomsg()
+            print(fake_out.getvalue())
+            self.assertNotIn("Message:", fake_out.getvalue())
+
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning_nomsg()
             print(fake_out.getvalue())
@@ -356,6 +394,9 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 5 (raise ALL)
         inst_testme.exception_control_level = 5
+        with self.assertRaises(ValueError):
+            inst_testme.event_silent_nomsg()
+
         with self.assertRaises(ValueError):
             inst_testme.event_warning_nomsg()
 
@@ -383,6 +424,9 @@ class ExceptionControlTest(TestCase):
                 pass
                 return
 
+            def event_silent(self):
+                inst_testme.exception_control_event("SILENT", int, message="message text")
+
             def event_warning(self):
                 inst_testme.exception_control_event("WARNING", int, message="message text")
 
@@ -404,6 +448,9 @@ class ExceptionControlTest(TestCase):
 
         for level in range(6):
             inst_testme.exception_control_level = level
+            with self.assertRaises(TypeError):
+                inst_testme.event_silent()
+
             with self.assertRaises(TypeError):
                 inst_testme.event_warning()
 
@@ -430,6 +477,9 @@ class ExceptionControlTest(TestCase):
             def __init__(self):
                 pass
                 return
+
+            def event_silent(self):
+                inst_testme.exception_control_event("SILENT", ValueError, message="message text")
 
             def event_warning(self):
                 inst_testme.exception_control_event("WARNING", ValueError, message="message text")
@@ -458,6 +508,13 @@ class ExceptionControlTest(TestCase):
 
         # Default exception_control_level == 4
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_expect = ""
             output_actual = fake_out.getvalue().strip()
@@ -479,6 +536,11 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 0 (Silent Running)
         inst_testme.exception_control_level = 0
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
@@ -505,6 +567,13 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
         inst_testme.exception_control_level = 1
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_expect = ""
@@ -540,6 +609,13 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 2 (raise CRITICAL)
         inst_testme.exception_control_level = 2
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_expect = ""
             output_actual = fake_out.getvalue().strip()
@@ -570,6 +646,13 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
         inst_testme.exception_control_level = 3
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_expect = ""
             output_actual = fake_out.getvalue().strip()
@@ -596,6 +679,13 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 4 (raise CRITICAL, SERIOUS, MINOR)
         inst_testme.exception_control_level = 4
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_expect = ""
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(output_expect, output_actual)
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_expect = ""
             output_actual = fake_out.getvalue().strip()
@@ -617,6 +707,9 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 5 (raise ALL)
         inst_testme.exception_control_level = 5
+        with self.assertRaises(ValueError):
+            inst_testme.event_silent()
+
         with self.assertRaises(ValueError):
             inst_testme.event_warning()
 
@@ -642,6 +735,9 @@ class ExceptionControlTest(TestCase):
             def __init__(self):
                 pass
                 return
+
+            def event_silent(self):
+                inst_testme.exception_control_event("SILENT", ValueError, message="message text")
 
             def event_warning(self):
                 inst_testme.exception_control_event("WARNING", ValueError, message="message text")
@@ -698,6 +794,11 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 0 (Silent Running)
         inst_testme.exception_control_level = 0
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            print(fake_out.getvalue())
+            self.assertEqual("", fake_out.getvalue().rstrip())
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             print(fake_out.getvalue())
             self.assertEqual("", fake_out.getvalue().rstrip())
@@ -723,6 +824,12 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 1 (Warnings for all, do not raise exceptions.)
         inst_testme.exception_control_level = 1
+        with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(0, len(output_actual.splitlines()))
+
         with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_actual = fake_out.getvalue().strip()
@@ -758,6 +865,12 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 2 (raise CRITICAL)
         inst_testme.exception_control_level = 2
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(0, len(output_actual.splitlines()))
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_actual = fake_out.getvalue().strip()
             print(output_actual)
@@ -788,6 +901,12 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 3 (raise CRITICAL, SERIOUS)
         inst_testme.exception_control_level = 3
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(0, len(output_actual.splitlines()))
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_actual = fake_out.getvalue().strip()
             print(output_actual)
@@ -814,6 +933,12 @@ class ExceptionControlTest(TestCase):
         # Set exception_control_level = 4 (raise CRITICAL, SERIOUS, MINOR)
         inst_testme.exception_control_level = 4
         with patch('sys.stdout', new = StringIO()) as fake_out:
+            inst_testme.event_silent()
+            output_actual = fake_out.getvalue().strip()
+            print(output_actual)
+            self.assertEqual(0, len(output_actual.splitlines()))
+
+        with patch('sys.stdout', new = StringIO()) as fake_out:
             inst_testme.event_warning()
             output_actual = fake_out.getvalue().strip()
             print(output_actual)
@@ -835,6 +960,9 @@ class ExceptionControlTest(TestCase):
 
         # Set exception_control_level = 5 (raise ALL)
         inst_testme.exception_control_level = 5
+        with self.assertRaises(ValueError):
+            inst_testme.event_silent()
+
         with self.assertRaises(ValueError):
             inst_testme.event_warning()
 

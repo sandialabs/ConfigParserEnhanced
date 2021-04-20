@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.1] - YYYY-MM-DD or [Unreleased]
 ### Added
+- ExceptionControl: Added new event _type_ `SILENT`, which will throw its exception
+  at the same level of a `WARNING` but will never print a warning message to stdout.
 - ConfigParserEnhanced property: `configparser_delimiters` which exposes the ability to
   modify the delimiters in the underlying `ConfigParser` parser for .ini files. Default
   value is `('=',':')` and it allows assignment as a list, tuple, or str but gets converted
