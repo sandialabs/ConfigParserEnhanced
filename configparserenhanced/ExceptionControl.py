@@ -30,11 +30,17 @@ class ExceptionControl(object):
     do nothing, print a warning, or raise an exception based on the severity of the issue
     and the threshold level setting, which is set via a property.
 
-    There are four 'types' of events that can be created:
+    There are six 'types' of events that can be created:
 
     * **WARNING:** The lowest severity. These are mostly informative, they
       might not indicate an *error* but we might want them to make note
       of something that isn't quite right.
+    * **SILENT:** Shares the same severity level as "WARNING" but these events
+      will *never* print a warning out. They will trigger the exception
+      if the ``exception_control_level`` is set to 5, which is the same
+      level that will trigger WARNING events to raise their exceptions.
+      These are useful if you wish to keep output relatively clean but still
+      want the event to be there.
     * **MINOR:** This is more severe than a WARNING type and indicates that an
       actual error probably happened but not a major one. This might
       be somethig that needs to be noted but doesn't always warrant
@@ -56,7 +62,7 @@ class ExceptionControl(object):
     be determined based on the ``exception_control_level`` property on the class. This property
     determines how an event is handled. The values allowed for this are 0 through 5, where:
 
-    0. **Silent Running:**
+    0. **No Exceptions!:**
        Events do not print out anything nor do they raise an exception.
     1. **Warnings Only:**
        A warning message is printed out for all events. No exceptions get raised.
@@ -71,7 +77,8 @@ class ExceptionControl(object):
        exception.
        Lower severity events will print out a warning message.
     5. **Always Raise:**
-       All events trigger their exception.
+       All events trigger their associated exception, even WARNING and SILENT
+       events.
     """
 
 
@@ -87,6 +94,7 @@ class ExceptionControl(object):
         level of 5 would only be raised at the highest ``exception_control_level``.
         """
         output = {
+            "SILENT"       : 5,
             "WARNING"      : 5,
             "MINOR"        : 4,
             "SERIOUS"      : 3,
@@ -183,7 +191,8 @@ class ExceptionControl(object):
 
         Args:
             event_type (str): Sets the *type* of exception this is. Valid
-                entries are ["WARNING", "MINOR", "SERIOUS", "CRITICAL"].
+                entries are ["SILENT"," WARNING", "MINOR", "SERIOUS",
+                "CRITICAL", "CATASTROPHIC"].
             exception_type (object): An :class:`Exception` type that would be raised
                 if the ``exception_control_level`` threshold is high enough to
                 make this exception get raised. This must be an :class:`Exception`
@@ -234,9 +243,9 @@ class ExceptionControl(object):
         elif self.exception_control_level > 0:
             try:
                 raise exception_type
-            except exception_type as ex:
+            except exception_type as exc:
 
-                if not self.exception_control_silent_warnings:
+                if (not self.exception_control_silent_warnings) and (event_type != "SILENT"):
 
                     if self.exception_control_compact_warnings:
                         tb_last = str(traceback.format_stack()[-2])
