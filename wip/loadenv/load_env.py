@@ -228,11 +228,15 @@ class LoadEnv(LoadEnvCommon):
             :attr:`args`.
         """
         description = "[ Load Environment Utility ]".center(79, "-")
+        description += ("\n\nThis tool allows you to load environments "
+                        "supported on your system by passing\nit a string "
+                        "containing keywords to call out a particular "
+                        "environment name or\nalias.")
 
         examples = """
             Basic Usage::
 
-                load_env.sh build_name-here
+                source load-env.sh <build-name>
         """
         examples = textwrap.dedent(examples)
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
@@ -246,6 +250,9 @@ class LoadEnv(LoadEnvCommon):
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to load the "
                             "environment.")
+        parser.add_argument("-l", "--list-envs", action="store_true",
+                            default=False, help="List the environments "
+                            "available on your current machine.")
         parser.add_argument("-o", "--output", action="store", default=None,
                             type=lambda p: Path(p).resolve(), help="Output a "
                             "bash script that when sourced will give you an "
@@ -256,10 +263,7 @@ class LoadEnv(LoadEnvCommon):
                             "system name specified in the build_name rather "
                             "than the system name matched via the hostname "
                             "and the supported-systems.ini file.")
-        parser.add_argument("-l", "--list-envs", action="store_true",
-                            default=False, help="List the environments "
-                            "available on your current machine.")
-
+        
         config_files = parser.add_argument_group(
             "configuration file overrides"
         )
