@@ -1,4 +1,3 @@
-from configparserenhanced import ConfigParserEnhanced
 from pathlib import Path
 import pytest
 import sys
@@ -12,9 +11,9 @@ sys.path.append(str(root_dir))
 from load_env import LoadEnv
 
 
-##################################
-#  EnvKeywordParser Integration  #
-##################################
+####################################################
+#  DetermineSystem + EnvKeywordParser Integration  #
+####################################################
 @pytest.mark.parametrize("inputs", [
     {
         "build_name": "intel-hsw",
@@ -27,20 +26,21 @@ from load_env import LoadEnv
         "expected_env": "machine-type-4-arm-20.0-openmpi-4.0.2-openmp"
     }
 ])
-@patch("load_env.socket")
-def test_ekp_matches_correct_env_name(mock_socket, inputs):
+@patch("socket.gethostname")
+def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     ###########################################################################
     # **This will need to change later once we have a more sophisticated**
     # **system determination in place.**
     ###########################################################################
-    mock_socket.gethostname.return_value = inputs["hostname"]
+    mock_gethostname.return_value = inputs["hostname"]
+
     le = LoadEnv(argv=[inputs["build_name"]])
     assert le.parsed_env_name == inputs["expected_env"]
 
 
-###################################################
-#  EnvKeywordParser + SetEnvironment Integration  #
-###################################################
+#####################################################################
+#  DetermineSystem + EnvKeywordParser + SetEnvironment Integration  #
+#####################################################################
 @pytest.mark.parametrize("inputs", [
     {
         "build_name": "intel-hsw",
@@ -103,13 +103,13 @@ def test_ekp_matches_correct_env_name(mock_socket, inputs):
         ]
     }
 ])
-@patch("load_env.socket")
-def test_correct_commands_are_saved(mock_socket, inputs):
+@patch("socket.gethostname")
+def test_correct_commands_are_saved(mock_gethostname, inputs):
     ###########################################################################
     # **This will need to change later once we have a more sophisticated**
     # **system determination in place.**
     ###########################################################################
-    mock_socket.gethostname.return_value = inputs["hostname"]
+    mock_gethostname.return_value = inputs["hostname"]
     le = LoadEnv(argv=[inputs["build_name"]])
     assert le.parsed_env_name == inputs["expected_env"]
 

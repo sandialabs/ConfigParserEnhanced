@@ -9,9 +9,9 @@ TODO:
 
 import argparse
 from configparserenhanced import ConfigParserEnhanced
+from determinesystem import DetermineSystem
 import os
 from pathlib import Path
-import re
 from setenvironment import SetEnvironment
 from src.env_keyword_parser import EnvKeywordParser
 from src.load_env_common import LoadEnvCommon
@@ -87,135 +87,17 @@ class LoadEnv(LoadEnvCommon):
         self.env_keyword_parser = None
         self.set_environment = None
 
-    def get_sys_name_from_hostname(self, hostname):
-        """
-        Helper function to match the given hostname to a system name, as
-        defined by the ``supported-systems.ini``.  If nothing is matched,
-        ``None`` is returned.
-
-        Parameters:
-            hostname (str):  The hostname to match a system name to.
-
-        Returns:
-            str:  The matched system name, or ``None`` if nothing is matched.
-        """
-        sys_names = [s for s in self.supported_systems_data.sections()
-                     if s != "DEFAULT"]
-        sys_name_from_hostname = None
-        for sys_name in sys_names:
-            # Strip the keys of comments:
-            #
-            #   Don't match anything following whitespace and a '#'.
-            #                                  |
-            #   Match anything that's not      |
-            #        a '#' or whitespace.      |
-            #                      vvvvv    vvvvvvvv
-            keys = [re.findall(r"([^#^\s]*)(?:\s*#.*)?", key)[0]
-                    for key in self.supported_systems_data[sys_name].keys()]
-
-            # Keys are treated as REGEXes.
-            matches = []
-            for key in keys:
-                matches += re.findall(key, hostname)
-            if len(matches) > 0:
-                sys_name_from_hostname = sys_name
-                break
-        return sys_name_from_hostname
-
-    def get_sys_name_from_build_name(self):
-        """
-        Helper function that finds any system name in ``supported-systems.ini``
-        that exists in the ``build_name``.  If more than one system name is
-        matched, an exception is raised, and if no system names are matched,
-        then ``None`` is returned.
-
-        Returns:
-            str:  The matched system name in the build name, if it exists. If
-            not, return ``None``.
-        """
-        sys_names = [s for s in self.supported_systems_data.sections()
-                     if s != "DEFAULT"]
-        sys_name_from_build_names = [_ for _ in sys_names if _ in
-                                     self.args.build_name]
-        if len(sys_name_from_build_names) > 1:
-            msg = self.get_msg_for_list(
-                "Cannot specify more than one system name in the build name\n"
-                "You specified", sys_name_from_build_names
-            )
-            sys.exit(msg)
-        elif len(sys_name_from_build_names) == 0:
-            sys_name_from_build_name = None
-        else:
-            sys_name_from_build_name = sys_name_from_build_names[0]
-        return sys_name_from_build_name
-
-    def determine_system(self):
-        """
-        Determine which system from ``supported-envs.ini`` to use, either by
-        grabbing what's specified in the :attr:`build_name`, or by using the
-        hostname and ``supported-systems.ini``.  Store the result as
-        :attr:`system_name`.
-        """
-        if not hasattr(self, "_system_name"):
-            hostname = socket.gethostname()
-            sys_name_from_hostname = self.get_sys_name_from_hostname(hostname)
-            self._system_name = sys_name_from_hostname
-            if self._system_name is not None:
-                print(f"Using system '{self._system_name}' based on matching "
-                      f"hostname '{hostname}'.")
-            sys_name_from_build_name = self.get_sys_name_from_build_name()
-            if (sys_name_from_hostname is None and
-                    sys_name_from_build_name is None):
-                msg = self.get_formatted_msg(textwrap.fill(
-                    f"Unable to find valid system name in the build name or "
-                    f"for the hostname '{hostname}' in "
-                    f"'{self.args.supported_systems_file}'.",
-                    width=68,
-                    break_on_hyphens=False,
-                    break_long_words=False
-                ))
-                sys.exit(msg)
-
-            # Use the system name in build_name if sys_name_from_hostname is
-            # None.
-            if sys_name_from_build_name is not None:
-                self._system_name = sys_name_from_build_name
-                print(("Setting" if sys_name_from_hostname is None else
-                       "Overriding") +
-                      f" system to '{self._system_name}' based on "
-                      f"specification in build name '{self.args.build_name}'.")
-                if (sys_name_from_hostname is not None
-                        and sys_name_from_hostname != self._system_name
-                        and self.args.force is False):
-                    msg = self.get_formatted_msg(textwrap.fill(
-                        f"Hostname '{hostname}' matched to system "
-                        f"'{sys_name_from_hostname}' in "
-                        f"'{self.args.supported_systems_file}', but you "
-                        f"specified '{self._system_name}' in the build name.  "
-                        "If you want to force the use of "
-                        f"'{self._system_name}', add the --force flag.",
-                        width=68
-                    ))
-                    sys.exit(msg)
-
     @property
     def system_name(self):
         """
         The name of the system from which the tool will select an environment.
         """
         if not hasattr(self, "_system_name"):
-            self.determine_system()
-            """
-            When pulling this system determination piece out into its own
-            utility, here's what I'm guessing this'll look like after the fact:
-
-            ds = DetermineSystem(self.args.supported_systems_file)
+            ds = DetermineSystem(self.args.build_name,
+                                 self.args.supported_systems_file,
+                                 force_build_name=self.args.force)
             self._system_name = ds.system_name
 
-            We'll need to move determine_system() and
-            parse_supported_systems_file() and any associated data over to
-            DetermineSystem.
-            """
         return self._system_name
 
     def load_env_keyword_parser(self):
