@@ -23,7 +23,7 @@ environments.
 3. Install the requirements:
    ```bash
    cd loadenv
-   python3 -m pip install --user -U -r requirements.txt
+   python3 -m pip install --user -U -r requirements.txt --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org
    ```
 4. Use the script:
    ```bash
