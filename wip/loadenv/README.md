@@ -12,20 +12,28 @@ environments.
 
 ## Getting Started
 
-1. Clone the repository:
+1. Ensure your proxy environment variables are set appropriately:
+   ```bash
+   export HTTP_PROXY=http://user:nopass@proxy.sandia.gov:80
+   export http_proxy=$HTTP_PROXY
+   export HTTPS_PROXY=$HTTP_PROXY
+   export https_proxy=$HTTPS_PROXY
+   # ensure NO_PROXY and no_proxy contain .sandia.gov
+   ```
+2. Clone the repository:
    ```bash
    git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/loadenv
    ```
-2. Get a Python 3.6+ in your path:
+3. Get a Python 3.6+ in your path:
    *  ASCIC/Chama/Eclipse/Stria:  `module load sparc-tools/python/3.7.9`
    *  Mutrino:  `module load cray-python/3.8.2.1`
    *  Vortex:  `module load anaconda3/4.8.2-python-3.7.6`
-3. Install the requirements:
+4. Install the requirements:
    ```bash
    cd loadenv
    python3 -m pip install --user -U -r requirements.txt --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org
    ```
-4. Use the script:
+5. Use the script:
    ```bash
    cd src
    source load-env.sh --help
