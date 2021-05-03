@@ -115,6 +115,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.inifilepath = filename
 
 
+
     # -----------------------
     #   P R O P E R T I E S
     # -----------------------
@@ -681,6 +682,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return 0
 
 
+
     # ---------------------------------------------------
     #   P A R S E R   H E L P E R S   ( P R I V A T E )
     # ---------------------------------------------------
@@ -1078,6 +1080,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return output
 
 
+
     # ---------------------------------------
     #   H A N D L E R S   ( P R I V A T E )
     # ---------------------------------------
@@ -1124,6 +1127,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         self.exit_handler(handler_parameters)
         return 0
+
 
 
     # -------------------------------------
@@ -1573,6 +1577,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # Note: We overwrite the option, even if it's already there.
             self.data[section][option] = value
             return self.data[section][option]
+
 
 
         # -------------------------------------
