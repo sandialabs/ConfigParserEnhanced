@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!--
-## [X.Y.Z] - YYYY-MM-DD or [Unreleased]
+## [X.Y.Z] - < !-- YYYY-MM-DD or -- > [Unreleased]
 ### Added
 ### Changed
 ### Deprecated
@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
-## [0.4.1] - YYYY-MM-DD or [Unreleased]
+
+
+## [0.4.1] - 2021-05-03
 ### Added
 - Method: Add new method, `write()`.
   This is a wrapper to `unroll_to_str()` which writes the output to a
