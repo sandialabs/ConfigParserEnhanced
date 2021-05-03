@@ -106,6 +106,9 @@ def test_configparserEnhanced(filename="config.ini"):
     print("LOGINFO for the _last_ section processed:")
     parser._loginfo_print(pretty=True)
 
+    with open("___test.ini", "w") as ofp:
+        parser.write(ofp)
+        #parser.write(ofp, section=section)
     return
 
 

@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.1] - YYYY-MM-DD or [Unreleased]
 ### Added
+- Method: Add new method, `write()`.
+  This is a wrapper to `unroll_to_str()` which writes the output to a
+  file pointer. We included this function to provide a familiar interface
+  to `ConfigParserEnhanced` as the `ConfigParser.write()` method.
+- Method: Add new method, `unroll_to_str()`.
+  This generates a `str` containing a _parsed_ copy of the `.ini` file in
+  which all _handled_ options are stripped out leaving the regular _key:value_
+  pairs remaining. The effect of this is to generate a string containing
+  the transitive-closure of each section's options after all the `use`
+  operations have been processed.
 - ExceptionControl: Added new event _type_ `SILENT`, which will throw its exception
   at the same level of a `WARNING` but will never print a warning message to stdout.
 - ConfigParserEnhanced property: `configparser_delimiters` which exposes the ability to
