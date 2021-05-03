@@ -50,6 +50,7 @@ Todo:
 from __future__ import print_function
 
 import configparser
+import io
 import os
 from pathlib import Path
 import re
@@ -74,7 +75,6 @@ from .HandlerParameters import HandlerParameters
 # ============================================================
 
 
-
 class AmbiguousHandlerError(Exception):
     """Raised when the parser encounters ambiguity in Handler methods.
 
@@ -90,7 +90,6 @@ class AmbiguousHandlerError(Exception):
 # ===============================
 #   M A I N   C L A S S
 # ===============================
-
 
 
 class ConfigParserEnhanced(Debuggable, ExceptionControl):
@@ -343,6 +342,134 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return self._parse_section_last_result
 
 
+
+    # ---------------------------------------
+    #   P U B L I C   A P I   M E T H O D S
+    # ---------------------------------------
+
+
+    def write(self, file_object,
+              space_around_delimiters=True,
+              section=None,
+              use_base_class_parser=True) -> int:
+        """File writer utility for ConfigParserEnhanced objects.
+
+        Writes the output of :py:meth:`unroll_to_str` to a file.
+
+        Args:
+            file_object (:obj:`File Ptr`): Pointer to the file that should be written.
+            space_around_delimiters (bool): If ``True`` the delimiter is given an extra
+                space of padding.
+            section (:obj:`str`): If a section name is provided we only generate the specified
+                section (if it exists), otherwise we generate output for all sections.
+
+        Raises:
+            TypeError: If ``file_object`` is not a file pointer (instance or derivitive
+                of ``io.IOBase``).
+        """
+        self._validate_parameter(file_object, (io.IOBase))
+
+        text = self.unroll_to_str(section                 = section,
+                                  space_around_delimiters = space_around_delimiters,
+                                  use_base_class_parser   = use_base_class_parser)
+
+        file_object.write(text)
+
+        return 0
+
+
+    def unroll_to_str(self,
+                      section=None,
+                      space_around_delimiters=True,
+                      use_base_class_parser=True) -> str:
+        """Unroll a section or whole .ini file to a string
+
+        This method generates a string that is the equivalent to the original
+        ``.ini`` file that is loaded with all the ``use`` operations processed
+        so that the output will look like a regular ``.ini`` file.
+
+        If ``use_base_class_parser`` is set then we instantiate a base-class
+        :py:class:`ConfigParserEnhanced` that will load and (re)parse the
+        :py:attr:`inifilepath` file(s) to generate a "clean" copy. Because all
+        options that have *handled* operations in them will be stripped from the
+        generated .ini file, the most common use case is that we just want the
+        ``use`` operations processed and stripped, but this paramter gives the
+        option to disable that capability.
+
+        Args:
+            section (:obj:`str`): If a section name is provided we only generate the specified
+                section (if it exists), otherwise we generate output for all sections.
+            space_around_delimiters (bool): If ``True`` the delimiter is given an extra
+                space of padding.
+            use_base_class_parser (bool): If ``Tru`` then we instantiate a
+                :py:class:`ConfigParserEnhanced` object to parse the .ini file.
+                If ``False`` then we use the current class (possibly a sub-class)
+                of :py:class:`ConfigParserEnhanced`, which will strip out all options
+                that have *handled* operations.
+
+        Raises:
+            TypeError: If ``section`` is not a ``str`` or ``None`` object.
+        """
+        def __generate_section(section:str, parser, delimiter=":"):
+            """
+            Helper function (inner function)
+
+            This function generates the string containing the section header
+            and options.
+            """
+            output = ""
+            if parser.configparserenhanceddata.has_section(section):
+                output += "[" + section + "]\n"
+                for key,value in parser.configparserenhanceddata.items(section):
+                    if value is None:
+                        value = ""
+                    output += delimiter.join([key, value]).strip() + "\n"
+            else:
+                raise KeyError("Section `{}` was not found.".format(section))
+            return output
+
+
+        self._validate_parameter(section, (type(None), str))
+
+        output_str  = ""
+
+        delimiter = ":"
+        if space_around_delimiters:
+            delimiter = " {} ".format(delimiter)
+
+        parser = None
+        if use_base_class_parser:
+            parser = ConfigParserEnhanced(filename=self.inifilepath)
+        else:
+            parser = self
+
+        # Turn off ECL notifications
+        ecl = parser.exception_control_level
+        parser.exception_control_level = 0
+
+        section_list = parser.configparserenhanceddata.sections()
+
+        if section is None:
+            for section in section_list:
+                # A `DEFAULT` section is always added even if it doesn't exist.
+                # Let's skip adding it if it's empty.
+                if section=="DEFAULT" and len(parser.configparserenhanceddata.items(section)) == 0:
+                    continue
+                output_str += __generate_section(section, parser, delimiter)
+                output_str += "\n"
+        else:
+            output_str += __generate_section(section, parser, delimiter)
+
+        # reset parser ECL (only useful when not using base class parser)
+        parser.exception_control_level = ecl
+
+        output_str = output_str.strip()
+        output_str += "\n"
+
+        return output_str
+
+
+
     # -------------------------------------
     #   P A R S E R   P U B L I C   A P I
     # -------------------------------------
@@ -392,6 +519,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.debug_message(1, "  Parse section `{}` FINISH".format(section))
         self.debug_message(1, "[" + "-"*58 + ']')
         return result
+
 
 
     # ---------------------------------

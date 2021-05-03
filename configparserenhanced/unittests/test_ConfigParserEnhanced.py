@@ -10,6 +10,7 @@ import os
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pprint import pprint
+import textwrap   # for dedent
 
 import unittest
 from unittest import TestCase
@@ -88,7 +89,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser = ConfigParserEnhanced(self._filename)
 
         self.assertIsInstance(parser, ConfigParserEnhanced)
-        return
+        return 0
 
 
     def test_ConfigParserEnhanced_Template(self):
@@ -1399,6 +1400,70 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
         return 0
 
+
+    def test_ConfigParserEnhanced_write(self):
+        """
+        Test the method :py:meth:`ConfigParserEnahnced.write`
+        """
+        section = "SECTION-A+"
+
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        self.assertIsInstance(parser, ConfigParserEnhanced)
+
+        with open("___ConfigParserEnhanced_cpe_write.ini", "w") as ofp:
+            parser.write(ofp)
+
+        with open("___ConfigParserEnhanced_cpe_write.ini", "w") as ofp:
+            parser.write(ofp, section=section)
+
+        with open("___ConfigParserEnhanced_cpe_write.ini", "w") as ofp:
+            parser.write(ofp, space_around_delimiters=False)
+
+        with self.assertRaises(KeyError):
+            with open("___ConfigParserEnhanced_cpe_write.ini", "w") as ofp:
+                parser.write(ofp, space_around_delimiters=False, section="ASDFASDFASDFASDF")
+
+        return 0
+
+
+    def test_ConfigParserEnhanced_unroll_to_str(self):
+        """
+        Basic test template
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        print("----[ TEST BEGIN ]----------------------------------")
+        section = "SECTION-A"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 5
+        parser.exception_control_level = 5
+
+        text_expect = textwrap.dedent("""\
+        [SECTION-A]
+        key1:value1
+        key2:value2
+        key3:value3
+        """)
+
+        text_actual = parser.unroll_to_str(section=section,
+                                           space_around_delimiters=False,
+                                           use_base_class_parser=False)
+
+        print("Expected:\n{}".format(text_expect))
+        print("Actual  :\n{}".format(text_expect))
+
+        self.assertEqual(text_expect, text_actual)
+        print("----[ TEST END   ]----------------------------------")
+
+        print("OK")
+        return 0
 
 
 
