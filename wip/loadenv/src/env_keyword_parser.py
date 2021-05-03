@@ -144,6 +144,8 @@ class EnvKeywordParser(LoadEnvCommon):
 
         return self._qualified_env_name
 
+# TODO: Will need to stay, but use get_values_for_section_key from
+#       KeywordParser
     def get_aliases(self):
         """
         Gets the aliases for the current :attr:`system_name` and returns them
@@ -201,6 +203,7 @@ class EnvKeywordParser(LoadEnvCommon):
 
         return alias_list
 
+# TODO: Will likely need to stay
     def get_env_name_for_alias(self, matched_alias):
         """
         Returns the environment name for which the alias specifies. For
@@ -252,6 +255,7 @@ class EnvKeywordParser(LoadEnvCommon):
 
         return matched_env_name
 
+# TODO: May be covered in KeywordParser
     def get_msg_showing_supported_environments(self, msg, kind="ERROR"):
         """
         Similar to :func:`get_msg_for_list`, except it's a bit more specific.
@@ -296,6 +300,8 @@ class EnvKeywordParser(LoadEnvCommon):
         msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg
 
+# TODO: Will likely be needed to check for uniqueness across all aliases for a
+#       given system_name
     def assert_alias_list_values_are_unique(self, alias_list):
         """
         Ensures we don't run into a situation like::
@@ -324,6 +330,7 @@ class EnvKeywordParser(LoadEnvCommon):
             )
             sys.exit(msg)
 
+# TODO: Will likely still be needed after refactor
     def assert_aliases_not_equal_to_env_names(self, alias_list):
         """
         Ensures we don't run into a situation like::
@@ -355,6 +362,7 @@ class EnvKeywordParser(LoadEnvCommon):
             )
             sys.exit(msg)
 
+# TODO: Covered by KeywordParser
     def assert_aliases_do_not_contain_whitespace(self, alias_list):
         """
         Ensure there are no whitespaces in aliases; that is::
