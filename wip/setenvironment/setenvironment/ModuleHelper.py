@@ -122,9 +122,9 @@ try: # pragma: cover if on lmod
             raise error
 
         finally:
-            if not stdout and not stdout == "":
+            if stdout:
                 print(stdout)
-            if not stderr and not stderr == "":
+            if stderr:
                 print(stderr)
 
         # Check the module function output for errors
