@@ -48,3 +48,5 @@ environments.
    source load-env.sh <build-name>
    source load-env.sh Project-Name-build-Trilinos-rhel7-clang-openmp-opt-static # e.g.
    #                                                    ^__________^___ environment alias
+
+NOTE: You may have to repeat step 4 above after running `source load-env.sh` since that command may run `module purge`.
