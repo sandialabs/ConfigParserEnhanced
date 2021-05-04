@@ -122,8 +122,10 @@ try: # pragma: cover if on lmod
             raise error
 
         finally:
-            print(stdout)
-            print(stderr)
+            if not stdout and not stdout == "":
+                print(stdout)
+            if not stderr and not stderr == "":
+                print(stderr)
 
         # Check the module function output for errors
         stderr_ok = True
