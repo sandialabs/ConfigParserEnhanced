@@ -21,7 +21,7 @@ environments.
    # ensure NO_PROXY and no_proxy contain .sandia.gov
    ```
 2. Ensure your public ssh key is added to your gitlab-ex account:
-   ```
+   ```bash
    cat ~/.ssh/id_rsa.pub
    ```
    Copy the public key and add it to https://internal.gitlab.server/-/profile/keys via your browser.
@@ -48,5 +48,6 @@ environments.
    source load-env.sh <build-name>
    source load-env.sh Project-Name-build-Trilinos-rhel7-clang-openmp-opt-static # e.g.
    #                                                    ^__________^___ environment alias
-
-NOTE: You may have to repeat step 4 above after running `source load-env.sh` since that command may run `module purge`.
+   ```
+Note that the first run of `load-env.sh` may take some time as python generates byte-code for the requirements.
+Note that you may have to repeat step 4 above after running `source load-env.sh` since `load-env.sh` may run `module purge`.
