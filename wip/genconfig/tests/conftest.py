@@ -15,4 +15,7 @@ def use_tmpdir(monkeypatch, request, tmpdir):
     shutil.copyfile(Path.cwd()/("tests/supporting_files/"
                                 "test-supported-config-flags.ini"),
                     tmpdir.join("test-supported-config-flags.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/"
+                                "test_supported_envs.ini"),
+                    tmpdir.join("test_supported_envs.ini"))
     monkeypatch.chdir(tmpdir)

@@ -1,15 +1,34 @@
 from configparserenhanced import ConfigParserEnhanced
-from pathlib import Path
 import re
-from src.gen_config_commong import GenConfigCommon
+from src.gen_config_common import GenConfigCommon
 import sys
-import textwrap
 
 
 class KeywordParser(GenConfigCommon):
+    def __init__(self, config_filename):
+        self.config_filename = config_filename
+
+    @property
+    def config(self):
+        """
+        Gets the :class:`ConfigParserEnhancedData` object with
+        :attr:`config_filename` loaded.
+
+        Returns:
+            ConfigParserEnhancedData:  A :class:`ConfigParserEnhancedData`
+            object with `config_filename` loaded.
+        """
+        if hasattr(self, "_config"):
+            return self._config
+
+        self._config = ConfigParserEnhanced(
+            self.config_filename
+        ).configparserenhanceddata
+        return self._config
+
     def get_values_for_section_key(self, section, key):
         """
-        Gets the values for the current :attr:`config_file``[section][key]` and
+        Gets the values for the current :attr:`config``[section][key]` and
         returns them in list form. This also runs
         :func:`assert_values_are_unique` and
         :func:`assert_values_do_not_contain_machine-name-4space` on the values list.
@@ -18,7 +37,9 @@ class KeywordParser(GenConfigCommon):
             list:  The validated list of values for the given section and key.
         """
         # e.g. values = '\ngnu  # GNU\ndefault-env # The default'
-        values_str = self.config_file[section][key]
+        values_str = (self.config[section][key]
+                      if self.config[section][key] is not None
+                      else "")
 
         uncommented_values_list = re.findall(
             r"(?:\s*?#.*\n*)*([^#^\n]*)", values_str
@@ -40,19 +61,18 @@ class KeywordParser(GenConfigCommon):
         # * to match 0 or more of these comments. ---|
         #
         # So, given the string:
-        #     # Comment\nintel 18  # Comment\n intel-18.0.5\nintel_default # id
+        #     # Comment\nintel 18  # Comment\n intel-18.0.5\nintel-default # id
         #
         # re.findall would return ['intel 18  ', 'intel-18.0.5', '',
-        #                          'intel_default', '', '']
+        #                          'intel-default', '', '']
         #
         # We would next need to get rid of '' list entries and remove trailing
-        # machine-name-4 space, and replace '_' characters with '-'.
+        # machine-name-4 space.
         #
         # This leaves us with:
         #     ['intel-18', 'intel-18.0.5', 'intel-default']
 
-        values_list = [v.strip().replace("_", "-")
-                       for v in uncommented_values_list if v != ""]
+        values_list = [v.strip() for v in uncommented_values_list if v != ""]
 
         self.assert_values_are_unique(values_list, section, key)
         self.assert_values_do_not_contain_machine-name-4space(values_list)
@@ -81,7 +101,7 @@ class KeywordParser(GenConfigCommon):
             assert duplicates == []
         except AssertionError:
             msg = self.get_msg_for_list(
-                f"Values for '{self.config_file}'['{section}']['{key}'] "
+                f"Values for '{self.config_filename}'['{section}']['{key}'] "
                 "contains duplicates: ", duplicates
             )
             sys.exit(msg)
@@ -104,10 +124,101 @@ class KeywordParser(GenConfigCommon):
         try:
             assert values_w_machine-name-4space == []
         except AssertionError:
-            es = "es" if len(values_w_machine-name-4space) > 1 else ""
+            es = "es" if len(values_w_machine-name-4space) > 1 else "e"
             s = "s" if len(values_w_machine-name-4space) == 1 else ""
             msg = self.get_msg_for_list(
                 f"The following valu{es} contain{s} machine-name-4space: ",
                 values_w_machine-name-4space
             )
             sys.exit(msg)
+
+    def get_key_for_section_value(self, section, value):
+        """
+        Returns the environment name for which the alias specifies. For
+        example, ``value = intel`` would return
+        ``intel-18.0.5-mpich-7.7.6`` for the follwing config::
+
+            [machine-type-5]
+            intel-18.0.5-mpich-7.7.6:
+                intel-18
+                intel
+                default-env
+            intel-19.0.4-mpich-7.7.6:
+                intel-19
+
+        Parameters:
+            value (str):  The value to find the key for.
+
+        Returns:
+            str:  The environment name for the alias.
+        """
+
+        matched_key = None
+        for key in self.config[section].keys():
+            values_for_key = self.get_values_for_section_key(section, key)
+            if value in values_for_key:
+                matched_key = key
+
+        if matched_key is None:
+            msg = self.get_formatted_msg("Unable to find value "
+                                         f"'{value}' in values "
+                                         f"for '{section}'.\n")
+            sys.exit(msg)
+
+        return matched_key
+
+    def get_formatted_msg(self, msg, kind="ERROR", extras=""):
+        """
+        This helper method handles multiline messages, rendering them like::
+
+            +=================================================================+
+            |   {kind}:  Unable to find alias or environment name for system
+            |            'machine-type-5' in keyword string 'bad_kw_str'.
+            +=================================================================+
+
+        Parameters:
+            msg (str):  The error message, potentially with multiple lines.
+            kind (str):  The kind of message being generated, e.g., "ERROR",
+                "WARNING", "INFO", etc.
+            extras (str):  Any extra text to include after the initial ``msg``.
+
+        Returns:
+            str:  The formatted message.
+        """
+        for idx, line in enumerate(msg.splitlines()):
+            if idx == 0:
+                msg = f"|   {kind}:  {line}\n"
+            else:
+                msg += f"|           {line}\n"
+        for extra in extras.splitlines():
+            msg += f"|   {extra}\n"
+        msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
+        return msg
+
+    def get_msg_for_list(self, msg, item_list, kind="ERROR"):
+        """
+        Helper function to generate a message using a list. Produces a message
+        like the following::
+
+            +=================================================================+
+            |   {kind}:  {msg}
+            |     - {item_list[0]}
+            |     - {item_list[1]}
+            |     - ...
+            |     - {item_list[n]}
+            +=================================================================+
+
+        Parameters:
+            msg (str):  The error message to print.  Can be multiline.
+            item_list (list):  The list of items to print in the error message.
+            kind (str):  The kind of message being generated, e.g., "ERROR",
+                "WARNING", "INFO", etc.
+
+        Returns:
+            str:  The formatted message.
+        """
+        extras = ""
+        for item in item_list:
+            extras += f"  - {item}\n"
+        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
+        return msg
