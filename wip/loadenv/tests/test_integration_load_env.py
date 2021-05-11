@@ -18,12 +18,12 @@ from load_env import LoadEnv
     {
         "build_name": "intel-hsw",
         "hostname": "mutrino",
-        "expected_env": "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp"
+        "expected_env": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp"
     },
     {
         "build_name": "arm",
         "hostname": "stria",
-        "expected_env": "machine-type-4-arm-20.0-openmpi-4.0.2-openmp"
+        "expected_env": "machine-type-4_arm-20.0-openmpi-4.0.2-openmp"
     }
 ])
 @patch("socket.gethostname")
@@ -45,7 +45,7 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     {
         "build_name": "intel-hsw",
         "hostname": "mutrino",
-        "expected_env": "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp",
+        "expected_env": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp",
         "expected_cmds": [
             "module load sparc-dev/intel-19.0.4_mpich-7.7.15_hsw",
             "envvar_op set OMP_NUM_THREADS 2",
@@ -66,7 +66,7 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     {
         "build_name": "arm",
         "hostname": "stria",
-        "expected_env": "machine-type-4-arm-20.0-openmpi-4.0.2-openmp",
+        "expected_env": "machine-type-4_arm-20.0-openmpi-4.0.2-openmp",
         "expected_cmds": [
             "module load devpack-arm",
             "module unload yaml-cpp",
