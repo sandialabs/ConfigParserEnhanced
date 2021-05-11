@@ -1,6 +1,5 @@
 from pathlib import Path
 import pytest
-import re
 import sys
 import textwrap
 
@@ -46,28 +45,28 @@ def test_invalid_supported_envs_filename_raises():
 #####################
 @pytest.mark.parametrize("keyword", [
     {
-        "str": "machine-type-1-intel-19.0.4_mpich-7.7.15_hsw_openmp_static_dbg",
-        "qualified_env_name": "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp",
+        "str": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp_static_dbg",
+        "qualified_env_name": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp",
         "system_name": "machine-type-1",
     },
     {
         "str": "default-env-knl",
-        "qualified_env_name": "machine-type-1-intel-19.0.4-mpich-7.7.15-knl-openmp",
+        "qualified_env_name": "machine-type-1_intel-19.0.4-mpich-7.7.15-knl-openmp",
         "system_name": "machine-type-1",
     },
     {
         "str": "intel_hsw",
-        "qualified_env_name": "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp",
+        "qualified_env_name": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp",
         "system_name": "machine-type-1",
     },
     {
-        "str": "machine-type-4-arm-20.1",
-        "qualified_env_name": "machine-type-4-arm-20.1-openmpi-4.0.3-openmp",
+        "str": "machine-type-4_arm-20.1",
+        "qualified_env_name": "machine-type-4_arm-20.1-openmpi-4.0.3-openmp",
         "system_name": "machine-type-4",
     },
     {
         "str": "arm-serial",
-        "qualified_env_name": "machine-type-4-arm-20.0-openmpi-4.0.2-serial",
+        "qualified_env_name": "machine-type-4_arm-20.0-openmpi-4.0.2-serial",
         "system_name": "machine-type-4",
     },
 ])
@@ -77,15 +76,8 @@ def test_keyword_parser_matches_correctly(keyword):
     assert ekp.qualified_env_name == keyword["qualified_env_name"]
 
 
-@pytest.mark.parametrize("kw_str", ["intel-19.0.4-mpich-7.7.15-hsw-openmp",
-                                    "intel_19.0.4_mpich_7.7.15-hsw-openmp"])
-def test_underscores_hyphens_dont_matter_for_kw_str(kw_str):
-    ekp = EnvKeywordParser(kw_str, "machine-type-1", "test_supported_envs.ini")
-    assert ekp.qualified_env_name == "machine-type-1-intel-19.0.4-mpich-7.7.15-hsw-openmp"
-
-
 def test_nonexistent_env_name_or_alias_raises():
-    ekp = EnvKeywordParser("bad_kw_str", "machine-type-1", "test_supported_envs.ini")
+    ekp = EnvKeywordParser("bad-kw-str", "machine-type-1", "test_supported_envs.ini")
 
     with pytest.raises(SystemExit) as excinfo:
         ekp.qualified_env_name
@@ -93,36 +85,7 @@ def test_nonexistent_env_name_or_alias_raises():
 
     assert ("ERROR:  Unable to find alias or environment name for system "
             "'machine-type-1' in") in exc_msg
-    assert "keyword string 'bad-kw-str'" in exc_msg
-
-
-@pytest.mark.parametrize("inputs", [
-    {"system_name": "machine-type-1",
-     "build_name": "intel-19.0.4-mpich-7.7.15-hsw-openmp",
-     "matched_env_name": "intel-19.0.4-mpich-7.7.15-hsw-openmp",
-     "versioned_components": ["intel-19.0.4", "mpich-7.7.15", "hsw",
-                              "openmp"]},
-    {"system_name": "machine-type-4",
-     "build_name": "arm-20.0-openmpi-4.0.2-openmp",
-     "matched_env_name": "arm-20.0-openmpi-4.0.2-openmp",
-     "versioned_components": ["arm-20.0", "openmpi-4.0.2", "openmp"]},
-    {"system_name": "machine-type-4",
-     "build_name": "arm-serial",
-     "matched_env_name": "arm-20.0-openmpi-4.0.2-serial",
-     "versioned_components": ["arm", "serial"]},
-    {"system_name": "machine-type-4",
-     "build_name": "arm-20.0-serial",
-     "matched_env_name": "arm-20.0-openmpi-4.0.2-serial",
-     "versioned_components": ["arm-20.0", "serial"]}
-])
-def test_versioned_components_determined_correctly(inputs):
-    ekp = EnvKeywordParser(inputs["build_name"], inputs["system_name"],
-                           "test_supported_envs.ini")
-    ekp.qualified_env_name
-    versioned_components = ekp.get_versioned_components_from_str(
-        inputs["matched_env_name"], inputs["build_name"]
-    )
-    assert versioned_components == inputs["versioned_components"]
+    assert "build name 'bad-kw-str'" in exc_msg
 
 
 @pytest.mark.parametrize("inputs", [
@@ -146,22 +109,6 @@ def test_unsupported_versions_are_rejected(inputs):
     with pytest.raises(SystemExit) as excinfo:
         ekp.qualified_env_name
     exc_msg = excinfo.value.args[0]
-
-    msgs_expected = []
-    if len(inputs["unsupported_components"]) == 1:
-        msgs_expected += [(f"ERROR:  '{inputs['unsupported_components'][0]}' "
-                           "is not supported")]
-    elif len(inputs["unsupported_components"]) == 2:
-        msgs_expected += [(f"ERROR:  '{inputs['unsupported_components'][0]}' "
-                           f"and '{inputs['unsupported_components'][1]}' are "
-                           "not supported together")]
-    else:
-        msgs_expected += [(f"ERROR:  '{inputs['unsupported_components'][0]}', "
-                           f"'{inputs['unsupported_components'][1]}', "),
-                           "are not supported together"]
-    for msg in msgs_expected:
-        msg = msg.replace(" ", r"\s+\|?\s*") # account for line breaks
-        assert re.search(msg, exc_msg) is not None
 
     if inputs["system_name"] == "machine-type-1":
         assert "intel-19.0.4-mpich-7.7.15-hsw-openmp" in exc_msg
@@ -201,13 +148,6 @@ def test_unsupported_node_types_are_rejected(inputs):
         ekp.qualified_env_name
     exc_msg = excinfo.value.args[0]
 
-    if inputs["system_name"] == "ride":
-        assert ("ERROR:  The 'serial' and 'openmp' node types are not "
-                "applicable to CUDA") in exc_msg
-    else:
-        assert (f"ERROR:  '{inputs['unsupported_component']}' was specified "
-                "in the build name, but only") in exc_msg
-
     if inputs["system_name"] == "machine-type-1":
         assert "intel-19.0.4-mpich-7.7.15-hsw-openmp" in exc_msg
         assert "- intel-hsw-openmp\n" in exc_msg
@@ -231,15 +171,6 @@ def test_unsupported_node_types_are_rejected(inputs):
 #############
 #  Aliases  #
 #############
-def test_underscores_hyphens_dont_matter_for_aliases():
-    # "intel-18" and "intel_default" are aliases for "machine-type-1"
-    ekp = EnvKeywordParser("intel-18", "machine-type-1", "test_supported_envs.ini")
-    aliases = ekp.get_aliases()
-    assert "intel-hsw" in aliases
-    assert "intel_hsw" not in aliases  # Even though this is how it's
-    #                                    defined in the .ini
-
-
 @pytest.mark.parametrize("bad_alias", [
     {
         "alias": "intel",
@@ -247,13 +178,13 @@ def test_underscores_hyphens_dont_matter_for_aliases():
     },
     {
         "alias": "intel-18.0.5-mpich-7.7.15",
-        "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an environment"
-                    " name:"),
+        "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an "
+                    "environment name:"),
     },
     {
         "alias": "intel-19.0.4-mpich-7.7.15",
-        "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an environment"
-                    " name:"),
+        "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an "
+                    "environment name:"),
     },
 ])
 def test_alias_values_are_unique(bad_alias):
