@@ -9,7 +9,7 @@ git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/Determin
 cd -
 
 # deps
-python3 -m pip $pip_args pytest pytest-cov
+python3 -m pip $pip_args pip pytest pytest-cov
 
 # no-deps
 python3 -m pip $pip_args --no-deps ./deps/*
