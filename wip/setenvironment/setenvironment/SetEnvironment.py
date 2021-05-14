@@ -1725,6 +1725,8 @@ class SetEnvironment(ConfigParserEnhanced):
                 envvar_prepend_or_create ${arg1:?} "${arg2:?}"
             elif [[ "${op:?}" == "remove_substr" ]]; then
                 envvar_remove_substr ${arg1:?} "${arg2:?}"
+            elif [[ "${op:?}" == "remove_path_entry" ]]; then
+                envvar_remove_path_entry ${arg1:?} "${arg2:?}"
             elif [[ "${op:?}" == "find_in_path" ]]; then
                 envvar_set_or_create ${arg1:?} "$(which ${arg2:?})"
             elif [[ "${op:?}" == "assert_not_empty" ]]; then
@@ -1848,6 +1850,3 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
 # EOF
-
-
-
