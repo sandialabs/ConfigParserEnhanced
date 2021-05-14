@@ -44,7 +44,7 @@ from .common import *
 #
 #===============================================================================
 global_gen_new_ground_truth_files = False
-#global_gen_new_ground_truth_files = True     # comment this out for production.
+#global_gen_new_ground_truth_files = True     # Re-generate 'ground truth' files, comment out for production.
 
 
 #===============================================================================
@@ -823,6 +823,12 @@ class SetEnvironmentTest(TestCase):
             envvar_set ENVVAR_PARAM_01 : "B${ENVVAR_PARAM_MISSING}B"
 
         This should cause a ``KeyError`` to be raised during ``apply()``
+
+        Todo:
+            Is this test still valid if we won't raise a KeyError
+            if an envvar is missing inside the string during 'apply'
+            since ``os.path.expandvars()`` won't throw if the envvar
+            isn't around.
         """
         section = "ENVVAR_VAR_EXPANSION_BAD"   # envvars
 
@@ -841,8 +847,11 @@ class SetEnvironmentTest(TestCase):
         parser.pretty_print_actions(section)
 
         # Apply the actions
-        with self.assertRaises(KeyError):
-            parser.apply(section)
+        #with self.assertRaises(KeyError):
+        #    parser.apply(section)
+        # !!! Note: the envvar in string is now being processed via ``os.path.expandvars()``
+        #           which does not raise a KeyError if it finds an envvar-like thing. Instead,
+        #           it'll just keep the "${stuff}" string intact if it finds no envvar.
 
         print("OK")
         return

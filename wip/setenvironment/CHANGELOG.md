@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated to 0.4.0 to sync modifications required by ConfigParserEnhanced 0.4.0.
 #### Deprecated
 #### Removed
+- `expand_envvars_in_string` free function and replaced with `os.path.expandvars()`
 #### Fixed
 - BUG (Issue #16) - `module-load` would fail if loading a _default_ module.
   That is, `module-load <module_name>`, would fail because we expected a 2nd
