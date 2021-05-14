@@ -678,10 +678,12 @@ class SetEnvironmentTest(TestCase):
             [ENVVAR_VAR_EXPANSION]
             envvar_set ENVVAR_PARAM_01 : "AAA"
             envvar_set ENVVAR_PARAM_02 : "B${ENVVAR_PARAM_01}B"
+            envvar_set ENVVAR_PARAM_03 : ${ENVVAR_PARAM_01} -- ${ENVVAR_PARAM_02} -- ${ADFASF}
 
         The expected result should be:
         - ``ENVVAR_PARAM_01`` = "AAA"
         - ``ENVVAR_PARAM_02`` = "BAAAB"
+        - ``ENVVAR_PARAM_03`` = "AAA -- BAAAB -- ${ADFASF}"
 
         """
         section = "ENVVAR_VAR_EXPANSION"   # envvars
@@ -705,7 +707,8 @@ class SetEnvironmentTest(TestCase):
 
         envvar_truth = [
             ("ENVVAR_PARAM_01", "AAA"),
-            ("ENVVAR_PARAM_02", "BAAAB")
+            ("ENVVAR_PARAM_02", "BAAAB"),
+            ("ENVVAR_PARAM_03", "AAA -- BAAAB -- ${ADFASF}")
         ]
         for ienvvar_name,ienvvar_val in envvar_truth:
             self.assertTrue(ienvvar_name in os.environ.keys())
@@ -714,6 +717,10 @@ class SetEnvironmentTest(TestCase):
         print("")
         envvar_filter = ["ENVVAR_PARAM_"]
         parser.pretty_print_envvars(envvar_filter, True)
+
+        del os.environ['ENVVAR_PARAM_01']
+        del os.environ['ENVVAR_PARAM_02']
+        del os.environ['ENVVAR_PARAM_03']
 
         print("OK")
         return
