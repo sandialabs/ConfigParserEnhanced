@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Removed
 - `expand_envvars_in_string` free function and replaced with `os.path.expandvars()`
 #### Fixed
+- Bug (Issue #22) - `envvar_op` would fail when processing `remove_path_entry`
+  That is, there was no branch in `envvar_op` for invoking `remove_path_entry`.
 - BUG (Issue #16) - `module-load` would fail if loading a _default_ module.
   That is, `module-load <module_name>`, would fail because we expected a 2nd
   argument providing the version number. This has been fixed so that we now
