@@ -5,7 +5,6 @@ Init script for the SetEnvironment package
 """
 from .version import __version__
 
-from .SetEnvironment import expand_envvars_in_string
 from .SetEnvironment import envvar_find_in_path
 from .SetEnvironment import envvar_op
 from .SetEnvironment import envvar_set
