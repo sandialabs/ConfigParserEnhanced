@@ -19,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [0.4.0] 2021-05-18
+## [0.5.0] 2021-05-18
+- 0.4.0 was 'released' but not noted on the CHANGELOG. 0.5.0 will also contain 0.4.0.
 #### Added
 #### Changed
 - Add decorator support for `@ConfigParserEnhanced.operation_handler`
@@ -64,7 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Security
 #### Internal
-#### Todo (for Unreleased)
 
 
 
