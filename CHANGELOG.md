@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
-## [0.5.0] - < !-- YYYY-MM-DD or -- > [Unreleased]
+## [0.5.0] - 2021-05-18
 ### Added
 - `operation_handler` decorator
   - Enables the creation of handlers using decorators. For example:
