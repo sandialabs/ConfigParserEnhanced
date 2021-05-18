@@ -649,6 +649,7 @@ class SetEnvironment(ConfigParserEnhanced):
     # --------------------
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_append(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-append operations.
 
@@ -671,6 +672,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_assert_not_empty(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-assert_not_empty operations.
 
@@ -722,6 +724,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_find_in_path(self, section_name, handler_parameters) -> int:
         """Handler: for ``envvar-find-in-path``
 
@@ -754,6 +757,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_prepend(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-prepend operations.
 
@@ -769,6 +773,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_remove(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-remove operations.
 
@@ -781,8 +786,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        self.enter_handler(handler_parameters)
-
         # -----[ Handler Content Start ]-------------------
         data_shared = handler_parameters.data_shared['setenvironment']
         envvar_name = handler_parameters.params[0]
@@ -800,11 +803,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         handler_parameters.data_shared['setenvironment'] = new_data_shared
         # -----[ Handler Content End ]-------------------
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_remove_path_entry(self, section_name, handler_parameters) -> int:
         """Handler: for ``envvar-remove-path-entry``
 
@@ -837,6 +839,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_remove_substr(self, section_name, handler_parameters) -> int:
         """Handler: for ``envvar-remove-substr``
 
@@ -869,6 +872,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_set(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-set operations.
 
@@ -883,6 +887,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_set_if_empty(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-set-if-empty operations.
 
@@ -898,6 +903,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_envvar_unset(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-unset operations.
 
@@ -912,6 +918,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_module_load(self, section_name, handler_parameters) -> int:
         """Handler: for module-load operations.
 
@@ -929,6 +936,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_module(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_module_purge(self, section_name, handler_parameters) -> int:
         """Handler: for module-purge operations
 
@@ -947,6 +955,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_module(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_module_remove(self, section_name, handler_parameters) -> int:
         """Handler: for module-remove operations.
 
@@ -965,8 +974,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
 
         """
-        self.enter_handler(handler_parameters)
-
         # -----[ Handler Content Start ]-------------------
         data_shared = handler_parameters.data_shared['setenvironment']
         module_name = handler_parameters.params[0]
@@ -992,11 +999,10 @@ class SetEnvironment(ConfigParserEnhanced):
 
         handler_parameters.data_shared['setenvironment'] = new_data_shared
         # -----[ Handler Content End ]-------------------
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_module_swap(self, section_name, handler_parameters) -> int:
         """Handler: for module-swap operations.
 
@@ -1015,6 +1021,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_module(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_module_unload(self, section_name, handler_parameters) -> int:
         """Handler: for module-unload operations.
 
@@ -1033,6 +1040,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_module(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def _handler_module_use(self, section_name, handler_parameters) -> int:
         """Handler: for module-use operations.
 
@@ -1051,6 +1059,7 @@ class SetEnvironment(ConfigParserEnhanced):
         return self._helper_handler_common_module(section_name, handler_parameters)
 
 
+    @ConfigParserEnhanced.operation_handler
     def handler_initialize(self, section_name, handler_parameters) -> int:
         """Initialize a recursive parse search.
 
@@ -1065,14 +1074,11 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        self.enter_handler(handler_parameters)
-
         self._initialize_handler_parameters(section_name, handler_parameters)
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
+    @ConfigParserEnhanced.operation_handler
     def handler_finalize(self, section_name, handler_parameters) -> int:
         """Finalize a recursive parse search.
 
@@ -1082,12 +1088,8 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        self.enter_handler(handler_parameters)
-
         # save the results into the right `actions_cache` entry
         self.actions[section_name] = handler_parameters.data_shared["setenvironment"]
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -1238,9 +1240,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        self._validate_parameter(section_name, (str))
-        self.enter_handler(handler_parameters)
-
         operation_ref    = handler_parameters.op
         envvar_value_ref = handler_parameters.value
         envvar_name_ref  = handler_parameters.params[0]
@@ -1257,8 +1256,6 @@ class SetEnvironment(ConfigParserEnhanced):
         self.debug_message(3, "--> Append to 'setenvironment' action list:")                        # Console
         self.debug_message(3, "    {}".format(action))                                              # Console
         data_shared_actions_ref.append(action)
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -1295,9 +1292,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        self._validate_parameter(section_name, (str))
-        self.enter_handler(handler_parameters)
-
         operation_ref    = handler_parameters.op
         module_value_ref = handler_parameters.value
         module_name_ref  = None
@@ -1318,8 +1312,6 @@ class SetEnvironment(ConfigParserEnhanced):
         self.debug_message(3, "--> Append to 'setenvironment' action list:")                        # Console
         self.debug_message(3, "    {}".format(action))                                              # Console
         data_shared_actions_ref.append(action)
-
-        self.enter_handler(handler_parameters)
         return 0
 
 
