@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `operation_handler` decorator
   - Enables the creation of handlers using decorators. For example:
-    ```
+    ```python
     @operation_handler
     def handler_myop(self, section_name, handler_parameters):
         # do stuff
