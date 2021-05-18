@@ -19,9 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [0.4.0] [Unreleased]
+## [0.4.0] 2021-05-18
 #### Added
 #### Changed
+- Add decorator support for `@ConfigParserEnhanced.operation_handler`
 - Updated to 0.4.0 to sync modifications required by ConfigParserEnhanced 0.4.0.
 #### Deprecated
 #### Removed
