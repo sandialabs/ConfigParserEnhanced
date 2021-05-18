@@ -15,6 +15,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.5.0] - < !-- YYYY-MM-DD or -- > [Unreleased]
+### Added
+- `operation_handler` decorator
+  - Enables the creation of handlers using decorators. For example:
+    ```
+    @operation_handler
+    def handler_myop(self, section_name, handler_parameters):
+        # do stuff
+        return 0
+    ```
+- `__repr__()` added to `ConfigParserEnhanced.ConfigParserEnhancedData`
+- `TypedProperty` : implements a `dataclass` pattern that allows the generation of "typed" properties
+  generally following and extending the pattern outlined in "9.21 Avoiding Repetitive Property Methods"
+  from the O'Reilly "Python Cookbook, 3rd Edition" (https://learning.oreilly.com/library/view/python-cookbook-3rd/9781449357337/)
+### Changed
+- HandlerParameters is modified to use `TypedProperty.typed_property` pattern to define
+  properties.
+### Deprecated
+### Removed
+### Fixed
+### Internal
+### Security
+-->
+
 
 
 ## [0.4.1] - 2021-05-03

@@ -256,7 +256,7 @@ class HandlerParametersTest(TestCase):
 
         # Test 4
         hp.params = tuple(input_list)
-        self.assertListEqual(input_list, hp.params)
+        self.assertListEqual(input_list, list(hp.params))
 
         return 0
 

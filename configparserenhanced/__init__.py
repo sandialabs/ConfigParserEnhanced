@@ -5,10 +5,13 @@ Init script for the ConfigparserEnhanced package
 """
 from .version import __version__
 
+from .TypedProperty import typed_property
+
 from .ConfigParserEnhanced import AmbiguousHandlerError
 from .ConfigParserEnhanced import ConfigParserEnhanced
 
 from .Debuggable import Debuggable
 
 from .ExceptionControl import ExceptionControl
+
 

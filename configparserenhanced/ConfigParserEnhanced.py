@@ -67,6 +67,7 @@ except ImportError:                                                             
 from .Debuggable import Debuggable
 from .ExceptionControl import ExceptionControl
 from .HandlerParameters import HandlerParameters
+from .TypedProperty import typed_property
 
 
 
@@ -119,6 +120,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # -----------------------
     #   P R O P E R T I E S
     # -----------------------
+
+    parse_section_last_result = typed_property("parse_section_last_result",
+                                               (dict),
+                                               default=None,
+                                               req_assign_before_use=True,
+                                               internal_type=dict)
 
 
     @property
@@ -319,30 +326,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return self._configparserenhanceddata
 
 
-    @property
-    def parse_section_last_result(self) -> dict:
-        """Cache the previous parser results.
-
-        This property caches the results from the most recent
-        ``parse_section()`` call.
-
-        Returns:
-            dict: containing the most recent return value from
-                ``parse_section()`` or ``None`` if there are no
-                previous searches.
-        """
-        if not hasattr(self, '_parse_section_last_result'):
-            self._parse_section_last_result = None
-        return self._parse_section_last_result
-
-
-    @parse_section_last_result.setter
-    def parse_section_last_result(self, value) -> dict:
-        self._validate_parameter(value, (dict) )
-        self._parse_section_last_result = value
-        return self._parse_section_last_result
-
-
 
     # ---------------------------------------
     #   P U B L I C   A P I   M E T H O D S
@@ -513,7 +496,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # Parse the requested section.
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
 
-        # Cache the result
+        # caches the "data_shared" component of handler_parameters
         self.parse_section_last_result = result
 
         self.debug_message(1, "[" + "-"*58 + ']')
@@ -524,8 +507,44 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
 
     # ---------------------------------
+    #   D E C O R A T O R S
+    # ---------------------------------
+
+
+    def operation_handler(func_handler):
+        """
+        Implements the ``operation_handler`` decorator.
+
+        This decorator is used on *handlers* and implements entry and exit
+        calls and exit value checks.
+
+        .. code-block:: python
+            :linenos:
+
+            @operation_handler
+            def handler_my_operation(self, section_name, handler_parameters) -> int:
+                # do stuff
+                return 0
+
+        Args:
+            func_handler (Callable): Reference to the handler function.
+                This gets managed through Python's decorator syntax.
+        """
+        def wrapper(self, section_name, handler_parameters):
+            self._validate_parameter(section_name, (str) )
+            self.enter_handler(handler_parameters)
+            output = func_handler(self, section_name, handler_parameters)
+            self.exit_handler(handler_parameters)
+            self._check_handler_rval(handler_parameters.handler_name, output)
+            return output
+        return wrapper
+
+
+
+    # ---------------------------------
     #   P U B L I C   H A N D L E R S
     # ---------------------------------
+
 
 
     def enter_handler(self, handler_parameters):
@@ -581,6 +600,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         return
 
 
+    @operation_handler
     def _generic_option_handler(self, section_name, handler_parameters) -> int:
         """Generic Handler Template
 
@@ -606,18 +626,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             * [1-10]: Reserved for future use (WARNING)
             * > 10  : An unknown failure occurred (CRITICAL)
         """
-        self._validate_parameter(section_name, (str) )
-        self.enter_handler(handler_parameters)
-
         # -----[ Handler Content Start ]-------------------
 
 
         # -----[ Handler Content End ]---------------------
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
+    @operation_handler
     def handler_initialize(self, section_name, handler_parameters) -> int:
         """Initialize a recursive parse search.
 
@@ -636,18 +652,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             * [1-10]: Reserved for future use (WARNING)
             * > 10  : An unknown failure occurred (CRITICAL)
         """
-        self._validate_parameter(section_name, (str) )
-        self.enter_handler(handler_parameters)
-
         # -----[ Handler Content Start ]-------------------
 
 
         # -----[ Handler Content End ]---------------------
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
+    @operation_handler
     def handler_finalize(self, section_name, handler_parameters) -> int:
         """Finalize a recursive parse search.
 
@@ -670,15 +682,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             * [1-10]: Reserved for future use (WARNING)
             * > 10  : An unknown failure occurred (CRITICAL)
         """
-        self._validate_parameter(section_name, (str) )
-        self.enter_handler(handler_parameters)
-
         # -----[ Handler Content Start ]-------------------
 
 
         # -----[ Handler Content End ]---------------------
-
-        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -739,8 +746,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if initialize and section_name == handler_parameters.section_root:
             handler_initialize_params = self._new_handler_parameters(handler_parameters)
             handler_initialize_params.handler_name = "handler_initialize"
-            handler_rval = self.handler_initialize(section_name, handler_initialize_params)
-            self._check_handler_rval("handler_initialize", handler_rval)
+            self.handler_initialize(section_name, handler_initialize_params)
 
         self.debug_message(1, "Enter section    : `{}`".format(section_name))                       # Console Logging
         self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
@@ -782,17 +788,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.debug_message(2, "==>")
             self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})                  # Logging
 
-            # Initialze the handler return value.
-            handler_rval = 0
-
             sec_k_tok = shlex.split(sec_k)
 
             if not re.match(r"^[\w\-]+$", sec_k_tok[0]):
                 # Call generic_handler if the first entry has invalid characters
-                handler_rval = self._launch_generic_option_handler(section_name,
-                                                                   handler_parameters,
-                                                                   sec_k,
-                                                                   sec_v)
+                self._launch_generic_option_handler(section_name,
+                                                    handler_parameters,
+                                                    sec_k,
+                                                    sec_v)
             else:
                 # Otherwise, it _could_ be a 'handled' operation
                 op = sec_k_tok[0]
@@ -813,23 +816,19 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
                 if ophandler_f is not None:
                     handler_parameters.handler_name = handler_name
-                    handler_rval = ophandler_f(section_name, handler_parameters)
+                    ophandler_f(section_name, handler_parameters)
                 else:
-                    handler_rval = self._launch_generic_option_handler(section_name,
-                                                                       handler_parameters,
-                                                                       sec_k,
-                                                                       sec_v)
-
-            # Check the return code from the handler.
-            self._check_handler_rval(handler_parameters.handler_name, handler_rval)
+                    self._launch_generic_option_handler(section_name,
+                                                        handler_parameters,
+                                                        sec_k,
+                                                        sec_v)
 
         # If we're exiting recursion from the root node and and finalize is
         # enabled, we call the finalize handler.
         if finalize and section_name == handler_parameters.section_root:
             handler_finalize_params = self._new_handler_parameters(handler_parameters)
             handler_finalize_params.handler_name = "handler_finalize"
-            handler_rval = self.handler_finalize(section_name, handler_finalize_params)
-            self._check_handler_rval("handler_finalize", handler_rval)
+            self.handler_finalize(section_name, handler_finalize_params)
 
         # When leaving recursion, we should add the section if it doesn't exist.
         # - configparserenhanceddata.add_section() only adds if the section doesn't exist.
@@ -1033,6 +1032,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_parameter(handler_name, (str) )
         self._validate_parameter(handler_rval, (int) )
 
+        self.debug_message(2, "_check_handler_rval({}, {})".format(handler_name, handler_rval))
+
         output = 0
         if handler_rval == 0:
             pass
@@ -1086,6 +1087,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # ---------------------------------------
 
 
+    @operation_handler
     def _handler_use(self, section_name, handler_parameters) -> int:
         """
         This is a handler that will get executed when we detect a `use` operation in
@@ -1107,9 +1109,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             import it: `from typing import final`.
             https://stackoverflow.com/questions/321024/making-functions-non-override-able
         """
-        self._validate_parameter(section_name, (str) )
-        self.enter_handler(handler_parameters)
-
         entry        = handler_parameters.raw_option
         handler_name = handler_parameters.handler_name
         op1          = handler_parameters.op
@@ -1125,7 +1124,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             message += "- cannot load [{}] from [{}].".format(op2, section_name)
             self.exception_control_event("WARNING", ValueError, message)
 
-        self.exit_handler(handler_parameters)
         return 0
 
 
@@ -1147,7 +1145,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._reset_lazy_attr("_loginfo")
         self._reset_lazy_attr("_configparserdata")
         self._reset_lazy_attr("_configparserenhanceddata")
-        self._reset_lazy_attr("_parse_section_last_result")
+        del self.parse_section_last_result
         return 0
 
 
@@ -1353,6 +1351,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._owner = owner
             self._set_owner_options()
 
+
+        def __repr__(self):
+            repr_entries=[
+                "owner={}".format(self._owner),
+                "data={}".format(self.data)
+            ]
+            return 'ConfigParserEnhancedData({})'.format(", ".join(repr_entries))
 
         @property
         def data(self) -> dict:
