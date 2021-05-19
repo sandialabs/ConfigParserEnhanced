@@ -7,8 +7,9 @@ import typing
 
 
 def typed_property(name: str,
-                   expected_type,
+                   expected_type=(int,str),
                    default=None,
+                   default_factory=lambda: None,
                    req_assign_before_use=False,
                    internal_type=None,
                    validator=None,
@@ -21,9 +22,11 @@ def typed_property(name: str,
     Args:
         name (str): The name of the property to create.
         expected_type (type,tuple): The *type* or a *tuple of types* enumerating allowable
-            types to be assigned to the property.
+            types to be assigned to the property. Default is ``(int,str)``
         default: A default value to be assigned to the tuple. Default is ``None``.
             This will be assigned without type checking.
+        default_factory: Default factory method. This must be callable but is used
+            when we need a complex type that can't use ``deepcopy``. Default: ``lambda: None``.
         req_assign_before_use (bool): If ``True`` then raise an exception if the value is
             used before assigned. Otherwise, the *default* value is used. Default: ``False``
         internal_type (<type>): Sets the ``<type>`` that the value is stored as (via typecast)
@@ -43,6 +46,7 @@ def typed_property(name: str,
     expected_type = expected_type
     validator     = validator
 
+
     @property
     def prop(self):
         if not hasattr(self, varname_set):
@@ -50,8 +54,14 @@ def typed_property(name: str,
         if req_assign_before_use is True and getattr(self, varname_set) is False:
             raise UnboundLocalError("Property {} referenced before assigned.".format(name))
         if not hasattr(self, varname):
-            setattr(self, varname, copy.deepcopy(default))
+            if default is not None:
+                setattr(self, varname, copy.deepcopy(default))
+            else:
+                if not callable(default_factory):
+                    raise TypeError("default_factory `{}` in `{}` must be callable.".format(default_factory, name))
+                setattr(self, varname, default_factory())
         return getattr(self, varname)
+
 
     @prop.setter
     def prop(self, value):
@@ -89,6 +99,7 @@ def typed_property(name: str,
 
         # Save that we've assigned the value to something
         setattr(self, varname_set, True)
+
 
     @prop.deleter
     def prop(self):

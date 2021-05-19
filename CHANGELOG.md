@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.5.2] - 2021-05-19
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Internal
+- Added a `default_factory` to the `TypedProperty` utility for when the default value
+  is too complex to use `deepcopy` and we need to use some kind of generator.
+### Security
+
+
 ## [0.5.0] - 2021-05-18
 ### Added
 - `operation_handler` decorator

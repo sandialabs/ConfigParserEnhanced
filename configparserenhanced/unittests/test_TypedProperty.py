@@ -48,12 +48,7 @@ from .common import *
 # Mock Helpers
 #
 #===============================================================================
-#def typed_property(name: str,
-                   #expected_type,
-                   #default=None,
-                   #req_assign_before_use=False,
-                   #internal_type=None,
-                   #validator=None):
+
 
 
 #===============================================================================
@@ -273,9 +268,71 @@ class TypedPropertyTest(TestCase):
         with self.assertRaises(TypeError):
             obj.data = 100
 
+        print("OK")
+        return 0
+
+
+    def test_TypedProperty_default(self):
+        """
+        Test a strict default entry.
+        """
+        class TestClass(object):
+            data = typed_property("data")
+
+        obj1 = TestClass()
+
+        # set to None by default if never set.
+        self.assertIsInstance(obj1.data, type(None))
+
+        obj1.data = 1
+        self.assertIsInstance(obj1.data, int)
+
+        obj1.data = "a"
+        self.assertIsInstance(obj1.data, str)
+
+        with self.assertRaises(TypeError):
+            obj1.data = None
 
         print("OK")
         return 0
+
+
+    def test_TypedProperty_default_factory(self):
+        """
+        Test a strict default entry.
+        """
+        class TestClass(object):
+            data = typed_property("data", default_factory=dict)
+
+        obj1 = TestClass()
+        print(obj1.data)
+
+        obj2 = TestClass()
+        print(obj2.data)
+
+        self.assertIsInstance(obj1.data, dict)
+        self.assertIsInstance(obj2.data, dict)
+
+        self.assertNotEqual(id(obj1.data), id(obj2.data))
+
+        return 0
+
+
+    def test_TypedProperty_default_factory_is_callable(self):
+        """
+        Test a strict default entry.
+        """
+        class TestClass(object):
+            data = typed_property("data", default_factory={})
+
+        obj1 = TestClass()
+
+        with self.assertRaises(TypeError):
+            obj1.data
+
+        return 0
+
+
 
 
 # EOF
