@@ -23,7 +23,7 @@ from load_env import LoadEnv
     {
         "build_name": "arm",
         "hostname": "stria",
-        "expected_env": "machine-type-4_arm-20.0-openmpi-4.0.2-openmp"
+        "expected_env": "machine-type-4_arm-20.1-openmpi-4.0.5-openmp"
     }
 ])
 @patch("socket.gethostname")
@@ -66,16 +66,11 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     {
         "build_name": "arm",
         "hostname": "stria",
-        "expected_env": "machine-type-4_arm-20.0-openmpi-4.0.2-openmp",
+        "expected_env": "machine-type-4_arm-20.1-openmpi-4.0.5-openmp",
         "expected_cmds": [
-            "module load devpack-arm",
+            "module purge",
+            "module load sparc-dev/arm-20.1_openmpi-4.0.5",
             "module unload yaml-cpp",
-            "module load python/3.6.8-arm",
-            "module load arm/20.0",
-            "module load openmpi4/4.0.2",
-            "module load armpl/20.0.0",
-            "module load git/2.19.2",
-            "envvar_op set LAPACK_ROOT ${ARMPL_DIR}",
             "module load ninja",
             "module load cmake/3.17.1",
             "envvar_op set MPI_ROOT ${MPI_DIR}",
