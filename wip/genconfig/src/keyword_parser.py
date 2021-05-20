@@ -1,10 +1,9 @@
 from configparserenhanced import ConfigParserEnhanced
 import re
-from src.gen_config_common import GenConfigCommon
 import sys
 
 
-class KeywordParser(GenConfigCommon):
+class KeywordParser:
     def __init__(self, config_filename):
         self.config_filename = config_filename
 
@@ -24,6 +23,11 @@ class KeywordParser(GenConfigCommon):
         self._config = ConfigParserEnhanced(
             self.config_filename
         ).configparserenhanceddata
+
+        # Actually parses the sections. Shouldn't be needed in the near future
+        # once the ConfigParserEnhanced bug is addressed.
+        self.config.items()
+
         return self._config
 
     def get_values_for_section_key(self, section, key):
