@@ -295,6 +295,7 @@ class ConfigParserEnhancedTest(TestCase):
                              ('op1',  ['op2','+++']),
                              ('opA',  []),
                              ('op_A', []),
+                             ('default_key', []),
         ]
         print("results_expected ({}):".format(len(results_expected)))
         pprint(results_expected)
@@ -345,6 +346,8 @@ class ConfigParserEnhancedTest(TestCase):
             "_generic_option_handler",
             "_generic_option_handler",
             "_generic_option_handler",
+            "_generic_option_handler",
+            "_generic_option_handler",
             "handler_finalize"
         ]
         handler_exit_list_expected = [
@@ -352,7 +355,9 @@ class ConfigParserEnhancedTest(TestCase):
             "_generic_option_handler",
             "_generic_option_handler",
             "_generic_option_handler",
+            "_generic_option_handler",
             "_handler_use",
+            "_generic_option_handler",
             "_generic_option_handler",
             "handler_finalize"
         ]
@@ -1181,7 +1186,8 @@ class ConfigParserEnhancedTest(TestCase):
         parser.exception_control_level = 0
 
 
-        expected = { 'key1': '', 'key2': None, 'key3': 'value3' }
+        expected = { 'default_key': 'default_value', 'key1': '', 'key2': None,
+                     'key3': 'value3' }
 
         actual = parser.configparserenhanceddata["NOVALUE_TEST"]
 
@@ -1214,6 +1220,7 @@ class ConfigParserEnhancedTest(TestCase):
         data_actual   = parser.configparserenhanceddata["KEY_VARIANT_TEST"]
 
         data_expected = {
+            "default_key"  : "default_value",
             "key1"         : "value1",
             "key two"      : "value two",
             "key 'three A'": "value string",
@@ -1254,7 +1261,9 @@ class ConfigParserEnhancedTest(TestCase):
         data_actual = parser.parse_section(section)
         self.assertDictEqual(data_expect, data_actual)
 
-        cped_expect = {'key-0.1.0': 'value-0.1.0', 'key-0.2.0': 'value-0.2.0'}
+        cped_expect = {'default_key': 'default_value',
+                       'key-0.1.0': 'value-0.1.0',
+                       'key-0.2.0': 'value-0.2.0'}
         cped_actual = parser.configparserenhanceddata[section]
         self.assertDictEqual(cped_expect, cped_actual)
 
@@ -1313,6 +1322,7 @@ class ConfigParserEnhancedTest(TestCase):
         key1:value1
         key2:value2
         key3:value3
+        default_key:default_value
         """)
 
         text_actual = parser.unroll_to_str(section=section,
@@ -1545,7 +1555,7 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         print("-----[ TEST START ]--------------------------------------------------")
 
-        result_expect = {}
+        result_expect = {'default_key': 'default_value'}
         result_actual = parser.configparserenhanceddata[section]
         self.assertDictEqual(result_expect, result_actual)
 
@@ -1571,7 +1581,7 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         print("-----[ TEST START ]--------------------------------------------------")
 
-        result_expect = {}
+        result_expect = {'default_key': 'default_value'}
         result_actual = parser.configparserenhanceddata[section]
         self.assertDictEqual(result_expect, result_actual)
 
@@ -1595,7 +1605,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         print("-----[ TEST START ]--------------------------------------------------")
         section = "SECTION-A"
         print("Section  : {}".format(section))
-        result_expect = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        result_expect = {'default_key': 'default_value', 'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
         result_actual = parser.configparserenhanceddata.get(section)
         self.assertDictEqual(result_expect, result_actual)
         print("-----[ TEST END   ]--------------------------------------------------")
@@ -1636,7 +1646,7 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         section = "SECTION-A"
         print("Section  : {}".format(section))
-        result_expect = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+        result_expect = {'default_key': 'default_value', 'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
         result_actual = parser.configparserenhanceddata[section]
         self.assertDictEqual(result_expect, result_actual)
 
@@ -1661,7 +1671,7 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         section = "SECTION-A+"
         print("Section  : {}".format(section))
-        result_expect = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3', 'key4': 'value4'}
+        result_expect = {'default_key': 'default_value', 'key1': 'value1', 'key2': 'value2', 'key3': 'value3', 'key4': 'value4'}
         result_actual = parser.configparserenhanceddata[section]
         self.assertDictEqual(result_expect, result_actual)
 
@@ -1687,12 +1697,38 @@ class ConfigParserEnhancedDataTest(TestCase):
         section = "KEY_VARIANT_TEST"
         print("Section  : {}".format(section))
         result_expect = {
+            'default_key': 'default_value',
             'key1': 'value1',
             'key two': 'value two',
             "key 'three A'": 'value string',
             'key four': '',
             'key five': None
         }
+        result_actual = parser.configparserenhanceddata[section]
+        self.assertDictEqual(result_expect, result_actual)
+
+        print("-----[ TEST END   ]--------------------------------------------------")
+
+        print("OK")
+        return
+
+
+    def test_ConfigParserDataEnhanced_method_getitem_04(self):
+        """
+        Test ``ConfigParserDataEnhanced.__getitem__`` method.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+
+        parser = ConfigParserEnhanced(self._filename)
+        parser.debug_level = 3
+        parser.exception_control_level = 5
+
+        print("-----[ TEST START ]--------------------------------------------------")
+
+        section = "DEFAULT"
+        print("Section  : {}".format(section))
+        result_expect = {'default_key': 'default_value'}
         result_actual = parser.configparserenhanceddata[section]
         self.assertDictEqual(result_expect, result_actual)
 
@@ -2147,7 +2183,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         # with a specific section provided, we loop over the options in just that section.
         print("-----[ TEST START ]--------------------------------------------------")
         section = "SECTION-A"
-        count_expect = 3
+        count_expect = 4
         count_actual = 0
         for k,v in parser.configparserenhanceddata.items(section):
             print("{}:{}".format(k,v))
