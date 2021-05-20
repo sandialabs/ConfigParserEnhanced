@@ -3,38 +3,37 @@ from src.keyword_parser import KeywordParser
 
 class ConfigKeywordParser(KeywordParser):
     """
-    ###########################################################################
-    ####################### This needs to be updated ##########################
-    ###########################################################################
-    This class accepts a configuration file containing supported environments
-    on various machines in the following format::
+    This class accepts a configuration file containing supported configuration
+    flags and corresponding options in the following format::
 
-        [machine-type-5]
-        intel-18.0.5-mpich-7.7.6:   # Environment name 1
-            intel-18    # Alias 1 for ^^^
-            intel       # Alias 2 for ^^^
-            default-env # ...
-        intel-19.0.4-mpich-7.7.6:   # Environment name 2
-            intel-19
+        # supported-config-flags.ini
 
-        [machine-name-2]
-        use machine-type-5  # As if contents of machine-type-5 are copy-pasted here
-
-        [sys-3]
-        ...
+        [DEFAULT]
+        use-mpi:
+            mpi # the first option is the default if neither is specified in the build name
+            no-mpi
+        node-type:
+            serial
+            openmp
+        package-enables:
+            none   # by default, don't turn anything on
+            empire
+            sparc  # flags can support more than just two options
+            muelu  # e.g., a common configuration used by the MueLu team
+            jmgate # e.g., just my personal configuration, not intended to be used by others
+        # etc.
 
     Usage::
 
-        ekp = EnvKeywordParser("intel-18", "machine-type-5", "supported_envs.ini")
-        qualified_env_name = ekp.qualified_env_name
-    ###########################################################################
-    ###########################################################################
+        ckp = ConfigKeywordParser("machine-type-5_mpi_serial_empire",
+                                  "supported-config-flags.ini")
+        selected_options = ckp.selected_options
 
     Parameters:
         build_name (str):  Keyword string to parse configuration flag/option
             pairs from.
         supported_config_flags_filename (str, Path):  The name of the file to
-            load the supported environment configuration from.
+            load the supported configuration flags and options from.
     """
 
     def __init__(self, build_name, supported_config_flags_filename):
@@ -46,39 +45,24 @@ class ConfigKeywordParser(KeywordParser):
     @property
     def selected_options(self):
         """
-        Parses the :attr:`build_name` and returns the fully qualified
-        environment name that is listed as supported for the current
-        :attr:`system_name` in the file :attr:`supported_envs_filename`.
+        Parses the :attr:`build_name` and returns a dictionary containing the
+        supported flags as keys and the corresponding selected options as
+        values.
         The way this happens is:
 
-            * Gather the list of environment names, sorting them from longest
-              to shortest.
-
-                 * March through this list, checking if any of these appear in
-                   the :attr:`build_name`.
-                 * If an environment name is matched, continue past alias
-                   checking.
-                 * If not, move on to aliases.
-
-            * Gather the list of aliases, sorting them from longest to
-              shortest.
-
-                 * March through this list, checking if any of these appear in
-                   the :attr:`build_name`.
-                 * Get the environment name with
-                   :func:`get_env_name_for_alias`.
-
-            * Run
-              :func:`assert_kw_str_versions_for_env_name_components_are_supported`
-              to make sure component versions specified in the
-              :attr:`build_name` are supported.
-            * Run :func:`assert_kw_str_node_type_is_supported` to make sure the
-              node type (``serial`` or ``openmp``) specified in the
-              :attr:`build_name` is supported on the system.
-            * Done
+            * Split the :attr:`build_name` by the delimiter `_`.
+            * For each supported flag name in the `supported-config-flags.ini`:
+                * Find the options for this flag that exist in the
+                  :attr:`build_name`.
+                * If more than one option is found in the :attr:`build_name`,
+                  raise an exception.
+                * If no option is found in the :attr:`build_name`, use the
+                  default value (first option) from the `.ini` file.
+                * If one option is found, use that.
 
         Returns:
-            str:  The fully qualified environment name.
+            dict:  A `dict` containing key/value pairs of flags and selected
+            options, as found in the :attr:`build_name`.
         """
         if not hasattr(self, "_selected_options"):
             build_name_options = self.build_name.lower().split("_")
@@ -104,9 +88,6 @@ class ConfigKeywordParser(KeywordParser):
 
         return self._selected_options
 
-# TODO: This can be generalized for both EnvKeywordParser and
-#       ConfigKeywordParser. Add swapping of 'Environments', 'Aliases', and the
-#       .ini file to see for details
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """
         Similar to :func:`get_msg_for_list`, except it's a bit more specific.
