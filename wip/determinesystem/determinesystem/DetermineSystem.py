@@ -37,17 +37,7 @@ class DetermineSystem:
         """
         if not hasattr(self, "_system_name"):
             self.determine_system()
-            """
-            When pulling this system determination piece out into its own
-            utility, here's what I'm guessing this'll look like after the fact:
 
-            ds = DetermineSystem(self.args.supported_systems_file)
-            self._system_name = ds.system_name
-
-            We'll need to move determine_system() and
-            parse_supported_systems_file() and any associated data over to
-            DetermineSystem.
-            """
         return self._system_name
 
     def determine_system(self):
@@ -147,18 +137,20 @@ class DetermineSystem:
         """
         sys_names = [s for s in self.supported_systems_data.sections()
                      if s != "DEFAULT"]
-        sys_name_from_build_names = [_ for _ in sys_names if _ in
-                                     self.build_name]
-        if len(sys_name_from_build_names) > 1:
+
+        build_name_options = self.build_name.lower().split("_")
+        sys_names_in_build_name = [_ for _ in sys_names
+                                   if _ in build_name_options]
+        if len(sys_names_in_build_name) > 1:
             msg = self.get_msg_for_list(
                 "Cannot specify more than one system name in the build name\n"
-                "You specified", sys_name_from_build_names
+                "You specified", sys_names_in_build_name
             )
             sys.exit(msg)
-        elif len(sys_name_from_build_names) == 0:
+        elif len(sys_names_in_build_name) == 0:
             sys_name_from_build_name = None
         else:
-            sys_name_from_build_name = sys_name_from_build_names[0]
+            sys_name_from_build_name = sys_names_in_build_name[0]
         return sys_name_from_build_name
 
     def parse_supported_systems_file(self):
