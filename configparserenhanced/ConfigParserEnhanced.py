@@ -1367,6 +1367,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._data = {
                     "DEFAULT": {}
                 }
+                self._parse_owner_section("DEFAULT")
+
             return self._data
 
 
