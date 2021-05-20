@@ -276,7 +276,7 @@ class ConfigParserEnhancedTest(TestCase):
         data = parser.parse_section(section)
         print(data)
 
-        results_expected = [ ('default_key', []),
+        results_expected = [ ('op1', []),
                              ('op1', ['op2']),
                              ('op1', ['op2']),
                              ('op1', ['op 2']),
@@ -404,7 +404,7 @@ class ConfigParserEnhancedTest(TestCase):
         section_entry_list_actual = [ d['name'] for d in parser._loginfo if d['type']=='section-entry']
 
         # What did we expect to get?
-        section_entry_list_expected = ['DEFAULT',
+        section_entry_list_expected = ['CYCLE_TEST_A',
                                        'CYCLE_TEST_B', 'CYCLE_TEST_C',
                                        'CYCLE_TEST_B', 'CYCLE_TEST_C']
 
