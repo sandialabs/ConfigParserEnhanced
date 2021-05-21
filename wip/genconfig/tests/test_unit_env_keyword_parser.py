@@ -58,35 +58,6 @@ def test_nonexistent_env_name_or_alias_raises():
     assert "build name 'bad-kw-str'" in exc_msg
 
 
-# @pytest.mark.parametrize("inputs", [
-#     {"system_name": "machine-type-5",
-#      "build_name": "intel-19.0.4-mpich-7.7.15-hsw-openmp",
-#      "matched_env_name": "intel-19.0.4-mpich-7.7.15-hsw-openmp",
-#      "versioned_components": ["intel-19.0.4", "mpich-7.7.15", "hsw",
-#                               "openmp"]},
-#     {"system_name": "machine-type-3",
-#      "build_name": "arm-20.0-openmpi-4.0.2-openmp",
-#      "matched_env_name": "arm-20.0-openmpi-4.0.2-openmp",
-#      "versioned_components": ["arm-20.0", "openmpi-4.0.2", "openmp"]},
-#     {"system_name": "machine-type-3",
-#      "build_name": "arm-serial",
-#      "matched_env_name": "arm-20.0-openmpi-4.0.2-serial",
-#      "versioned_components": ["arm", "serial"]},
-#     {"system_name": "machine-type-3",
-#      "build_name": "arm-20.0-serial",
-#      "matched_env_name": "arm-20.0-openmpi-4.0.2-serial",
-#      "versioned_components": ["arm-20.0", "serial"]}
-# ])
-# def test_versioned_components_determined_correctly(inputs):
-#     ekp = EnvKeywordParser(inputs["build_name"], inputs["system_name"],
-#                            "test_supported_envs.ini")
-#     ekp.qualified_env_name
-#     versioned_components = ekp.get_versioned_components_from_str(
-#         inputs["matched_env_name"], inputs["build_name"]
-#     )
-#     assert versioned_components == inputs["versioned_components"]
-
-
 @pytest.mark.parametrize("inputs", [
     {"system_name": "machine-type-5", "build_name": "intel-20",
      "unsupported_components": ["intel-20"]},

@@ -83,7 +83,6 @@ class KeywordParser:
 
         return values_list
 
-# TODO: Pull this out and rename to something like assert_values_are_unique
     def assert_values_are_unique(self, values_list, section, key):
         """
         Ensures we don't run into a situation like::
@@ -138,7 +137,7 @@ class KeywordParser:
 
     def get_key_for_section_value(self, section, value):
         """
-        Returns the environment name for which the alias specifies. For
+        Returns the key for which the value corresponds to. For
         example, ``value = intel`` would return
         ``intel-18.0.5-mpich-7.7.6`` for the follwing config::
 
@@ -154,7 +153,7 @@ class KeywordParser:
             value (str):  The value to find the key for.
 
         Returns:
-            str:  The environment name for the alias.
+            str:  The key for the given value.
         """
 
         matched_key = None
@@ -178,6 +177,7 @@ class KeywordParser:
             +=================================================================+
             |   {kind}:  Unable to find alias or environment name for system
             |            'machine-type-5' in keyword string 'bad_kw_str'.
+            |   {extras}
             +=================================================================+
 
         Parameters:
