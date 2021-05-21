@@ -1,6 +1,7 @@
 from pathlib import Path
 import pytest
 import sys
+import textwrap
 
 root_dir = (Path.cwd()/".."
             if (Path.cwd()/"conftest.py").exists()
@@ -99,14 +100,21 @@ def test_supported_flags_shown_correctly():
                               "test_supported_flags_shown_correctly.ini")
     msg = ckp.get_msg_showing_supported_flags("Message here.")
 
-    assert "ERROR:  Message here." in msg
-    assert "- Supported Flags Are:" in msg
-    assert "  - use-mpi" in msg
-    assert "    * Options:" in msg
-    assert "      - mpi (default)" in msg
-    assert "      - no-mpi" in msg
-    assert "  - node-type" in msg
-    assert "    * Options:" in msg
-    assert "      - serial (default)" in msg
-    assert "      - openmp" in msg
-    assert "See test_supported_flags_shown_correctly.ini for details." in msg
+    msg_expected = textwrap.dedent(
+        """
+        |   ERROR:  Message here.
+        |     - Supported Flags Are:
+        |       - use-mpi
+        |         - Options:
+        |           - mpi (default)
+        |           - no-mpi
+        |       - node-type
+        |         - Options:
+        |           - serial (default)
+        |           - openmp
+        """
+    ).strip()
+
+    assert msg_expected in msg
+    assert ("|   See test_supported_flags_shown_correctly.ini for details."
+            in msg)

@@ -70,10 +70,10 @@ class ConfigKeywordParser(KeywordParser):
 
             for flag_name in self.flag_names:
                 options = self.get_values_for_section_key("DEFAULT", flag_name)
-                options = [_.lower() for _ in options]
+                options = [_ for _ in options]
 
                 options_in_build_name = [_ for _ in options
-                                         if _ in build_name_options]
+                                         if _.lower() in build_name_options]
                 if len(options_in_build_name) > 1:
                     raise ValueError(self.get_msg_for_list(
                         f"Multiple options for '{flag_name}' found in build "
@@ -95,19 +95,19 @@ class ConfigKeywordParser(KeywordParser):
 
             +=================================================================+
             |   {kind}:  {msg}
-            |
-            |   - Supported Flags Are:
-            |     - use-mpi
-            |       * Options:
-            |         - mpi (default)
-            |         - no-mpi
-            |     - node-type
-            |       * Options:
-            |         - serial (default)
-            |         - openmp
-            |     ...
-            |   See {self.supported_envs_filename} for details.
+            |     - Supported Flags Are:
+            |       - use-mpi
+            |         - Options:
+            |           - mpi (default)
+            |           - no-mpi
+            |       - node-type
+            |         - Options:
+            |           - serial (default)
+            |           - openmp
+            |   ...
+            |   See test_supported_flags_shown_correctly.ini for details.
             +=================================================================+
+
 
         Parameters:
             msg (str):  The main error message to be displayed.  Can be
@@ -118,15 +118,15 @@ class ConfigKeywordParser(KeywordParser):
         Returns:
             str:  The formatted message.
         """
-        extras = "\n- Supported Flags Are:\n"
+        items_list = ["Supported Flags Are:", []]
         for flag_name in self.flag_names:
-            extras += f"  - {flag_name}\n"
             options_for_flag = self.get_values_for_section_key("DEFAULT",
                                                                flag_name)
-            extras += ("    * Options:\n" if len(options_for_flag) > 0 else "")
-            for idx, o in enumerate(options_for_flag):
-                default = " (default)" if idx == 0 else ""
-                extras += (f"      - {o}{default}\n")
-        extras += f"\nSee {self.config_filename} for details."
-        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
+            options_for_flag[0] += " (default)"
+
+            flag_options_list = [flag_name, ["Options:", options_for_flag]]
+            items_list[1] += flag_options_list
+
+        extras = f"\nSee {self.config_filename} for details."
+        msg = self.get_msg_for_list(msg, items_list, kind=kind, extras=extras)
         return msg

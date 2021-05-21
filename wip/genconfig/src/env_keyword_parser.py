@@ -244,15 +244,19 @@ class EnvKeywordParser(KeywordParser):
         Returns:
             str:  The formatted message.
         """
-        extras = f"\n- Supported Environments for '{self.system_name}':\n"
+        items_list = [f"Supported Environments for '{self.system_name}':", []]
         for env_name in sorted(self.env_names):
-            extras += f"  - {env_name}\n"
             aliases_for_env = sorted(
                 self.get_values_for_section_key(self.system_name, env_name)
             )
-            extras += ("    * Aliases:\n" if len(aliases_for_env) > 0 else "")
-            for a in aliases_for_env:
-                extras += (f"      - {a}\n")
-        extras += f"\nSee {self.config_filename} for details."
-        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
+
+            env_name_aliases_list = (
+                [env_name, ["Aliases:", aliases_for_env]]
+                if len(aliases_for_env) > 0
+                else [env_name]
+            )
+            items_list[1] += env_name_aliases_list
+
+        extras = f"\nSee {self.config_filename} for details."
+        msg = self.get_msg_for_list(msg, items_list, kind=kind, extras=extras)
         return msg
