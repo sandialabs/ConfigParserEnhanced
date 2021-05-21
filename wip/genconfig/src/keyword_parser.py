@@ -79,7 +79,7 @@ class KeywordParser:
         values_list = [v.strip() for v in uncommented_values_list if v != ""]
 
         self.assert_values_are_unique(values_list, section, key)
-        self.assert_values_do_not_contain_machine-name-4space(values_list)
+        self.assert_values_do_not_contain_machine-name-4space_or_delimiter(values_list)
 
         return values_list
 
@@ -109,7 +109,7 @@ class KeywordParser:
             )
             sys.exit(msg)
 
-    def assert_values_do_not_contain_machine-name-4space(self, values_list):
+    def assert_values_do_not_contain_machine-name-4space_or_delimiter(self, values_list):
         """
         Ensure there are no machine-name-4spaces in values; that is::
 
@@ -123,15 +123,17 @@ class KeywordParser:
         Raises:
             SystemExit:  If any value contains machine-name-4space.
         """
-        values_w_machine-name-4space = [_ for _ in values_list if " " in _]
+        values_w_machine-name-4space_or_delim = [_ for _ in values_list
+                                        if " " in _ or "_" in _]
         try:
-            assert values_w_machine-name-4space == []
+            assert values_w_machine-name-4space_or_delim == []
         except AssertionError:
-            es = "es" if len(values_w_machine-name-4space) > 1 else "e"
-            s = "s" if len(values_w_machine-name-4space) == 1 else ""
+            es = "es" if len(values_w_machine-name-4space_or_delim) > 1 else "e"
+            s = "s" if len(values_w_machine-name-4space_or_delim) == 1 else ""
             msg = self.get_msg_for_list(
-                f"The following valu{es} contain{s} machine-name-4space: ",
-                values_w_machine-name-4space
+                f"The following valu{es} contain{s} machine-name-4space or "
+                "the delimiter '_': ",
+                values_w_machine-name-4space_or_delim
             )
             sys.exit(msg)
 

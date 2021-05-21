@@ -41,12 +41,12 @@ def test_invalid_supported_envs_filename_raises():
 
 
 @pytest.mark.parametrize("multiple_values", [True, False])
-def test_values_do_not_contain_machine-name-4space(multiple_values):
+def test_values_do_not_contain_machine-name-4space_or_delimiter(multiple_values):
     bad_config = (
         "[machine-type-5]\n"
         "intel-18.0.5-mpich-7.7.15: # Comment here\n"
         "    intel 18              # Space in this value\n" +
-        ("    intel default\n" if multiple_values is True else "") +
+        ("    intel_default\n" if multiple_values is True else "") +
         "    intel                 # Comment here too\n"
     )
     filename = "bad_config.ini"
@@ -61,10 +61,11 @@ def test_values_do_not_contain_machine-name-4space(multiple_values):
 
     es = "es" if multiple_values is True else "e"
     s = "" if multiple_values is True else "s"
-    assert f"The following valu{es} contain{s} machine-name-4space:" in exc_msg
+    assert (f"The following valu{es} contain{s} machine-name-4space or the delimiter"
+            " '_':" in exc_msg)
     assert "- intel 18\n" in exc_msg
     if multiple_values is True:
-        assert "- intel default\n" in exc_msg
+        assert "- intel_default\n" in exc_msg
 
 
 def test_values_are_unique():
