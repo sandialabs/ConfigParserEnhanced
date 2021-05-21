@@ -42,7 +42,7 @@ def test_sys_name_in_build_name_not_matching_hostname_raises(
     mock_gethostname, supported_systems_file
 ):
     mock_gethostname.return_value = "machine-prefix-6"
-    ds = DetermineSystem("machine-type-1-build-name", supported_systems_file)
+    ds = DetermineSystem("machine-type-1_build-name", supported_systems_file)
     with pytest.raises(SystemExit) as excinfo:
         ds.system_name
     exc_msg = excinfo.value.args[0]
@@ -58,7 +58,7 @@ def tests_sys_name_in_build_name_overrides_hostname_match_when_forced(
     mock_gethostname, supported_systems_file
 ):
     mock_gethostname.return_value = "machine-prefix-6"
-    ds = DetermineSystem("machine-type-1-build-name", supported_systems_file,
+    ds = DetermineSystem("machine-type-1_build-name", supported_systems_file,
                          force_build_name=True)
     assert ds.system_name == "machine-type-1"
 
@@ -69,7 +69,7 @@ def test_multiple_sys_names_in_build_name_raises_regardless_of_hostname_match(
     mock_gethostname, hostname, supported_systems_file
 ):
     mock_gethostname.return_value = hostname
-    ds = DetermineSystem("machine-type-1-rhel7-build-name", supported_systems_file)
+    ds = DetermineSystem("machine-type-1_rhel7_build-name", supported_systems_file)
     with pytest.raises(SystemExit) as excinfo:
         ds.system_name
     exc_msg = excinfo.value.args[0]
@@ -81,7 +81,7 @@ def test_multiple_sys_names_in_build_name_raises_regardless_of_hostname_match(
 
 @pytest.mark.parametrize("data", [
     {"build_name": "no-system-here", "sys_name": None, "raises": True},
-    {"build_name": "machine-type-1-build-name", "sys_name": "machine-type-1", "raises": False},
+    {"build_name": "machine-type-1_build-name", "sys_name": "machine-type-1", "raises": False},
 ])
 @patch("socket.gethostname")
 def test_unsupported_hostname_handled_correctly(mock_gethostname, data,
