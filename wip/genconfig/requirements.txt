@@ -4,3 +4,4 @@ pytest-cov
 
 # Private Repositories
 loadenv @ git+ssh://git@internal.gitlab.server/trilinos-devops-consolidation/code/LoadEnv.git@master#egg=loadenv
+setprogramoptions @ git+ssh://git@internal.gitlab.server/trilinos-devops-consolidation/code/SetProgramOptions.git@master#egg=setprogramoptions
