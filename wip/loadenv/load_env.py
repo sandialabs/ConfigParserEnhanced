@@ -145,8 +145,8 @@ class LoadEnv(LoadEnvCommon):
     def load_set_environment(self):
         """
         Instantiate a :class:`SetEnvironment` object with this object's
-        :attr:`build_name`, :attr:`system_name`, and ``supported-envs.ini``.
-        Save the resulting object as :attr:`env_keyword_parser`.
+        ``environment-specs.ini``.  Save the resulting object as
+        :attr:`set_environment`.
         """
         if self.set_environment is None:
             self.set_environment = SetEnvironment(
