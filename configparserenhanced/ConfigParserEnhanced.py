@@ -53,6 +53,7 @@ import configparser
 import io
 import os
 from pathlib import Path
+from pprint import pprint
 import re
 import shlex
 import sys
@@ -482,6 +483,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
             Unless :class:`~.HandlerParameters` is changed, this wil be a ``dict`` type.
         """
+        # If a previous run generated _loginfo, clear it before this run.
+        self._reset_lazy_attr("_loginfo")
+
         self.debug_message(1, "[" + "-"*58 + ']')
         self.debug_message(1, "  Parse section `{}` START".format(section))
         self.debug_message(1, "[" + "-"*58 + ']')
@@ -489,9 +493,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if section == "":
             raise ValueError("`section` cannot be empty.")
-
-        # If a previous run generated _loginfo, clear it before this run.
-        self._reset_lazy_attr("_loginfo")
 
         # Parse the requested section.
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
@@ -748,7 +749,11 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_initialize_params.handler_name = "handler_initialize"
             self.handler_initialize(section_name, handler_initialize_params)
 
-        self.debug_message(1, "Enter section    : `{}`".format(section_name))                       # Console Logging
+            if self.configparserdata.has_section("DEFAULT"):
+                self._parse_section_r("DEFAULT", handler_parameters=handler_parameters,
+                                      initialize=False, finalize=False)
+
+        self.debug_message(1, ">>> Enter section    : `{}`".format(section_name))                   # Console Logging
         self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
 
         # Load the section from the configparser.ConfigParser data.
@@ -808,9 +813,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 handler_parameters.params = params
 
                 self._loginfo_add('section-operation', {'op': op, 'params': params } )              # Logging
-                self.debug_message(2, " -> op           : {}".format(handler_parameters.op))             # Console
-                self.debug_message(2, " -> params       : {}".format(handler_parameters.params))         # Console
-                self.debug_message(2, " -> value        : {}".format(handler_parameters.value))          # Console
+                self.debug_message(2, " -> op           : {}".format(handler_parameters.op))        # Console
+                self.debug_message(2, " -> params       : {}".format(handler_parameters.params))    # Console
+                self.debug_message(2, " -> value        : {}".format(handler_parameters.value))     # Console
 
                 handler_name,ophandler_f = self._locate_handler_method(handler_parameters.op)
 
@@ -1367,8 +1372,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._data = {
                     "DEFAULT": {}
                 }
-                self._parse_owner_section("DEFAULT")
-
             return self._data
 
 
@@ -1658,7 +1661,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     self._set_owner_options()
                     self._sections_checked.add(section)
                     self._owner.parse_section(section)
-                    #self._owner.parse_section(section, initialize=False, finalize=False)
 
             return
 
