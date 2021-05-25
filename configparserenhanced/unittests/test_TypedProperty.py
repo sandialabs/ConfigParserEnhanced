@@ -133,8 +133,8 @@ class TypedPropertyTest(TestCase):
         """
         def validate_int_geq_100(value):
             if value < 100:
-                return 1
-            return 0
+                return 0   # Falsy means fail.
+            return 1       # Truthy means success.
 
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None, validator=validate_int_geq_100)

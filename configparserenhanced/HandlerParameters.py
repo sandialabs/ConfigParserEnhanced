@@ -27,11 +27,11 @@ def value_len_eq_2(value):
     Assumes that value is an interable.
 
     Returns:
-        int: 1 (failure) if length != 2, otherwise 0 (success).
+        int: 0 (FAIL) if length != 2, otherwise 1 (PASS).
     """
     if len(value) != 2:
-        return 1
-    return 0
+        return 0
+    return 1
 
 
 
