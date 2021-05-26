@@ -1351,6 +1351,7 @@ class ConfigParserEnhancedTest(TestCase):
         parser.debug_level = 5
         parser.exception_control_level = 5
 
+        # execute the parse of the section
         parser.parse_section(section)
 
         ref_cpedata = parser.configparserenhanceddata
@@ -1360,6 +1361,10 @@ class ConfigParserEnhancedTest(TestCase):
                                'keyA2': 'value A2',
                                'keyA3': 'value A3',
                                'keyA+4': 'value A+ 4'}
+
+        # retrieves the _cached_ result from the earlier parse.
+        # - Note: if we omit the `parse_section` command above then
+        #         this call would trigger the parse.
         section_data_actual = ref_cpedata.get(section)
 
         self.assertDictEqual(section_data_expect, section_data_actual)
