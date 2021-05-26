@@ -44,7 +44,7 @@ def test_list_envs(system_name):
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
     with pytest.raises(TypeError) as excinfo:
-        le = LoadEnv(data)
+        LoadEnv(data)
     exc_msg = excinfo.value.args[0]
     assert "must be instantiated with a list" in exc_msg
 
@@ -118,6 +118,49 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     ).resolve()
 
 
+@pytest.mark.parametrize("data", [
+    {
+        "section_name": "invalid_section_name",
+        "key1": "supported-systems",
+        "key2": "supported-envs",
+        "key3": "environment-specs",
+        "value1": "test_supported_systems.ini",
+        "err_msg": "'bad_load_env.ini' must contain a 'load-env' section.",
+    },
+    {
+        "section_name": "load-env",
+        "key1": "bad-key",
+        "key2": "supported-envs",
+        "key3": "environment-specs",
+        "value1": "test_supported_systems.ini",
+        "err_msg": ("'bad_load_env.ini' must contain the following in the "
+                    "'load-env' section:"),
+    },
+    {
+        "section_name": "load-env",
+        "key1": "supported-systems",
+        "key2": "supported-envs",
+        "key3": "environment-specs",
+        "value1": "",
+        "err_msg": ("The path specified for 'supported-systems' in "
+                    "'bad_load_env.ini' must be non-empty"),
+    },
+])
+def test_invalid_load_env_file_raises(data):
+    bad_load_env_ini = (
+        f"[{data['section_name']}]\n"
+        f"{data['key1']} : {data['value1']}\n"
+        f"{data['key2']} : test_supported_envs.ini\n"
+        f"{data['key3']} : test_environment_specs.ini\n"
+    )
+    filename = "bad_load_env.ini"
+    with open(filename, "w") as f:
+        f.write(bad_load_env_ini)
+
+    with pytest.raises(ValueError, match=data["err_msg"]):
+        LoadEnv(["build_name"], load_env_ini_file=filename)
+
+
 ######################################################################
 #  EnvKeywordParser (ekp) Basic Interaction (not integration tests)  #
 ######################################################################
@@ -188,7 +231,7 @@ def test_correct_arguments_are_passed_to_set_environment_object(
     mock_ds_obj = mock.Mock()
     mock_ds_obj.system_name = "machine-type-1"
     mock_ds.return_value = mock_ds_obj
-    qualified_env_name = "machine-type-1-intel-18.0.5-mpich-7.7.6"
+    qualified_env_name = "machine-type-1_intel-18.0.5-mpich-7.7.6"
     mock_ekp_obj = mock.Mock()
     mock_ekp_obj.qualified_env_name = qualified_env_name
     mock_ekp.return_value = mock_ekp_obj
@@ -234,3 +277,28 @@ def test_load_matching_env_is_set_correctly_and_directories_are_created(
                      if output is None else Path(output)).resolve()
     assert expected_file.parent.exists()
     assert load_matching_env == expected_file
+
+
+@patch("load_env.EnvKeywordParser")
+@patch("load_env.SetEnvironment")
+@patch("load_env.DetermineSystem")
+def test_apply_env_returns_nonzero_raises(
+    mock_ds, mock_se, mock_ekp
+):
+    mock_ds_obj = mock.Mock()
+    mock_ds_obj.system_name = "machine-type-1"
+    mock_ds.return_value = mock_ds_obj
+
+    qualified_env_name = "machine-type-1_intel-18.0.5-mpich-7.7.6"
+    mock_ekp_obj = mock.Mock()
+    mock_ekp_obj.qualified_env_name = qualified_env_name
+    mock_ekp.return_value = mock_ekp_obj
+
+    mock_se_obj = mock.Mock()
+    mock_se_obj.apply.return_value = 1
+    mock_se.return_value = mock_se_obj
+
+    le = LoadEnv(argv=["build_name"])
+    with pytest.raises(RuntimeError, match=("Something unexpected went wrong "
+                                            "in applying the environment.")):
+        le.apply_env()
