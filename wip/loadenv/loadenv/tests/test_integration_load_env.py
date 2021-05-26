@@ -114,8 +114,7 @@ def test_correct_commands_are_saved(mock_gethostname, inputs):
     assert le.parsed_env_name == inputs["expected_env"]
 
     le.write_load_matching_env()
-    load_matching_env_file = Path("/tmp/load_matching_env.sh")
-    with open(load_matching_env_file, "r") as f:
+    with open(le.tmp_load_matching_env_file, "r") as f:
         load_matching_env_contents = f.read()
 
     for expected_cmd in inputs["expected_cmds"]:
@@ -138,7 +137,7 @@ def test_load_matching_env_is_set_correctly_and_directories_are_created(
     le = LoadEnv(argv=argv)
     load_matching_env = le.write_load_matching_env()
 
-    expected_file = (Path("/tmp/load_matching_env.sh")
+    expected_file = (le.tmp_load_matching_env_file
                      if output is None else Path(output)).resolve()
     assert expected_file.parent.exists()
     assert load_matching_env == expected_file

@@ -16,7 +16,7 @@ fi
 
 # Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-load_env_py=${script_dir}/../load_env.py
+load_env_py=${script_dir}/loadenv/LoadEnv.py
 
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
@@ -31,7 +31,8 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Source the generated script to pull the environment into the current shell.
-env_file="/tmp/load_matching_env.sh"
+env_file=$(cat .load_matching_env_loc)
+rm -f .load_matching_env_loc
 if [ -f ${env_file} ]; then
   source ${env_file}
   rm -f ${env_file}

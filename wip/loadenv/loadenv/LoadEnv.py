@@ -3,13 +3,18 @@
 import argparse
 from configparserenhanced import ConfigParserEnhanced
 from determinesystem import DetermineSystem
+import getpass
 import os
 from pathlib import Path
 from setenvironment import SetEnvironment
-from loadenv.EnvKeywordParser import EnvKeywordParser
 import socket
 import sys
 import textwrap
+import uuid
+try:
+    from .EnvKeywordParser import EnvKeywordParser
+except ImportError:
+    from EnvKeywordParser import EnvKeywordParser
 
 
 class LoadEnv:
@@ -177,7 +182,7 @@ class LoadEnv:
         """
         if self.set_environment is None:
             self.load_set_environment()
-        files = [Path("/tmp/load_matching_env.sh").resolve()]
+        files = [self.tmp_load_matching_env_file]
         if self.args.output:
             files += [self.args.output]
         for f in files:
@@ -191,6 +196,22 @@ class LoadEnv:
                 interpreter="bash"
             )
         return files[-1]
+
+    @property
+    def tmp_load_matching_env_file(self):
+        """
+        Returns:
+            Path:  The path to the temporary `load_matching_env.sh` file that
+            gets written in the `/tmp` directory.
+        """
+        if not hasattr(self, "_tmp_load_matching_env_file"):
+            unique_str = uuid.uuid4().hex[:8]
+            user = getpass.getuser()
+            self._tmp_load_matching_env_file = Path(
+                f"/tmp/{user}/load_matching_env_{unique_str}.sh"
+            ).resolve()
+
+        return self._tmp_load_matching_env_file
 
     def get_formatted_msg(self, msg, kind="ERROR", extras=""):
         """
@@ -326,6 +347,8 @@ def main(argv):
     le.apply_env()
     print(f"Environment '{le.parsed_env_name}' validated.")
     le.write_load_matching_env()
+    with open(Path.cwd().resolve()/".load_matching_env_loc", "w") as F:
+        F.write(str(le.tmp_load_matching_env_file))
 
 
 if __name__ == "__main__":
