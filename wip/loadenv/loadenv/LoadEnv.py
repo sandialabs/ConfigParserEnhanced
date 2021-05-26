@@ -7,11 +7,14 @@ import getpass
 import os
 from pathlib import Path
 from setenvironment import SetEnvironment
-from loadenv.EnvKeywordParser import EnvKeywordParser
 import socket
 import sys
 import textwrap
 import uuid
+try:
+    from .EnvKeywordParser import EnvKeywordParser
+except ImportError:
+    from EnvKeywordParser import EnvKeywordParser
 
 
 class LoadEnv:
