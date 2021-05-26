@@ -66,10 +66,10 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     {
         "build_name": "arm",
         "hostname": "stria",
-        "expected_env": "machine-type-4_arm-20.1-openmpi-4.0.5-openmp",
+        "expected_env": "machine-type-4_arm-20.0-openmpi-4.0.2-openmp",
         "expected_cmds": [
             "module purge",
-            "module load sparc-dev/arm-20.1_openmpi-4.0.5",
+            "module load devpack-arm/1.2.3",
             "module unload yaml-cpp",
             "module load ninja",
             "module load cmake/3.17.1",
@@ -105,7 +105,12 @@ def test_correct_commands_are_saved(mock_gethostname, inputs):
     # **system determination in place.**
     ###########################################################################
     mock_gethostname.return_value = inputs["hostname"]
-    le = LoadEnv(argv=[inputs["build_name"]])
+    le = LoadEnv(argv=[
+        "--supported-systems", "test_supported_systems.ini",
+        "--supported-envs", "test_supported_envs.ini",
+        "--environment-specs", "test_environment_specs.ini",
+        inputs["build_name"],
+    ])
     assert le.parsed_env_name == inputs["expected_env"]
 
     le.write_load_matching_env()

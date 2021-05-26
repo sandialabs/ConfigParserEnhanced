@@ -5,3 +5,4 @@ pytest-cov
 # Private Repositories
 setenvironment @ git+ssh://git@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git@master#egg=setenvironment
 determinesystem @ git+ssh://git@internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git@master#egg=determinesystem
+keywordparser @ git+ssh://git@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git@master#egg=keywordparser

@@ -1,10 +1,9 @@
-from configparserenhanced import ConfigParserEnhanced
 import re
-from src.load_env_common import LoadEnvCommon
+from keywordparser import KeywordParser
 import sys
 
 
-class EnvKeywordParser(LoadEnvCommon):
+class EnvKeywordParser(KeywordParser):
     """
     This class accepts a configuration file containing supported environments
     on various machines in the following format::
@@ -37,37 +36,21 @@ class EnvKeywordParser(LoadEnvCommon):
     """
 
     def __init__(self, build_name, system_name, supported_envs_filename):
-        self._supported_envs = None
-        self.supported_envs_filename = supported_envs_filename
+        self.config_filename = supported_envs_filename
         self.build_name = build_name
         self.system_name = system_name
         self.delim = "_"
 
-        env_names = [_ for _ in self.supported_envs[self.system_name].keys()]
+        env_names = [_ for _ in self.config[self.system_name].keys()]
         self.env_names = sorted(env_names, key=len, reverse=True)
         self.aliases = sorted(self.get_aliases(), key=len, reverse=True)
-
-    @property
-    def supported_envs(self):
-        """
-        Gets the :class:`ConfigParserEnhancedData` object with
-        :attr:`supported_envs_filename` loaded.
-
-        Returns:
-            ConfigParserEnhancedData:  A :class:`ConfigParserEnhancedData`
-            object with `supported_envs_filename` loaded.
-        """
-        self._supported_envs = ConfigParserEnhanced(
-            self.supported_envs_filename
-        ).configparserenhanceddata
-        return self._supported_envs
 
     @property
     def qualified_env_name(self):
         """
         Parses the :attr:`build_name` and returns the fully qualified
         environment name that is listed as supported for the current
-        :attr:`system_name` in the file :attr:`supported_envs_filename`.
+        :attr:`system_name` in the file :attr:`config_filename`.
         The way this happens is:
 
             * Gather the list of environment names, sorting them from longest
@@ -85,7 +68,7 @@ class EnvKeywordParser(LoadEnvCommon):
                  * March through this list, checking if any of these appear in
                    the :attr:`build_name`.
                  * Get the environment name with
-                   :func:`get_env_name_for_alias`.
+                   :func:`get_key_for_section_value`.
 
             * Run
               :func:`assert_kw_str_versions_for_env_name_components_are_supported`
@@ -133,7 +116,9 @@ class EnvKeywordParser(LoadEnvCommon):
                     )
                     sys.exit(msg)
 
-                matched_env_name = self.get_env_name_for_alias(matched_alias)
+                matched_env_name = self.get_key_for_section_value(
+                    self.system_name, matched_alias
+                )
                 print(f"NOTICE:  Matched alias '{matched_alias}' in build "
                       f"name '{self.build_name}' to environment name "
                       f"'{matched_env_name}'.")
@@ -144,8 +129,6 @@ class EnvKeywordParser(LoadEnvCommon):
 
         return self._qualified_env_name
 
-# TODO: Will need to stay, but use get_values_for_section_key from
-#       KeywordParser
     def get_aliases(self):
         """
         Gets the aliases for the current :attr:`system_name` and returns them
@@ -159,149 +142,16 @@ class EnvKeywordParser(LoadEnvCommon):
         """
         # e.g. aliases = ['\ngnu  # GNU\ndefault-env # The default',
         #                 '\ncuda-gnu\ncuda']
-        aliases = [_ for _ in self.supported_envs[self.system_name].values()
-                   if _ is not None]
-        alias_str = "\n".join(aliases)
+        aliases = []
+        for env_name in self.config[self.system_name].keys():
+            aliases += self.get_values_for_section_key(self.system_name,
+                                                       env_name)
 
-        uncommented_alias_list = re.findall(
-            r"(?:\s*?#.*\n*)*([^#^\n]*)", alias_str
-        )
-        # Regex Explanation
-        # =================
-        # (?:\s*?#.*\n*)*([^#^\n]*)
-        # ^^^^^^^^^^^^^ ^ ^^^^^^^^
-        # |             | |
-        # |             | **Matching group for all non-#/non-\n characters
-        # |             |   (i.e. 'intel 18  ', 'intel_19', or 'intel-20')**
-        # |             |
-        # |             |----------------------------|
-        # |                                          |
-        # * Possible white space (\s*?),             |
-        # * followed by a # and text (#.*),          |
-        # * followed by 0 or more newlines (\n*),    |
-        # * all in a non-matching group (?:),        |
-        # * to match 0 or more of these comments. ---|
-        #
-        # So, given the string:
-        #     # Comment\nintel 18  # Comment\n intel-18.0.5\nintel_default # id
-        #
-        # re.findall would return ['intel 18  ', 'intel-18.0.5', '',
-        #                          'intel_default', '', '']
-        #
-        # We would next need to get rid of '' list entries and remove trailing
-        # white space, and replace '_' characters with '-'.
-        #
-        # This leaves us with:
-        #     ['intel-18', 'intel-18.0.5', 'intel-default']
+        self.assert_alias_list_values_are_unique(aliases)
+        self.assert_aliases_not_equal_to_env_names(aliases)
 
-        alias_list = [a.strip().replace("_", "-")
-                      for a in uncommented_alias_list if a != ""]
+        return aliases
 
-        self.assert_alias_list_values_are_unique(alias_list)
-        self.assert_aliases_not_equal_to_env_names(alias_list)
-        self.assert_aliases_do_not_contain_whitespace(alias_list)
-
-        return alias_list
-
-# TODO: Will likely need to stay
-    def get_env_name_for_alias(self, matched_alias):
-        """
-        Returns the environment name for which the alias specifies. For
-        example, ``matched_alias = intel`` would return
-        ``intel-18.0.5-mpich-7.7.6`` for the follwing configuration::
-
-            [machine-type-1]
-            intel-18.0.5-mpich-7.7.6:
-                intel-18
-                intel
-                default-env
-            intel-19.0.4-mpich-7.7.6:
-                intel-19
-
-        Parameters:
-            matched_alias (str):  The alias to find the environment name for.
-
-        Returns:
-            str:  The environment name for the alias.
-        """
-        unsorted_env_names = [_ for _ in
-                              self.supported_envs[self.system_name].keys()]
-
-        unparsed_aliases = [_ for _ in
-                            self.supported_envs[self.system_name].values()]
-
-        matched_index = None
-        for idx, a in enumerate(unparsed_aliases):
-            if a is None or a == "":
-                continue
-
-            # The following regex is explained in :func:`get_aliases`.
-            uncommented_alias_list = re.findall(
-                r"(?:\s*?#.*\n*)*([^#^\n]*)", a
-            )
-            aliases_for_env = [_.strip().replace("_", "-")
-                               for _ in uncommented_alias_list if _ != ""]
-            if matched_alias in aliases_for_env:
-                matched_index = idx
-                break
-
-        if matched_index is None:
-            msg = self.get_formatted_msg("Unable to find alias "
-                                         f"'{matched_alias}' in aliases "
-                                         f"for '{self.system_name}'.\n")
-            sys.exit(msg)
-
-        matched_env_name = unsorted_env_names[matched_index]
-
-        return matched_env_name
-
-# TODO: May be covered in KeywordParser
-    def get_msg_showing_supported_environments(self, msg, kind="ERROR"):
-        """
-        Similar to :func:`get_msg_for_list`, except it's a bit more specific.
-        Produces an error message like::
-
-            +=================================================================+
-            |   {kind}:  {msg}
-            |
-            |   - Supported Environments for 'machine-type-1':
-            |     - intel-18.0.5-mpich-7.7.6
-            |       * Aliases:
-            |         - intel-18
-            |         - intel
-            |         - default-env
-            |     - intel-19.0.4-mpich-7.7.6
-            |       * Aliases:
-            |         - intel-19
-            |   See {self.supported_envs_filename} for details.
-            +=================================================================+
-
-        Parameters:
-            msg (str):  The main error message to be displayed.  Can be
-                multiline.
-            kind (str):  The kind of message being generated, e.g., "ERROR",
-
-                "WARNING", "INFO", etc.
-
-        Returns:
-            str:  The formatted message.
-        """
-        extras = f"\n- Supported Environments for '{self.system_name}':\n"
-        for name in sorted(self.env_names):
-            extras += f"  - {name}\n"
-            aliases_for_env = sorted(
-                [a for a in self.aliases
-                 if self.get_env_name_for_alias(a) == name]
-            )
-            extras += ("    * Aliases:\n" if len(aliases_for_env) > 0 else "")
-            for a in aliases_for_env:
-                extras += (f"      - {a}\n")
-        extras += f"\nSee {self.supported_envs_filename} for details."
-        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
-        return msg
-
-# TODO: Will likely be needed to check for uniqueness across all aliases for a
-#       given system_name
     def assert_alias_list_values_are_unique(self, alias_list):
         """
         Ensures we don't run into a situation like::
@@ -330,7 +180,6 @@ class EnvKeywordParser(LoadEnvCommon):
             )
             sys.exit(msg)
 
-# TODO: Will likely still be needed after refactor
     def assert_aliases_not_equal_to_env_names(self, alias_list):
         """
         Ensures we don't run into a situation like::
@@ -362,29 +211,46 @@ class EnvKeywordParser(LoadEnvCommon):
             )
             sys.exit(msg)
 
-# TODO: Covered by KeywordParser
-    def assert_aliases_do_not_contain_whitespace(self, alias_list):
+    def get_msg_showing_supported_environments(self, msg, kind="ERROR"):
         """
-        Ensure there are no whitespaces in aliases; that is::
+        Similar to :func:`get_msg_for_list`, except it's a bit more specific.
+        Produces an error message like::
 
-            env-name:
-                alias-1 # This is okay.
-                alias 2 # This is not.
+            +=================================================================+
+            |   {kind}:  {msg}
+            |
+            |   - Supported Environments for 'machine-type-1':
+            |     - intel-18.0.5-mpich-7.7.6
+            |       * Aliases:
+            |         - intel-18
+            |         - intel
+            |         - default-env
+            |     - intel-19.0.4-mpich-7.7.6
+            |       * Aliases:
+            |         - intel-19
+            |   See {self.config_filename} for details.
+            +=================================================================+
 
         Parameters:
-            alias_list (str): A list of aliases to check for environemnt names.
+            msg (str):  The main error message to be displayed.  Can be
+                multiline.
+            kind (str):  The kind of message being generated, e.g., "ERROR",
 
-        Raises:
-            SystemExit:  If the user requests an unsupported version.
+                "WARNING", "INFO", etc.
+
+        Returns:
+            str:  The formatted message.
         """
-        aliases_w_whitespace = [_ for _ in alias_list if " " in _]
-        try:
-            assert aliases_w_whitespace == []
-        except AssertionError:
-            es = "es" if len(aliases_w_whitespace) > 1 else ""
-            s = "s" if len(aliases_w_whitespace) == 1 else ""
-            msg = self.get_msg_for_list(
-                f"The following alias{es} contain{s} whitespace:",
-                aliases_w_whitespace
+        extras = f"\n- Supported Environments for '{self.system_name}':\n"
+        for env_name in sorted(self.env_names):
+            extras += f"  - {env_name}\n"
+            aliases_for_env = sorted(
+                self.get_values_for_section_key(self.system_name, env_name)
             )
-            sys.exit(msg)
+            extras += ("    * Aliases:\n" if len(aliases_for_env) > 0 else "")
+            for a in aliases_for_env:
+                extras += f"      - {a}\n"
+
+        extras += f"\nSee {self.config_filename} for details."
+        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
+        return msg

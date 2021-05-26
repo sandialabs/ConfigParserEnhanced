@@ -44,7 +44,7 @@ def test_list_envs(system_name):
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
     with pytest.raises(TypeError) as excinfo:
-        le = LoadEnv(data)
+        LoadEnv(data)
     exc_msg = excinfo.value.args[0]
     assert "must be instantiated with a list" in exc_msg
 
