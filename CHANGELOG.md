@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.6.0] - < !-- YYYY-MM-DD or -- > [Unreleased]
+### Added
+- `ConfigParserEnhanced` now processes the "DEFAULT" section when parsing a .ini file.
+  If a DEFAULT section exists, then the contents of it should be processed _first_ before
+  the *root* section gets parsed in the search.
+### Changed
+- The logic for `TypedProperty` validator functions is reversed. Falsy results mean failure now
+  and truthy results indicate a successful validation of a value.
+### Deprecated
+### Removed
+### Fixed
+### Internal
+### Security
+
 ## [0.5.2] - 2021-05-19
 ### Added
 ### Changed
