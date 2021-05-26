@@ -118,15 +118,16 @@ class ConfigKeywordParser(KeywordParser):
         Returns:
             str:  The formatted message.
         """
-        items_list = ["Supported Flags Are:", []]
+        extras = "\n- Supported Flags Are:\n"
         for flag_name in self.flag_names:
+            extras += f"  - {flag_name}\n"
             options_for_flag = self.get_values_for_section_key("DEFAULT",
                                                                flag_name)
-            options_for_flag[0] += " (default)"
+            extras += ("    * Options:\n" if len(options_for_flag) > 0 else "")
+            for idx, o in enumerate(options_for_flag):
+                default = " (default)" if idx == 0 else ""
+                extras += (f"      - {o}{default}\n")
 
-            flag_options_list = [flag_name, ["Options:", options_for_flag]]
-            items_list[1] += flag_options_list
-
-        extras = f"\nSee {self.config_filename} for details."
-        msg = self.get_msg_for_list(msg, items_list, kind=kind, extras=extras)
+        extras += f"\nSee {self.config_filename} for details."
+        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg

@@ -211,9 +211,6 @@ class EnvKeywordParser(KeywordParser):
             )
             sys.exit(msg)
 
-# TODO: This can be generalized for both EnvKeywordParser and
-#       ConfigKeywordParser. Add swapping of 'Environments', 'Aliases', and the
-#       .ini file to see for details
     def get_msg_showing_supported_environments(self, msg, kind="ERROR"):
         """
         Similar to :func:`get_msg_for_list`, except it's a bit more specific.
@@ -244,19 +241,16 @@ class EnvKeywordParser(KeywordParser):
         Returns:
             str:  The formatted message.
         """
-        items_list = [f"Supported Environments for '{self.system_name}':", []]
+        extras = f"\n- Supported Environments for '{self.system_name}':\n"
         for env_name in sorted(self.env_names):
+            extras += f"  - {env_name}\n"
             aliases_for_env = sorted(
                 self.get_values_for_section_key(self.system_name, env_name)
             )
+            extras += ("    * Aliases:\n" if len(aliases_for_env) > 0 else "")
+            for a in aliases_for_env:
+                extras += f"      - {a}\n"
 
-            env_name_aliases_list = (
-                [env_name, ["Aliases:", aliases_for_env]]
-                if len(aliases_for_env) > 0
-                else [env_name]
-            )
-            items_list[1] += env_name_aliases_list
-
-        extras = f"\nSee {self.config_filename} for details."
-        msg = self.get_msg_for_list(msg, items_list, kind=kind, extras=extras)
+        extras += f"\nSee {self.config_filename} for details."
+        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg

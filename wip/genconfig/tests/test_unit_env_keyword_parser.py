@@ -188,15 +188,15 @@ def test_env_name_without_alias_okay():
         kind="TEST"
     )
     msg_expected = textwrap.dedent("""
-            |     - Supported Environments for 'test-system':
-            |       - another-env
-            |         - Aliases:
-            |           - with-an-alias
-            |       - env-name-aliases-empty-string
-            |       - env-name-aliases-none
-            |       - env-name-serial
-            |         - Aliases:
-            |           - env-name
+            |   - Supported Environments for 'test-system':
+            |     - another-env
+            |       * Aliases:
+            |         - with-an-alias
+            |     - env-name-aliases-empty-string
+            |     - env-name-aliases-none
+            |     - env-name-serial
+            |       * Aliases:
+            |         - env-name
         """).strip()
 
     assert msg_expected in msg

@@ -194,10 +194,11 @@ class KeywordParser:
         for idx, line in enumerate(msg.splitlines()):
             if idx == 0:
                 msg = f"|   {kind}:  {line}\n"
-            else:
+            elif line != "":
                 msg += f"|           {line}\n"
         for extra in extras.splitlines():
-            msg += f"|   {extra}\n"
+            space = "" if extra == "" else "   "
+            msg += f"|{space}{extra}\n"
         msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
         msg = msg.strip()
 
@@ -205,14 +206,12 @@ class KeywordParser:
 
     def get_msg_for_list(self, msg, item_list, kind="ERROR", extras=""):
         """
-        Helper function to generate a message using a list, which can be
-        nested. Produces a message like the following::
+        Helper function to generate a message using a list. Produces a message
+        like the following::
 
             +=================================================================+
             |   {kind}:  {msg}
-            |     - {item_list[0]}       # type(item_list[0]) == str
-            |       - {item_list[1][0]}  # type(item_list[1]) == list
-            |       - {item_list[1][1]}
+            |     - {item_list[0]}
             |     - {item_list[2]}
             |     - ...
             |     - {item_list[n]}
@@ -227,18 +226,8 @@ class KeywordParser:
         Returns:
             str:  The formatted message.
         """
-        def get_str_for_item_list(item_list, indent):
-            items_str = ""
-            for item in item_list:
-                if type(item) == str:
-                    items_str += f"{' '*indent}- {item}\n"
-                elif type(item) == list:
-                    items_str += get_str_for_item_list(item, indent+2)
-
-            return items_str
-
-        new_extras = get_str_for_item_list(item_list, 2)
-        new_extras += extras
-
-        msg = self.get_formatted_msg(msg, kind=kind, extras=new_extras)
+        extras = ""
+        for item in item_list:
+            extras += f"  - {item}\n"
+        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg

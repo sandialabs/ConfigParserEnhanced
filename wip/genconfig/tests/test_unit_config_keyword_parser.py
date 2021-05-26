@@ -103,15 +103,16 @@ def test_supported_flags_shown_correctly():
     msg_expected = textwrap.dedent(
         """
         |   ERROR:  Message here.
-        |     - Supported Flags Are:
-        |       - use-mpi
-        |         - Options:
-        |           - mpi (default)
-        |           - no-mpi
-        |       - node-type
-        |         - Options:
-        |           - serial (default)
-        |           - openmp
+        |
+        |   - Supported Flags Are:
+        |     - use-mpi
+        |       * Options:
+        |         - mpi (default)
+        |         - no-mpi
+        |     - node-type
+        |       * Options:
+        |         - serial (default)
+        |         - openmp
         """
     ).strip()
 
