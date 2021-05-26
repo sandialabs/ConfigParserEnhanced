@@ -25,6 +25,8 @@ include = [ "CHANGELOG.md" ]
 [tool.poetry.dependencies]
 python = "^3.6"
 setenvironment = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git", rev = "master"}
+determinesystem = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git", rev = "master"}
+keywordparser = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git", rev = "master"}
 
 
 [tool.poetry.dev-dependencies]
