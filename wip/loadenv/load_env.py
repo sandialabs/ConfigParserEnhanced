@@ -14,13 +14,12 @@ import os
 from pathlib import Path
 from setenvironment import SetEnvironment
 from src.env_keyword_parser import EnvKeywordParser
-from src.load_env_common import LoadEnvCommon
 import socket
 import sys
 import textwrap
 
 
-class LoadEnv(LoadEnvCommon):
+class LoadEnv:
     """
     Insert description here.
 
@@ -73,13 +72,18 @@ class LoadEnv(LoadEnvCommon):
                 self.args.supported_systems_file
             ).configparserenhanceddata
 
-    def __init__(self, argv):
+    def __init__(
+        self, argv,
+        load_env_ini_file=(Path(os.path.realpath(__file__)).parent /
+                           "src/load-env.ini")
+        # load_env_ini_file set here for testing purposes. It is not meant to
+        # be changed by the user.
+    ):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of "
                             "command line arguments.")
         self.argv = argv
-        self.load_env_ini_file = (Path(os.path.realpath(__file__)).parent /
-                                  "src/load-env.ini")
+        self.load_env_ini_file = load_env_ini_file
         self.load_env_config_data = None
         self.parse_top_level_config_file()
         self.supported_systems_data = None
@@ -195,6 +199,34 @@ class LoadEnv(LoadEnvCommon):
             )
         return files[-1]
 
+    def get_formatted_msg(self, msg, kind="ERROR", extras=""):
+        """
+        This helper method handles multiline messages, rendering them like::
+
+            +=================================================================+
+            |   {kind}:  Unable to find alias or environment name for system
+            |            'machine-type-1' in keyword string 'bad_kw_str'.
+            +=================================================================+
+
+        Parameters:
+            msg (str):  The error message, potentially with multiple lines.
+            kind (str):  The kind of message being generated, e.g., "ERROR",
+                "WARNING", "INFO", etc.
+            extras (str):  Any extra text to include after the initial ``msg``.
+
+        Returns:
+            str:  The formatted message.
+        """
+        for idx, line in enumerate(msg.splitlines()):
+            if idx == 0:
+                msg = f"|   {kind}:  {line}\n"
+            else:
+                msg += f"|           {line}\n"
+        for extra in extras.splitlines():
+            msg += f"|   {extra}\n"
+        msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
+        return msg
+
     @property
     def args(self):
         """
@@ -263,7 +295,7 @@ class LoadEnv(LoadEnvCommon):
                             "system name specified in the build_name rather "
                             "than the system name matched via the hostname "
                             "and the supported-systems.ini file.")
-        
+
         config_files = parser.add_argument_group(
             "configuration file overrides"
         )

@@ -118,6 +118,49 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     ).resolve()
 
 
+@pytest.mark.parametrize("data", [
+    {
+        "section_name": "invalid_section_name",
+        "key1": "supported-systems",
+        "key2": "supported-envs",
+        "key3": "environment-specs",
+        "value1": "test_supported_systems.ini",
+        "err_msg": "'bad_load_env.ini' must contain a 'load-env' section.",
+    },
+    {
+        "section_name": "load-env",
+        "key1": "bad-key",
+        "key2": "supported-envs",
+        "key3": "environment-specs",
+        "value1": "test_supported_systems.ini",
+        "err_msg": ("'bad_load_env.ini' must contain the following in the "
+                    "'load-env' section:"),
+    },
+    {
+        "section_name": "load-env",
+        "key1": "supported-systems",
+        "key2": "supported-envs",
+        "key3": "environment-specs",
+        "value1": "",
+        "err_msg": ("The path specified for 'supported-systems' in "
+                    "'bad_load_env.ini' must be non-empty"),
+    },
+])
+def test_invalid_load_env_file_raises(data):
+    bad_load_env_ini = (
+        f"[{data['section_name']}]\n"
+        f"{data['key1']} : {data['value1']}\n"
+        f"{data['key2']} : test_supported_envs.ini\n"
+        f"{data['key3']} : test_environment_specs.ini\n"
+    )
+    filename = "bad_load_env.ini"
+    with open(filename, "w") as f:
+        f.write(bad_load_env_ini)
+
+    with pytest.raises(ValueError, match=data["err_msg"]):
+        LoadEnv(["build_name"], load_env_ini_file=filename)
+
+
 ######################################################################
 #  EnvKeywordParser (ekp) Basic Interaction (not integration tests)  #
 ######################################################################
