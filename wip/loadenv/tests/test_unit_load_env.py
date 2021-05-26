@@ -231,7 +231,7 @@ def test_correct_arguments_are_passed_to_set_environment_object(
     mock_ds_obj = mock.Mock()
     mock_ds_obj.system_name = "machine-type-1"
     mock_ds.return_value = mock_ds_obj
-    qualified_env_name = "machine-type-1-intel-18.0.5-mpich-7.7.6"
+    qualified_env_name = "machine-type-1_intel-18.0.5-mpich-7.7.6"
     mock_ekp_obj = mock.Mock()
     mock_ekp_obj.qualified_env_name = qualified_env_name
     mock_ekp.return_value = mock_ekp_obj
@@ -277,3 +277,28 @@ def test_load_matching_env_is_set_correctly_and_directories_are_created(
                      if output is None else Path(output)).resolve()
     assert expected_file.parent.exists()
     assert load_matching_env == expected_file
+
+
+@patch("load_env.EnvKeywordParser")
+@patch("load_env.SetEnvironment")
+@patch("load_env.DetermineSystem")
+def test_apply_env_returns_nonzero_raises(
+    mock_ds, mock_se, mock_ekp
+):
+    mock_ds_obj = mock.Mock()
+    mock_ds_obj.system_name = "machine-type-1"
+    mock_ds.return_value = mock_ds_obj
+
+    qualified_env_name = "machine-type-1_intel-18.0.5-mpich-7.7.6"
+    mock_ekp_obj = mock.Mock()
+    mock_ekp_obj.qualified_env_name = qualified_env_name
+    mock_ekp.return_value = mock_ekp_obj
+
+    mock_se_obj = mock.Mock()
+    mock_se_obj.apply.return_value = 1
+    mock_se.return_value = mock_se_obj
+
+    le = LoadEnv(argv=["build_name"])
+    with pytest.raises(RuntimeError, match=("Something unexpected went wrong "
+                                            "in applying the environment.")):
+        le.apply_env()

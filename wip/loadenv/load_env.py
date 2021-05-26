@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-TODO:
-
-    * Increase test coverage.
-
-"""
-
 import argparse
 from configparserenhanced import ConfigParserEnhanced
 from determinesystem import DetermineSystem
