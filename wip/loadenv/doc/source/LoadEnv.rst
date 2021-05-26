@@ -1,7 +1,7 @@
 LoadEnv
 =======
 
-.. automodule:: load_env
+.. automodule:: loadenv.LoadEnv
    :members:
    :undoc-members:
    :show-inheritance:

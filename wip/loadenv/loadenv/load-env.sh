@@ -7,12 +7,12 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ] ; then
 fi
 
 # Ensure the python3 in the user's environment is high enough.
-#python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 9))')     # Uncomment this block when we want to
-#if [[ "${python_too_old}" == "True" ]]; then                                    # enforce a particular Python version.
-#  echo "This script requires Python 3.9+."                                      #
-#  echo "Your current `python3` is only $(python3 --version)."                   #
-#  return 1                                                                      #
-#fi                                                                              #
+python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
+if [[ "${python_too_old}" == "True" ]]; then
+  echo "This script requires Python 3.6+."
+  echo "Your current `python3` is only $(python3 --version)."
+  return 1
+fi
 
 # Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"

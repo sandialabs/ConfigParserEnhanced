@@ -1,7 +1,7 @@
 EnvKeywordParser
 ================
 
-.. automodule:: src.env_keyword_parser
+.. automodule:: loadenv.EnvKeywordParser
    :members:
    :undoc-members:
    :show-inheritance:

@@ -6,7 +6,7 @@ from determinesystem import DetermineSystem
 import os
 from pathlib import Path
 from setenvironment import SetEnvironment
-from src.env_keyword_parser import EnvKeywordParser
+from loadenv.EnvKeywordParser import EnvKeywordParser
 import socket
 import sys
 import textwrap
@@ -68,7 +68,7 @@ class LoadEnv:
     def __init__(
         self, argv,
         load_env_ini_file=(Path(os.path.realpath(__file__)).parent /
-                           "src/load-env.ini")
+                           "load-env.ini")
         # load_env_ini_file set here for testing purposes. It is not meant to
         # be changed by the user.
     ):
@@ -298,20 +298,20 @@ class LoadEnv:
                                   type=lambda p: Path(p).resolve(),
                                   help="Path to ``supported-systems.ini``.  "
                                   "Overrides loading the file specified in "
-                                  "``load_env.ini``.")
+                                  "``load-env.ini``.")
         config_files.add_argument("--supported-envs", default=None,
                                   dest="supported_envs_file", action="store",
                                   type=lambda p: Path(p).resolve(),
                                   help="Path to ``supported-envs.ini``.  "
                                   "Overrides loading the file specified in "
-                                  "``load_env.ini``.")
+                                  "``load-env.ini``.")
         config_files.add_argument("--environment-specs",
                                   dest="environment_specs_file",
                                   action="store", default=None,
                                   type=lambda p: Path(p).resolve(),
                                   help="Path to ``environment-specs.ini``.  "
                                   "Overrides loading the file specified in "
-                                  "``load_env.ini``.")
+                                  "``load-env.ini``.")
 
         return parser
 

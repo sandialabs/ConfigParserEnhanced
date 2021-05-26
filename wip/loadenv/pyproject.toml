@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "loadenv"
+version = "0.0.1"
+description = "Environment loading tool."
+authors = [
+    "Josh Braun <josbrau@sandia.gov>",
+    "Jason M. Gates <jmgate@sandia.gov>"
+]
+readme = "README.md"
+documentation = "http://10.202.35.89:8080/LoadEnv/doc/index.html"
+repository = "https://internal.gitlab.server/trilinos-devops-consolidation/code/LoadEnv"
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: DevOps',
+    'Intended Audience :: Developers',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+]
+packages = [
+    { include = 'loadenv' }
+]
+include = [ "CHANGELOG.md" ]
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+setenvironment = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git", rev = "master"}
+determinesystem = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git", rev = "master"}
+keywordparser = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git", rev = "master"}
+
+
+[tool.poetry.dev-dependencies]
+mock = "^4.0.3"
+pytest = "^6.2.2"
+pytest-cov = "^2.11.1"
+Sphinx = "^3.5.1"
+sphinx-argparse = "^0.2.5"
+sphinx-rtd-theme = "^0.5.1"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -8,7 +8,7 @@ root_dir = (Path.cwd()/".."
             else Path.cwd())
 
 sys.path.append(str(root_dir))
-from load_env import LoadEnv
+from loadenv.LoadEnv import LoadEnv
 
 
 ####################################################
@@ -120,3 +120,25 @@ def test_correct_commands_are_saved(mock_gethostname, inputs):
 
     for expected_cmd in inputs["expected_cmds"]:
         assert expected_cmd in load_matching_env_contents
+
+
+@pytest.mark.parametrize("output",
+                         [None, "test_dir/load_matching_env.sh"])
+@patch("socket.gethostname")
+def test_load_matching_env_is_set_correctly_and_directories_are_created(
+    mock_gethostname, output
+):
+    if output is not None:
+        assert Path(output).exists() is False
+
+    mock_gethostname.return_value = "stria"
+    argv = (["arm"]
+            if output is None
+            else ["arm", "--output", output])
+    le = LoadEnv(argv=argv)
+    load_matching_env = le.write_load_matching_env()
+
+    expected_file = (Path("/tmp/load_matching_env.sh")
+                     if output is None else Path(output)).resolve()
+    assert expected_file.parent.exists()
+    assert load_matching_env == expected_file
