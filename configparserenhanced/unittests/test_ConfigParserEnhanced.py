@@ -1375,13 +1375,14 @@ class ConfigParserEnhancedTest(TestCase):
         # get the DEFAUL in _that_ sections data?
 
         section = "SECTION-A"
-        parser.parse_section(section)
+
         ref_cpedata = parser.configparserenhanceddata
 
         section_data_expect = {'default_key': 'default_value',
                                'keyA1': 'value A1',
                                'keyA2': 'value A2',
                                'keyA3': 'value A3'}
+
         section_data_actual = ref_cpedata.get(section)
         self.assertDictEqual(section_data_expect, section_data_actual)
 
