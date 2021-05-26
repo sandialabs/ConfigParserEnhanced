@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 from setenvironment import SetEnvironment
 from loadenv.EnvKeywordParser import EnvKeywordParser
-from loadenv.LoadEnvCommon import LoadEnvCommon
 import socket
 import sys
 import textwrap
@@ -18,7 +17,7 @@ class LoadEnv:
     Insert description here.
 
     Attributes:
-        argv:  The command line arguments passed to ``load-env.sh``.
+        argv:  The command line arguments passed to ``load_env.sh``.
     """
 
     def parse_top_level_config_file(self):
@@ -262,7 +261,7 @@ class LoadEnv:
         examples = """
             Basic Usage::
 
-                source load-env.sh <build-name-here>
+                source load-env.sh <build-name>
         """
         examples = textwrap.dedent(examples)
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
@@ -285,7 +284,7 @@ class LoadEnv:
                             "environment identical to the one loaded when "
                             "using this tool.")
         parser.add_argument("-f", "--force", action="store_true",
-                            default=False, help="Forces the tool to use the "
+                            default=False, help="Forces load_env to use the "
                             "system name specified in the build_name rather "
                             "than the system name matched via the hostname "
                             "and the supported-systems.ini file.")
