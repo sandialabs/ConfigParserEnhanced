@@ -1,4 +1,5 @@
 from keywordparser import KeywordParser
+import sys
 
 
 class ConfigKeywordParser(KeywordParser):
@@ -32,17 +33,13 @@ class ConfigKeywordParser(KeywordParser):
     Parameters:
         build_name (str):  Keyword string to parse configuration flag/option
             pairs from.
-        qualified_env_name (str):  The fully qualified environment name from
-            `LoadEnv`.
         supported_config_flags_filename (str, Path):  The name of the file to
             load the supported configuration flags and options from.
     """
 
-    def __init__(self, build_name, qualified_env_name,
-                 supported_config_flags_filename):
+    def __init__(self, build_name, supported_config_flags_filename):
         self.config_filename = supported_config_flags_filename
         self._build_name = build_name
-        self.qualified_env_name = qualified_env_name
         self.delimiter = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
@@ -66,7 +63,7 @@ class ConfigKeywordParser(KeywordParser):
     @property
     def complete_config(self):
         if not hasattr(self, "_complete_config"):
-            complete_config = self.qualified_env_name
+            complete_config = ""
             for flag in self.selected_options.keys():
                 if type(self.selected_options[flag]) == list:
                     for option in self.selected_options[flag]:
@@ -116,6 +113,8 @@ class ConfigKeywordParser(KeywordParser):
         """
         if (not hasattr(self, "_selected_options")
                 or not hasattr(self, "_flags_selected_by_default")):
+            self.assert_options_are_unique_across_all_flags()
+
             build_name_options = self.build_name.split(self.delimiter)
             selected_options = {}
             flags_selected_by_default = {}
@@ -173,6 +172,46 @@ class ConfigKeywordParser(KeywordParser):
             ))
 
         return options, flag_type
+
+    def is_default_option(self, option):
+        if not hasattr(self, "_default_options"):
+            defaults = []
+            for flag_name in self.flag_names:
+                options, flag_type = self.get_options_and_flag_type_for_flag(
+                    flag_name
+                )
+                defaults.append(options[0])
+
+            self._default_options = defaults
+
+        return option in self._default_options
+
+    def assert_options_are_unique_across_all_flags(self):
+        if not hasattr(self, "_options_list"):
+            options_list = []
+            for flag_name in self.flag_names:
+                options, flag_type = self.get_options_and_flag_type_for_flag(
+                    flag_name
+                )
+                options_list += options
+
+            self._options_list = options_list
+
+        duplicates = [_ for _ in set(self._options_list)
+                      if self._options_list.count(_) > 1]
+        try:
+            assert duplicates == []
+        except AssertionError:
+            these = "these" if len(duplicates) > 1 else "this"
+            it = "it" if len(duplicates) > 1 else "they"
+            s = "s" if len(duplicates) > 1 else ""
+            msg = self.get_msg_for_list(
+                "The following options appear for multiple flags in\n"
+                f"'{self.config_filename}':",
+                duplicates, extras=f"Please change {these} to be unique "
+                f"for each flag\nin which {it} appear{s}."
+            )
+            sys.exit(msg)
 
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """
