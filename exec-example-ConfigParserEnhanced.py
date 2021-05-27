@@ -6,6 +6,7 @@ Example app for ConfigParserEnhanced.
 from __future__ import print_function  # python 2 -> 3 compatiblity
 
 import os
+from pprint import pprint
 import sys
 
 from configparserenhanced import ConfigParserEnhanced
@@ -62,10 +63,11 @@ def test_configparserEnhanced(filename="config.ini"):
     parser.exception_control_compact_warnings = True
     parser.exception_control_silent_warnings  = False
 
-    #section = "SECTION-A+"
-    section = "SECTION C+"
+    section = "SECTION-A+"
+    #section = "SECTION C+"
     #section = "OPERAND_TEST"
 
+    data = parser.configparserenhanceddata["SECTION-A+"]
     #
     # Check if 'key 4' is a member of this section in the basic configparserenhanceddata
     # result ()
@@ -136,6 +138,7 @@ def main():
     main app
     """
     fname_ini = "config_test_configparserenhanced.ini"
+    # fname_ini = "config_test_configparserenhanced_default.ini"
     fpath_ini = find_config_ini(filename=fname_ini)
 
     experimental(filename=fpath_ini) # Should this be removed?

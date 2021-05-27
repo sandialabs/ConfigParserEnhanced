@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ConfigParserEnhanced` now processes the "DEFAULT" section when parsing a .ini file.
   If a DEFAULT section exists, then the contents of it should be processed _first_ before
   the *root* section gets parsed in the search.
+- `_default_section_name` is added as a new property to control the underlying "DEFAULT"
+  section for the `ConfigParser` that is doing the heavy lifting of the .ini file parsing.
+  This **DOES NOT** affect the `DEFAULT` section which is included _once_ in each root-section that
+  gets parsed, if it exists.
 ### Changed
 - The logic for `TypedProperty` validator functions is reversed. Falsy results mean failure now
   and truthy results indicate a successful validation of a value.
@@ -27,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 ### Internal
+- The internal `ConfigParser` object is changed so that the internal "DEFAULT" section is now
+  set to a nonstandard value. In this case we control that via the new typed property `_default_section_name`
+  which defaults to `CONFIGPARSERENHANCED_COMMON`.
+  Generally, we do not expect this to be used since the underlying `ConfigParser` will prepend the contents
+  of this section to _every_ section loaded, which causes problems for the `use` operations since any `default`
+  options that have been changed will be overridden every time a new `use` is encountered.
 ### Security
 
 ## [0.5.2] - 2021-05-19

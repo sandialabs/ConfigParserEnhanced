@@ -6,9 +6,15 @@ import copy
 import typing
 
 
+
+class SENTINEL:
+    pass
+
+
+
 def typed_property(name: str,
                    expected_type=(int,str),
-                   default=None,
+                   default=SENTINEL,
                    default_factory=lambda: None,
                    req_assign_before_use=False,
                    internal_type=None,
@@ -58,7 +64,7 @@ def typed_property(name: str,
         if req_assign_before_use is True and getattr(self, varname_set) is False:
             raise UnboundLocalError("Property {} referenced before assigned.".format(name))
         if not hasattr(self, varname):
-            if default is not None:
+            if default is not SENTINEL:
                 setattr(self, varname, copy.deepcopy(default))
             else:
                 if not callable(default_factory):

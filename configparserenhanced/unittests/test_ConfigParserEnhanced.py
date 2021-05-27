@@ -1356,11 +1356,11 @@ class ConfigParserEnhancedTest(TestCase):
 
         ref_cpedata = parser.configparserenhanceddata
 
-        section_data_expect = {'default_key': 'default_value',
-                               'keyA1': 'value A1',
-                               'keyA2': 'value A2',
-                               'keyA3': 'value A3',
-                               'keyA+4': 'value A+ 4'}
+        section_data_expect = {'Key D1': 'value A+D1',     # overwritten in section A+
+                               'key A1': 'value A1',
+                               'key A2': 'value A2',
+                               'key A3': 'value A+3',      # overwritten in section A+
+                               'key A+4': 'value A+4'}
 
         # retrieves the _cached_ result from the earlier parse.
         # - Note: if we omit the `parse_section` command above then
@@ -1378,10 +1378,10 @@ class ConfigParserEnhancedTest(TestCase):
 
         ref_cpedata = parser.configparserenhanceddata
 
-        section_data_expect = {'default_key': 'default_value',
-                               'keyA1': 'value A1',
-                               'keyA2': 'value A2',
-                               'keyA3': 'value A3'}
+        section_data_expect = {'Key D1': 'value D1',
+                               'key A1': 'value A1',
+                               'key A2': 'value A2',
+                               'key A3': 'value A3'}
 
         section_data_actual = ref_cpedata.get(section)
         self.assertDictEqual(section_data_expect, section_data_actual)
@@ -1536,14 +1536,16 @@ class ConfigParserEnhancedDataTest(TestCase):
         parser.exception_control_level = 5
         parser.exception_control_compact_warnings = True
 
+        default_section_name = parser._internal_default_section_name
+
         print("-----[ TEST START ]--------------------------------------------------")
         parser.configparserenhanceddata.data = {}
-        self.assertTrue("DEFAULT" in parser.configparserenhanceddata.data.keys())
+        self.assertTrue(default_section_name in parser.configparserenhanceddata.data.keys())
         print("-----[ TEST END   ]--------------------------------------------------")
 
         print("-----[ TEST START ]--------------------------------------------------")
-        parser.configparserenhanceddata.data = { "DEFAULT": {} }
-        self.assertTrue("DEFAULT" in parser.configparserenhanceddata.data.keys())
+        parser.configparserenhanceddata.data = { default_section_name: {} }
+        self.assertTrue(default_section_name in parser.configparserenhanceddata.data.keys())
         print("-----[ TEST END   ]--------------------------------------------------")
 
         print("OK")
@@ -1565,7 +1567,7 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         print("-----[ TEST START ]--------------------------------------------------")
 
-        data = parser.parse_section(section)
+        parser.parse_section(section)
 
         inst = ConfigParserEnhanced.ConfigParserEnhancedData(parser)
 
@@ -1589,7 +1591,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         print("-----[ TEST END   ]--------------------------------------------------")
 
         print("OK")
-        return
+        return 0
 
 
     def test_ConfigParserDataEnhanced_ini_section_has_empty_section(self):
@@ -1778,10 +1780,13 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         print("-----[ TEST START ]--------------------------------------------------")
 
-        section = "DEFAULT"
+        section = parser._internal_default_section_name
         print("Section  : {}".format(section))
-        result_expect = {}
+
+        #with self.assertRaises(KeyError):
         result_actual = parser.configparserenhanceddata[section]
+
+        result_expect = {}
         self.assertDictEqual(result_expect, result_actual)
 
         print("-----[ TEST END   ]--------------------------------------------------")
@@ -1892,7 +1897,7 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         print("-----[ TEST START ]--------------------------------------------------")
         key_list_expect = [
-            'DEFAULT',          # Note: a 'DEFAULT' section is created by default in ConfigParser.
+            parser._internal_default_section_name,     # This is the 'DEFAULT' section (redefined for CPE)
             'SECTION-A',
             'SECTION-B',
             'SECTION C',
@@ -1945,7 +1950,7 @@ class ConfigParserEnhancedDataTest(TestCase):
 
         print("-----[ TEST START ]--------------------------------------------------")
         sec_list_expect = [
-            'DEFAULT',          # Note: a 'DEFAULT' section is created by default in ConfigParser.
+            parser._internal_default_section_name,
             'SECTION-A',
             'SECTION-B',
             'SECTION C',
@@ -2169,7 +2174,7 @@ class ConfigParserEnhancedDataTest(TestCase):
         print("-----[ TEST END   ]--------------------------------------------------")
 
         print("OK")
-        return
+        return 0
 
 
     def test_ConfigParserDataEnhanced_has_section_no_parse(self):
@@ -2225,6 +2230,8 @@ class ConfigParserEnhancedDataTest(TestCase):
         print("-----[ TEST START ]--------------------------------------------------")
         count_expect = 23
         count_actual = 0
+        for k,v in parser.configparserenhanceddata.items():
+            pass
         for k,v in parser.configparserenhanceddata.items():
             print("{}:{}".format(k,v))
             count_actual += 1

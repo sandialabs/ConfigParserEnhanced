@@ -128,6 +128,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                                                req_assign_before_use=True,
                                                internal_type=dict)
 
+    default_section_name = typed_property("default_section_name",
+                                          str,
+                                          default="DEFAULT")
+
+    _internal_default_section_name = typed_property("_internal_default_section_name",
+                                                    str,
+                                                    default="CONFIGPARSERENHANCED_COMMON")
 
     @property
     def inifilepath(self) -> list:
@@ -205,7 +212,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         if not hasattr(self, '_configparserdata'):
             self._configparserdata = configparser.ConfigParser(allow_no_value=True,
-                                                               delimiters=self.configparser_delimiters
+                                                               delimiters=self.configparser_delimiters,
+                                                               default_section=self._internal_default_section_name
                                                                )
 
             # Prevent ConfigParser from lowercasing the keys.
@@ -436,9 +444,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if section is None:
             for section in section_list:
-                # A `DEFAULT` section is always added even if it doesn't exist.
-                # Let's skip adding it if it's empty.
-                if section=="DEFAULT" and len(parser.configparserenhanceddata.items(section)) == 0:
+                if section==self._internal_default_section_name and len(parser.configparserenhanceddata[section]) == 0:
                     continue
                 output_str += __generate_section(section, parser, delimiter)
                 output_str += "\n"
@@ -749,8 +755,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_initialize_params.handler_name = "handler_initialize"
             self.handler_initialize(section_name, handler_initialize_params)
 
-            if self.configparserdata.has_section("DEFAULT"):
-                self._parse_section_r("DEFAULT", handler_parameters=handler_parameters,
+            if self.configparserdata.has_section(self.default_section_name):
+                self._parse_section_r(self.default_section_name, handler_parameters=handler_parameters,
                                       initialize=False, finalize=False)
 
         self.debug_message(1, ">>> Enter section    : `{}`".format(section_name))                   # Console Logging
@@ -766,6 +772,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if current_section is None:                                                                 # pragma: no cover (UNREACHABLE)
             raise Exception("ERROR: Unable to load section `{}` for an unknown reason.".format(section_name))
+
+        # Add empty section to configparserenhanceddata
+        self.configparserenhanceddata.add_section(section_name)
 
         # Initialize and set processed_sections.
         self._validate_handlerparameters(handler_parameters)
@@ -1369,9 +1378,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             """
             if not hasattr(self, '_data'):
-                self._data = {
-                    "DEFAULT": {}
-                }
+                self._data = {}
+                if self._owner is not None:
+                    self._data[self._owner._internal_default_section_name] = {}
             return self._data
 
 
@@ -1382,8 +1391,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not isinstance(value, dict):
                 raise TypeError("data must be a `dict` type.")
             self._data = value
-            if "DEFAULT" not in self._data.keys():
-                self._data["DEFAULT"] = {}
+            if self._owner is not None and self._owner._internal_default_section_name not in self._data.keys():
+                self._data[self._owner._internal_default_section_name] = {}
             return self._data
 
 
@@ -1483,8 +1492,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             Returns:
                 boolean: True if the section exists, False if otherwise.
             """
-
-            # If we have an owner (we should)
             if self._owner != None:
                 # If this section exists...
                 if self._owner.configparserdata.has_section(section):
