@@ -41,11 +41,27 @@ class ConfigKeywordParser(KeywordParser):
     def __init__(self, build_name, qualified_env_name,
                  supported_config_flags_filename):
         self.config_filename = supported_config_flags_filename
-        self.build_name = build_name
+        self._build_name = build_name
         self.qualified_env_name = qualified_env_name
         self.delimiter = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
+
+    @property
+    def build_name(self):
+        return self._build_name
+
+    @build_name.setter
+    def build_name(self, new_build_name):
+        # Clear any data generated from the old build_name
+        if hasattr(self, "_complete_config"):
+            delattr(self, "_complete_config")
+        if hasattr(self, "_selected_options"):
+            delattr(self, "_selected_options")
+        if hasattr(self, "_flags_selected_by_default"):
+            delattr(self, "_flags_selected_by_default")
+
+        self._build_name = new_build_name
 
     @property
     def complete_config(self):
