@@ -8,7 +8,7 @@ class ConfigKeywordParser(KeywordParser):
 
         # supported-config-flags.ini
 
-        [DEFAULT]
+        [configure-flags]
         use-mpi:
             mpi # the first option is the default if neither is specified in the build name
             no-mpi
@@ -39,17 +39,19 @@ class ConfigKeywordParser(KeywordParser):
     def __init__(self, build_name, supported_config_flags_filename):
         self.config_filename = supported_config_flags_filename
         self.build_name = build_name
+        self.delimiter = "_"
 
-        self.flag_names = [_ for _ in self.config["DEFAULT"].keys()]
+        self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
 
-    @property
-    def selected_options(self):
+    def parse_selected_options(self):
         """
-        Parses the :attr:`build_name` and returns a dictionary containing the
+        Parses the :attr:`build_name` into a dictionary containing the
         supported flags as keys and the corresponding selected options as
         values.
         The way this happens is:
 
+        TODO: UPDATE THIS
+        =======================================================================
             * Split the :attr:`build_name` by the delimiter `_`.
             * For each supported flag name in the `supported-config-flags.ini`:
                 * Find the options for this flag that exist in the
@@ -63,30 +65,67 @@ class ConfigKeywordParser(KeywordParser):
         Returns:
             dict:  A `dict` containing key/value pairs of flags and selected
             options, as found in the :attr:`build_name`.
+        =======================================================================
         """
-        if not hasattr(self, "_selected_options"):
-            build_name_options = self.build_name.lower().split("_")
+        if (not hasattr(self, "_selected_options")
+                and not hasattr(self, "_flags_selected_by_default")):
+            build_name_options = self.build_name.split(self.delimiter)
             selected_options = {}
+            flags_selected_by_default = {}
 
             for flag_name in self.flag_names:
-                options = self.get_values_for_section_key("DEFAULT", flag_name)
-                options = [_ for _ in options]
+                options = self.get_values_for_section_key("configure-flags", flag_name)
+                select_one_or_many = options[0]
+                options = options[1:]
+
+                if select_one_or_many not in ["SELECT-ONE", "SELECT-MANY"]:
+                    raise ValueError(self.get_formatted_msg(
+                        f"The options for the '{flag_name}' "
+                        "flag must begin with either 'SELECT-ONE' or "
+                        "'SELECT-MANY'. For example:",
+                        extras=(f"\n  {flag_name}:  SELECT-ONE\n"
+                                "    option_1\n"
+                                "    option_2\n"
+                                "\nPlease modify your config file: "
+                                f"'{self.config_filename}'.")
+                    ))
 
                 options_in_build_name = [_ for _ in options
-                                         if _.lower() in build_name_options]
-                if len(options_in_build_name) > 1:
+                                         if _ in build_name_options]
+                if (len(options_in_build_name) > 1
+                        and select_one_or_many == "SELECT-ONE"):
                     raise ValueError(self.get_msg_for_list(
-                        f"Multiple options for '{flag_name}' found in build "
-                        "name:", options_in_build_name
+                        "Multiple options found in build name for SELECT-ONE "
+                        f"flag '{flag_name}':",
+                        options_in_build_name
                     ))
+                elif (len(options_in_build_name) > 1
+                        and select_one_or_many == "SELECT-MANY"):
+                    selected_options[flag_name] = options_in_build_name
+                    flags_selected_by_default[flag_name] = False
                 elif len(options_in_build_name) == 0:
                     selected_options[flag_name] = options[0]
+                    flags_selected_by_default[flag_name] = True
                 else:
                     selected_options[flag_name] = options_in_build_name[0]
+                    flags_selected_by_default[flag_name] = False
 
             self._selected_options = selected_options
+            self._flags_selected_by_default = flags_selected_by_default
+
+    @property
+    def selected_options(self):
+        if not hasattr(self, "_selected_options"):
+            self.parse_selected_options()
 
         return self._selected_options
+
+    @property
+    def flags_selected_by_default(self):
+        if not hasattr(self, "_flags_selected_by_default"):
+            self.parse_selected_options()
+
+        return self._flags_selected_by_default
 
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """
@@ -121,7 +160,7 @@ class ConfigKeywordParser(KeywordParser):
         extras = "\n- Supported Flags Are:\n"
         for flag_name in self.flag_names:
             extras += f"  - {flag_name}\n"
-            options_for_flag = self.get_values_for_section_key("DEFAULT",
+            options_for_flag = self.get_values_for_section_key("configure-flags",
                                                                flag_name)
             extras += ("    * Options:\n" if len(options_for_flag) > 0 else "")
             for idx, o in enumerate(options_for_flag):
