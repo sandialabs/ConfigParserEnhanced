@@ -444,8 +444,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if section is None:
             for section in section_list:
-                if section==self._internal_default_section_name and len(parser.configparserenhanceddata[section]) == 0:
-                    continue
                 output_str += __generate_section(section, parser, delimiter)
                 output_str += "\n"
         else:
@@ -756,7 +754,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.handler_initialize(section_name, handler_initialize_params)
 
             if self.configparserdata.has_section(self.default_section_name):
-                self._parse_section_r(self.default_section_name, handler_parameters=handler_parameters,
+                self._parse_section_r(self.default_section_name,
+                                      handler_parameters=handler_parameters,
                                       initialize=False, finalize=False)
 
         self.debug_message(1, ">>> Enter section    : `{}`".format(section_name))                   # Console Logging
@@ -773,7 +772,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if current_section is None:                                                                 # pragma: no cover (UNREACHABLE)
             raise Exception("ERROR: Unable to load section `{}` for an unknown reason.".format(section_name))
 
-        # Add empty section to configparserenhanceddata
+        # At this point we should know we have a valid/existing section.
+
         self.configparserenhanceddata.add_section(section_name)
 
         # Initialize and set processed_sections.
@@ -843,12 +843,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_finalize_params = self._new_handler_parameters(handler_parameters)
             handler_finalize_params.handler_name = "handler_finalize"
             self.handler_finalize(section_name, handler_finalize_params)
-
-        # When leaving recursion, we should add the section if it doesn't exist.
-        # - configparserenhanceddata.add_section() only adds if the section doesn't exist.
-        # - we should only add an 'empty' section if it actually exists in the .ini file.
-        if self.configparserdata.has_section(section_name):
-            self.configparserenhanceddata.add_section(section_name)
 
         # Remove the section from the `processed_sections` field when we exit.
         # - This properly enables a true depth-first search of `use` links.
@@ -1379,8 +1373,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             if not hasattr(self, '_data'):
                 self._data = {}
-                if self._owner is not None:
-                    self._data[self._owner._internal_default_section_name] = {}
+#                if self._owner is not None:
+#                    self._data[self._owner._internal_default_section_name] = {}
             return self._data
 
 
@@ -1391,8 +1385,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not isinstance(value, dict):
                 raise TypeError("data must be a `dict` type.")
             self._data = value
-            if self._owner is not None and self._owner._internal_default_section_name not in self._data.keys():
-                self._data[self._owner._internal_default_section_name] = {}
+#            if self._owner is not None and self._owner._internal_default_section_name not in self._data.keys():
+#                self._data[self._owner._internal_default_section_name] = {}
             return self._data
 
 
@@ -1421,7 +1415,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             section_list = self.data.keys()
 
             if self._owner != None:
-                section_list = self._owner.configparserdata.keys()
+                #section_list = self._owner.configparserdata.keys()
+                section_list = self._owner.configparserdata.sections()
 
             return section_list
 

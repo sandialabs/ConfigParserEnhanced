@@ -66,8 +66,9 @@ def test_configparserEnhanced(filename="config.ini"):
     section = "SECTION-A+"
     #section = "SECTION C+"
     #section = "OPERAND_TEST"
+    section = "EMPTY_SECTION"
 
-    data = parser.configparserenhanceddata["SECTION-A+"]
+    data = parser.configparserenhanceddata[section]
     #
     # Check if 'key 4' is a member of this section in the basic configparserenhanceddata
     # result ()

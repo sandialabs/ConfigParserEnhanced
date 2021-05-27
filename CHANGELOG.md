@@ -1,8 +1,17 @@
-# Changelog
+Changelog
+=========
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Nomenclature
+------------
+- CPE : Short for `ConfigParserEnhanced`.
+
+
+Updates and Changes
+===================
 
 <!--
 ## [X.Y.Z] - < !-- YYYY-MM-DD or -- > [Unreleased]
@@ -17,13 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - < !-- YYYY-MM-DD or -- > [Unreleased]
 ### Added
-- `ConfigParserEnhanced` now processes the "DEFAULT" section when parsing a .ini file.
-  If a DEFAULT section exists, then the contents of it should be processed _first_ before
-  the *root* section gets parsed in the search.
-- `_default_section_name` is added as a new property to control the underlying "DEFAULT"
-  section for the `ConfigParser` that is doing the heavy lifting of the .ini file parsing.
-  This **DOES NOT** affect the `DEFAULT` section which is included _once_ in each root-section that
-  gets parsed, if it exists.
+- property: `default_section_name` - parameterizes the CPE's version of the "DEFAULT" section.
+  This defaults to "DEFAULT" and will get loaded in _once_ at the start a new parse of a section.
 ### Changed
 - The logic for `TypedProperty` validator functions is reversed. Falsy results mean failure now
   and truthy results indicate a successful validation of a value.
@@ -31,13 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 ### Fixed
 ### Internal
-- The internal `ConfigParser` object is changed so that the internal "DEFAULT" section is now
-  set to a nonstandard value. In this case we control that via the new typed property `_default_section_name`
-  which defaults to `CONFIGPARSERENHANCED_COMMON`.
-  Generally, we do not expect this to be used since the underlying `ConfigParser` will prepend the contents
-  of this section to _every_ section loaded, which causes problems for the `use` operations since any `default`
-  options that have been changed will be overridden every time a new `use` is encountered.
+- property: `_internal_default_section_name` - parameterizes the internal ConfigParser object's
+  _DEFAULT_ section to a _nonstandard_ value (`CONFIGPARSERENHANCED_COMMON`).
+  This section name should generally be avoided in .ini files as it can cause undefined behavior
+  in CPE's recursive search when there are `use` operations present. This is because ConfigParser's
+  DEFAULT section will be prepended to _each_ section processed. This will invalidate any changes
+  made in a CPE section to a value set in the default.
 ### Security
+
 
 ## [0.5.2] - 2021-05-19
 ### Added
