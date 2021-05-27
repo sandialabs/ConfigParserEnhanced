@@ -74,33 +74,19 @@ class ConfigKeywordParser(KeywordParser):
             flags_selected_by_default = {}
 
             for flag_name in self.flag_names:
-                options = self.get_values_for_section_key("configure-flags", flag_name)
-                select_one_or_many = options[0]
-                options = options[1:]
-
-                if select_one_or_many not in ["SELECT-ONE", "SELECT-MANY"]:
-                    raise ValueError(self.get_formatted_msg(
-                        f"The options for the '{flag_name}' "
-                        "flag must begin with either 'SELECT-ONE' or "
-                        "'SELECT-MANY'. For example:",
-                        extras=(f"\n  {flag_name}:  SELECT-ONE\n"
-                                "    option_1\n"
-                                "    option_2\n"
-                                "\nPlease modify your config file: "
-                                f"'{self.config_filename}'.")
-                    ))
-
+                options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
                 options_in_build_name = [_ for _ in options
                                          if _ in build_name_options]
+
                 if (len(options_in_build_name) > 1
-                        and select_one_or_many == "SELECT-ONE"):
+                        and flag_type == "SELECT-ONE"):
                     raise ValueError(self.get_msg_for_list(
                         "Multiple options found in build name for SELECT-ONE "
                         f"flag '{flag_name}':",
                         options_in_build_name
                     ))
                 elif (len(options_in_build_name) > 1
-                        and select_one_or_many == "SELECT-MANY"):
+                        and flag_type == "SELECT-MANY"):
                     selected_options[flag_name] = options_in_build_name
                     flags_selected_by_default[flag_name] = False
                 elif len(options_in_build_name) == 0:
@@ -159,14 +145,43 @@ class ConfigKeywordParser(KeywordParser):
         """
         extras = "\n- Supported Flags Are:\n"
         for flag_name in self.flag_names:
+            options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
+
             extras += f"  - {flag_name}\n"
-            options_for_flag = self.get_values_for_section_key("configure-flags",
-                                                               flag_name)
-            extras += ("    * Options:\n" if len(options_for_flag) > 0 else "")
-            for idx, o in enumerate(options_for_flag):
+            s = "s" if len(options) > 0 else ""
+            extras += f"    * Option{s} ({flag_type}):\n"
+            for idx, o in enumerate(options):
                 default = " (default)" if idx == 0 else ""
                 extras += (f"      - {o}{default}\n")
 
         extras += f"\nSee {self.config_filename} for details."
         msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg
+
+    def get_options_and_flag_type_for_flag(self, flag_name):
+        """
+        A thin wrapper around :func:`get_values_for_section_key` that applies
+        special rules to ensure flags specify their type (SELECT-ONE or
+        SELECT-MANY) as the first option.
+
+        Returns:
+            tuple:  A tuple containing the 1) list of options and 2) flag type,
+            respectively.
+        """
+        options = self.get_values_for_section_key("configure-flags", flag_name)
+        flag_type = options[0]
+        options = options[1:]
+
+        if flag_type not in ["SELECT-ONE", "SELECT-MANY"]:
+            raise ValueError(self.get_formatted_msg(
+                f"The options for the '{flag_name}' "
+                "flag must begin with either\n'SELECT-ONE' or "
+                "'SELECT-MANY'.  For example:",
+                extras=(f"\n    {flag_name}:  SELECT-ONE\n"
+                        "      option_1\n"
+                        "      option_2\n"
+                        "\nPlease modify your config file accordingly:\n"
+                        f"  '{self.config_filename}'.")
+            ))
+
+        return options, flag_type
