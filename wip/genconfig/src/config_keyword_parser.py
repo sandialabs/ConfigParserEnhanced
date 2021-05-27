@@ -1,4 +1,4 @@
-from src.keyword_parser import KeywordParser
+from keywordparser import KeywordParser
 
 
 class ConfigKeywordParser(KeywordParser):
