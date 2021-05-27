@@ -1,8 +1,17 @@
-# Changelog
+Changelog
+=========
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Nomenclature
+------------
+- CPE : Short for `ConfigParserEnhanced`.
+
+
+Updates and Changes
+===================
 
 <!--
 ## [X.Y.Z] - < !-- YYYY-MM-DD or -- > [Unreleased]
@@ -14,6 +23,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Internal
 ### Security
 -->
+
+## [0.6.0] - < !-- YYYY-MM-DD or -- > [Unreleased]
+### Added
+- property: `default_section_name` - parameterizes the CPE's version of the "DEFAULT" section.
+  This defaults to "DEFAULT" and will get loaded in _once_ at the start a new parse of a section.
+### Changed
+- The logic for `TypedProperty` validator functions is reversed. Falsy results mean failure now
+  and truthy results indicate a successful validation of a value.
+### Deprecated
+### Removed
+### Fixed
+### Internal
+- property: `_internal_default_section_name` - parameterizes the internal ConfigParser object's
+  _DEFAULT_ section to a _nonstandard_ value (`CONFIGPARSERENHANCED_COMMON`).
+  This section name should generally be avoided in .ini files as it can cause undefined behavior
+  in CPE's recursive search when there are `use` operations present. This is because ConfigParser's
+  DEFAULT section will be prepended to _each_ section processed. This will invalidate any changes
+  made in a CPE section to a value set in the default.
+### Security
+
 
 ## [0.5.2] - 2021-05-19
 ### Added

@@ -53,6 +53,7 @@ import configparser
 import io
 import os
 from pathlib import Path
+from pprint import pprint
 import re
 import shlex
 import sys
@@ -127,6 +128,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                                                req_assign_before_use=True,
                                                internal_type=dict)
 
+    default_section_name = typed_property("default_section_name",
+                                          str,
+                                          default="DEFAULT")
+
+    _internal_default_section_name = typed_property("_internal_default_section_name",
+                                                    str,
+                                                    default="CONFIGPARSERENHANCED_COMMON")
 
     @property
     def inifilepath(self) -> list:
@@ -204,7 +212,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         if not hasattr(self, '_configparserdata'):
             self._configparserdata = configparser.ConfigParser(allow_no_value=True,
-                                                               delimiters=self.configparser_delimiters
+                                                               delimiters=self.configparser_delimiters,
+                                                               default_section=self._internal_default_section_name
                                                                )
 
             # Prevent ConfigParser from lowercasing the keys.
@@ -435,10 +444,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if section is None:
             for section in section_list:
-                # A `DEFAULT` section is always added even if it doesn't exist.
-                # Let's skip adding it if it's empty.
-                if section=="DEFAULT" and len(parser.configparserenhanceddata.items(section)) == 0:
-                    continue
                 output_str += __generate_section(section, parser, delimiter)
                 output_str += "\n"
         else:
@@ -482,6 +487,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             :attr:`~.HandlerParameters.data_shared` property from :class:`~.HandlerParameters`.
             Unless :class:`~.HandlerParameters` is changed, this wil be a ``dict`` type.
         """
+        # If a previous run generated _loginfo, clear it before this run.
+        self._reset_lazy_attr("_loginfo")
+
         self.debug_message(1, "[" + "-"*58 + ']')
         self.debug_message(1, "  Parse section `{}` START".format(section))
         self.debug_message(1, "[" + "-"*58 + ']')
@@ -489,9 +497,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if section == "":
             raise ValueError("`section` cannot be empty.")
-
-        # If a previous run generated _loginfo, clear it before this run.
-        self._reset_lazy_attr("_loginfo")
 
         # Parse the requested section.
         result = self._parse_section_r(section, initialize=initialize, finalize=finalize)
@@ -748,7 +753,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_initialize_params.handler_name = "handler_initialize"
             self.handler_initialize(section_name, handler_initialize_params)
 
-        self.debug_message(1, "Enter section    : `{}`".format(section_name))                       # Console Logging
+            if self.configparserdata.has_section(self.default_section_name):
+                self._parse_section_r(self.default_section_name,
+                                      handler_parameters=handler_parameters,
+                                      initialize=False, finalize=False)
+
+        self.debug_message(1, ">>> Enter section    : `{}`".format(section_name))                   # Console Logging
         self._loginfo_add('section-entry', {'name': section_name})                                  # Logging
 
         # Load the section from the configparser.ConfigParser data.
@@ -761,6 +771,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         if current_section is None:                                                                 # pragma: no cover (UNREACHABLE)
             raise Exception("ERROR: Unable to load section `{}` for an unknown reason.".format(section_name))
+
+        # At this point we should know we have a valid/existing section.
+
+        self.configparserenhanceddata.add_section(section_name)
 
         # Initialize and set processed_sections.
         self._validate_handlerparameters(handler_parameters)
@@ -808,9 +822,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 handler_parameters.params = params
 
                 self._loginfo_add('section-operation', {'op': op, 'params': params } )              # Logging
-                self.debug_message(2, " -> op           : {}".format(handler_parameters.op))             # Console
-                self.debug_message(2, " -> params       : {}".format(handler_parameters.params))         # Console
-                self.debug_message(2, " -> value        : {}".format(handler_parameters.value))          # Console
+                self.debug_message(2, " -> op           : {}".format(handler_parameters.op))        # Console
+                self.debug_message(2, " -> params       : {}".format(handler_parameters.params))    # Console
+                self.debug_message(2, " -> value        : {}".format(handler_parameters.value))     # Console
 
                 handler_name,ophandler_f = self._locate_handler_method(handler_parameters.op)
 
@@ -829,12 +843,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_finalize_params = self._new_handler_parameters(handler_parameters)
             handler_finalize_params.handler_name = "handler_finalize"
             self.handler_finalize(section_name, handler_finalize_params)
-
-        # When leaving recursion, we should add the section if it doesn't exist.
-        # - configparserenhanceddata.add_section() only adds if the section doesn't exist.
-        # - we should only add an 'empty' section if it actually exists in the .ini file.
-        if self.configparserdata.has_section(section_name):
-            self.configparserenhanceddata.add_section(section_name)
 
         # Remove the section from the `processed_sections` field when we exit.
         # - This properly enables a true depth-first search of `use` links.
@@ -1364,9 +1372,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             """
             if not hasattr(self, '_data'):
-                self._data = {
-                    "DEFAULT": {}
-                }
+                self._data = {}
             return self._data
 
 
@@ -1377,8 +1383,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not isinstance(value, dict):
                 raise TypeError("data must be a `dict` type.")
             self._data = value
-            if "DEFAULT" not in self._data.keys():
-                self._data["DEFAULT"] = {}
             return self._data
 
 
@@ -1407,7 +1411,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             section_list = self.data.keys()
 
             if self._owner != None:
-                section_list = self._owner.configparserdata.keys()
+                section_list = self._owner.configparserdata.sections()
 
             return section_list
 
@@ -1478,8 +1482,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             Returns:
                 boolean: True if the section exists, False if otherwise.
             """
-
-            # If we have an owner (we should)
             if self._owner != None:
                 # If this section exists...
                 if self._owner.configparserdata.has_section(section):
@@ -1656,7 +1658,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     self._set_owner_options()
                     self._sections_checked.add(section)
                     self._owner.parse_section(section)
-                    #self._owner.parse_section(section, initialize=False, finalize=False)
 
             return
 

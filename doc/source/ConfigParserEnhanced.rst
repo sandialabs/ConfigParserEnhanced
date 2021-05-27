@@ -41,7 +41,7 @@ The following operations are applied to the **operation** field:
 Extending through Inheritance
 =============================
 
-One example of how we might extend :class:`~configparserenhanced.ConfigParserEnhanced` to add an
+One example of how we might extend :class:`configparserenhanced.ConfigParserEnhanced` to add an
 operation that might prepend to an environment variable could be
 the following. Say we wish to prepend to the ``PATH`` environment variable by adding a new
 *operation* called ``envvar-prepend`` that might be invoked in this
@@ -75,6 +75,29 @@ with a parameter ``PATH``. It will then look for a method called
 The strings "A" and "B" on lines 2 and 3 of the ``.ini`` file are solely
 used to uniqueify the entries within the section ``SET_PATH_VARS``.
 
+
+Dealing with DEFAULT sections
+=============================
+The underlying ``ConfigParser`` instance inside :class:`configparserenhanced.ConfigParserEnhanced`
+has a notion of a special *default* section that it can process. The name of this section can be
+changed but it defaults to "DEFAULT".
+
+Normally, the contents of DEFAULT are prepended to *every section* that is read by ConfigParser.
+This is a problem for ConfigParserEnhanced because the contents of this section will be re-applied
+to a sections content *every time* a ``use`` operation is encountered because ``use`` triggers
+the loading of a new section. When this happens, any values from the default section that had been
+changed will be re-set to their original values. This is not something we want, but it is useful to
+keep the concept of a "DEFAULT" section.
+
+We implement this by changing the default section name for the internal ConfigParser object to
+a new value: ``CONFIGPARSERENHANCED_COMMON``.  Generally speaking, one should not include this
+in their .ini files for the reasons already presented. The name of this is controlled by the
+new property :attr:`_internal_default_section_name`.
+
+To include the original concept of a default section we have another property called
+:attr:`default_section_name` which defaults to "DEFAULT". This section is processed once
+at the start of parsing a new section and provides a behaviour that should be familiar
+to users of ConfigParser.
 
 
 API Documentation
@@ -174,3 +197,15 @@ Public Interface
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+ConfigParserEnhanced and ConfigParser Differences
+=================================================
+There are some differences between ConfigParser and ConfigParserEnhanced
+that are worthwhile to note:
+
+1. ``ConfigParser.keys()`` and ``ConfigParserEnhancedData.keys()`` work slightly differently:
+    - ``ConfigParser.keys()`` will return a ``KeyView`` object that when iterated will
+      include the ``DEFAULT`` section even if it's not present in the .ini file.
+    - ``ConfigParserEnhancedData.keys()`` does not include the ``DEFAULT`` section if it
+      does not exist in the file.

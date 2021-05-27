@@ -6,9 +6,15 @@ import copy
 import typing
 
 
+
+class SENTINEL:
+    pass
+
+
+
 def typed_property(name: str,
                    expected_type=(int,str),
-                   default=None,
+                   default=SENTINEL,
                    default_factory=lambda: None,
                    req_assign_before_use=False,
                    internal_type=None,
@@ -32,11 +38,15 @@ def typed_property(name: str,
         internal_type (<type>): Sets the ``<type>`` that the value is stored as (via typecast)
             internally. This is done during *assignment*.
         validator (func): A special validation function that can be called during assignment
-            to provide additional checks. Default=None (i.e., no extra validation).
+            to provide additional checks such as list size, allowable values, etc.
+            If the validator's return value is *truthy* the check suceeds, otherwise
+            the check has failed and a ``ValueError`` will be raised.
+            Default=None (i.e., no extra validation).
         transform (func): A function that can be used to transform the value before assignment.
 
     Raises:
         TypeError: if the assigned value is of the wrong type on assigmment.
+        ValueError: if a *validator* is provided and the check fails (is Falsy).
         UnboundLocalError: If ``req_assign_before_use`` is True and an attempt to read
             the property is made before it's been assigned.
 
@@ -54,7 +64,7 @@ def typed_property(name: str,
         if req_assign_before_use is True and getattr(self, varname_set) is False:
             raise UnboundLocalError("Property {} referenced before assigned.".format(name))
         if not hasattr(self, varname):
-            if default is not None:
+            if default is not SENTINEL:
                 setattr(self, varname, copy.deepcopy(default))
             else:
                 if not callable(default_factory):
@@ -88,7 +98,7 @@ def typed_property(name: str,
 
         if validator is not None:
             if callable(validator):
-                if validator(value):
+                if not validator(value):
                     raise ValueError("Assignment of `{}` to property `{}` ".format(value,name) +
                                      "failed validation check in `{}`".format(validator))
             else:
