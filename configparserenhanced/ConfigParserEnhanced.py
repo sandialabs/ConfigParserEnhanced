@@ -1373,8 +1373,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             if not hasattr(self, '_data'):
                 self._data = {}
-#                if self._owner is not None:
-#                    self._data[self._owner._internal_default_section_name] = {}
             return self._data
 
 
@@ -1385,8 +1383,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not isinstance(value, dict):
                 raise TypeError("data must be a `dict` type.")
             self._data = value
-#            if self._owner is not None and self._owner._internal_default_section_name not in self._data.keys():
-#                self._data[self._owner._internal_default_section_name] = {}
             return self._data
 
 
@@ -1415,7 +1411,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             section_list = self.data.keys()
 
             if self._owner != None:
-                #section_list = self._owner.configparserdata.keys()
                 section_list = self._owner.configparserdata.sections()
 
             return section_list

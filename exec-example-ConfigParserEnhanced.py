@@ -66,7 +66,7 @@ def test_configparserEnhanced(filename="config.ini"):
     section = "SECTION-A+"
     #section = "SECTION C+"
     #section = "OPERAND_TEST"
-    section = "EMPTY_SECTION"
+    #section = "EMPTY_SECTION"
 
     data = parser.configparserenhanceddata[section]
     #
