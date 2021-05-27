@@ -43,6 +43,7 @@ class ConfigKeywordParser(KeywordParser):
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
 
+    # TODO: UPDATE THIS DOCSTRING
     def parse_selected_options(self):
         """
         Parses the :attr:`build_name` into a dictionary containing the
@@ -50,8 +51,6 @@ class ConfigKeywordParser(KeywordParser):
         values.
         The way this happens is:
 
-        TODO: UPDATE THIS
-        =======================================================================
             * Split the :attr:`build_name` by the delimiter `_`.
             * For each supported flag name in the `supported-config-flags.ini`:
                 * Find the options for this flag that exist in the
@@ -65,7 +64,6 @@ class ConfigKeywordParser(KeywordParser):
         Returns:
             dict:  A `dict` containing key/value pairs of flags and selected
             options, as found in the :attr:`build_name`.
-        =======================================================================
         """
         if (not hasattr(self, "_selected_options")
                 and not hasattr(self, "_flags_selected_by_default")):
