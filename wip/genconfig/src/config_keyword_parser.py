@@ -32,16 +32,49 @@ class ConfigKeywordParser(KeywordParser):
     Parameters:
         build_name (str):  Keyword string to parse configuration flag/option
             pairs from.
+        qualified_env_name (str):  The fully qualified environment name from
+            `LoadEnv`.
         supported_config_flags_filename (str, Path):  The name of the file to
             load the supported configuration flags and options from.
     """
 
-    def __init__(self, build_name, supported_config_flags_filename):
+    def __init__(self, build_name, qualified_env_name,
+                 supported_config_flags_filename):
         self.config_filename = supported_config_flags_filename
         self.build_name = build_name
+        self.qualified_env_name = qualified_env_name
         self.delimiter = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
+
+    @property
+    def complete_config(self):
+        if not hasattr(self, "_complete_config"):
+            complete_config = self.qualified_env_name
+            for flag in self.selected_options.keys():
+                if type(self.selected_options[flag]) == list:
+                    for option in self.selected_options[flag]:
+                        complete_config += f"_{option}"
+                else:
+                    complete_config += f"_{self.selected_options[flag]}"
+
+            self._complete_config = complete_config
+
+        return self._complete_config
+
+    @property
+    def selected_options(self):
+        if not hasattr(self, "_selected_options"):
+            self.parse_selected_options()
+
+        return self._selected_options
+
+    @property
+    def flags_selected_by_default(self):
+        if not hasattr(self, "_flags_selected_by_default"):
+            self.parse_selected_options()
+
+        return self._flags_selected_by_default
 
     # TODO: UPDATE THIS DOCSTRING
     def parse_selected_options(self):
@@ -66,7 +99,7 @@ class ConfigKeywordParser(KeywordParser):
             options, as found in the :attr:`build_name`.
         """
         if (not hasattr(self, "_selected_options")
-                and not hasattr(self, "_flags_selected_by_default")):
+                or not hasattr(self, "_flags_selected_by_default")):
             build_name_options = self.build_name.split(self.delimiter)
             selected_options = {}
             flags_selected_by_default = {}
@@ -97,19 +130,33 @@ class ConfigKeywordParser(KeywordParser):
             self._selected_options = selected_options
             self._flags_selected_by_default = flags_selected_by_default
 
-    @property
-    def selected_options(self):
-        if not hasattr(self, "_selected_options"):
-            self.parse_selected_options()
+    def get_options_and_flag_type_for_flag(self, flag_name):
+        """
+        A thin wrapper around :func:`get_values_for_section_key` that applies
+        special rules to ensure flags specify their type (SELECT-ONE or
+        SELECT-MANY) as the first option.
 
-        return self._selected_options
+        Returns:
+            tuple:  A tuple containing the 1) list of options and 2) flag type,
+            respectively.
+        """
+        options = self.get_values_for_section_key("configure-flags", flag_name)
+        flag_type = options[0]
+        options = options[1:]
 
-    @property
-    def flags_selected_by_default(self):
-        if not hasattr(self, "_flags_selected_by_default"):
-            self.parse_selected_options()
+        if flag_type not in ["SELECT-ONE", "SELECT-MANY"]:
+            raise ValueError(self.get_formatted_msg(
+                f"The options for the '{flag_name}' "
+                "flag must begin with either\n'SELECT-ONE' or "
+                "'SELECT-MANY'.  For example:",
+                extras=(f"\n    {flag_name}:  SELECT-ONE\n"
+                        "      option_1\n"
+                        "      option_2\n"
+                        "\nPlease modify your config file accordingly:\n"
+                        f"  '{self.config_filename}'.")
+            ))
 
-        return self._flags_selected_by_default
+        return options, flag_type
 
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """
@@ -155,31 +202,3 @@ class ConfigKeywordParser(KeywordParser):
         extras += f"\nSee {self.config_filename} for details."
         msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg
-
-    def get_options_and_flag_type_for_flag(self, flag_name):
-        """
-        A thin wrapper around :func:`get_values_for_section_key` that applies
-        special rules to ensure flags specify their type (SELECT-ONE or
-        SELECT-MANY) as the first option.
-
-        Returns:
-            tuple:  A tuple containing the 1) list of options and 2) flag type,
-            respectively.
-        """
-        options = self.get_values_for_section_key("configure-flags", flag_name)
-        flag_type = options[0]
-        options = options[1:]
-
-        if flag_type not in ["SELECT-ONE", "SELECT-MANY"]:
-            raise ValueError(self.get_formatted_msg(
-                f"The options for the '{flag_name}' "
-                "flag must begin with either\n'SELECT-ONE' or "
-                "'SELECT-MANY'.  For example:",
-                extras=(f"\n    {flag_name}:  SELECT-ONE\n"
-                        "      option_1\n"
-                        "      option_2\n"
-                        "\nPlease modify your config file accordingly:\n"
-                        f"  '{self.config_filename}'.")
-            ))
-
-        return options, flag_type
