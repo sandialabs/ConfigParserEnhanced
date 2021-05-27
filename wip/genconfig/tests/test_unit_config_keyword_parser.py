@@ -118,8 +118,9 @@ def test_parser_correctly_stores_whether_options_were_selected_by_default(
     {
         "build_name": "machine-type-5_openmp_muelu_sparc_no-mpi",
         "expected_complete_config": "_no-mpi_openmp_sparc_muelu",
-        # Order here is dependent on order --^________________________^
-        # within supported-config-flags.ini
+        # Order here is dependent ---^________________________^
+        # on the order within
+        # supported-config-flags.ini
     },
 ])
 def test_complete_config_generated_consistently(data):
