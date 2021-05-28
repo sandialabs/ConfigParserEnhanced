@@ -196,10 +196,7 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
             newval = os.pathsep.join(entry_list_new)
             envvar_set(envvar_name, newval, allow_empty)
     elif op == "find_in_path":
-        try:
-            envvar_value = envvar_find_in_path(envvar_value)
-        except FileNotFoundError:
-            envvar_value = ""
+        envvar_value = envvar_find_in_path(envvar_value)
         envvar_set(envvar_name, envvar_value, allow_empty)
     elif op == "assert_not_empty":
         if not envvar_exists or os.environ[envvar_name] == "":

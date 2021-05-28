@@ -25,6 +25,8 @@ from mock import Mock
 from mock import MagicMock
 from mock import patch
 
+import pytest
+
 import filecmp
 from textwrap import dedent
 
@@ -1750,17 +1752,6 @@ class SetEnvironmentTest(TestCase):
                         "ls not found in path.")
         print("-----[ TEST END ]------------------------------------------")
 
-
-        print("-----[ TEST BEGIN ]----------------------------------------")
-        print("Test location of an application that is NOT FOUND in the PATH.")
-        envvar_name = "TEST_ENVVAR_NOTFOUND"
-        self.assertTrue(envvar_name in os.environ.keys(),
-                        "Missing expected envvar: {}".format(envvar_name))
-        self.assertTrue(os.environ[envvar_name] == "",
-                        "Missing executable {} expected an empty-envvar".format(envvar_name))
-        print("-----[ TEST END ]------------------------------------------")
-
-
         print("-----[ TEST BEGIN ]----------------------------------------")
         print("Test location of app that IS IN PATH:")
         print("- distutils.spawn.find_executable fails")
@@ -1775,19 +1766,48 @@ class SetEnvironmentTest(TestCase):
                         "ls not found in path.")
         print("-----[ TEST END ]------------------------------------------")
 
+        print("OK")
+        return
 
+
+    def test_SetEnvironment_handler_envvar_find_in_path_nonexistent_raises(self):
+        """
+        Test ``envvar_find_in_path``
+
+        This test checks that running ``envvar-find-in-path`` on a non-existent
+        app raises a FileNotFound exception.
+        """
+        print("\n")
+        print("Load file: {}".format(self._filename))
+        parser = SetEnvironment(self._filename)
+        parser.debug_level = 0
+        parser.exception_control_level = 4
+        parser.exception_control_compact_warnings = False
+
+        section = "ENVVAR_FIND_IN_PATH_NOT_FOUND_TEST"
         print("-----[ TEST BEGIN ]----------------------------------------")
-        print("Test location of app that IS NOT IN PATH:")
+        print("Test finding location of app that IS NOT IN PATH:")
+        print("Section  : {}".format(section))
+
+        # parse a section
+        data = parser.parse_section(section)
+
+        # Pretty print the actions (unchecked)
+        print("")
+        parser.pretty_print_actions(section)
+
+        print("")
         print("- distutils.spawn.find_executable fails")
         print("- shutil.which fails")
-        with patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_NotFound):
-            parser.apply(section)
+        print("- Expecting FileNotFoundError to be raised")
+        with patch('distutils.spawn.find_executable',
+                   side_effect=mock_distutils_spawn_find_executable_NotFound):
+            with pytest.raises(FileNotFoundError) as excinfo:
+                parser.apply(section)
 
-        envvar_name = "TEST_ENVVAR_NOTFOUND"
-        self.assertTrue(envvar_name in os.environ.keys(),
-                        "Missing expected envvar: {}".format(envvar_name))
-        self.assertTrue(os.environ[envvar_name] == "",
-                        "Missing executable {} expected an empty-envvar".format(envvar_name))
+        exc_msg = excinfo.value.args[0]
+        print(f"\n* Got FileNotFoundError with message: {exc_msg}")
+
         print("-----[ TEST END ]------------------------------------------")
         print("OK")
         return
