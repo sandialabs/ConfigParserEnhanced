@@ -38,6 +38,46 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     assert le.parsed_env_name == inputs["expected_env"]
 
 
+@pytest.mark.parametrize("inputs_2", [
+    {
+        "build_name": "intel-knl",
+        "hostname": "mutrino",
+        "expected_env_name": "machine-type-1_intel-19.0.4-mpich-7.7.15-knl-openmp",
+        "expected_sys_name": "machine-type-1",
+    },
+    {
+        "build_name": "arm-serial",
+        "hostname": "stria",
+        "expected_env_name": "machine-type-4_arm-20.0-openmpi-4.0.2-serial",
+        "expected_sys_name": "machine-type-4",
+    }
+])
+@patch("socket.gethostname")
+def test_loadenv_obj_can_be_reused_for_multiple_build_names(mock_gethostname,
+                                                            inputs_2):
+    inputs_1 = {
+        "build_name": "intel-hsw",
+        "hostname": "mutrino",
+        "expected_env_name": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp",
+        "expected_sys_name": "machine-type-1"
+    }
+    mock_gethostname.return_value = inputs_1["hostname"]
+
+    le = LoadEnv(argv=[
+        "--supported-systems", "test_supported_systems.ini",
+        "--supported-envs", "test_supported_envs.ini",
+        "--environment-specs", "test_environment_specs.ini",
+        inputs_1["build_name"]
+    ])
+    assert le.parsed_env_name == inputs_1["expected_env_name"]
+    assert le.system_name == inputs_1["expected_sys_name"]
+
+    mock_gethostname.return_value = inputs_2["hostname"]
+    le.build_name = inputs_2["build_name"]
+    assert le.parsed_env_name == inputs_2["expected_env_name"]
+    assert le.system_name == inputs_2["expected_sys_name"]
+
+
 #####################################################################
 #  DetermineSystem + EnvKeywordParser + SetEnvironment Integration  #
 #####################################################################
