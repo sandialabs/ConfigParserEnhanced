@@ -90,6 +90,21 @@ class LoadEnv:
         self.set_environment = None
 
     @property
+    def build_name(self):
+        return self.args.build_name
+
+    @build_name.setter
+    def build_name(self, new_build_name):
+        # Clear any data generated from the old build_name
+        if hasattr(self, "_system_name"):
+            delattr(self, "_system_name")
+        if hasattr(self, "_parsed_env_name"):
+            delattr(self, "_parsed_env_name")
+        self.env_keyword_parser = None
+
+        self.args.build_name = new_build_name
+
+    @property
     def system_name(self):
         """
         The name of the system from which the tool will select an environment.
