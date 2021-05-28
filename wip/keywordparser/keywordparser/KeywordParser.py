@@ -215,6 +215,7 @@ class KeywordParser:
             |     - {item_list[2]}
             |     - ...
             |     - {item_list[n]}
+            |   {extras}
             +=================================================================+
 
         Parameters:
@@ -226,8 +227,9 @@ class KeywordParser:
         Returns:
             str:  The formatted message.
         """
-        extras = ""
+        new_extras = ""
         for item in item_list:
-            extras += f"  - {item}\n"
-        msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
+            new_extras += f"  - {item}\n"
+        new_extras += extras
+        msg = self.get_formatted_msg(msg, kind=kind, extras=new_extras)
         return msg

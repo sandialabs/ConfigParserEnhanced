@@ -1,6 +1,7 @@
 from pathlib import Path
 import pytest
 import sys
+import textwrap
 
 root_dir = (Path.cwd()/".."
             if (Path.cwd()/"conftest.py").exists()
@@ -127,3 +128,24 @@ def test_matched_value_not_in_config_section_raises():
 
     assert ("ERROR:  Unable to find value 'bad_value' in values for "
             "'machine-type-1'") in exc_msg
+
+
+def test_get_msg_for_list_works_correctly():
+    kp = KeywordParser("test_supported_envs.ini")
+
+    item_list = ["item1", "item2", "item3"]
+    msg = kp.get_msg_for_list("Message here.", item_list,
+                              extras="\nExtra message here.")
+
+    msg_expected = textwrap.dedent(
+        """
+        |   ERROR:  Message here.
+        |     - item1
+        |     - item2
+        |     - item3
+        |
+        |   Extra message here.
+        """
+    ).strip()
+
+    assert msg_expected in msg
