@@ -1,6 +1,11 @@
 #!/bin/bash
 export HTTPS_PROXY=http://user:nopass@proxy.sandia.gov:80
-pip_args="--trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org install --user -U"
+if [ -n "$VIRTUAL_ENV" -a -w "$VIRTUAL_ENV" ]
+then
+    pip_args="--trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org install -U"
+else
+    pip_args="--trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org install --user -U"
+fi
 
 rm -rf deps > /dev/null 2>&1; mkdir deps; cd deps
 git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/ConfigParserEnhanced.git
