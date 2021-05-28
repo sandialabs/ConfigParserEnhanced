@@ -87,8 +87,9 @@ def test_values_are_unique():
             kp.get_values_for_section_key("machine-type-1", key)
     exc_msg = excinfo.value.args[0]
 
+    print(exc_msg)
     assert ("Values for 'bad_config.ini'['machine-type-1']['intel-18.0.5-mpich-7.7.15'] "
-            "contains duplicates: ") in exc_msg
+            "contains duplicates:") in exc_msg
     assert "- intel-18" in exc_msg
 
 
@@ -149,3 +150,18 @@ def test_get_msg_for_list_works_correctly():
     ).strip()
 
     assert msg_expected in msg
+
+
+def test_get_formatted_msg_trims_trailing_whitespace():
+    kp = KeywordParser("test_supported_envs.ini")
+
+    msg = kp.get_formatted_msg("Message here.", extras="Extra   ")
+    msg_expected = textwrap.dedent(
+        """
+        |   ERROR:  Message here.
+        |   Extra
+        """
+    ).strip()
+
+    assert msg_expected in msg
+    assert "Extra   " not in msg

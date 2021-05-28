@@ -197,10 +197,9 @@ class KeywordParser:
             elif line != "":
                 msg += f"|           {line}\n"
         for extra in extras.splitlines():
-            space = "" if extra == "" else "   "
-            msg += f"|{space}{extra}\n"
+            msg += f"|   {extra}\n"
         msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
-        msg = msg.strip()
+        msg = re.sub(r"\s+\n", "\n", msg)  # Remove trailing whitespace
 
         return msg
 
