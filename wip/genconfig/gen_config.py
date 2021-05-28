@@ -9,6 +9,7 @@ TODO:
 
 import argparse
 from configparserenhanced import ConfigParserEnhanced
+from loadenv import LoadEnv
 import os
 from pathlib import Path
 from setprogramoptions import SetProgramOptions
@@ -35,21 +36,29 @@ class GenConfig:
             self.gen_config_config_data = ConfigParserEnhanced(
                 self.gen_config_ini_file
             ).configparserenhanceddata
-            if not self.gen_config_config_data.has_section("gen-config"):
-                raise ValueError(self.get_formatted_msg(
-                    f"'{self.gen_config_ini_file}' must contain a 'gen-config'"
-                    " section."
-                ))
-            # for key in ["supported-systems", "supported-envs",
-            #             "environment-specs"]:
-            for key in ["supported-config-flags", "config-specs"]:
-                if not self.gen_config_config_data.has_option("gen-config", key):
+
+            for section in ["gen-config", "load-env"]:
+                if not self.gen_config_config_data.has_section(section):
+                    raise ValueError(self.get_formatted_msg(
+                        f"'{self.gen_config_ini_file}' must contain a "
+                        f"'{section}' section."
+                    ))
+
+            section_keys = [
+                ("gen-config", "supported-config-flags"),
+                ("gen-config", "config-specs"),
+                ("load-env", "supported-systems"),
+                ("load-env", "supported-envs"),
+                ("load-env", "environment-specs"),
+            ]
+            for section, key in section_keys:
+                if not self.gen_config_config_data.has_option(section, key):
                     raise ValueError(self.get_formatted_msg(
                         f"'{self.gen_config_ini_file}' must contain the "
-                        "following in the 'gen-config' section:",
+                        f"following in the '{section}' section:",
                         extras=f"  {key} : /path/to/{key}.ini"
                     ))
-                value = self.gen_config_config_data["gen-config"][key]
+                value = self.gen_config_config_data[section][key]
                 if value == "" or value is None:
                     raise ValueError(self.get_formatted_msg(
                         f"The path specified for '{key}' in "
@@ -58,23 +67,70 @@ class GenConfig:
                     ))
                 else:
                     if not Path(value).is_absolute():
-                        self.gen_config_config_data["gen-config"][key] = str(
+                        self.gen_config_config_data[section][key] = str(
                             self.gen_config_ini_file.parent / value
                         )
 
-    def __init__(self, argv):
+    def __init__(
+        self, argv,
+        gen_config_ini_file=(Path(os.path.realpath(__file__)).parent /
+                             "src/gen-config.ini")
+        # gen_config_ini_file set here for testing purposes. It is not meant to
+        # be changed by the user.
+    ):
         if not isinstance(argv, list):
             raise TypeError("GenConfig must be instantiated with a list of "
                             "command line arguments.")
         self.argv = argv
-        self.gen_config_ini_file = (Path(os.path.realpath(__file__)).parent /
-                                    "src/gen-config.ini")
+        self.gen_config_ini_file = Path(gen_config_ini_file)
         self.gen_config_config_data = None
         self.parse_top_level_config_file()
         self.config_keyword_parser = None
         self.set_program_options = None
+        self.load_env = None
 
-    def gen_config_keyword_parser(self):
+    def validate_config_specs_ini(self):
+        if self.config_keyword_parser is None:
+            self.load_config_keyword_parser()
+        if self.load_env is None:
+            self.load_load_env()
+
+        ckp = self.config_keyword_parser
+        le = self.load_env
+        config_specs = ConfigParserEnhanced(
+            self.args.config_specs_file
+        ).configparserenhanceddata
+
+        expanded_section_names = []
+        ini_sections = {}
+        for section_name in config_specs.keys():
+            if section_name.upper() == section_name:
+                continue  # This is just a supporting section
+
+            ckp.build_name = section_name
+            le.build_name = section_name
+            expanded_section_names += [
+                f"{le.parsed_env_name}{ckp.complete_config}"
+            ]
+
+            if ini_sections.get(expanded_section_names[-1], None) is not None:
+                duplicates = [ini_sections[expanded_section_names[-1]],
+                              section_name]
+                extras = ("\nThese both expand to use the following set "
+                          "of options:\n")
+                extras += self.get_flags_options_str()
+                extras += "\nPlease remove one of these duplicate sections."
+
+                raise Exception(ckp.get_msg_for_list(
+                    "There are multiple sections in "
+                    f"'{self.args.config_specs_file.name}'\nthat specify the "
+                    "same configuration:", duplicates,
+                    extras=extras
+                ))
+
+            ini_sections[expanded_section_names[-1]] = section_name
+
+    def load_config_keyword_parser(self):
         """
         Instantiate an :class:`ConfigKeywordParser` object with this object's
         :attr:`build_name` and ``supported-config-flags.ini``.
@@ -86,35 +142,6 @@ class GenConfig:
                 self.args.supported_config_flags_file
             )
 
-    def list_config_flags(self):
-        """
-        List the available config flags form ``supported-config-flags.ini``.
-
-        Raises:
-            SystemExit:  With the message displaying the available config flags
-            from which to choose.
-        """
-        if self.config_keyword_parser is None:
-            self.gen_config_keyword_parser()
-        sys.exit(
-            self.config_keyword_parser.get_msg_showing_supported_flags(
-                "Please select one of the following.",
-                kind="INFO"
-            )
-        )
-
-    @property
-    def parsed_options(self):
-        """
-        The selected config flag options name parsed from the
-        :attr:`build_name` via the :class:`ConfigKeywordParser`.
-        """
-        if not hasattr(self, "_parsed_options"):
-            if self.config_keyword_parser is None:
-                self.gen_config_keyword_parser()
-            self._parsed_options = self.config_keyword_parser.selected_options
-        return self._parsed_options
-
     def load_set_program_options(self):
         """
         Instantiate a :class:`SetProgramOptions` object with this object's
@@ -125,6 +152,31 @@ class GenConfig:
             self.set_program_options = SetProgramOptions(
                 filename=self.args.config_specs_file
             )
+
+    def load_load_env(self):
+        """
+        Instantiate a :class:`LoadEnv` object with this object's configuration
+        files. Save the resulting object as :attr:`load_env`.
+        """
+        if self.load_env is None:
+            self.load_env = LoadEnv(argv=[
+                "--supported-systems", str(self.args.supported_systems_file),
+                "--supported-envs", str(self.args.supported_envs_file),
+                "--environment-specs", str(self.args.environment_specs_file),
+                self.args.build_name,
+            ])
+
+    @property
+    def parsed_options(self):
+        """
+        The selected config flag options name parsed from the
+        :attr:`build_name` via the :class:`ConfigKeywordParser`.
+        """
+        if not hasattr(self, "_parsed_options"):
+            if self.config_keyword_parser is None:
+                self.load_config_keyword_parser()
+            self._parsed_options = self.config_keyword_parser.selected_options
+        return self._parsed_options
 
     @property
     def options_string(self):
@@ -167,6 +219,40 @@ class GenConfig:
         # )
         return files
 
+    def list_config_flags(self):
+        """
+        List the available config flags form ``supported-config-flags.ini``.
+
+        Raises:
+            SystemExit:  With the message displaying the available config flags
+            from which to choose.
+        """
+        if self.config_keyword_parser is None:
+            self.load_config_keyword_parser()
+        sys.exit(
+            self.config_keyword_parser.get_msg_showing_supported_flags(
+                "Please select one of the following.",
+                kind="INFO"
+            )
+        )
+
+    def get_flags_options_str(self):
+        ckp = self.config_keyword_parser
+        flags = [flag for flag in ckp.selected_options.keys()]
+        options = [ckp.selected_options[flag] for flag in flags]
+
+        flags_options_str = ""
+        for flag, option in zip(flags, options):
+            f_len = len(max(flags, key=len))
+            o_len = len(max(options, key=len))
+            default = (" (default)"
+                       if ckp.is_default_option(option)
+                       else "")
+            flags_options_str += f"  - {flag.ljust(f_len)} = "
+            flags_options_str += f"{option.ljust(o_len)}{default}\n"
+
+        return flags_options_str
+
     def get_formatted_msg(self, msg, kind="ERROR", extras=""):
         """
         This helper method handles multiline messages, rendering them like::
@@ -193,6 +279,7 @@ class GenConfig:
         for extra in extras.splitlines():
             msg += f"|   {extra}\n"
         msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
+        msg = msg.strip()
         return msg
 
     @property
@@ -214,7 +301,23 @@ class GenConfig:
                 args.config_specs_file = Path(
                     gen_config["config-specs"]
                 ).resolve()
+
+            load_env = self.gen_config_config_data["load-env"]
+            if args.supported_systems_file is None:
+                args.supported_systems_file = Path(
+                    load_env["supported-systems"]
+                ).resolve()
+            if args.supported_envs_file is None:
+                args.supported_envs_file = Path(
+                    load_env["supported-envs"]
+                ).resolve()
+            if args.environment_specs_file is None:
+                args.environment_specs_file = Path(
+                    load_env["environment-specs"]
+                ).resolve()
+
             self._args = args
+
         return self._args
 
     def __parser(self):
@@ -268,15 +371,6 @@ class GenConfig:
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"
         )
-        # NOTE: Not sure if we need this here in GenConfig since this is
-        # already in LoadEnv.
-        # config_files.add_argument("--supported-systems",
-        #                           dest="supported_systems_file",
-        #                           action="store", default=None,
-        #                           type=lambda p: Path(p).resolve(),
-        #                           help="Path to ``supported-systems.ini``.  "
-        #                           "Overmachine-name-1s loading the file specified in "
-        #                           "``gen-config.ini``.")
         config_files.add_argument("--supported-config-flags", default=None,
                                   dest="supported_config_flags_file",
                                   action="store",
@@ -289,6 +383,26 @@ class GenConfig:
                                   action="store", default=None,
                                   type=lambda p: Path(p).resolve(),
                                   help="Path to ``config-specs.ini``.  "
+                                  "Overmachine-name-1s loading the file specified in "
+                                  "``gen-config.ini``.")
+        config_files.add_argument("--supported-systems",
+                                  dest="supported_systems_file",
+                                  action="store", default=None,
+                                  type=lambda p: Path(p).resolve(),
+                                  help="Path to ``supported-systems.ini``.  "
+                                  "Overmachine-name-1s loading the file specified in "
+                                  "``gen-config.ini``.")
+        config_files.add_argument("--supported-envs", default=None,
+                                  dest="supported_envs_file", action="store",
+                                  type=lambda p: Path(p).resolve(),
+                                  help="Path to ``supported-envs.ini``.  "
+                                  "Overmachine-name-1s loading the file specified in "
+                                  "``gen-config.ini``.")
+        config_files.add_argument("--environment-specs",
+                                  dest="environment_specs_file",
+                                  action="store", default=None,
+                                  type=lambda p: Path(p).resolve(),
+                                  help="Path to ``environment-specs.ini``.  "
                                   "Overmachine-name-1s loading the file specified in "
                                   "``gen-config.ini``.")
 
