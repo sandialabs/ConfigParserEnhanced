@@ -11,6 +11,7 @@ rm -rf deps > /dev/null 2>&1; mkdir deps; cd deps
 git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/ConfigParserEnhanced.git
 git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/SetEnvironment.git
 git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/DetermineSystem.git
+git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/KeywordParser.git
 cd -
 
 # deps

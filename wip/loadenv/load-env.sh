@@ -31,14 +31,17 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Source the generated script to pull the environment into the current shell.
-env_file=$(cat .load_matching_env_loc)
-rm -f .load_matching_env_loc
-if [ -f ${env_file} ]; then
-  source ${env_file}
-  rm -f ${env_file}
-  echo "Environment loaded successfully."
-else
-  echo "load_env.py failed to generate ${env_file}."
-  echo "Unable to load the environment."
-  return 1
+if [ -f .load_matching_env_loc ]; then
+  env_file=$(cat .load_matching_env_loc)
+  rm -f .load_matching_env_loc
+
+  if [ -f ${env_file} ]; then
+    source ${env_file}
+    rm -f ${env_file}
+    echo "Environment loaded successfully."
+  else
+    echo "load_env.py failed to generate ${env_file}."
+    echo "Unable to load the environment."
+    return 1
+  fi
 fi

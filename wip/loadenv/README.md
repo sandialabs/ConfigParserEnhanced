@@ -46,7 +46,6 @@ environments.
 
 6. Use the script:
    ```bash
-   cd src
    source load-env.sh --help
    source load-env.sh --list-envs
    source load-env.sh <build-name>
@@ -57,5 +56,5 @@ environments.
 > **Note:**  The first run of `load-env.sh` may take some time as Python
 > generates byte-code for the requirements.
 
-> **Note:**  You may have to repeat step 4 above after running `source 
+> **Note:**  You may have to repeat step 4 above after running `source
 > load-env.sh` since `load-env.sh` may run `module purge`.
