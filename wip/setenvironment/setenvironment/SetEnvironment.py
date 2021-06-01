@@ -1356,6 +1356,12 @@ class SetEnvironment(ConfigParserEnhanced):
         |                       |          | - arg1: *envvar name*                             |
         |                       |          | - arg2: *OPTIONAL message*                        |
         +-----------------------+----------+---------------------------------------------------+
+        | ``find_in_path``      |        2 | Locate an executable in the PATH and set an envvar|
+        +-----------------------+----------+ envvar with the location or an empty string if    +
+        |                       |          | not found.                                        |
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *OPTIONAL message*                        |
+        +-----------------------+----------+---------------------------------------------------+
         | ``prepend``           |        2 | Prepend a value to an existing environment var.   |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
