@@ -180,34 +180,6 @@ class SetEnvironmentTest(TestCase):
         return
 
 
-    def test_SetEnvironment_parse_DEFAULT(self):
-        """.ini files have a DEFAULT section that is implied even if it
-        doesn't exist. This test makes sure things don't w00f if we parse
-        ``DEFAULT``
-        """
-        print("\n")
-        print("Load file: {}".format(self._filename))
-        parser = SetEnvironment(self._filename)
-        parser.debug_level = 5
-        parser.exception_control_level = 4
-        parser.exception_control_compact_warnings = False
-
-        print("-----[ TEST BEGIN ]----------------------------------------")
-        section = "DEFAULT"
-        print("Section  : {}".format(section))
-
-        # parse a section
-        parser.parse_section(section)
-
-        # Pretty print the actions (unchecked)
-        print("")
-        parser.pretty_print_actions(section)
-
-        print("-----[ TEST END ]------------------------------------------")
-        print("OK")
-        return
-
-
     def test_SetEnvironment_method_parse_all_sections(self):
         """.ini files have a DEFAULT section that is implied even if it
         doesn't exist. This test makes sure things don't w00f if we parse
