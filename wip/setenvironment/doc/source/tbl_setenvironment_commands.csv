@@ -1,14 +1,14 @@
 Operation,Usage,Description
-**envvar-set**,``envvar-set <envvar_name>: <envvar_val>``,Sets (or overwrites) an envvar.
-**envvar-set-if-empty**,``envvar-set-if-empty <envvar_name>: <envvar_val>``, Sets an envvar only if it doesn't exist or is empty.
 **envvar-append**,``envvar-append <envvar_name>: <envvar_val>``, Append a value to an existing envvar using ``os.pathsep`` as the delimiter.
+**envvar-assert-not-empty**, ``envvar-assert-not-empty <envvar_name>: <optional_msg>``, Throw an error if an envvar is not set or is empty.
+**envvar-find-in-path**, ``envvar-find-in-path <envvar_name>: <exe_name>``, Search the **PATH** for an *executable* and save its location to ``envvar_name``.
 **envvar-prepend**,``envvar-prepend <envvar_name>: <envvar_val>``, Prepend a value to an existing envvar using ``os.pathsep`` as the delimiter.
 **envvar-remove**,``envvar-remove <envvar_name>:``, Removes all occurrences of envvar from actions.
-**envvar-unset**, ``envvar-unset <envvar_name>:``, Unsets (removes) an envvar if it exists.
-**envvar-remove-substr**, ``envvar-remove-substr <envvar_name>: <substr>``, Remove all occurrences of *substr* from *envvar*.
 **envvar-remove-path-entry**, ``envvar-remove-path-entry <envvar_name>: <path>``, Remove occurrences of a *path* from a path *envvar*.
-**envvar-find-in-path**, ``envvar-find-in-path <envvar_name>: <exe_name>``, Locate an executable in a **path list** style *envvar*.
-**envvar-assert-not-empty**, ``envvar-assert-not-empty <envvar_name>: <optional_msg>``, Throw an error if an envvar is not set or is empty.
+**envvar-remove-substr**, ``envvar-remove-substr <envvar_name>: <substr>``, Remove all occurrences of *substr* from *envvar*.
+**envvar-set**,``envvar-set <envvar_name>: <envvar_val>``,Sets (or overwrites) an envvar.
+**envvar-set-if-empty**,``envvar-set-if-empty <envvar_name>: <envvar_val>``, Sets an envvar only if it doesn't exist or is empty.
+**envvar-unset**, ``envvar-unset <envvar_name>:``, Unsets (removes) an envvar if it exists.
 **module-load**,``module-load <module_name>``,Load a module using the *default* module.
 **module-load**,``module-load <module_name> : <module_ver>``,Load a specific version of a module file. ``module load <module_name>/<module_ver>``.
 **module-purge**,``module-purge:``,Purge all loaded modules.
