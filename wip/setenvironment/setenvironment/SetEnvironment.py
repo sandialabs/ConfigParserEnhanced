@@ -3,13 +3,14 @@
 """
 SetEnvironment Utility for environment vars and modules.
 
-
-
 Todo:
     Fill in the docstring for this file.
 
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
+    - Jason Gates <jmgate@sandia.gov>
+    - Evan Harvey <eharvey@sandia.gov>
+    - Joshua Braun <josbrau@sandia.gov>
 
 :Version: 0.4.0
 """
@@ -857,7 +858,11 @@ class SetEnvironment(ConfigParserEnhanced):
             envvar-remove-substr FOO : A
 
             # Result should be: FOO="BB"
-
+        +-----------------------+----------+---------------------------------------------------+
+        | ``find_in_path``      |        2 | Locate an executable in the PATH and set an envvar|
+        +-----------------------+----------+                                                   +
+        |                       |          | - arg1: *envvar name*                             |
+        |                       |          | - arg2: *OPTIONAL message*                        |
         Args:
             section_name (str): The name of the section being processed.
             handler_parameters (HandlerParameters): The parameters passed to
@@ -1103,6 +1108,8 @@ class SetEnvironment(ConfigParserEnhanced):
 
         Currently supported ENVVAR operations are:
         - ``envvar_append``
+        - ``envvar_assert_not_empty``
+        - ``envvar_find_in_path``
         - ``envvar_prepend``
         - ``envvar_set``
         - ``envvar_unset``
@@ -1354,13 +1361,14 @@ class SetEnvironment(ConfigParserEnhanced):
         | ``assert_not_empty``  |        2 | Trigger an error if the envvar is empty or unset  |
         +-----------------------+----------+                                                   +
         |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *OPTIONAL message*                        |
+        |                       |          | - arg2: *OPTIONAL* message on failure.            |
         +-----------------------+----------+---------------------------------------------------+
-        | ``find_in_path``      |        2 | Locate an executable in the PATH and set an envvar|
+        | ``find_in_path``      |        2 | Locate an executable in the PATH and set an       |
         +-----------------------+----------+ envvar with the location or an empty string if    +
         |                       |          | not found.                                        |
+        |                       |          |                                                   |
         |                       |          | - arg1: *envvar name*                             |
-        |                       |          | - arg2: *OPTIONAL message*                        |
+        |                       |          | - arg2: *executable name*                         |
         +-----------------------+----------+---------------------------------------------------+
         | ``prepend``           |        2 | Prepend a value to an existing environment var.   |
         +-----------------------+----------+                                                   +
@@ -1410,14 +1418,19 @@ class SetEnvironment(ConfigParserEnhanced):
         | ``python``  | ``_gen_script_common_python``, defines:                      |
         +-------------+                                                              +
         |             | - ``envvar_op()``                                            |
+        |             | - ``envvar_find_in_path()``                                  |
+        |             | - ``envvar_set()``                                           |
+        |             | - ``envvar_set_if_empty()``                                  |
+        |             |                                                              |
         +-------------+--------------------------------------------------------------+
         | ``bash```   | ``_gen_script_common_bash``, defines:                        |
         +-------------+                                                              +
         |             | - ``envvar_op``                                              |
         |             | - ``envvar_append_or_create``                                |
         |             | - ``envvar_prepend_or_create``                               |
-        |             | - ``envvar_set_or_create``                                   |
         |             | - ``envvar_remove_substr``                                   |
+        |             | - ``envvar_set_or_create``                                   |
+        |             |                                                              |
         +-------------+--------------------------------------------------------------+
 
         Args:

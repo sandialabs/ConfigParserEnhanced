@@ -6,12 +6,120 @@ The SetEnvironment module is an extension of ``configparserenhanced.ConfigParser
 which implements handlers for *environment variable* and *environment modules* rules in
 a .ini file.
 
+
+Supported .ini Actions
+----------------------
 This class implements the following new *operations* for .ini file processing:
 
 .. csv-table:: Supported Operations
    :file: tbl_setenvironment_commands.csv
    :header-rows: 1
    :widths: 20,30,80
+
+
+``envvar-append``
++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-assert-not-empty``
++++++++++++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-find-in-path``
++++++++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-prepend``
+++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-remove``
++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-remove-path-entry``
+++++++++++++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-remove-substr``
+++++++++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-set``
+++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-set-if-empty``
++++++++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``envvar-unset``
+++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``module-load``
++++++++++++++++
+
+Variant 1
+~~~~~~~~~
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+Variant 2
+~~~~~~~~~
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``module-purge``
+++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``module-remove``
++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``module-swap``
++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``module-unload``
++++++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
+
+``module-use``
+++++++++++++++
+TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
+f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+
 
 
 API Documentation
