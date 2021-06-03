@@ -97,23 +97,19 @@ class GenConfig:
             self.load_load_env()
 
         ckp = self.config_keyword_parser
-        ckp.enforce_only_options_in_build_name = True
         le = self.load_env
         config_specs = ConfigParserEnhanced(
             self.args.config_specs_file
         ).configparserenhanceddata
 
-        expanded_section_names = []
-        ini_sections = {}
         for section_name in config_specs.keys():
             if section_name.upper() == section_name:
                 continue  # This is just a supporting section
 
             le.build_name = section_name
-            ckp.string_to_exclude_from_enforce = f"{le.parsed_env_name}_"
             ckp.build_name = section_name
             try:
-                complete_config = ckp.complete_config
+                selected_options_str = ckp.selected_options_str
             except ValueError as e:
                 raise ValueError(self.get_formatted_msg(
                     "When validating sections in\n"
@@ -122,28 +118,21 @@ class GenConfig:
                     f"{str(e)}"
                 ))
 
-            expanded_section_names += [
-                f"{le.parsed_env_name}{complete_config}"
-            ]
-
-            if ini_sections.get(expanded_section_names[-1], None) is not None:
-                duplicates = [ini_sections[expanded_section_names[-1]],
-                              section_name]
-                extras = ("\nThese both expand to use the following set "
-                          "of options:\n")
-                extras += self.get_flags_options_str()
-                extras += "\nPlease remove one of these duplicate sections."
-
-                raise Exception(ckp.get_msg_for_list(
-                    "There are multiple sections in "
-                    f"'{self.args.config_specs_file.name}'\nthat specify the "
-                    "same configuration:", duplicates,
-                    extras=extras
+            formatted_section_name = (
+                f"{le.parsed_env_name}{selected_options_str}"
+            )
+            if formatted_section_name != section_name:
+                raise ValueError(self.get_formatted_msg(
+                    "The following configuration section:\n"
+                    f"  - {section_name}\n\n"
+                    "Should be formatted in the following manner to include "
+                    "only valid\noptions and to match the order of supported "
+                    "flags/options in\n"
+                    f"'{self.args.supported_config_flags_file.name}':\n"
+                    f"  - {formatted_section_name}",
+                    extras="\nPlease correct this section in "
+                    f"'{self.args.config_specs_file.name}'."
                 ))
-
-            ini_sections[expanded_section_names[-1]] = section_name
-
-        ckp.enforce_only_options_in_build_name = self.args.enforce_only_options
 
     def load_config_keyword_parser(self):
         """
@@ -155,7 +144,6 @@ class GenConfig:
             self.config_keyword_parser = ConfigKeywordParser(
                 self.args.build_name,
                 self.args.supported_config_flags_file,
-                enforce_only_options_in_build_name=self.args.enforce_only_options
             )
 
     def load_set_program_options(self):
@@ -295,7 +283,8 @@ class GenConfig:
         for extra in extras.splitlines():
             msg += f"|   {extra}\n"
         msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
-        msg = msg.strip()
+        msg = re.sub(r"\s+\n", "\n", msg)  # Remove trailing machine-name-4space
+
         return msg
 
     @property
@@ -383,10 +372,6 @@ class GenConfig:
                             "than the system name matched via the hostname "
                             "and the supported-systems.ini file "
                             "(see LoadEnv).")  # NOTE: Should this be changed?
-        # NOTE: We may want to get rid of this flag
-        parser.add_argument("--enforce-only-options", action="store_true",
-                            default=False, help="Enforces that only options "
-                            "are specified in the build name and nothing else.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"

@@ -36,40 +36,29 @@ class ConfigKeywordParser(KeywordParser):
             pairs from.
         supported_config_flags_filename (str, Path):  The name of the file to
             load the supported configuration flags and options from.
-        enforce_only_options_in_build_name (bool):  If True, make sure the only
-            items in the build name are options.
-        string_to_exclude_from_enforce (str):  Optionally provide a substring to
-            exclude from the build name when enforcing only options are
-            present.
     """
 
-    def __init__(self, build_name, supported_config_flags_filename,
-                 enforce_only_options_in_build_name=False,
-                 string_to_exclude_from_enforce=""):
+    def __init__(self, build_name, supported_config_flags_filename):
         self.config_filename = supported_config_flags_filename
         self._build_name = build_name
-        self.enforce_only_options_in_build_name = (
-            enforce_only_options_in_build_name
-        )
-        self.string_to_exclude_from_enforce = string_to_exclude_from_enforce
         self.delimiter = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
 
     @property
-    def complete_config(self):
-        if not hasattr(self, "_complete_config"):
-            complete_config = ""
+    def selected_options_str(self):
+        if not hasattr(self, "_selected_options_str"):
+            selected_options_str = ""
             for flag in self.selected_options.keys():
                 if type(self.selected_options[flag]) == list:
                     for option in self.selected_options[flag]:
-                        complete_config += f"_{option}"
+                        selected_options_str += f"_{option}"
                 else:
-                    complete_config += f"_{self.selected_options[flag]}"
+                    selected_options_str += f"_{self.selected_options[flag]}"
 
-            self._complete_config = complete_config
+            self._selected_options_str = selected_options_str
 
-        return self._complete_config
+        return self._selected_options_str
 
     @property
     def selected_options(self):
@@ -110,8 +99,6 @@ class ConfigKeywordParser(KeywordParser):
         if (not hasattr(self, "_selected_options")
                 or not hasattr(self, "_flags_selected_by_default")):
             self.assert_options_are_unique_across_all_flags()
-            if self.enforce_only_options_in_build_name:
-                self.assert_only_options_in_build_name()
 
             build_name_options = self.build_name.split(self.delimiter)
             selected_options = {}
@@ -202,26 +189,6 @@ class ConfigKeywordParser(KeywordParser):
             )
             sys.exit(msg)
 
-    def assert_only_options_in_build_name(self):
-        all_valid_options = self.get_options_list_for_all_flags()
-
-        build_name_to_check = re.sub(self.string_to_exclude_from_enforce, "",
-                                     self.build_name)
-        items_in_build_name = build_name_to_check.split(self.delimiter)
-        options_in_build_name = [_ for _ in items_in_build_name
-                                 if _ in all_valid_options]
-        try:
-            assert len(items_in_build_name) == len(options_in_build_name)
-        except AssertionError:
-            items_not_options = [_ for _ in items_in_build_name
-                                 if _ not in options_in_build_name]
-            raise ValueError(self.get_msg_for_list(
-                "The following items exist in the build name,\n"
-                f"'{self.build_name}',\n"
-                "that are not valid options:",
-                items_not_options
-            ))
-
     def get_options_list_for_all_flags(self):
         if not hasattr(self, "_options_list"):
             options_list = []
@@ -242,8 +209,8 @@ class ConfigKeywordParser(KeywordParser):
     @build_name.setter
     def build_name(self, new_build_name):
         # Clear any data generated from the old build_name
-        if hasattr(self, "_complete_config"):
-            delattr(self, "_complete_config")
+        if hasattr(self, "_selected_options_str"):
+            delattr(self, "_selected_options_str")
         if hasattr(self, "_selected_options"):
             delattr(self, "_selected_options")
         if hasattr(self, "_flags_selected_by_default"):

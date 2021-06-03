@@ -113,20 +113,20 @@ def test_parser_correctly_stores_whether_options_were_selected_by_default(
 @pytest.mark.parametrize("data", [
     {
         "build_name": "machine-type-5",
-        "expected_complete_config": "_mpi_serial_none",
+        "expected_selected_options_str": "_mpi_serial_none",
     },
     {
         "build_name": "machine-type-5_openmp_muelu_sparc_no-mpi",
-        "expected_complete_config": "_no-mpi_openmp_sparc_muelu",
-        # Order here is dependent ---^________________________^
+        "expected_selected_options_str": "_no-mpi_openmp_sparc_muelu",
+        # Order here is dependent --------^________________________^
         # on the order within
         # supported-config-flags.ini
     },
 ])
-def test_complete_config_generated_consistently(data):
+def test_selected_options_str_generated_consistently(data):
     ckp = ConfigKeywordParser(data["build_name"],
                               "test-supported-config-flags.ini")
-    assert ckp.complete_config == data["expected_complete_config"]
+    assert ckp.selected_options_str == data["expected_selected_options_str"]
 
 
 ####################
@@ -223,7 +223,7 @@ def test_options_are_unique_for_all_flags(multiple):
     )
     ckp = ConfigKeywordParser("machine-type-5", bad_ini_filename)
     with pytest.raises(SystemExit):
-        ckp.complete_config
+        ckp.selected_options_str
 
 
 ##########
@@ -270,7 +270,7 @@ def test_supported_flags_shown_correctly():
 def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     data_1 = {
         "build_name": "machine-type-5",
-        "expected_complete_config": "_mpi_serial_none",
+        "expected_selected_options_str": "_mpi_serial_none",
         "expected_selected_options": {
             "use-mpi": "mpi",
             "node-type": "serial",
@@ -287,12 +287,12 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     assert ckp.selected_options == data_1["expected_selected_options"]
     assert (ckp.flags_selected_by_default ==
             data_1["expected_selected_by_default_dict"])
-    assert ckp.complete_config == data_1["expected_complete_config"]
+    assert ckp.selected_options_str == data_1["expected_selected_options_str"]
 
 
     data_2 = {
         "build_name": "machine-type-5_openmp_muelu_empire_sparc",
-        "expected_complete_config": "_mpi_openmp_empire_sparc_muelu",
+        "expected_selected_options_str": "_mpi_openmp_empire_sparc_muelu",
         "expected_selected_options": {
             "use-mpi": "mpi",
             "node-type": "openmp",
@@ -309,7 +309,7 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     assert ckp.selected_options == data_2["expected_selected_options"]
     assert (ckp.flags_selected_by_default ==
             data_2["expected_selected_by_default_dict"])
-    assert ckp.complete_config == data_2["expected_complete_config"]
+    assert ckp.selected_options_str == data_2["expected_selected_options_str"]
 
 
 @pytest.mark.parametrize("data", [
