@@ -12,6 +12,7 @@ from configparserenhanced import ConfigParserEnhanced
 from loadenv import LoadEnv
 import os
 from pathlib import Path
+import re
 from setprogramoptions import SetProgramOptions
 from src.config_keyword_parser import ConfigKeywordParser
 import sys
@@ -74,7 +75,7 @@ class GenConfig:
     def __init__(
         self, argv,
         gen_config_ini_file=(Path(os.path.realpath(__file__)).parent /
-                             "src/gen-config.ini")
+                             "src/gen-config.ini"),
         # gen_config_ini_file set here for testing purposes. It is not meant to
         # be changed by the user.
     ):
@@ -96,6 +97,7 @@ class GenConfig:
             self.load_load_env()
 
         ckp = self.config_keyword_parser
+        ckp.enforce_only_options_in_build_name = True
         le = self.load_env
         config_specs = ConfigParserEnhanced(
             self.args.config_specs_file
@@ -107,10 +109,21 @@ class GenConfig:
             if section_name.upper() == section_name:
                 continue  # This is just a supporting section
 
-            ckp.build_name = section_name
             le.build_name = section_name
+            ckp.string_to_exclude_from_enforce = f"{le.parsed_env_name}_"
+            ckp.build_name = section_name
+            try:
+                complete_config = ckp.complete_config
+            except ValueError as e:
+                raise ValueError(self.get_formatted_msg(
+                    "When validating sections in\n"
+                    f"`{self.args.config_specs_file.name}`,\n"
+                    "the following error was encountered:\n"
+                    f"{str(e)}"
+                ))
+
             expanded_section_names += [
-                f"{le.parsed_env_name}{ckp.complete_config}"
+                f"{le.parsed_env_name}{complete_config}"
             ]
 
             if ini_sections.get(expanded_section_names[-1], None) is not None:
@@ -130,6 +143,8 @@ class GenConfig:
 
             ini_sections[expanded_section_names[-1]] = section_name
 
+        ckp.enforce_only_options_in_build_name = self.args.enforce_only_options
+
     def load_config_keyword_parser(self):
         """
         Instantiate an :class:`ConfigKeywordParser` object with this object's
@@ -139,7 +154,8 @@ class GenConfig:
         if self.config_keyword_parser is None:
             self.config_keyword_parser = ConfigKeywordParser(
                 self.args.build_name,
-                self.args.supported_config_flags_file
+                self.args.supported_config_flags_file,
+                enforce_only_options_in_build_name=self.args.enforce_only_options
             )
 
     def load_set_program_options(self):
@@ -367,6 +383,10 @@ class GenConfig:
                             "than the system name matched via the hostname "
                             "and the supported-systems.ini file "
                             "(see LoadEnv).")  # NOTE: Should this be changed?
+        # NOTE: We may want to get rid of this flag
+        parser.add_argument("--enforce-only-options", action="store_true",
+                            default=False, help="Enforces that only options "
+                            "are specified in the build name and nothing else.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"

@@ -1,4 +1,5 @@
 from keywordparser import KeywordParser
+import re
 import sys
 
 
@@ -35,30 +36,25 @@ class ConfigKeywordParser(KeywordParser):
             pairs from.
         supported_config_flags_filename (str, Path):  The name of the file to
             load the supported configuration flags and options from.
+        enforce_only_options_in_build_name (bool):  If True, make sure the only
+            items in the build name are options.
+        string_to_exclude_from_enforce (str):  Optionally provide a substring to
+            exclude from the build name when enforcing only options are
+            present.
     """
 
-    def __init__(self, build_name, supported_config_flags_filename):
+    def __init__(self, build_name, supported_config_flags_filename,
+                 enforce_only_options_in_build_name=False,
+                 string_to_exclude_from_enforce=""):
         self.config_filename = supported_config_flags_filename
         self._build_name = build_name
+        self.enforce_only_options_in_build_name = (
+            enforce_only_options_in_build_name
+        )
+        self.string_to_exclude_from_enforce = string_to_exclude_from_enforce
         self.delimiter = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
-
-    @property
-    def build_name(self):
-        return self._build_name
-
-    @build_name.setter
-    def build_name(self, new_build_name):
-        # Clear any data generated from the old build_name
-        if hasattr(self, "_complete_config"):
-            delattr(self, "_complete_config")
-        if hasattr(self, "_selected_options"):
-            delattr(self, "_selected_options")
-        if hasattr(self, "_flags_selected_by_default"):
-            delattr(self, "_flags_selected_by_default")
-
-        self._build_name = new_build_name
 
     @property
     def complete_config(self):
@@ -114,6 +110,8 @@ class ConfigKeywordParser(KeywordParser):
         if (not hasattr(self, "_selected_options")
                 or not hasattr(self, "_flags_selected_by_default")):
             self.assert_options_are_unique_across_all_flags()
+            if self.enforce_only_options_in_build_name:
+                self.assert_only_options_in_build_name()
 
             build_name_options = self.build_name.split(self.delimiter)
             selected_options = {}
@@ -187,18 +185,9 @@ class ConfigKeywordParser(KeywordParser):
         return option in self._default_options
 
     def assert_options_are_unique_across_all_flags(self):
-        if not hasattr(self, "_options_list"):
-            options_list = []
-            for flag_name in self.flag_names:
-                options, flag_type = self.get_options_and_flag_type_for_flag(
-                    flag_name
-                )
-                options_list += options
-
-            self._options_list = options_list
-
-        duplicates = [_ for _ in set(self._options_list)
-                      if self._options_list.count(_) > 1]
+        options_list = self.get_options_list_for_all_flags()
+        duplicates = [_ for _ in set(options_list)
+                      if options_list.count(_) > 1]
         try:
             assert duplicates == []
         except AssertionError:
@@ -212,6 +201,55 @@ class ConfigKeywordParser(KeywordParser):
                 f"for each flag\nin which {it} appear{s}."
             )
             sys.exit(msg)
+
+    def assert_only_options_in_build_name(self):
+        all_valid_options = self.get_options_list_for_all_flags()
+
+        build_name_to_check = re.sub(self.string_to_exclude_from_enforce, "",
+                                     self.build_name)
+        items_in_build_name = build_name_to_check.split(self.delimiter)
+        options_in_build_name = [_ for _ in items_in_build_name
+                                 if _ in all_valid_options]
+        try:
+            assert len(items_in_build_name) == len(options_in_build_name)
+        except AssertionError:
+            items_not_options = [_ for _ in items_in_build_name
+                                 if _ not in options_in_build_name]
+            raise ValueError(self.get_msg_for_list(
+                "The following items exist in the build name,\n"
+                f"'{self.build_name}',\n"
+                "that are not valid options:",
+                items_not_options
+            ))
+
+    def get_options_list_for_all_flags(self):
+        if not hasattr(self, "_options_list"):
+            options_list = []
+            for flag_name in self.flag_names:
+                options, flag_type = self.get_options_and_flag_type_for_flag(
+                    flag_name
+                )
+                options_list += options
+
+            self._options_list = options_list
+
+        return self._options_list
+
+    @property
+    def build_name(self):
+        return self._build_name
+
+    @build_name.setter
+    def build_name(self, new_build_name):
+        # Clear any data generated from the old build_name
+        if hasattr(self, "_complete_config"):
+            delattr(self, "_complete_config")
+        if hasattr(self, "_selected_options"):
+            delattr(self, "_selected_options")
+        if hasattr(self, "_flags_selected_by_default"):
+            delattr(self, "_flags_selected_by_default")
+
+        self._build_name = new_build_name
 
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """
