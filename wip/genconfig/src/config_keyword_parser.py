@@ -67,13 +67,6 @@ class ConfigKeywordParser(KeywordParser):
 
         return self._selected_options
 
-    @property
-    def flags_selected_by_default(self):
-        if not hasattr(self, "_flags_selected_by_default"):
-            self.parse_selected_options()
-
-        return self._flags_selected_by_default
-
     # TODO: UPDATE THIS DOCSTRING
     def parse_selected_options(self):
         """
@@ -96,13 +89,11 @@ class ConfigKeywordParser(KeywordParser):
             dict:  A `dict` containing key/value pairs of flags and selected
             options, as found in the :attr:`build_name`.
         """
-        if (not hasattr(self, "_selected_options")
-                or not hasattr(self, "_flags_selected_by_default")):
+        if not hasattr(self, "_selected_options"):
             self.assert_options_are_unique_across_all_flags()
 
             build_name_options = self.build_name.split(self.delimiter)
             selected_options = {}
-            flags_selected_by_default = {}
 
             for flag_name in self.flag_names:
                 options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
@@ -119,16 +110,12 @@ class ConfigKeywordParser(KeywordParser):
                 elif (len(options_in_build_name) > 1
                         and flag_type == "SELECT_MANY"):
                     selected_options[flag_name] = options_in_build_name
-                    flags_selected_by_default[flag_name] = False
                 elif len(options_in_build_name) == 0:
                     selected_options[flag_name] = options[0]
-                    flags_selected_by_default[flag_name] = True
                 else:
                     selected_options[flag_name] = options_in_build_name[0]
-                    flags_selected_by_default[flag_name] = False
 
             self._selected_options = selected_options
-            self._flags_selected_by_default = flags_selected_by_default
 
     def get_options_and_flag_type_for_flag(self, flag_name):
         """
@@ -213,8 +200,6 @@ class ConfigKeywordParser(KeywordParser):
             delattr(self, "_selected_options_str")
         if hasattr(self, "_selected_options"):
             delattr(self, "_selected_options")
-        if hasattr(self, "_flags_selected_by_default"):
-            delattr(self, "_flags_selected_by_default")
 
         self._build_name = new_build_name
 

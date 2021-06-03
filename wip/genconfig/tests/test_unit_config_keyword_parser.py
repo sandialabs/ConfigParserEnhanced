@@ -77,41 +77,6 @@ def test_parser_uses_correct_defaults():
 
 @pytest.mark.parametrize("data", [
     {
-        "build_name": "machine-type-5_mpi_serial_none",
-        "expected_selected_by_default_dict": {
-            "use-mpi": False,
-            "node-type": False,
-            "package-enables": False,
-        },
-    },
-    {
-        "build_name": "machine-type-3",
-        "expected_selected_by_default_dict": {
-            "use-mpi": True,
-            "node-type": True,
-            "package-enables": True,
-        },
-    },
-    {
-        "build_name": "machine-type-3_openmp",
-        "expected_selected_by_default_dict": {
-            "use-mpi": True,
-            "node-type": False,
-            "package-enables": True,
-        },
-    },
-])
-def test_parser_correctly_stores_whether_options_were_selected_by_default(
-    data
-):
-    ckp = ConfigKeywordParser(data["build_name"],
-                              "test-supported-config-flags.ini")
-    assert (ckp.flags_selected_by_default ==
-            data["expected_selected_by_default_dict"])
-
-
-@pytest.mark.parametrize("data", [
-    {
         "build_name": "machine-type-5",
         "expected_selected_options_str": "_mpi_serial_none",
     },
@@ -276,17 +241,10 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
             "node-type": "serial",
             "package-enables": "none",
         },
-        "expected_selected_by_default_dict": {
-            "use-mpi": True,
-            "node-type": True,
-            "package-enables": True,
-        }
     }
     ckp = ConfigKeywordParser(data_1["build_name"],
                               "test-supported-config-flags.ini")
     assert ckp.selected_options == data_1["expected_selected_options"]
-    assert (ckp.flags_selected_by_default ==
-            data_1["expected_selected_by_default_dict"])
     assert ckp.selected_options_str == data_1["expected_selected_options_str"]
 
 
@@ -298,17 +256,10 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
             "node-type": "openmp",
             "package-enables": ["empire", "sparc", "muelu"],
         },
-        "expected_selected_by_default_dict": {
-            "use-mpi": True,
-            "node-type": False,
-            "package-enables": False,
-        }
     }
     # Setting build_name should be enough to clear old properties.
     ckp.build_name = data_2["build_name"]
     assert ckp.selected_options == data_2["expected_selected_options"]
-    assert (ckp.flags_selected_by_default ==
-            data_2["expected_selected_by_default_dict"])
     assert ckp.selected_options_str == data_2["expected_selected_options_str"]
 
 
