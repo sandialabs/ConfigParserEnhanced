@@ -19,6 +19,7 @@ from setprogramoptions import SetProgramOptionsCMake
 from src.config_keyword_parser import ConfigKeywordParser
 import sys
 import textwrap
+from typing import List
 # TODO: Probably will need to import LoadEnv from somewhere here
 
 
@@ -75,7 +76,7 @@ class GenConfig:
                         )
 
     def __init__(
-        self, argv:list[str],
+        self, argv:List[str],
         gen_config_ini_file=(Path(os.path.realpath(__file__)).parent /
                              "src/gen-config.ini"),
         # gen_config_ini_file set here for testing purposes. It is not meant to
