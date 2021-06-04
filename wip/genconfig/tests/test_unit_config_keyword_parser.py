@@ -82,7 +82,7 @@ def test_parser_uses_correct_defaults():
     },
     {
         "build_name": "machine-type-5_openmp_muelu_sparc_no-mpi",
-        "expected_selected_options_str": "_no-mpi_openmp_sparc_muelu",
+        "expected_selected_options_str": "_no-mpi_openmp_muelu_sparc",
         # Order here is dependent --------^________________________^
         # on the order within
         # supported-config-flags.ini
@@ -250,11 +250,11 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
 
     data_2 = {
         "build_name": "machine-type-5_openmp_muelu_empire_sparc",
-        "expected_selected_options_str": "_mpi_openmp_empire_sparc_muelu",
+        "expected_selected_options_str": "_mpi_openmp_empire_muelu_sparc",
         "expected_selected_options": {
             "use-mpi": "mpi",
             "node-type": "openmp",
-            "package-enables": ["empire", "sparc", "muelu"],
+            "package-enables": ["empire", "muelu", "sparc"],
         },
     }
     # Setting build_name should be enough to clear old properties.
