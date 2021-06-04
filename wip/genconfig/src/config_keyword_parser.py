@@ -109,7 +109,7 @@ class ConfigKeywordParser(KeywordParser):
                     ))
                 elif (len(options_in_build_name) > 1
                         and flag_type == "SELECT_MANY"):
-                    selected_options[flag_name] = options_in_build_name
+                    selected_options[flag_name] = sorted(options_in_build_name)
                 elif len(options_in_build_name) == 0:
                     selected_options[flag_name] = options[0]
                 else:

@@ -9,11 +9,13 @@ TODO:
 
 import argparse
 from configparserenhanced import ConfigParserEnhanced
+from contextlib import redirect_stdout
+import io
 from loadenv import LoadEnv
 import os
 from pathlib import Path
 import re
-from setprogramoptions import SetProgramOptions
+from setprogramoptions import SetProgramOptionsCMake
 from src.config_keyword_parser import ConfigKeywordParser
 import sys
 import textwrap
@@ -73,7 +75,7 @@ class GenConfig:
                         )
 
     def __init__(
-        self, argv,
+        self, argv:list[str],
         gen_config_ini_file=(Path(os.path.realpath(__file__)).parent /
                              "src/gen-config.ini"),
         # gen_config_ini_file set here for testing purposes. It is not meant to
@@ -89,6 +91,7 @@ class GenConfig:
         self.config_keyword_parser = None
         self.set_program_options = None
         self.load_env = None
+        self.has_been_validated = False
 
     def validate_config_specs_ini(self):
         if self.config_keyword_parser is None:
@@ -118,9 +121,12 @@ class GenConfig:
                     f"{str(e)}"
                 ))
 
-            formatted_section_name = (
-                f"{le.parsed_env_name}{selected_options_str}"
-            )
+            # Silences the diagnostic messages for all the section name
+            # matching (i.e. "Matched environment name ...")
+            with redirect_stdout(io.StringIO()):
+                formatted_section_name = (
+                    f"{le.parsed_env_name}{selected_options_str}"
+                )
             if formatted_section_name != section_name:
                 raise ValueError(self.get_formatted_msg(
                     "The following configuration section:\n"
@@ -133,6 +139,10 @@ class GenConfig:
                     extras="\nPlease correct this section in "
                     f"'{self.args.config_specs_file.name}'."
                 ))
+
+        self.load_env.build_name = self.args.build_name
+        self.config_keyword_parser.build_name = self.args.build_name
+        self.has_been_validated = True
 
     def load_config_keyword_parser(self):
         """
@@ -153,7 +163,7 @@ class GenConfig:
         :attr:`set_program_options`.
         """
         if self.set_program_options is None:
-            self.set_program_options = SetProgramOptions(
+            self.set_program_options = SetProgramOptionsCMake(
                 filename=self.args.config_specs_file
             )
 
@@ -163,65 +173,79 @@ class GenConfig:
         files. Save the resulting object as :attr:`load_env`.
         """
         if self.load_env is None:
-            self.load_env = LoadEnv(argv=[
+            argv = [
                 "--supported-systems", str(self.args.supported_systems_file),
                 "--supported-envs", str(self.args.supported_envs_file),
                 "--environment-specs", str(self.args.environment_specs_file),
-                self.args.build_name,
-            ])
+            ]
+            argv += ["--force"] if self.args.force else []
+            argv += [self.args.build_name]
+            self.load_env = LoadEnv(argv=argv)
 
     @property
-    def parsed_options(self):
+    def complete_config(self):
         """
         The selected config flag options name parsed from the
         :attr:`build_name` via the :class:`ConfigKeywordParser`.
         """
-        if not hasattr(self, "_parsed_options"):
+        if not hasattr(self, "_complete_config"):
             if self.config_keyword_parser is None:
                 self.load_config_keyword_parser()
-            self._parsed_options = self.config_keyword_parser.selected_options
-        return self._parsed_options
+            if self.load_env is None:
+                self.load_load_env()
+            self._complete_config = (
+                f"{self.load_env.parsed_env_name}"
+                f"{self.config_keyword_parser.selected_options_str}"
+            )
+
+            print(f"Matched complete configuration '{self._complete_config}'"
+                  f"\n  for build name '{self.args.build_name}'.")
+
+        return self._complete_config
 
     @property
-    def options_string(self):
-        if not hasattr(self, "_options_string"):
+    def generated_config_flags_str(self):
+        if not hasattr(self, "_generated_config_flags_str"):
             if self.set_program_options is None:
                 self.load_set_program_options()
-            # TODO: Insert code here to work through :attr:`parsed_options`. Not
-            # sure if this will be a dict of flags/options for key/value pairs or
-            # one parsed string that's passed to SetProgramOptions. That will
-            # depend on design decisions made in project-management#25.
-            options_list = self.set_program_options.gen_option_list(
-                self.parsed_options  # Placeholder
-            )
-            self._options_string = " \\\n    ".join(options_list)
+            if not self.has_been_validated:
+                self.validate_config_specs_ini()
 
-        return self._options_string
+            options_list = self.set_program_options.gen_option_list(
+                self.complete_config, "bash"
+            )
+            self._generated_config_flags_str = " \\\n    ".join(options_list)
+
+        return self._generated_config_flags_str
 
     def write_cmake_fragment(self):
-        # TODO: Update this docstring. And this method, haha.
+        # TODO: Update this docstring.
         """
         Returns:
             Path:  The path to the cmake fragment that was written, either the
             default or whatever the user requested with ``--output``.
         """
-        if self.set_program_options is None:
-            self.load_set_program_options()
-        file = Path("cmake.fragment")  # I'm very unfamiliar with how these
-        #                                things are named.
-        if self.args.output:
-            file = self.args.output
+        if not hasattr(self, "_cmake_fragment_file"):
+            if self.set_program_options is None:
+                self.load_set_program_options()
+            if not self.has_been_validated:
+                self.validate_config_specs_ini()
 
-        if file.exists():
-            file.unlink()
-        file.parent.mkdir(parents=True, exist_ok=True)
-        # self.set_program_options.write_actions_to_file(
-        #     file,
-        #     self.parsed_env_name,
-        #     include_header=True,
-        #     interpreter="bash"
-        # )
-        return files
+            cmake_options_list = self.set_program_options.gen_option_list(
+                self.complete_config, "cmake"
+            )
+
+            file = self.args.output
+            if file.exists():
+                file.unlink()
+            file.parent.mkdir(parents=True, exist_ok=True)
+
+            with open(file, "w") as F:
+                F.write("\n".join(cmake_options_list))
+
+            self._cmake_fragment_file = file
+
+        return self._cmake_fragment_file
 
     def list_config_flags(self):
         """
@@ -257,7 +281,8 @@ class GenConfig:
 
         return flags_options_str
 
-    def get_formatted_msg(self, msg, kind="ERROR", extras=""):
+    def get_formatted_msg(self, msg:str, kind:str="ERROR",
+                          extras:str="") -> str:
         """
         This helper method handles multiline messages, rendering them like::
 
@@ -361,7 +386,7 @@ class GenConfig:
         parser.add_argument("-l", "--list-config-flags", action="store_true",
                             default=False, help="List the available "
                             "configuration flags and options.")
-        parser.add_argument("-o", "--output", action="store", default=None,
+        parser.add_argument("--cmake-fragment", action="store", default=None,
                             type=lambda p: Path(p).resolve(), help="Output a "
                             "cmake fragment that will give you an identical "
                             "set of configuration flags as when using this "
@@ -421,7 +446,10 @@ def main(argv):
     gc = GenConfig(argv)
     if gc.args.list_config_flags:
         gc.list_config_flags()
-    print(gc.options_string)
+    if gc.args.cmake_fragment is not None:
+        gc.write_cmake_fragment()
+    else:
+        print(gc.generated_config_flags_str, file=sys.stderr)
 
 
 if __name__ == "__main__":
