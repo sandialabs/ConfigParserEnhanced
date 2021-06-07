@@ -30,6 +30,15 @@ if [[ $? -ne 0 ]]; then
   return $?
 fi
 
+# Preserve the user's current environment for subsequent runs
+# Grep for an error since non-lmod systems do not return non-zero upon failure
+module restore load-env-modules-$USER 2>&1 | grep -i error &> /dev/null
+if [[ $? -eq 0 ]]; then
+    module save load-env-modules-$USER &> /dev/null
+fi
+
+echo "Pre- load-env.sh environment cached to load-env-modules-$USER. Please disable load-env-modules-$USER to uncache this env"
+
 # Source the generated script to pull the environment into the current shell.
 if [ -f .load_matching_env_loc ]; then
   env_file=$(cat .load_matching_env_loc)

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.2] [Unreleased]
 #### Added
 #### Changed
+- Updated load-env.sh to save/restore the user's modules
 - Removed src and moved load-env.sh to the top-level directory
 - Added dependency on KeywordParser
 #### Deprecated
