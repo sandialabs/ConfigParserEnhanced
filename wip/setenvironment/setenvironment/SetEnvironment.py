@@ -1140,7 +1140,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value))         # Console
 
-        command = self._gen_actioncmd_envvar(operation, envvar_name, envvar_value)
+        command = self._gen_actioncmd_envvar(operation, envvar_name, envvar_value, interp='python')
         output  = self._exec_helper(command)
 
         if output != 0:
@@ -1185,7 +1185,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         self.debug_message(2, "{} :: `{}` - `{}`".format(operation, module_name, module_value))         # Console
 
-        command = self._gen_actioncmd_module(operation, module_name, module_value)
+        command = self._gen_actioncmd_module(operation, module_name, module_value, interp='python')
         output  = self._exec_helper(command)
 
         if output != 0:
@@ -1601,7 +1601,9 @@ class SetEnvironment(ConfigParserEnhanced):
             arglist = [ '"' + x + '"' for x in arglist ]
             output = "ModuleHelper.module({})".format(",".join(arglist))
         elif interp=="bash":
-            output = "module {}".format(" ".join(arglist))
+            output  = "module {}".format(" ".join(arglist))
+            #output += "; if [ $? -ne 0 ]; then exit 1; fi"
+            #^^^^^^ (uncomment if we want to exit if the module failed to load)
         else:
             self.exception_control_event("SERIOUS", ValueError,
                                          "Invalid interpreter provided: {}".format(interp))
