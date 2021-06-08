@@ -1,5 +1,6 @@
 #!/bin/bash
 export HTTPS_PROXY=http://user:nopass@proxy.sandia.gov:80
+export NO_PROXY=.sandia.gov
 if [ -n "$VIRTUAL_ENV" -a -w "$VIRTUAL_ENV" ]
 then
     pip_args="--trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org install -U"
