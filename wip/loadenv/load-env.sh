@@ -18,6 +18,18 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 load_env_py=${script_dir}/loadenv/LoadEnv.py
 
+# Preserve the user's current environment for subsequent runs
+# Grep for an error since non-lmod systems do not return non-zero upon failure
+module restore load-env-modules-$USER 2>&1 | grep -i error &> /dev/null
+if [[ $? -eq 0 ]]; then
+    module save load-env-modules-$USER &> /dev/null
+else
+    module purge
+    module restore load-env-modules-$USER &> /dev/null
+fi
+
+echo "Pre- load-env.sh environment cached to load-env-modules-$USER. Please disable load-env-modules-$USER to uncache this env"
+
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
   ${load_env_py} --help                                                          # Might need to change this help text slightly.
@@ -29,15 +41,6 @@ ${load_env_py} $@
 if [[ $? -ne 0 ]]; then
   return $?
 fi
-
-# Preserve the user's current environment for subsequent runs
-# Grep for an error since non-lmod systems do not return non-zero upon failure
-module restore load-env-modules-$USER 2>&1 | grep -i error &> /dev/null
-if [[ $? -eq 0 ]]; then
-    module save load-env-modules-$USER &> /dev/null
-fi
-
-echo "Pre- load-env.sh environment cached to load-env-modules-$USER. Please disable load-env-modules-$USER to uncache this env"
 
 # Source the generated script to pull the environment into the current shell.
 if [ -f .load_matching_env_loc ]; then
