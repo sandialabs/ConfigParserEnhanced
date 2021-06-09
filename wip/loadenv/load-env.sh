@@ -28,18 +28,6 @@ if [[ $(python3 -c "import setenvironment" &> /dev/null; echo $?) -ne 0 ]]; then
 	${script_dir}/install_reqs.sh
 fi
 
-# Preserve the user's current environment for subsequent runs
-# Grep for an error since non-lmod systems do not return non-zero upon failure
-# module restore load-env-modules-$USER 2>&1 | grep -i error &> /dev/null
-# if [[ $? -eq 0 ]]; then
-#     module save load-env-modules-$USER &> /dev/null
-# else
-#     module purge
-#     module restore load-env-modules-$USER &> /dev/null
-# fi
-
-# echo "Pre- load-env.sh environment cached to load-env-modules-$USER. Please disable load-env-modules-$USER to uncache this env"
-
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
   ${load_env_py} --help                                                          # Might need to change this help text slightly.
