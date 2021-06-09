@@ -18,17 +18,27 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 load_env_py=${script_dir}/loadenv/LoadEnv.py
 
-# Preserve the user's current environment for subsequent runs
-# Grep for an error since non-lmod systems do not return non-zero upon failure
-module restore load-env-modules-$USER 2>&1 | grep -i error &> /dev/null
-if [[ $? -eq 0 ]]; then
-    module save load-env-modules-$USER &> /dev/null
-else
-    module purge
-    module restore load-env-modules-$USER &> /dev/null
+# Create a virtual environment for running the LoadEnv tool
+if [[ ! -d "${script_dir}/virtual_env" ]]; then
+	python3 -m venv --copies ${script_dir}/virtual_env
+fi
+source ${script_dir}/virtual_env/bin/activate
+unset PYTHONPATH
+if [[ $(python3 -c "import configparserenhanced") -ne 0 ]]; then
+	${script_dir}/install_reqs.sh
 fi
 
-echo "Pre- load-env.sh environment cached to load-env-modules-$USER. Please disable load-env-modules-$USER to uncache this env"
+# Preserve the user's current environment for subsequent runs
+# Grep for an error since non-lmod systems do not return non-zero upon failure
+# module restore load-env-modules-$USER 2>&1 | grep -i error &> /dev/null
+# if [[ $? -eq 0 ]]; then
+#     module save load-env-modules-$USER &> /dev/null
+# else
+#     module purge
+#     module restore load-env-modules-$USER &> /dev/null
+# fi
+
+# echo "Pre- load-env.sh environment cached to load-env-modules-$USER. Please disable load-env-modules-$USER to uncache this env"
 
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
@@ -41,6 +51,9 @@ ${load_env_py} $@
 if [[ $? -ne 0 ]]; then
   return $?
 fi
+
+# Get out of the virtual environment
+deactivate
 
 # Source the generated script to pull the environment into the current shell.
 if [ -f .load_matching_env_loc ]; then
