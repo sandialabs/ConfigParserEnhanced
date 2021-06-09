@@ -22,10 +22,13 @@ load_env_py=${script_dir}/loadenv/LoadEnv.py
 if [[ ! -d "${script_dir}/virtual_env" ]]; then
   python3 -m venv ${script_dir}/virtual_env
 fi
-source ${script_dir}/virtual_env/bin/activate
-unset PYTHONPATH
-if [[ $(python3 -c "import setenvironment" &> /dev/null; echo $?) -ne 0 ]]; then
-  ${script_dir}/install_reqs.sh
+
+if [[ $? -eq 0 && -e ${script_dir}/virtual_env/bin/activate ]]; then
+    source ${script_dir}/virtual_env/bin/activate
+    unset PYTHONPATH
+else
+    echo "Error creating virtual_env directory"
+    return 1
 fi
 
 # Ensure that an argument is supplied.
@@ -35,13 +38,13 @@ if [ $# -eq 0 ]; then
   return 1
 fi
 
-ci_mode=false
-if [ $1 == "--ci_mode" ]; then
-    ci_mode=true
+ci_mode=0
+# Pass the input on to LoadEnv.py to do the real work.
+if [[ "$1" == "--ci_mode" ]]; then
+    ci_mode=1
     shift
 fi
 
-# Pass the input on to LoadEnv.py to do the real work.
 ${load_env_py} $@
 if [[ $? -ne 0 ]]; then
   deactivate
@@ -57,14 +60,18 @@ if [ -f .load_matching_env_loc ]; then
   rm -f .load_matching_env_loc
 
   if [ -f ${env_file} ]; then
+    echo "source ${env_file}" > ${script_dir}/virtual_env/.envrc
+    echo "rm -f ${env_file}" >> ${script_dir}/virtual_env/.envrc
+    echo "echo \"Environment loaded successfully.\"" >> ${script_dir}/virtual_env/.envrc
+
     # Enter subshell and set prompt by default
-    if [ ! $ci_mode ]; then
-      bash
-      export PS1="(env) $PS1"
+    if [[ $ci_mode -eq 0 ]]; then
+      echo "export PS1=\"(\$ENV_LOADED) $ \"" >> ${script_dir}/virtual_env/.envrc
+      /bin/bash --init-file ${script_dir}/virtual_env/.envrc
+    else
+      source ${script_dir}/virtual_env/.envrc
     fi
-    source ${env_file}
-    rm -f ${env_file}
-    echo "Environment loaded successfully."
+
   else
     echo "load_env.py failed to generate ${env_file}."
     echo "Unable to load the environment."
