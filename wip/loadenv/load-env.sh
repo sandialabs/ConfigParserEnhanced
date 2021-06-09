@@ -24,7 +24,7 @@ if [[ ! -d "${script_dir}/virtual_env" ]]; then
 fi
 source ${script_dir}/virtual_env/bin/activate
 unset PYTHONPATH
-if [[ $(python3 -c "import configparserenhanced") -ne 0 ]]; then
+if [[ $(python3 -c "import setenvironment" &> /dev/null; echo $?) -ne 0 ]]; then
 	${script_dir}/install_reqs.sh
 fi
 
