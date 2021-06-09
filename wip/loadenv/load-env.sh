@@ -66,7 +66,9 @@ if [ -f .load_matching_env_loc ]; then
 
     # Enter subshell and set prompt by default
     if [[ $ci_mode -eq 0 ]]; then
-      echo "export PS1=\"(\$ENV_LOADED) $ \"" >> ${script_dir}/virtual_env/.envrc
+      #TODO: echo "export PS1=\"(\$ENV_LOADED) $ \"" >> ${script_dir}/virtual_env/.envrc
+      echo "echo \"Use ctrl+D to exit.\"" >> ${script_dir}/virtual_env/.envrc
+      echo "export PS1=\"(env) $ \"" >> ${script_dir}/virtual_env/.envrc
       /bin/bash --init-file ${script_dir}/virtual_env/.envrc
     else
       source ${script_dir}/virtual_env/.envrc
