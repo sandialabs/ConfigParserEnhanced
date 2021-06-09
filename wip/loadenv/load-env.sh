@@ -20,23 +20,31 @@ load_env_py=${script_dir}/loadenv/LoadEnv.py
 
 # Create a virtual environment for running the LoadEnv tool
 if [[ ! -d "${script_dir}/virtual_env" ]]; then
-	python3 -m venv --copies ${script_dir}/virtual_env
+  python3 -m venv ${script_dir}/virtual_env
 fi
 source ${script_dir}/virtual_env/bin/activate
 unset PYTHONPATH
 if [[ $(python3 -c "import setenvironment" &> /dev/null; echo $?) -ne 0 ]]; then
-	${script_dir}/install_reqs.sh
+  ${script_dir}/install_reqs.sh
 fi
 
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
   ${load_env_py} --help                                                          # Might need to change this help text slightly.
+  deactivate
   return 1
+fi
+
+ci_mode=false
+if [ $1 == "--ci_mode" ]; then
+    ci_mode=true
+    shift
 fi
 
 # Pass the input on to LoadEnv.py to do the real work.
 ${load_env_py} $@
 if [[ $? -ne 0 ]]; then
+  deactivate
   return $?
 fi
 
@@ -49,6 +57,11 @@ if [ -f .load_matching_env_loc ]; then
   rm -f .load_matching_env_loc
 
   if [ -f ${env_file} ]; then
+    # Enter subshell and set prompt by default
+    if [ ! $ci_mode ]; then
+      bash
+      export PS1="(env) $PS1"
+    fi
     source ${env_file}
     rm -f ${env_file}
     echo "Environment loaded successfully."
