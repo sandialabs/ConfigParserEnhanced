@@ -10,10 +10,11 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ] ; then
 fi
 
 if [ ! -z $LOAD_ENV_INTERACTIVE_MODE ]; then
-  echo "!!! Error !!!"
-  echo "An environment is already loaded."
-  echo "Type \"exit\" before loading another environment."
-  echo "!!! Error !!!"
+  echo "+==============================================================================+"
+  echo "|   ERROR:  An environment is already loaded."
+  echo "|           Type \"exit\" before loading another environment."
+  echo "+==============================================================================+"
+
   return 1
 fi
 
@@ -72,9 +73,10 @@ fi
 ci_mode=0
 if [[ "$1" == "--ci_mode" ]]; then
     ci_mode=1
-    echo "!!! Warning !!!"
-    echo "ci mode is enabled. Your current environment will be overwritten."
-    echo "!!! Warning !!!"
+    echo "+==============================================================================+"
+    echo "|   WARNING:  ci mode is enabled."
+    echo "|             Your current environment will be overwritten."
+    echo "+==============================================================================+"
     shift
 fi
 
