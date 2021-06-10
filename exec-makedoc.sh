@@ -11,6 +11,10 @@ execute_command "python3 -m pip uninstall -y configparserenhanced > _test-uninst
 
 cd doc
 execute_command_checked "./make_html_docs.sh"
+cd ..
+
+# only executes if the previous command didn't fail
+execute_command "rm _test-uninstall-cpe.log > /dev/null 2>&1"
 
 printf "${yellow}"
 print_banner "Make Documentation - Done"
