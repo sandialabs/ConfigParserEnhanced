@@ -6,10 +6,13 @@ stages:
 
 before_script:
   # display centos version
-  - cat /etc/issue
+  # - cat /etc/issue
 
   # Pull required packages
-  - python3 -m pip install pytest pytest-cov
+  - python3 -m pip install --user -r requirements.txt
+  - python3 -m pip install --user -r requirements-test.txt
+  - python3 -m pip install --user -r doc/requirements.txt
+  # - python3 -m pip install pytest pytest-cov
   - python3 -m pip list
 
 pytest:
@@ -23,7 +26,8 @@ apptest:
   stage: test
   timeout: 10m
   script:
-    - python3 ./exec-example-ConfigParserEnhanced.py
+    - cd examples/
+    - python3 ./ConfigParserEnhanced-example-01.py
 
 install:
   stage: deploy
@@ -39,7 +43,7 @@ sphinx-documentation:
   timeout: 20m
   script:
     - cd doc/
-    - python3 -m pip install -r requirements.txt
+    # - python3 -m pip install -r requirements.txt
     - bash make_html_docs.sh
 
 publish coverage:
@@ -52,7 +56,6 @@ publish coverage:
     - python3 -m pytest --cov=configparserenhanced --cov-report=html --cov-report=term --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/coverage
-    #- mv htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
     - mv tests/htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
 
 publish docs:
@@ -63,7 +66,7 @@ publish docs:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - cd doc/
-    - python3 -m pip install -r requirements.txt
+    # - python3 -m pip install -r requirements.txt
     - bash make_html_docs.sh
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/doc
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/doc

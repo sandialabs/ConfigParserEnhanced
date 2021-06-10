@@ -24,3 +24,6 @@ tests
 *.wpu
 
 dist
+
+examples/_*.ini
+_test-*.log

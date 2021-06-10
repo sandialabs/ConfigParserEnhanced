@@ -4,7 +4,7 @@
 # Wing project file                                              #
 ##################################################################
 [project attributes]
-console.toolbox = [{'autosave': False,
+console.toolbox = [{'autosave': True,
                     'cmd': 'exec-tests.sh ',
                     'env': ('project',
                             [u'']),
@@ -21,37 +21,8 @@ console.toolbox = [{'autosave': False,
                     'rundir': ('project',
                                u''),
                     'shared': False,
-                    'title': 'Tests with Coverage',
-                    'use_container': False},
-                   {'autosave': False,
-                    'cmd': 'make_html_docs.sh',
-                    'env': ('project',
-                            [u'']),
-                    'hostname': ('project',
-                                 None),
-                    'id': 'cmd-zacZJtKZLSpru8UX',
-                    'io_encoding': None,
-                    'key_binding': '',
-                    'line_mode': True,
-                    'pseudo_tty': False,
-                    'pypath': ('project',
-                               []),
-                    'raise_panel': True,
-                    'rundir': ('custom',
-                               u'${WING:PROJECT_DIR}/doc'),
-                    'shared': False,
-                    'title': 'Generate Docs ',
-                    'use_container': False},
-                   {'autosave': False,
-                    'id': 'cmd-wR0xFJINQde9QT7O',
-                    'io_encoding': None,
-                    'key_binding': None,
-                    'line_mode': True,
-                    'loc': u'/Users/wcmclen/dev/atdm-consolidation/ConfigParserEnhanced/dctest.py',
-                    'pseudo_tty': False,
-                    'raise_panel': True,
-                    'shared': False,
-                    'title': None}]
+                    'title': 'Execute Tests',
+                    'use_container': False}]
 proj.directory-list = [{'dirloc': loc('.'),
                         'excludes': [u'tests',
                                      u'dist',
@@ -64,6 +35,6 @@ proj.directory-list = [{'dirloc': loc('.'),
                         'recursive': True,
                         'watch_for_changes': True}]
 proj.file-type = 'shared'
-proj.main-file = loc('exec-example-ConfigParserEnhanced.py')
+proj.main-file = loc('examples/ConfigParserEnhanced-example-01.py')
 testing.auto-test-file-specs = (('glob',
                                  'unittests/test_*.py'),)
