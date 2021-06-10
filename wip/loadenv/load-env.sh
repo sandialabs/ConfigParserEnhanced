@@ -31,7 +31,7 @@ fi
 
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
-  cd ${script_dir}; python3 -E -s -m loadenv --help; cd -
+  cd ${script_dir} >/dev/null; python3 -E -s -m loadenv --help; cd - >/dev/null
   deactivate
   return 1
 fi
@@ -43,7 +43,7 @@ if [[ "$1" == "--ci_mode" ]]; then
     shift
 fi
 
-cd ${script_dir}; python3 -E -s -m loadenv $@; cd -
+cd ${script_dir} >/dev/null; python3 -E -s -m loadenv $@; cd - >/dev/null
 if [[ $? -ne 0 ]]; then
   deactivate
   return $?
