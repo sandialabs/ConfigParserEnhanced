@@ -300,7 +300,7 @@ class LoadEnv:
         examples = """
             Basic Usage::
 
-                source load-env.sh [--ci_mode] [options] [build_name]
+                source load-env.sh [options] [build_name]
         """
         examples = textwrap.dedent(examples)
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
@@ -316,7 +316,7 @@ class LoadEnv:
                             "keyword string for which you wish to load the "
                             "environment.")
         parser.add_argument("--ci-mode", action="store_true", default=False,
-                            help="Causes LoadEnv to source the environment to "
+                            help="Causes load-env.sh to source the environment to "
                             "your current shell rather than putting you in an "
                             "interactive subshell with the loaded environment.")
         parser.add_argument("-l", "--list-envs", action="store_true",
