@@ -10,7 +10,7 @@ fi
 python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
 if [[ "${python_too_old}" == "True" ]]; then
   echo "This script requires Python 3.6+."
-  echo "Your current `python3` is only $(python3 --version)."
+  echo "Your current python3 is only $(python3 --version)."
   return 1
 fi
 
