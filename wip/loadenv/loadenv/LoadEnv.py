@@ -297,7 +297,7 @@ class LoadEnv:
         examples = """
             Basic Usage::
 
-                source load-env.sh <build-name>
+                source load-env.sh <build_name>
         """
         examples = textwrap.dedent(examples)
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
