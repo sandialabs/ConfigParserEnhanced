@@ -45,7 +45,7 @@ function cleanup()
 
 #### BEGIN environment setup ####
 
-# Ensure the python3 in the user's environment and high enough.
+# Ensure python3 is in PATH and that the version is high enough.
 if [[ ! -z $(which python3 2>/dev/null) ]]; then
   python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
 else
