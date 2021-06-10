@@ -6,8 +6,15 @@ if [ "${BASH_SOURCE[0]}" == "${0}" ] ; then
   exit 1
 fi
 
-# Ensure the python3 in the user's environment is high enough.
-python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
+# Ensure the python3 in the user's environment and high enough.
+if [[ ! -z $(which python3 2>/dev/null) ]]; then
+  python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
+else
+  echo "This script requires Python 3.6+."
+  echo "Please load Python 3.6+ into your path."
+  return 1
+fi
+
 if [[ "${python_too_old}" == "True" ]]; then
   echo "This script requires Python 3.6+."
   echo "Your current python3 is only $(python3 --version)."
