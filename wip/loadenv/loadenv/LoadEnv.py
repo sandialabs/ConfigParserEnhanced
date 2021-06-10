@@ -315,6 +315,10 @@ class LoadEnv:
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to load the "
                             "environment.")
+        parser.add_argument("--ci-mode", action="store_true", default=False,
+                            help="Causes LoadEnv to source the environment to "
+                            "your current shell rather than putting you in an "
+                            "interactive subshell with the loaded environment.")
         parser.add_argument("-l", "--list-envs", action="store_true",
                             default=False, help="List the environments "
                             "available on your current machine.")
@@ -370,7 +374,8 @@ def main(argv):
     cwd = Path.cwd().resolve()
     with open(cwd/".load_matching_env_loc", "w") as F:
         F.write(str(le.tmp_load_matching_env_file))
-
+    if le.args.ci_mode:
+        (cwd/".ci_mode").touch()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

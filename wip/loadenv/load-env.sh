@@ -33,6 +33,7 @@ fi
 function cleanup()
 {
    [ -f .load_matching_env_loc ] && rm -f .load_matching_env_loc 2>/dev/null
+   [ -f .ci_mode ] && rm -f .ci_mode 2>/dev/null
    [ ! -z ${env_file} ]          && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
 
    unset python_too_old script_dir ci_mode cleanup env_file
@@ -69,21 +70,20 @@ if [ $# -eq 0 ]; then
   cleanup; return 1
 fi
 
+# Pass the input on to LoadEnv.py to do the real work.
+cd ${script_dir} >/dev/null; python3 -E -s -m loadenv $@; cd - >/dev/null
+if [[ $? -ne 0 ]]; then
+  cleanup; return $?
+fi
+
 # Check for Continuous Integration mode.
 ci_mode=0
-if [[ "$1" == "--ci_mode" ]]; then
+if [ -f .ci_mode ]; then
     ci_mode=1
     echo "+==============================================================================+"
     echo "|   WARNING:  ci mode is enabled."
     echo "|             Your current environment will be overwritten."
     echo "+==============================================================================+"
-    shift
-fi
-
-# Pass the input on to LoadEnv.py to do the real work.
-cd ${script_dir} >/dev/null; python3 -E -s -m loadenv $@; cd - >/dev/null
-if [[ $? -ne 0 ]]; then
-  cleanup; return $?
 fi
 
 # Source the generated script to pull the environment into the current shell.
