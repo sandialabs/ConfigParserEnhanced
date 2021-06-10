@@ -103,7 +103,7 @@ if [ -f .load_matching_env_loc ]; then
       echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
       echo "echo \"          T Y P E  \"exit\"  T O  L E A V E  T H E  E N V I R O N M E N T\""         >> ${env_file::-2}rc
       echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-      echo "export PS1=\"(${@: -1}) $ \""                                                               >> ${env_file::-2}rc
+      echo "export PS1=\"(\$LOADED_ENV_NAME) $ \""                                                      >> ${env_file::-2}rc
       echo "export LOAD_ENV_INTERACTIVE_MODE=\"True\""                                                  >> ${env_file::-2}rc
       /bin/bash --init-file ${env_file::-2}rc -i
     else

@@ -210,6 +210,9 @@ class LoadEnv:
                 include_header=True,
                 interpreter="bash"
             )
+            with open(f, "a") as F:
+                F.write(f"export LOADED_ENV_NAME={self.parsed_env_name}")
+
         return files[-1]
 
     @property
@@ -363,7 +366,9 @@ def main(argv):
     le.apply_env()
     print(f"Environment '{le.parsed_env_name}' validated.")
     le.write_load_matching_env()
-    with open(Path.cwd().resolve()/".load_matching_env_loc", "w") as F:
+
+    cwd = Path.cwd().resolve()
+    with open(cwd/".load_matching_env_loc", "w") as F:
         F.write(str(le.tmp_load_matching_env_file))
 
 
