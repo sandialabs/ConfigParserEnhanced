@@ -16,7 +16,6 @@ fi
 
 # Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-load_env_py=${script_dir}/loadenv/LoadEnv.py
 
 # Create a virtual environment for running the LoadEnv tool
 if [[ ! -d "${script_dir}/virtual_env" ]]; then
@@ -25,7 +24,6 @@ fi
 
 if [[ $? -eq 0 && -e ${script_dir}/virtual_env/bin/activate ]]; then
     source ${script_dir}/virtual_env/bin/activate
-    unset PYTHONPATH
 else
     echo "Error creating virtual_env directory"
     return 1
@@ -33,7 +31,7 @@ fi
 
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
-  ${load_env_py} --help                                                          # Might need to change this help text slightly.
+  cd ${script_dir}; python3 -E -s -m loadenv --help; cd -
   deactivate
   return 1
 fi
@@ -45,7 +43,7 @@ if [[ "$1" == "--ci_mode" ]]; then
     shift
 fi
 
-${load_env_py} $@
+cd ${script_dir}; python3 -E -s -m loadenv $@; cd -
 if [[ $? -ne 0 ]]; then
   deactivate
   return $?
@@ -62,6 +60,7 @@ if [ -f .load_matching_env_loc ]; then
   if [ -f ${env_file} ]; then
     echo "source ${env_file}" > ${script_dir}/virtual_env/.envrc
     echo "rm -f ${env_file}" >> ${script_dir}/virtual_env/.envrc
+    echo "unset ci_mode python_too_old script_dir" >> ${script_dir}/virtual_env/.envrc
     echo "echo \"Environment loaded successfully.\"" >> ${script_dir}/virtual_env/.envrc
 
     # Enter subshell and set prompt by default
