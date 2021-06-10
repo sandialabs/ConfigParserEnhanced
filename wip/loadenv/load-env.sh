@@ -40,6 +40,9 @@ ci_mode=0
 # Pass the input on to LoadEnv.py to do the real work.
 if [[ "$1" == "--ci_mode" ]]; then
     ci_mode=1
+    echo "!!! Warning !!!"
+    echo "    ci_mode is enabled. Your current environment will be overwritten."
+    echo "!!! Warning !!!"
     shift
 fi
 
