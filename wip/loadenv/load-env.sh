@@ -61,14 +61,19 @@ if [ -f .load_matching_env_loc ]; then
     echo "source ${env_file}" > ${script_dir}/virtual_env/.envrc
     echo "rm -f ${env_file}" >> ${script_dir}/virtual_env/.envrc
     echo "unset ci_mode python_too_old script_dir" >> ${script_dir}/virtual_env/.envrc
-    echo "echo \"Environment loaded successfully.\"" >> ${script_dir}/virtual_env/.envrc
+    echo "echo; echo; echo" >> ${script_dir}/virtual_env/.envrc
+    echo "echo ********************************************************************************"  >> ${script_dir}/virtual_env/.envrc
+    echo "echo \"           E N V I R O N M E N T  L O A D E D  S U C E S S F U L L Y\"" >> ${script_dir}/virtual_env/.envrc
+    echo "echo ********************************************************************************"  >> ${script_dir}/virtual_env/.envrc
 
     # Enter subshell and set prompt by default
     if [[ $ci_mode -eq 0 ]]; then
-      #TODO: echo "export PS1=\"(\$ENV_LOADED) $ \"" >> ${script_dir}/virtual_env/.envrc
-      echo "echo \"Use ctrl+D to exit.\"" >> ${script_dir}/virtual_env/.envrc
-      echo "export PS1=\"(env) $ \"" >> ${script_dir}/virtual_env/.envrc
-      /bin/bash --init-file ${script_dir}/virtual_env/.envrc
+      echo "echo; echo; echo" >> ${script_dir}/virtual_env/.envrc
+      echo "echo ********************************************************************************"  >> ${script_dir}/virtual_env/.envrc
+      echo "echo \"       T Y P E  \"exit\"  T O  L E A V E  T H E  E N V I R O N M E N T\"" >> ${script_dir}/virtual_env/.envrc
+      echo "echo ********************************************************************************"  >> ${script_dir}/virtual_env/.envrc
+      echo "export PS1=\"(${@: -1}) $ \"" >> ${script_dir}/virtual_env/.envrc
+      env --ignore-environment /bin/bash -i --init-file ${script_dir}/virtual_env/.envrc
     else
       source ${script_dir}/virtual_env/.envrc
     fi
