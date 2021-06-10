@@ -1,13 +1,9 @@
 #!/bin/bash
-export HTTPS_PROXY=http://user:nopass@proxy.sandia.gov:80
-export NO_PROXY=.sandia.gov
-if [ -n "$VIRTUAL_ENV" -a -w "$VIRTUAL_ENV" ]
-then
-    pip_args="--trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org install -U"
-else
-    pip_args="--trusted-host=pypi.org --trusted-host=files.pythonhosted.org --trusted-host=pypi.python.org install --user -U"
-fi
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
+pushd $PWD
+
+cd ${script_dir}
 rm -rf deps > /dev/null 2>&1; mkdir deps; cd deps
 git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/ConfigParserEnhanced.git
 git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/SetEnvironment.git
@@ -15,8 +11,10 @@ git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/Determin
 git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/KeywordParser.git
 cd -
 
-# deps
-python3 -m pip $pip_args pip pytest pytest-cov
+# snapshot dependencies in
+ln -s deps/SetEnvironment/setenvironment/ .
+ln -s deps/ConfigParserEnhanced/configparserenhanced/ .
+ln -s deps/DetermineSystem/determinesystem/ .
+ln -s deps/KeywordParser/keywordparser/ .
 
-# no-deps
-python3 -m pip $pip_args --no-deps ./deps/*
+popd
