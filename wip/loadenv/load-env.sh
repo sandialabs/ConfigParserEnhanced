@@ -41,7 +41,7 @@ ci_mode=0
 if [[ "$1" == "--ci_mode" ]]; then
     ci_mode=1
     echo "!!! Warning !!!"
-    echo "    ci_mode is enabled. Your current environment will be overwritten."
+    echo "ci mode is enabled. Your current environment will be overwritten."
     echo "!!! Warning !!!"
     shift
 fi
