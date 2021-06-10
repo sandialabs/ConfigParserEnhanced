@@ -76,7 +76,7 @@ if [ -f .load_matching_env_loc ]; then
       echo "echo \"          T Y P E  \"exit\"  T O  L E A V E  T H E  E N V I R O N M E N T\"" >> ${script_dir}/virtual_env/.envrc
       echo "echo \"********************************************************************************\""  >> ${script_dir}/virtual_env/.envrc
       echo "export PS1=\"(${@: -1}) $ \"" >> ${script_dir}/virtual_env/.envrc
-      env --ignore-environment PATH=$PATH /bin/bash --init-file ${script_dir}/virtual_env/.envrc -i
+      /bin/bash --init-file ${script_dir}/virtual_env/.envrc -i
     else
       source ${script_dir}/virtual_env/.envrc
     fi
