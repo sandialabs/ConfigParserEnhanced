@@ -305,7 +305,8 @@ class LoadEnv:
         parser = argparse.ArgumentParser(
             description=description,
             epilog=examples,
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="LoadEnv.py [options] [build_name]"
         )
 
         parser.add_argument("build_name", nargs="?", default="", help="The "
