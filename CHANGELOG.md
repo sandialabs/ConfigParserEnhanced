@@ -14,7 +14,7 @@ Updates and Changes
 ===================
 
 <!--
-## [X.Y.Z] - < !-- YYYY-MM-DD or -- > [Unreleased]
+## [X.Y.Z] - < !-- YYYY-MM-DD or -- > [UNRELEASED]
 ### Added
 ### Changed
 ### Deprecated
@@ -24,17 +24,22 @@ Updates and Changes
 ### Security
 -->
 
-## [0.6.0] - <!-- YYYY-MM-DD or --> [Unreleased]
+## [0.6.0] - <!-- YYYY-MM-DD or --> [UNRELEASED]
 ### Added
 - property: `default_section_name` - parameterizes the CPE's version of the "DEFAULT" section.
   This defaults to "DEFAULT" and will get loaded in _once_ at the start a new parse of a section.
 ### Changed
+- Relocated the `configparserenhanced` directory into `src/configparserenhanced` and adjusted
+  documentation, testing, etc. files to work with this new structure.
 - The logic for `TypedProperty` validator functions is reversed. Falsy results mean failure now
   and truthy results indicate a successful validation of a value.
 ### Deprecated
 ### Removed
 ### Fixed
 ### Internal
+- removed _testing_ requirements from the `requirements.txt` file and put them in
+  a new file, `requirements-test.txt`.
+- cleaned up output from the `exec-tests.sh` file to now put log info in files named `_test-XXX.log`
 - property: `_internal_default_section_name` - parameterizes the internal ConfigParser object's
   _DEFAULT_ section to a _nonstandard_ value (`CONFIGPARSERENHANCED_COMMON`).
   This section name should generally be avoided in .ini files as it can cause undefined behavior

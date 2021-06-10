@@ -21,9 +21,10 @@ options=(
     install
     --user
     -r requirements.txt
+    -r requirements-test.txt
     -r doc/requirements.txt
 )
 
 cmd="${python_exe} ${options[@]}"
-execute_command_checked "${cmd}"
+execute_command_checked "${cmd} > _test-reqs-install.log 2>&1"
 

@@ -1,14 +1,16 @@
 [tool.poetry]
 name = "configparserenhanced"
 version = "0.6.0"
+license = ""
+readme = "README.md"
+keywords = []
+repository = "https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced"
 description = "A .ini file processing tool that extends configparser to add processing triggers to options."
+documentation = "http://10.202.35.89:8080/ConfigParserEnhanced/doc/index.html"
 authors = [
     "William McLendon <wcmclen@sandia.gov>",
     "Jason M. Gates <jmgate@sandia.gov>"
 ]
-readme = "README.md"
-documentation = "http://10.202.35.89:8080/ConfigParserEnhanced/doc/index.html"
-repository = "https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced"
 classifiers = [
     'Development Status :: 3 - Alpha',
     'Intended Audience :: DevOps',
@@ -17,27 +19,41 @@ classifiers = [
     'Programming Language :: Python :: 3 :: Only',
 ]
 packages = [
-    { include = 'configparserenhanced' }
+    { include = 'configparserenhanced', from = 'src' },
 ]
-include = [ "CHANGELOG.md" ]
+# include = [ "CHANGELOG.md" ]
+
+
+[tool.poetry.urls]
+CI = "https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced/-/pipelines"
+Issues = "https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced/-/issues"
 
 
 [tool.poetry.dependencies]
 python = "^3.6"
-configparser = "^5.0.1"
+# configparser = "^5.0"
 
 
 [tool.poetry.dev-dependencies]
-mock = "^4.0.3"
-pytest = "^6.2.2"
-pytest-cov = "^2.11.1"
-Sphinx = "^3.5.1"
-sphinx-argparse = "^0.2.5"
-sphinx-rtd-theme = "^0.5.1"
+mock = "^4.0"
+pytest = "^6.2"
+pytest-cov = "^2.11"
+Sphinx = "^3.5"
+sphinx-argparse = "^0.2"
+sphinx-rtd-theme = "^0.5"
+
+
+[tool.black]
+line-length = 120
+target-version = ["py36"]
+
+
+[tool.pycodestyle]
+statistics = true
 
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.0"]
 build-backend = "poetry.core.masonry.api"
 
 

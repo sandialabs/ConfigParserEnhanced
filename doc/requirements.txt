@@ -1,3 +1,7 @@
+#
+# Requirements for building documentation are in this file.
+#
+
 sphinx
 sphinx-argparse
 sphinx-rtd-theme

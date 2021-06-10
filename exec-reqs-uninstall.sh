@@ -19,9 +19,9 @@ options=(
     uninstall
     -y
     -r requirements.txt
+    -r requirements-test.txt
 )
 
 cmd="${python_exe} ${options[@]} ${projectname}"
-execute_command_checked "${cmd}"
-
+execute_command_checked "${cmd} > _test-reqs-uninstall.log 2>&1"
 

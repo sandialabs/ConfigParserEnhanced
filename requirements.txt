@@ -1,10 +1,8 @@
-# Core Requirements
-# configparser (should be packaged with Python)
+#
+# Main requirements for using this project are in this file.
+#
 
-# Unit Testing Requirements
-mock >= 4
-pytest >= 6.2
-pytest-cov >= 2.4
+# Core Requirements
 
 # Privately Hosted Packages
 

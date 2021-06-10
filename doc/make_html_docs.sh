@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+python3 -m pip install --user -r requirements.txt
+
 sphinx-build -b html source/ html/ -W
 
 err=$?
