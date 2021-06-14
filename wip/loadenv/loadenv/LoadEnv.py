@@ -210,6 +210,9 @@ class LoadEnv:
                 include_header=True,
                 interpreter="bash"
             )
+            with open(f, "a") as F:
+                F.write(f"export LOADED_ENV_NAME={self.parsed_env_name}")
+
         return files[-1]
 
     @property
@@ -297,7 +300,7 @@ class LoadEnv:
         examples = """
             Basic Usage::
 
-                source load-env.sh <build-name>
+                source load-env.sh [options] [build_name]
         """
         examples = textwrap.dedent(examples)
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
@@ -305,12 +308,17 @@ class LoadEnv:
         parser = argparse.ArgumentParser(
             description=description,
             epilog=examples,
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="LoadEnv.py [options] [build_name]"
         )
 
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to load the "
                             "environment.")
+        parser.add_argument("--ci-mode", action="store_true", default=False,
+                            help="Causes load-env.sh to source the environment to "
+                            "your current shell rather than putting you in an "
+                            "interactive subshell with the loaded environment.")
         parser.add_argument("-l", "--list-envs", action="store_true",
                             default=False, help="List the environments "
                             "available on your current machine.")
@@ -362,9 +370,12 @@ def main(argv):
     le.apply_env()
     print(f"Environment '{le.parsed_env_name}' validated.")
     le.write_load_matching_env()
-    with open(Path.cwd().resolve()/".load_matching_env_loc", "w") as F:
-        F.write(str(le.tmp_load_matching_env_file))
 
+    cwd = Path.cwd().resolve()
+    with open(cwd/".load_matching_env_loc", "w") as F:
+        F.write(str(le.tmp_load_matching_env_file))
+    if le.args.ci_mode:
+        (cwd/".ci_mode").touch()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
