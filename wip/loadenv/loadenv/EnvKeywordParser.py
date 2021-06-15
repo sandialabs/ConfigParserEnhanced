@@ -1,6 +1,8 @@
 import re
 from keywordparser import KeywordParser
+import os
 import sys
+
 
 
 class EnvKeywordParser(KeywordParser):
@@ -44,6 +46,7 @@ class EnvKeywordParser(KeywordParser):
         env_names = [_ for _ in self.config[self.system_name].keys()]
         self.env_names = sorted(env_names, key=len, reverse=True)
         self.aliases = sorted(self.get_aliases(), key=len, reverse=True)
+
 
     @property
     def qualified_env_name(self):
@@ -129,6 +132,7 @@ class EnvKeywordParser(KeywordParser):
 
         return self._qualified_env_name
 
+
     def get_aliases(self):
         """
         Gets the aliases for the current :attr:`system_name` and returns them
@@ -151,6 +155,7 @@ class EnvKeywordParser(KeywordParser):
         self.assert_aliases_not_equal_to_env_names(aliases)
 
         return aliases
+
 
     def assert_alias_list_values_are_unique(self, alias_list):
         """
@@ -179,6 +184,8 @@ class EnvKeywordParser(KeywordParser):
                 duplicates
             )
             sys.exit(msg)
+        return
+
 
     def assert_aliases_not_equal_to_env_names(self, alias_list):
         """
@@ -210,6 +217,8 @@ class EnvKeywordParser(KeywordParser):
                 "environment name:", duplicates
             )
             sys.exit(msg)
+        return
+
 
     def get_msg_showing_supported_environments(self, msg, kind="ERROR"):
         """
@@ -251,6 +260,12 @@ class EnvKeywordParser(KeywordParser):
             for a in aliases_for_env:
                 extras += f"      - {a}\n"
 
-        extras += f"\nSee {self.config_filename} for details."
+        config_filename_rel = os.path.relpath(self.config_filename, ".")
+
+        extras += f"\nSee `{config_filename_rel}` for details on the available environments.\n"
+        extras += "\n"
+        extras += "To force-load an environment see the guidance in the `--help` output.\n"
+        extras += "\n"
+
         msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg
