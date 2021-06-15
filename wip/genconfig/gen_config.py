@@ -106,6 +106,7 @@ class GenConfig:
             self.args.config_specs_file
         ).configparserenhanceddata
 
+        invalid_sections = []
         for section_name in config_specs.keys():
             if section_name.upper() == section_name:
                 continue  # This is just a supporting section
@@ -122,24 +123,31 @@ class GenConfig:
                     f"{str(e)}"
                 ))
 
-            # Silences the diagnostic messages for all the section name
+            # Silences the LoadEnv diagnostic messages for all the section name
             # matching (i.e. "Matched environment name ...")
             with redirect_stdout(io.StringIO()):
                 formatted_section_name = (
                     f"{le.parsed_env_name}{selected_options_str}"
                 )
             if formatted_section_name != section_name:
-                raise ValueError(self.get_formatted_msg(
-                    "The following configuration section:\n"
-                    f"  - {section_name}\n\n"
-                    "Should be formatted in the following manner to include "
-                    "only valid\noptions and to match the order of supported "
-                    "flags/options in\n"
-                    f"'{self.args.supported_config_flags_file.name}':\n"
-                    f"  - {formatted_section_name}",
-                    extras="\nPlease correct this section in "
-                    f"'{self.args.config_specs_file.name}'."
-                ))
+                invalid_sections.append((section_name, formatted_section_name))
+
+        if len(invalid_sections) > 0:
+            err_msg = (
+                "The following section(s) in your config-specs.ini file\n"
+                "should be formatted in the following manner to include "
+                "only valid\noptions and to match the order of supported "
+                "flags/options in\n"
+                f"'{self.args.supported_config_flags_file.name}':\n\n"
+                "-  {current_section_name}\n-> {formatted_section_name}\n\n"
+            )
+            for section_name, formatted_section_name in invalid_sections:
+                err_msg += f"-  {section_name}\n-> {formatted_section_name}\n\n"
+
+            raise ValueError(self.get_formatted_msg(
+                err_msg, extras=("Please correct these sections in "
+                                 f"'{self.args.config_specs_file.name}'.")
+            ))
 
         self.load_env.build_name = self.args.build_name
         self.config_keyword_parser.build_name = self.args.build_name

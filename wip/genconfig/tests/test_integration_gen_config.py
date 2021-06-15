@@ -11,28 +11,66 @@ sys.path.append(str(root_dir))
 from gen_config import GenConfig
 
 
-def get_expected_exc_msg(section_name, test_ini_filename):
-    formatted_section_name = (
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
-    )
+###############################################################################
+########################     Functionality     ################################
+###############################################################################
+@pytest.mark.parametrize("data", [
+    {
+        "build_name": "machine-type-5_intel-hsw",
+        "expected_complete_config": "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_none"
+    }
+])
+def test_complete_config_generated_correctly(data):
+    gc = GenConfig([
+        "--config-specs", "test-supported-config-flags.ini",
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--force",
+        data["build_name"]
+    ])
+
+    assert gc.complete_config == data["expected_complete_config"]
+
+
+###############################################################################
+##########################     Validation     #################################
+###############################################################################
+def get_expected_exc_msg(section_names, test_ini_filename):
+    formatted_section_name = "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
     msg_expected = textwrap.dedent(
         f"""
-        |   ERROR:  The following configuration section:
-        |             - {section_name}
-        |
-        |           Should be formatted in the following manner to include only valid
+        |   ERROR:  The following section(s) in your config-specs.ini file
+        |           should be formatted in the following manner to include only valid
         |           options and to match the order of supported flags/options in
         |           'test-supported-config-flags.ini':
-        |             - {formatted_section_name}
         |
-        |   Please correct this section in '{test_ini_filename}'.
+        |           -  {{current_section_name}}
+        |           -> {{formatted_section_name}}
+        |
         """
     ).strip()
+    msg_expected += "\n"
+
+    if type(section_names) == list:
+        for section_name in section_names:
+            msg_expected += (
+                f"|           -  {section_name}\n"
+                f"|           -> {formatted_section_name}\n|\n"
+            )
+    else:
+        msg_expected += (
+            f"|           -  {section_names}\n"
+            f"|           -> {formatted_section_name}\n|\n"
+        )
+
+    msg_expected += f"|   Please correct these sections in '{test_ini_filename}'."
 
     return msg_expected
 
 
-def run_common_test(test_ini_filename, section_name, should_raise):
+def run_common_validation_test(test_ini_filename, section_names, should_raise):
     gc = GenConfig([
         "--config-specs", test_ini_filename,
         "--supported-config-flags", "test-supported-config-flags.ini",
@@ -48,7 +86,9 @@ def run_common_test(test_ini_filename, section_name, should_raise):
             gc.validate_config_specs_ini()
 
         exc_msg = excinfo.value.args[0]
-        msg_expected = get_expected_exc_msg(section_name, test_ini_filename)
+        msg_expected = get_expected_exc_msg(section_names, test_ini_filename)
+        print(msg_expected)
+        print(exc_msg)
         assert msg_expected in exc_msg
 
 
@@ -78,7 +118,7 @@ def test_section_without_options_specified_for_all_flags_raises(data):
     with open(test_ini_filename, "w") as F:
         F.write(bad_config_specs)
 
-    run_common_test(test_ini_filename, data["section_name"], data["should_raise"])
+    run_common_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
 
 
 @pytest.mark.parametrize("data", [
@@ -107,7 +147,7 @@ def test_section_with_incorrect_flag_order_raises(data):
     with open(test_ini_filename, "w") as F:
         F.write(bad_config_specs)
 
-    run_common_test(test_ini_filename, data["section_name"], data["should_raise"])
+    run_common_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
 
 
 @pytest.mark.parametrize("data", [
@@ -140,4 +180,25 @@ def test_items_in_config_specs_sections_that_arent_options_raises(data):
     with open(test_ini_filename, "w") as F:
         F.write(bad_config_specs)
 
-    run_common_test(test_ini_filename, data["section_name"], data["should_raise"])
+    run_common_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
+
+
+def test_multiple_invalid_config_specs_sections_are_shown_in_one_err_msg():
+    bad_section_names = [
+        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_serial_sparc",
+        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_sparc_serial",
+        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc_not-an-option"
+    ]
+    bad_config_specs = ""
+    for sec_name in bad_section_names:
+        bad_config_specs += (
+            f"[{sec_name}]\n"
+            "opt-set-cmake-var CMAKE_BUILD_TYPE STRING : DEBUG\n\n"
+        )
+
+    test_ini_filename = "test_config_specs_multiple_invalid_sections.ini"
+    with open(test_ini_filename, "w") as F:
+        F.write(bad_config_specs)
+
+    should_raise = True
+    run_common_validation_test(test_ini_filename, bad_section_names, should_raise)
