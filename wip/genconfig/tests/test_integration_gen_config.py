@@ -9,6 +9,7 @@ root_dir = (Path.cwd()/".."
 
 sys.path.append(str(root_dir))
 from gen_config import GenConfig
+import gen_config
 
 
 ###############################################################################
@@ -22,7 +23,7 @@ from gen_config import GenConfig
 ])
 def test_complete_config_generated_correctly(data):
     gc = GenConfig([
-        "--config-specs", "test-supported-config-flags.ini",
+        "--config-specs", "test-config-specs.ini",
         "--supported-config-flags", "test-supported-config-flags.ini",
         "--supported-systems", "test-supported-systems.ini",
         "--supported-envs", "test-supported-envs.ini",
@@ -32,6 +33,76 @@ def test_complete_config_generated_correctly(data):
     ])
 
     assert gc.complete_config == data["expected_complete_config"]
+
+
+@pytest.mark.parametrize("data", [
+    {
+        "build_name": "machine-type-5_intel-hsw",
+        "expected_flag_str": "-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p"
+    },
+    {
+        "build_name": "machine-type-5_intel-hsw_sparc",
+        "expected_flag_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
+                     "    -DTPL_ENABLE_MPI:BOOL=ON")
+    },
+    {
+        "build_name": "machine-type-5_intel-hsw_empire_sparc",
+        "expected_flag_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
+                     "    -DTPL_ENABLE_MPI:BOOL=ON \\\n"
+                     "    -DTrilinos_ENABLE_Panzer:BOOL=ON")
+    },
+])
+def test_config_flags_printed_correctly(data, capsys):
+    gen_config.main([
+        "--config-specs", "test-config-specs.ini",
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--force",
+        data["build_name"]
+    ])
+
+    out, err = capsys.readouterr()
+    assert err == data["expected_flag_str"]
+
+
+@pytest.mark.parametrize("data", [
+    {
+        "build_name": "machine-type-5_intel-hsw",
+        "expected_fragment_contents": 'set(MPI_EXEC_NUMPROCS_FLAG -p CACHE STRING "from .ini configuration")'
+    },
+    {
+        "build_name": "machine-type-5_intel-hsw_sparc",
+        "expected_fragment_contents": (
+            'set(MPI_EXEC_NUMPROCS_FLAG -p CACHE STRING "from .ini configuration")\n'
+            'set(TPL_ENABLE_MPI ON CACHE BOOL "from .ini configuration")'
+        )
+    },
+    {
+        "build_name": "machine-type-5_intel-hsw_empire_sparc",
+        "expected_fragment_contents": (
+            'set(MPI_EXEC_NUMPROCS_FLAG -p CACHE STRING "from .ini configuration")\n'
+            'set(TPL_ENABLE_MPI ON CACHE BOOL "from .ini configuration")\n'
+            'set(Trilinos_ENABLE_Panzer ON CACHE BOOL "from .ini configuration")'
+        )
+    },
+])
+def test_cmake_fragment_file_stored_correctly(data):
+    gen_config.main([
+        "--config-specs", "test-config-specs.ini",
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--cmake-fragment", "test_fragment.cmake",
+        "--force",
+        data["build_name"]
+    ])
+    with open("test_fragment.cmake", "r") as F:
+        test_fragment_contents = F.read()
+
+    assert test_fragment_contents == data["expected_fragment_contents"]
 
 
 ###############################################################################

@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-TODO:
-
-    * Increase test coverage.
-
-"""
-
 import argparse
 from configparserenhanced import ConfigParserEnhanced
 from contextlib import redirect_stdout
@@ -232,7 +225,7 @@ class GenConfig:
         """
         Returns:
             Path:  The path to the cmake fragment that was written, either the
-            default or whatever the user requested with ``--output``.
+            default or whatever the user requested with ``--cmake-fragment``.
         """
         if not hasattr(self, "_cmake_fragment_file"):
             if self.set_program_options is None:
@@ -241,10 +234,10 @@ class GenConfig:
                 self.validate_config_specs_ini()
 
             cmake_options_list = self.set_program_options.gen_option_list(
-                self.complete_config, "cmake"
+                self.complete_config, "cmake_fragment"
             )
 
-            file = self.args.output
+            file = self.args.cmake_fragment
             if file.exists():
                 file.unlink()
             file.parent.mkdir(parents=True, exist_ok=True)
@@ -272,23 +265,6 @@ class GenConfig:
                 kind="INFO"
             )
         )
-
-    def get_flags_options_str(self):
-        ckp = self.config_keyword_parser
-        flags = [flag for flag in ckp.selected_options.keys()]
-        options = [ckp.selected_options[flag] for flag in flags]
-
-        flags_options_str = ""
-        for flag, option in zip(flags, options):
-            f_len = len(max(flags, key=len))
-            o_len = len(max(options, key=len))
-            default = (" (default)"
-                       if ckp.is_default_option(option)
-                       else "")
-            flags_options_str += f"  - {flag.ljust(f_len)} = "
-            flags_options_str += f"{option.ljust(o_len)}{default}\n"
-
-        return flags_options_str
 
     def get_formatted_msg(self, msg:str, kind:str="ERROR",
                           extras:str="") -> str:
@@ -458,7 +434,7 @@ def main(argv):
     if gc.args.cmake_fragment is not None:
         gc.write_cmake_fragment()
     else:
-        print(gc.generated_config_flags_str, file=sys.stderr)
+        print(gc.generated_config_flags_str, file=sys.stderr, end="")
 
 
 if __name__ == "__main__":
