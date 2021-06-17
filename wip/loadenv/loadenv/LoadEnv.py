@@ -92,9 +92,8 @@ class LoadEnv:
         # be changed by the user.
     ):
         if not isinstance(argv, list):
-            raise TypeError(
-                "LoadEnv must be instantiated with a list of command line arguments."
-            )
+            raise TypeError("LoadEnv must be instantiated with a list of command line arguments.")
+
         self.argv = argv
         self.load_env_ini_file = load_env_ini_file
         self.load_env_config_data = None
