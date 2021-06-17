@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Deprecated
 #### Removed
 #### Fixed
+- Bug in load-env.sh when sourced outside of loadenv dir (#43)
 - Bug in tmp file location when multiple users run on the same system
 - Bug in load-env.sh script when trying to use the help option
 - Bug in load-env.sh script when python3 is not in PATH
