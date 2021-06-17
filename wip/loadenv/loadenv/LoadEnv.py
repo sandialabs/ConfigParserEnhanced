@@ -33,29 +33,37 @@ class LoadEnv:
         ``configparserenhanceddata`` object as :attr:`load_env_config_data`.
 
         Raises:
-            ValueError: (TODO - FILL THIS IN)
+            ValueError: TODO - explain when ValueError can be raised.
         """
         if self.load_env_config_data is None:
             self.load_env_config_data = ConfigParserEnhanced(
                 self.load_env_ini_file
             ).configparserenhanceddata
+
             if not self.load_env_config_data.has_section("load-env"):
                 msg = f"'{self.load_env_ini_file}' must contain a 'load-env' section."
                 raise ValueError(self.get_formatted_msg(msg))
+
             for key in ["supported-systems", "supported-envs", "environment-specs"]:
                 if not self.load_env_config_data.has_option("load-env", key):
-                    raise ValueError(self.get_formatted_msg(
-                        f"'{self.load_env_ini_file}' must contain the "
-                        "following in the 'load-env' section:",
-                        extras=f"  {key} : /path/to/{key}.ini"
-                    ))
+                    raise ValueError(
+                        self.get_formatted_msg(
+                            f"'{self.load_env_ini_file}' must contain the "
+                            "following in the 'load-env' section:",
+                            extras=f"  {key} : /path/to/{key}.ini",
+                        )
+                    )
+
                 value = self.load_env_config_data["load-env"][key]
+
                 if value == "" or value is None:
-                    raise ValueError(self.get_formatted_msg(
-                        f"The path specified for '{key}' in "
-                        f"'{self.load_env_ini_file}' must be non-empty, e.g.:",
-                        extras=f"  {key} : /path/to/{key}.ini"
-                    ))
+                    raise ValueError(
+                        self.get_formatted_msg(
+                            f"The path specified for '{key}' in "
+                            f"'{self.load_env_ini_file}' must be non-empty, e.g.:",
+                            extras=f"  {key} : /path/to/{key}.ini",
+                        )
+                    )
                 else:
                     if not Path(value).is_absolute():
                         self.load_env_config_data["load-env"][key] = str(
@@ -72,18 +80,20 @@ class LoadEnv:
         if self.supported_systems_data is None:
             self.supported_systems_data = ConfigParserEnhanced(
                 self.args.supported_systems_file
-                ).configparserenhanceddata
+            ).configparserenhanceddata
         return
 
 
-    def __init__(self,
-                 argv,
-                load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "load-env.ini")
-                # load_env_ini_file set here for testing purposes. It is not meant to
-                # be changed by the user.
-                ):
+    def __init__(
+        self,
+        argv,
+        load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "load-env.ini")
+        # load_env_ini_file set here for testing purposes. It is not meant to
+        # be changed by the user.
+    ):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of command line arguments.")
+
         self.argv = argv
         self.load_env_ini_file = load_env_ini_file
         self.load_env_config_data = None
@@ -118,9 +128,11 @@ class LoadEnv:
         The name of the system from which the tool will select an environment.
         """
         if not hasattr(self, "_system_name"):
-            ds = DetermineSystem(self.args.build_name,
-                                 self.args.supported_systems_file,
-                                 force_build_name=self.args.force)
+            ds = DetermineSystem(
+                self.args.build_name,
+                self.args.supported_systems_file,
+                force_build_name=self.args.force,
+            )
             self._system_name = ds.system_name
 
         return self._system_name
@@ -134,9 +146,7 @@ class LoadEnv:
         """
         if self.env_keyword_parser is None:
             self.env_keyword_parser = EnvKeywordParser(
-                self.args.build_name,
-                self.system_name,
-                self.args.supported_envs_file
+                self.args.build_name, self.system_name, self.args.supported_envs_file
             )
         return
 
@@ -152,11 +162,11 @@ class LoadEnv:
         if self.env_keyword_parser is None:
             self.load_env_keyword_parser()
 
-        sys.exit(self.env_keyword_parser.get_msg_showing_supported_environments(
-                    "Please select one of the following.",
-                    kind="INFO"
-                    )
-                )
+        sys.exit(
+            self.env_keyword_parser.get_msg_showing_supported_environments(
+                "Please select one of the following.", kind="INFO"
+            )
+        )
         return
 
 
@@ -181,25 +191,32 @@ class LoadEnv:
         :attr:`set_environment`.
         """
         if self.set_environment is None:
-            self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
+            self.set_environment = SetEnvironment(
+                filename=self.args.environment_specs_file
+            )
         return
 
 
     def apply_env(self):
         """
         Apply the selected environment to ensure it works on the given machine.
+
+        Raises:
+            RuntimeError: TODO - explain how this exception gets raised.
         """
         if self.set_environment is None:
             self.load_set_environment()
 
         rval = self.set_environment.apply(self.parsed_env_name)
         if rval != 0:
-            raise RuntimeError(self.get_formatted_msg(
-                "Something unexpected went wrong in applying the "
-                f"environment.  Ensure that the '{self.parsed_env_name}' "
-                "environment is fully supported on the "
-                f"'{socket.gethostname()}' host."
-            ))
+            raise RuntimeError(
+                self.get_formatted_msg(
+                    "Something unexpected went wrong in applying the "
+                    f"environment.  Ensure that the '{self.parsed_env_name}' "
+                    "environment is fully supported on the "
+                    f"'{socket.gethostname()}' host."
+                )
+            )
         return
 
 
@@ -223,13 +240,12 @@ class LoadEnv:
         for f in files:
             if f.exists():
                 f.unlink()
+
             f.parent.mkdir(parents=True, exist_ok=True)
             self.set_environment.write_actions_to_file(
-                f,
-                self.parsed_env_name,
-                include_header=True,
-                interpreter="bash"
+                f, self.parsed_env_name, include_header=True, interpreter="bash"
             )
+
             with open(f, "a") as F:
                 F.write(f"export LOADED_ENV_NAME={self.parsed_env_name}")
 
@@ -248,7 +264,7 @@ class LoadEnv:
             user = getpass.getuser()
             self._tmp_load_matching_env_file = Path(
                 f"/tmp/{user}/load_matching_env_{unique_str}.sh"
-                ).resolve()
+            ).resolve()
 
         return self._tmp_load_matching_env_file
 
@@ -280,7 +296,7 @@ class LoadEnv:
         for extra in extras.splitlines():
             msg += f"|   {extra}\n"
 
-        msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
+        msg = "\n+" + "=" * 78 + "+\n" + msg + "+" + "=" * 78 + "+\n"
         return msg
 
 
@@ -322,12 +338,16 @@ class LoadEnv:
             :attr:`args`.
         """
         description = "[ Load Environment Utility ]".center(79, "-")
-        description += ("\n\nThis tool allows you to load environments "
-                        "supported on your system by passing\nit a string "
-                        "containing keywords to call out a particular "
-                        "environment name or\nalias.")
 
-        examples = textwrap.dedent("""\
+        description += (
+            "\n\nThis tool allows you to load environments "
+            "supported on your system by passing\nit a string "
+            "containing keywords to call out a particular "
+            "environment name or\nalias."
+        )
+
+        examples = textwrap.dedent(
+            """\
             Basic Usage:
 
                 $ source load-env.sh [options] [build_name]
@@ -360,80 +380,98 @@ class LoadEnv:
 
                 where <system_type> is one of the section headers in `supported-envs.ini`,
                 such as "rhel7".
-        """)
+        """
+        )
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
 
         parser = argparse.ArgumentParser(
             description=description,
             epilog=examples,
             formatter_class=argparse.RawDescriptionHelpFormatter,
-            usage="LoadEnv.py [options] [build_name]"
+            usage="LoadEnv.py [options] [build_name]",
         )
 
-        parser.add_argument("build_name",
-                            nargs="?",
-                            default="",
-                            help="The "
-                            "keyword string for which you wish to load the environment.")
+        parser.add_argument(
+            "build_name",
+            nargs="?",
+            default="",
+            help="The " "keyword string for which you wish to load the environment.",
+        )
 
-        parser.add_argument("--ci-mode",
-                            action="store_true",
-                            default=False,
-                            help="Causes load-env.sh to source the environment to "
-                            "your current shell rather than putting you in an "
-                            "interactive subshell with the loaded environment.")
+        parser.add_argument(
+            "--ci-mode",
+            action="store_true",
+            default=False,
+            help="Causes load-env.sh to source the environment to "
+            "your current shell rather than putting you in an "
+            "interactive subshell with the loaded environment.",
+        )
 
-        parser.add_argument("-l", "--list-envs",
-                            action="store_true",
-                            default=False,
-                            help="List the environments "
-                            "available on your current machine.")
+        parser.add_argument(
+            "-l",
+            "--list-envs",
+            action="store_true",
+            default=False,
+            help="List the environments " "available on your current machine.",
+        )
 
-        parser.add_argument("-o", "--output",
-                            action="store",
-                            default=None,
-                            type=lambda p: Path(p).resolve(),
-                            help="Output a "
-                            "bash script that when sourced will give you an "
-                            "environment identical to the one loaded when "
-                            "using this tool.")
+        parser.add_argument(
+            "-o",
+            "--output",
+            action="store",
+            default=None,
+            type=lambda p: Path(p).resolve(),
+            help="Output a "
+            "bash script that when sourced will give you an "
+            "environment identical to the one loaded when "
+            "using this tool.",
+        )
 
-        parser.add_argument("-f", "--force",
-                            action="store_true",
-                            default=False,
-                            help="Forces load_env to use the "
-                            "system name specified in the build_name rather "
-                            "than the system name matched via the hostname "
-                            "and the supported-systems.ini file.")
+        parser.add_argument(
+            "-f",
+            "--force",
+            action="store_true",
+            default=False,
+            help="Forces load_env to use the "
+            "system name specified in the build_name rather "
+            "than the system name matched via the hostname "
+            "and the supported-systems.ini file.",
+        )
 
         config_files = parser.add_argument_group("configuration file overrides")
 
-        config_files.add_argument("--supported-systems",
-                                  dest="supported_systems_file",
-                                  action="store",
-                                  default=None,
-                                  type=lambda p: Path(p).resolve(),
-                                  help="Path to ``supported-systems.ini``.  "
-                                  "Overrides loading the file specified in "
-                                  "``load-env.ini``.")
+        config_files.add_argument(
+            "--supported-systems",
+            dest="supported_systems_file",
+            action="store",
+            default=None,
+            type=lambda p: Path(p).resolve(),
+            help="Path to ``supported-systems.ini``.  "
+            "Overrides loading the file specified in "
+            "``load-env.ini``.",
+        )
 
-        config_files.add_argument("--supported-envs",
-                                  default=None,
-                                  dest="supported_envs_file",
-                                  action="store",
-                                  type=lambda p: Path(p).resolve(),
-                                  help="Path to ``supported-envs.ini``.  "
-                                  "Overrides loading the file specified in "
-                                  "``load-env.ini``.")
+        config_files.add_argument(
+            "--supported-envs",
+            default=None,
+            dest="supported_envs_file",
+            action="store",
+            type=lambda p: Path(p).resolve(),
+            help="Path to ``supported-envs.ini``.  "
+            "Overrides loading the file specified in "
+            "``load-env.ini``.",
+        )
 
-        config_files.add_argument("--environment-specs",
-                                  dest="environment_specs_file",
-                                  action="store",
-                                  default=None,
-                                  type=lambda p: Path(p).resolve(),
-                                  help="Path to ``environment-specs.ini``.  "
-                                  "Overrides loading the file specified in "
-                                  "``load-env.ini``.")
+        config_files.add_argument(
+            "--environment-specs",
+            dest="environment_specs_file",
+            action="store",
+            default=None,
+            type=lambda p: Path(p).resolve(),
+            help="Path to ``environment-specs.ini``.  "
+            "Overrides loading the file specified in "
+            "``load-env.ini``.",
+        )
 
         return parser
 
@@ -456,11 +494,12 @@ def main(argv):
     le.write_load_matching_env()
 
     cwd = Path.cwd().resolve()
-    with open(cwd/".load_matching_env_loc", "w") as F:
-        F.write(str(le.tmp_load_matching_env_file))
-    if le.args.ci_mode:
-        (cwd/".ci_mode").touch()
 
+    with open(cwd / ".load_matching_env_loc", "w") as F:
+        F.write(str(le.tmp_load_matching_env_file))
+
+    if le.args.ci_mode:
+        (cwd / ".ci_mode").touch()
 
 
 if __name__ == "__main__":
