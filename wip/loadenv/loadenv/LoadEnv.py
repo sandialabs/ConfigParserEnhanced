@@ -339,14 +339,15 @@ class LoadEnv:
                 If you find that you are on a platform that is unknown to LoadEnv
                 but you know that it has all the proper modules and packages installed
                 that match an existing environment you can force-load a configuration
-                with the `--force` option. For example, to force-load the clang-10
+                with the `--force` option. For example, to force-load the `clang-10`
                 environment for a RHEL7 system that has the SEMS environment modules
                 installed, you would enter:
 
-                $ source load-env.sh --force rhel7_sems-clang-10.0.0-openmpi-1.10.1-openmp
+                    $ source load-env.sh --force rhel7_clang-10
 
-                In this case the fully-qualified environment name is formatted as:
-                <system_type>_<full_environment_name>
+                In this case the environment name is formatted as:
+
+                    <system_type>_<environment_name>
 
             Identify available environments for a given platform:
 
@@ -355,7 +356,7 @@ class LoadEnv:
                 you can find out what environments are supported through the `--force`
                 option:
 
-                $ source load-env.sh --force <system_type>
+                    $ source load-env.sh --force <system_type>
 
                 where <system_type> is one of the section headers in `supported-envs.ini`,
                 such as "rhel7".
