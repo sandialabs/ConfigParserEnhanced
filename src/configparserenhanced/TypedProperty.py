@@ -12,14 +12,16 @@ class SENTINEL:
 
 
 
-def typed_property(name: str,
-                   expected_type=(int,str),
-                   default=SENTINEL,
-                   default_factory=lambda: None,
-                   req_assign_before_use=False,
-                   internal_type=None,
-                   validator=None,
-                   transform=None):
+def typed_property(
+    name: str,
+    expected_type=(int, str),
+    default=SENTINEL,
+    default_factory=lambda: None,
+    req_assign_before_use=False,
+    internal_type=None,
+    validator=None,
+    transform=None
+):
     """
     Implements a typed property in a class using the pattern
     `"9.21 Avoiding Repetitive Property Methods" from the O'Reilly
@@ -51,11 +53,10 @@ def typed_property(name: str,
             the property is made before it's been assigned.
 
     """
-    varname       = "_" + name
-    varname_set   = varname + "_is_set"
+    varname = "_" + name
+    varname_set = varname + "_is_set"
     expected_type = expected_type
-    validator     = validator
-
+    validator = validator
 
     @property
     def prop(self):
@@ -72,17 +73,16 @@ def typed_property(name: str,
                 setattr(self, varname, default_factory())
         return getattr(self, varname)
 
-
     @prop.setter
     def prop(self, value):
         _expected_type = copy.deepcopy(expected_type)
         if not isinstance(_expected_type, typing.Iterable):
-            _expected_type = (_expected_type,)
+            _expected_type = (_expected_type, )
         for expected_type_i in _expected_type:
             if isinstance(value, expected_type_i):
                 break
         else:
-            type_names = [ i.__name__ for i in _expected_type ]
+            type_names = [i.__name__ for i in _expected_type]
             raise TypeError("'{}' must be in ({})".format(name, ",".join(type_names)))
 
         if internal_type is not None:
@@ -99,8 +99,10 @@ def typed_property(name: str,
         if validator is not None:
             if callable(validator):
                 if not validator(value):
-                    raise ValueError("Assignment of `{}` to property `{}` ".format(value,name) +
-                                     "failed validation check in `{}`".format(validator))
+                    raise ValueError(
+                        "Assignment of `{}` to property `{}` ".format(value, name) +
+                        "failed validation check in `{}`".format(validator)
+                    )
             else:
                 raise TypeError("Validator '{}' for property '{}' is not callable.".format(validator, name))
 
@@ -109,7 +111,6 @@ def typed_property(name: str,
 
         # Save that we've assigned the value to something
         setattr(self, varname_set, True)
-
 
     @prop.deleter
     def prop(self):

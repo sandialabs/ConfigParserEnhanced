@@ -5,9 +5,13 @@
 from __future__ import print_function
 
 import sys
+
+
 sys.dont_write_bytecode = True
 
 import os
+
+
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import unittest
@@ -15,10 +19,10 @@ from unittest import TestCase
 
 # Coverage will always miss one of these depending on the system
 # and what is available.
-try:                                                                            # pragma: no cover
-    import unittest.mock as mock                                                # pragma: no cover
-except:                                                                         # pragma: no cover
-    import mock                                                                 # pragma: no cover
+try:                             # pragma: no cover
+    import unittest.mock as mock # pragma: no cover
+except:                          # pragma: no cover
+    import mock                  # pragma: no cover
 
 from mock import Mock
 from mock import MagicMock
@@ -33,23 +37,17 @@ from configparserenhanced.TypedProperty import typed_property
 
 from .common import *
 
-
-
 #===============================================================================
 #
 # General Utility Functions
 #
 #===============================================================================
 
-
-
 #===============================================================================
 #
 # Mock Helpers
 #
 #===============================================================================
-
-
 
 #===============================================================================
 #
@@ -63,14 +61,17 @@ class TypedPropertyTest(TestCase):
     """
     Main test driver for TypedProperty testing
     """
+
     def setUp(self):
         print("")
+        return 0
 
 
     def test_TypedProperty_typed_propertry_with_default(self):
         """
         Test a typed_property with a default
         """
+
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None)
 
@@ -98,6 +99,7 @@ class TypedPropertyTest(TestCase):
         Test typed property ``req_assign_before_use`` properly triggers
         an ``UnboundLocalError`` exception (use before assign.)
         """
+
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None, req_assign_before_use=True)
 
@@ -115,6 +117,7 @@ class TypedPropertyTest(TestCase):
         """
         Test the sanity check that a validator must be callable.
         """
+
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None)
 
@@ -131,10 +134,11 @@ class TypedPropertyTest(TestCase):
         """
         Test the sanity check that a validator must be callable.
         """
+
         def validate_int_geq_100(value):
             if value < 100:
-                return 0   # Falsy means fail.
-            return 1       # Truthy means success.
+                return 0     # Falsy means fail.
+            return 1         # Truthy means success.
 
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None, validator=validate_int_geq_100)
@@ -153,6 +157,7 @@ class TypedPropertyTest(TestCase):
         """
         Test the sanity check that a validator must be callable.
         """
+
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None, validator="X")
 
@@ -169,6 +174,7 @@ class TypedPropertyTest(TestCase):
         """
         Test a typed_property with a default
         """
+
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None)
 
@@ -192,7 +198,6 @@ class TypedPropertyTest(TestCase):
         self.assertEqual(False, hasattr(obj, "_data"))
         self.assertEqual(False, hasattr(obj, "_data_is_set"))
 
-
         print("OK")
         return 0
 
@@ -201,16 +206,14 @@ class TypedPropertyTest(TestCase):
         """
         Test a transform
         """
+
         def transform_int_range_0_5(value):
             value = max(0, value)
             value = min(5, value)
             return value
 
         class TestClass(object):
-            data = typed_property("data",
-                                  expected_type=int,
-                                  default=None,
-                                  transform=transform_int_range_0_5)
+            data = typed_property("data", expected_type=int, default=None, transform=transform_int_range_0_5)
 
         obj = TestClass()
 
@@ -230,17 +233,16 @@ class TypedPropertyTest(TestCase):
         """
         Test a transform
         """
+
         def transform_int_range_0_5(value):
             value = max(0, value)
             value = min(5, value)
             return value
 
         class TestClass(object):
-            data = typed_property("data",
-                                  expected_type=int,
-                                  internal_type=int,
-                                  default=None,
-                                  transform=transform_int_range_0_5)
+            data = typed_property(
+                "data", expected_type=int, internal_type=int, default=None, transform=transform_int_range_0_5
+                )
 
         obj = TestClass()
 
@@ -260,6 +262,7 @@ class TypedPropertyTest(TestCase):
         """
         Test a transform
         """
+
         class TestClass(object):
             data = typed_property("data", expected_type=int, default=None, transform=99)
 
@@ -276,6 +279,7 @@ class TypedPropertyTest(TestCase):
         """
         Test a strict default entry.
         """
+
         class TestClass(object):
             data = typed_property("data")
 
@@ -301,6 +305,7 @@ class TypedPropertyTest(TestCase):
         """
         Test a strict default entry.
         """
+
         class TestClass(object):
             data = typed_property("data", default_factory=dict)
 
@@ -322,6 +327,7 @@ class TypedPropertyTest(TestCase):
         """
         Test a strict default entry.
         """
+
         class TestClass(object):
             data = typed_property("data", default_factory={})
 
@@ -331,7 +337,6 @@ class TypedPropertyTest(TestCase):
             obj1.data
 
         return 0
-
 
 
 

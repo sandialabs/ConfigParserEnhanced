@@ -5,9 +5,13 @@
 from __future__ import print_function
 
 import sys
+
+
 sys.dont_write_bytecode = True
 
 import os
+
+
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import unittest
@@ -15,10 +19,10 @@ from unittest import TestCase
 
 # Coverage will always miss one of these depending on the system
 # and what is available.
-try:                                                                            # pragma: no cover
-    import unittest.mock as mock                                                # pragma: no cover
-except:                                                                         # pragma: no cover
-    import mock                                                                 # pragma: no cover
+try:                             # pragma: no cover
+    import unittest.mock as mock # pragma: no cover
+except:                          # pragma: no cover
+    import mock                  # pragma: no cover
 
 from mock import Mock
 from mock import MagicMock
@@ -33,23 +37,17 @@ from configparserenhanced import Debuggable
 
 from .common import *
 
-
-
 #===============================================================================
 #
 # General Utility Functions
 #
 #===============================================================================
 
-
-
 #===============================================================================
 #
 # Mock Helpers
 #
 #===============================================================================
-
-
 
 #===============================================================================
 #
@@ -63,17 +61,20 @@ class DebuggableTest(TestCase):
     """
     Main test driver for the SetEnvironment class
     """
+
     def setUp(self):
         print("")
+        return
 
 
     def test_Debuggable_property_debug_level(self):
         """
         Test reading and setting the property `debug_level`
         """
+
         class testme(Debuggable):
+
             def __init__(self):
-                pass
                 return
 
         inst_testme = testme()
@@ -96,11 +97,13 @@ class DebuggableTest(TestCase):
         self.assertEqual(0, inst_testme.debug_level)
 
         print("OK")
+        return 0
 
 
     def test_Debuggable_method_debug_message(self):
 
         class testme(Debuggable):
+
             def __init__(self):
                 pass
                 return
@@ -109,21 +112,21 @@ class DebuggableTest(TestCase):
 
         message = "This is a test message!"
 
-        with patch('sys.stdout', new = StringIO()) as fake_out:
+        with patch('sys.stdout', new=StringIO()) as fake_out:
             inst_testme.debug_message(0, message, end="\n")
             self.assertEqual(fake_out.getvalue(), message + "\n")
 
-        with patch('sys.stdout', new = StringIO()) as fake_out:
+        with patch('sys.stdout', new=StringIO()) as fake_out:
             inst_testme.debug_message(1, message, end="\n")
             self.assertEqual(fake_out.getvalue(), "")
 
         inst_testme.debug_level = 3
-        with patch('sys.stdout', new = StringIO()) as fake_out:
+        with patch('sys.stdout', new=StringIO()) as fake_out:
             inst_testme.debug_message(3, message, end="\n")
-            self.assertEqual(fake_out.getvalue(), "[D-3] "+message+"\n")
+            self.assertEqual(fake_out.getvalue(), "[D-3] " + message + "\n")
 
         inst_testme.debug_level = 2
-        with patch('sys.stdout', new = StringIO()) as fake_out:
+        with patch('sys.stdout', new=StringIO()) as fake_out:
             inst_testme.debug_message(0, "A", end="", useprefix=False)
             inst_testme.debug_message(1, "B", end="", useprefix=False)
             inst_testme.debug_message(2, "C", end="", useprefix=False)
@@ -132,8 +135,7 @@ class DebuggableTest(TestCase):
             self.assertEqual(fake_out.getvalue(), "ABC")
 
         print("OK")
-
-
+        return 0
 
 
 
