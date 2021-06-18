@@ -24,7 +24,7 @@ Updates and Changes
 ### Security
 -->
 
-## [0.6.0] - <!-- YYYY-MM-DD or --> [UNRELEASED]
+## [0.6.0] - 2021-06-18
 ### Added
 - property: `default_section_name` - parameterizes the CPE's version of the "DEFAULT" section.
   This defaults to "DEFAULT" and will get loaded in _once_ at the start a new parse of a section.
