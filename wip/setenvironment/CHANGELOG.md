@@ -17,6 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
+## [0.5.1] - [Unreleased]
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+#### Security
+#### Internal
+- Added `.style.yapf` rules and refactored code to match style.
+- Added _virtual environment_ detection to helper scripts.
+#### Todo (for Unreleased)
 
 
 ## [0.5.0] 2021-05-18

@@ -36,21 +36,20 @@ import shutil
 import subprocess
 import sys
 
+if "MODULESHOME" in os.environ.keys():                                      # pragma: no cover
+    sys.path.insert(1, os.path.join(os.environ['MODULESHOME'], 'init'))     # pragma: no cover
+else:                                                                       # pragma: no cover
+    print("WARNING: The environment variable 'MODULESHOME' was not found.") # pragma: no cover
+    print("         ModuleHelper may not be able to locate modules.")       # pragma: no cover
 
-if "MODULESHOME" in os.environ.keys():                                                              # pragma: no cover
-    sys.path.insert(1, os.path.join(os.environ['MODULESHOME'], 'init'))                             # pragma: no cover
-else:                                                                                               # pragma: no cover
-    print("WARNING: The environment variable 'MODULESHOME' was not found.")                         # pragma: no cover
-    print("         ModuleHelper may not be able to locate modules.")                               # pragma: no cover
-
-
-
-try: # pragma: cover if on lmod
+try:          # pragma: cover if on lmod
 
     # Try to import the LMOD version of the module() function.
     # See: https://github.com/TACC/Lmod/blob/master/init/env_modules_python.py.in
     import env_modules_python
+
     # print("NOTICE> [ModuleHelper.py] Using the lmod based `env_modules_python` module handler.")
+
 
 
     def module(command, *arguments) -> int:
@@ -133,11 +132,11 @@ try: # pragma: cover if on lmod
             stderr_ok = False
 
         # Check for 'module' command success with short circuiting
-        _arguments = _command[1:] + list(arguments)
+        _arguments = _command[1 :] + list(arguments)
         shell_cmds = []
-        is_loaded   = "module is-loaded {0} && true  || false"
+        is_loaded = "module is-loaded {0} && true  || false"
         is_unloaded = "module is-loaded {0} && false || true"
-        is_file     = "[ -e {0} ] && true || false"
+        is_file = "[ -e {0} ] && true || false"
         # TODO: handle other commands: purge, etc.
         if _command[0] == 'load':
             shell_cmds += [is_loaded.format(_arguments[0])]
@@ -172,11 +171,8 @@ try: # pragma: cover if on lmod
 
         return 0
 
-
-
-except ImportError: # pragma: cover if not on lmod
-    # print("NOTICE> [ModuleHelper.py] Using the modulecmd based environment modules handler.")
-
+except ImportError:          # pragma: cover if not on lmod
+                             # print("NOTICE> [ModuleHelper.py] Using the modulecmd based environment modules handler.")
 
     def module(command, *arguments) -> int:
         """
@@ -201,50 +197,45 @@ except ImportError: # pragma: cover if not on lmod
             import distutils.spawn
             modulecmd = distutils.spawn.find_executable("modulecmd")
             if modulecmd is None:
-                raise FileNotFoundError("Unable to find modulecmd")          # pragma: no cover
+                raise FileNotFoundError("Unable to find modulecmd") # pragma: no cover
         except:
             modulecmd = shutil.which("modulecmd")
 
-        if modulecmd is None:                                                # pragma: no cover
-            # 'module' may be a bash function that points to modulecmd
-            # A `module purge` might clear the location of `modulecmd` from the
-            # PATH but preserve the bash function that points to `modulecmd`.
-            # Use the output of `type module` to find the location.
+        if modulecmd is None: # pragma: no cover
+                              # 'module' may be a bash function that points to modulecmd
+                              # A `module purge` might clear the location of `modulecmd` from the
+                              # PATH but preserve the bash function that points to `modulecmd`.
+                              # Use the output of `type module` to find the location.
             try:
-                # $ type module
-                #   - Returns something like:
-                #
-                #       module is a function
-                #       module ()
-                #       {
-                #           eval `/opt/cray/pe/modules/3.2.11.4/bin/modulecmd bash $*`
-                #       }
+                              # $ type module
+                              #   - Returns something like:
+                              #
+                              #       module is a function
+                              #       module ()
+                              #       {
+                              #           eval `/opt/cray/pe/modules/3.2.11.4/bin/modulecmd bash $*`
+                              #       }
 
-                module_func = subprocess.run(
-                    "type module", stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE, shell=True
-                )
-                matches = re.findall(r"eval `(\S*) bash.*",
-                                     module_func.stdout.decode())
+                module_func = subprocess.run("type module", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                matches = re.findall(r"eval `(\S*) bash.*", module_func.stdout.decode())
                 if len(matches) != 1:
-                    raise RuntimeError("Unable to find path to modulecmd from "
-                                       "output of bash command: 'type module'")
+                    raise RuntimeError("Unable to find path to modulecmd from " "output of bash command: 'type module'")
 
                 modulecmd = matches[0]
                 if shutil.which(modulecmd) is None:
                     raise FileNotFoundError(
                         "Path to modulecmd, found by output of bash command "
                         "'type module', cannot be found by 'which' command."
-                    )
+                        )
             except:
                 raise FileNotFoundError("Unable to find modulecmd")
 
         numArgs = len(arguments)
 
         if isinstance(command, (list)):
-            cmd = [ modulecmd, "python", *command ]
+            cmd = [modulecmd, "python", *command]
         else:
-            cmd = [ modulecmd, "python", command ]
+            cmd = [modulecmd, "python", command]
 
         if (numArgs == 1):
             cmd += arguments[0].split()
@@ -256,7 +247,7 @@ except ImportError: # pragma: cover if not on lmod
         # contain a sequence of Python commands that we can later execute to set up
         # the proper environment for the module operation
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (output,stderr) = proc.communicate()
+        (output, stderr) = proc.communicate()
         errcode = proc.returncode
 
         # Convert the bytes into UTF-8 strings
@@ -273,7 +264,7 @@ except ImportError: # pragma: cover if not on lmod
 
         if stderr_ok and errcode != 0:
             print("!!")
-            print("!! Failed to execute the module command: {}".format(" ".join(cmd[2:])))
+            print("!! Failed to execute the module command: {}".format(" ".join(cmd[2 :])))
             print("!! - Returned {} exit status.".format(errcode))
 
         if stderr_ok and errcode == 0:
