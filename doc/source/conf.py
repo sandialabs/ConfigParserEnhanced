@@ -16,14 +16,14 @@ from pathlib import Path
 import os
 import sys
 
-sys.path.append( str(Path.cwd().parent.parent.resolve().joinpath(Path("src")) ))
+
+sys.path.append(str(Path.cwd().parent.parent.resolve().joinpath(Path("src"))))
 
 # -- Project information -----------------------------------------------------
 
-project   = 'ConfigParserEnhanced'
+project = 'ConfigParserEnhanced'
 copyright = '2021, William McLendon'
-author    = 'William McLendon'
-
+author = 'William McLendon'
 
 # -- General configuration ---------------------------------------------------
 
@@ -50,7 +50,6 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -69,9 +68,4 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_css_files = [
-    'css/custom.css'
-]
-
-
-
+html_css_files = ['css/custom.css']

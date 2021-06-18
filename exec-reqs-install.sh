@@ -16,10 +16,15 @@ python_exe="python3"
 execute_command "which ${python_exe:?}"
 execute_command "${python_exe:?} --version"
 
+opt_venv='--user'
+if [ ! -z ${VIRTUAL_ENV} ]; then
+    opt_venv=''
+fi
+
 options=(
     -m pip
     install
-    --user
+    ${opt_venv}
     -r requirements.txt
     -r requirements-test.txt
     -r doc/requirements.txt

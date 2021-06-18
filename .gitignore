@@ -27,3 +27,4 @@ dist
 
 examples/_*.ini
 _test-*.log
+venv-*

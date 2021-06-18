@@ -4,9 +4,13 @@
 """
 from __future__ import print_function
 import sys
+
+
 sys.dont_write_bytecode = True
 
 import os
+
+
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pprint import pprint
@@ -16,10 +20,10 @@ from unittest import TestCase
 
 # Coverage will always miss one of these depending on the system
 # and what is available.
-try:                                                                            # pragma: no cover
-    import unittest.mock as mock                                                # pragma: no cover
-except:                                                                         # pragma: no cover
-    import mock                                                                 # pragma: no cover
+try:                             # pragma: no cover
+    import unittest.mock as mock # pragma: no cover
+except:                          # pragma: no cover
+    import mock                  # pragma: no cover
 
 from mock import Mock
 from mock import MagicMock
@@ -34,23 +38,17 @@ from ..HandlerParameters import HandlerParameters
 
 from .common import *
 
-
-
 #===============================================================================
 #
 # General Utility Functions
 #
 #===============================================================================
 
-
-
 #===============================================================================
 #
 # Mock Helpers
 #
 #===============================================================================
-
-
 
 #===============================================================================
 #
@@ -62,8 +60,8 @@ from .common import *
 
 class HandlerParametersTest(TestCase):
 
-    def setup(self):
-        pass                                                                                        # pragma: no cover
+    def setUp(self):
+        return 0  # pragma: no cover
 
 
     def test_HandlerParameters_property_section_root(self):
@@ -74,13 +72,13 @@ class HandlerParametersTest(TestCase):
 
         # Check default value for property `section_root`
         expected = None
-        self.assertEqual(hp.section_root, None,
-                         "default `section_root` should be: {}".format(expected))
+        self.assertEqual(hp.section_root, None, "default `section_root` should be: {}".format(expected))
 
         # Verify the type checking on the setter
         # - Setter only allows string types to be assigned.
         with self.assertRaises(TypeError):
             hp.section_root = None
+        return 0
 
 
     def test_HandlerParameters_property_raw_option(self):
@@ -91,8 +89,7 @@ class HandlerParametersTest(TestCase):
 
         # Validate default value
         expected = tuple([None, None])
-        self.assertEqual(hp.raw_option, expected,
-                         "default `raw_option` should be: {}".format(expected))
+        self.assertEqual(hp.raw_option, expected, "default `raw_option` should be: {}".format(expected))
 
         # Validate assignment checks.
         # 1. Validate type-check (must be a tuple)
@@ -105,7 +102,7 @@ class HandlerParametersTest(TestCase):
         with self.assertRaises(ValueError):
             hp.raw_option = tuple([1])
         with self.assertRaises(ValueError):
-            hp.raw_option = tuple([1,2,3])
+            hp.raw_option = tuple([1, 2, 3])
 
         # 3. Validate a proper assignment
         rval = hp.raw_option = expected
@@ -123,8 +120,9 @@ class HandlerParametersTest(TestCase):
         expected_default = {}
 
         # Check the default value. Should be an empty dict.
-        self.assertDictEqual(hp.data_shared, expected_default,
-                             "Default `data_shared` should be: {}".format(expected_default))
+        self.assertDictEqual(
+            hp.data_shared, expected_default, "Default `data_shared` should be: {}".format(expected_default)
+            )
 
         # Validate assignment check(s).
         with self.assertRaises(TypeError):
@@ -151,8 +149,9 @@ class HandlerParametersTest(TestCase):
         expected_default = {}
 
         # Check the default value. Should be an empty dict.
-        self.assertDictEqual(hp.data_internal, expected_default,
-                             "Default `data_internal` should be: {}".format(expected_default))
+        self.assertDictEqual(
+            hp.data_internal, expected_default, "Default `data_internal` should be: {}".format(expected_default)
+            )
 
         # Validate assignment check(s).
         with self.assertRaises(TypeError):
@@ -178,8 +177,7 @@ class HandlerParametersTest(TestCase):
 
         # Check default value for property `value`
         expected = ""
-        self.assertEqual(hp.value, expected,
-                         "default `value` should be: ''".format(expected))
+        self.assertEqual(hp.value, expected, "default `value` should be: ''".format(expected))
 
         # Verify the type checking on the setter
         # - Setter only allows string or None types to be assigned.
@@ -205,8 +203,7 @@ class HandlerParametersTest(TestCase):
 
         # Check default value for property `handler_name`
         expected = ""
-        self.assertEqual(hp.handler_name, expected,
-                         "default `handler_name` should be: ''".format(expected))
+        self.assertEqual(hp.handler_name, expected, "default `handler_name` should be: ''".format(expected))
 
         # Verify the type checking on the setter
         # - Setter only allows string types to be assigned.
@@ -250,7 +247,7 @@ class HandlerParametersTest(TestCase):
             hp.params = None
 
         # Test 3
-        input_list = [1,2,3]
+        input_list = [1, 2, 3]
         hp.params = input_list
         self.assertListEqual(input_list, hp.params)
 
@@ -259,6 +256,7 @@ class HandlerParametersTest(TestCase):
         self.assertListEqual(input_list, list(hp.params))
 
         return 0
+
 
 
 # EOF

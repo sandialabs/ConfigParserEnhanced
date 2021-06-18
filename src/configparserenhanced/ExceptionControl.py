@@ -7,17 +7,14 @@ from __future__ import print_function
 import sys
 import traceback
 
-
-
 # ===========================================================
 #   H E L P E R   F U N C T I O N S   A N D   C L A S S E S
 # ===========================================================
 
-
-
 # ===============================
 #   M A I N   C L A S S
 # ===============================
+
 
 
 class ExceptionControl(object):
@@ -41,7 +38,7 @@ class ExceptionControl(object):
       level that will trigger WARNING events to raise their exceptions.
       These are useful if you wish to keep output relatively clean but still
       want the event to be there.
-    * **MINOR:** This is more severe than a WARNING type and indicates that an
+    * **MINOR:** This is more severe than a WARdedent_closing_brackets=TrueNING type and indicates that an
       actual error probably happened but not a major one. This might
       be somethig that needs to be noted but doesn't always warrant
       halting execution.
@@ -81,7 +78,6 @@ class ExceptionControl(object):
        events.
     """
 
-
     @property
     def _exception_control_map_event_to_level_req(self):
         """
@@ -93,14 +89,7 @@ class ExceptionControl(object):
         indicates that the event will *always* raise an exception and a
         level of 5 would only be raised at the highest ``exception_control_level``.
         """
-        output = {
-            "SILENT"       : 5,
-            "WARNING"      : 5,
-            "MINOR"        : 4,
-            "SERIOUS"      : 3,
-            "CRITICAL"     : 2,
-            "CATASTROPHIC" : 0
-        }
+        output = {"SILENT": 5, "WARNING": 5, "MINOR": 4, "SERIOUS": 3, "CRITICAL": 2, "CATASTROPHIC": 0}
         return output
 
 
@@ -219,15 +208,15 @@ class ExceptionControl(object):
             try:
                 raise exception
             except:
-                exc_type, exc = sys.exc_info()[:2]
+                exc_type, exc = sys.exc_info()[: 2]
 
                 if exc is exception or exc_type is exception:
                     return True
                 elif exc_type is TypeError:
-                    return False                                                                    # pragma: no cover
+                    return False # pragma: no cover
                 else:
-                    # Re-raise other exceptions such as KeyboardInterrupt, etc.
-                    raise                                                                           # pragma: no cover
+                                 # Re-raise other exceptions such as KeyboardInterrupt, etc.
+                    raise        # pragma: no cover
 
         event_type = str(event_type).upper()
 
@@ -251,8 +240,9 @@ class ExceptionControl(object):
                         tb_last = str(traceback.format_stack()[-2])
                         tb_last = tb_last.splitlines()[0]
                         tb_last = tb_last.strip()
-                        print("!! EXCEPTION SKIPPED ({} : {}) @ {}".format(
-                            event_type, exception_type.__name__, tb_last))
+                        print(
+                            "!! EXCEPTION SKIPPED ({} : {}) @ {}".format(event_type, exception_type.__name__, tb_last)
+                            )
                     else:
                         print("!! " + "="*80)
                         print("!! EXCEPTION SKIPPED")
@@ -272,7 +262,10 @@ class ExceptionControl(object):
                             print("!! {}".format(line.strip()))
 
                         print("!!")
-                        print("!! Increase `exception_control_level` to {} to raise this exception.".format(req_exception_control_level))
+                        print(
+                            "!! Increase `exception_control_level` to {} to raise this exception."
+                            .format(req_exception_control_level)
+                            )
                         print("!! " + "="*80)
 
                     sys.stdout.flush()

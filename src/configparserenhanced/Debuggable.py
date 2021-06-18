@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- mode: python; py-indent-offset: 4; py-continuation-offset: 4 -*-
 """
-
 .. Google Docstrings Ref:
     https://gist.github.com/dsaiztc/9b4c15c6dfef08a957c1
 """
@@ -9,17 +8,14 @@ from __future__ import print_function
 
 import sys
 
-
-
 # ===========================================================
 #   H E L P E R   F U N C T I O N S   A N D   C L A S S E S
 # ===========================================================
 
-
-
 # ===============================
 #   M A I N   C L A S S
 # ===============================
+
 
 
 class Debuggable(object):
@@ -93,4 +89,3 @@ class Debuggable(object):
             if debug_level > 0:
                 sys.stdout.flush()
         return
-

@@ -37,6 +37,8 @@ Updates and Changes
 ### Removed
 ### Fixed
 ### Internal
+- Performed a style refactoring pass.
+  - Added a `.style.yapf` file with a reasonable looking set of specifications.
 - removed _testing_ requirements from the `requirements.txt` file and put them in
   a new file, `requirements-test.txt`.
 - cleaned up output from the `exec-tests.sh` file to now put log info in files named `_test-XXX.log`

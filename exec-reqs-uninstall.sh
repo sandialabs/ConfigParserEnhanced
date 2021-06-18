@@ -4,7 +4,6 @@
 #
 
 
-
 # Source the common helpers script.
 source scripts/common.bash
 
