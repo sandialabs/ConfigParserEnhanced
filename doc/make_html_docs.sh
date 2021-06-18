@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
-python3 -m pip install --user -r requirements.txt
+# detect virtual env, can't install into --user within a venv.
+opt_venv='--user'
+if [ ! -z ${VIRTUAL_ENV} ]; then
+    opt_venv=''
+fi
+
+python3 -m pip install ${opt_venv} -r requirements.txt
 
 sphinx-build -b html source/ html/ -W
 

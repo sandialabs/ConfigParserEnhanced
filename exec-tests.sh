@@ -8,6 +8,15 @@ print_banner "Python 3"
 printf "${normal}\n"
 # add -s for verbose output
 
+opt_venv='--user'
+if [ ! -z ${VIRTUAL_ENV} ]; then
+    message_std "Virtual environment ${green}detected${normal}."
+    opt_venv=''
+else
+    message_std "Virtual environment ${red}not detected${normal}."
+fi
+printf "\n"
+
 execute_command_checked "./exec-reqs-install.sh > /dev/null 2>&1"
 
 # clean up any precompiled code before the tests are executd
@@ -25,17 +34,14 @@ options=(
 python3 -m pytest ${options[@]}
 err=$?
 
-echo -e ""
+printf "\n"
 if [ $err != 0 ]; then
     printf "${red}"
     print_banner "TESTING FAILED"
     printf "${normal}"
-else
-    printf "${green}"
-    print_banner "TESTING PASSED"
-    printf "${normal}"
+    printf "\n"
+    exit $err
 fi
-echo -e ""
 
 # Check the example(s)
 execute_command_checked "pushd examples"
@@ -43,7 +49,7 @@ execute_command_checked "python3 ConfigParserEnhanced-example-01.py >& _test-exa
 execute_command_checked "popd"
 
 # Check installation works
-execute_command_checked "python3 -m pip install --user . >& _test-install.log"
+execute_command_checked "python3 -m pip install ${opt_venv} . >& _test-install.log"
 execute_command_checked "python3 -m pip uninstall -y configparserenhanced >& _test-uninstall.log"
 
 
@@ -56,5 +62,8 @@ if [ $err -eq 0 ]; then
     execute_command "find . -maxdepth 1 -name '___*.ini' -exec rm {} \;     > /dev/null 2>&1"
 fi
 
-
-exit $err
+printf "\n"
+printf "${green}"
+print_banner "TESTING PASSED"
+printf "${normal}"
+printf "\n"
