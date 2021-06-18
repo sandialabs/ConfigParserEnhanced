@@ -90,10 +90,9 @@ class EnvKeywordParser(KeywordParser):
             for name in self.env_names:
                 env_name_in_build_name = (
                     False
-                    if re.search(f"(?:^|{self.delim}){name}(?:$|{self.delim})", self.build_name)
-                    is None
-                    else True
-                )
+                    if re.search(f"(?:^|{self.delim}){name}(?:$|{self.delim})", self.build_name) is
+                    None else True
+                    )
 
                 if env_name_in_build_name:
                     matched_env_name = name
@@ -104,13 +103,10 @@ class EnvKeywordParser(KeywordParser):
                 matched_alias = None
                 for alias in self.aliases:
                     alias_in_build_name = (
-                        False
-                        if re.search(
-                            f"(?:^|{self.delim}){alias}(?:$|{self.delim})", self.build_name
+                        False if
+                        re.search(f"(?:^|{self.delim}){alias}(?:$|{self.delim})",
+                                  self.build_name) is None else True
                         )
-                        is None
-                        else True
-                    )
 
                     if alias_in_build_name:
                         matched_alias = alias
@@ -120,14 +116,14 @@ class EnvKeywordParser(KeywordParser):
                     msg = self.get_msg_showing_supported_environments(
                         "Unable to find alias or environment name for system "
                         f"'{self.system_name}' in\nbuild name '{self.build_name}'."
-                    )
+                        )
                     sys.exit(msg)
 
                 matched_env_name = self.get_key_for_section_value(self.system_name, matched_alias)
                 print(
                     f"NOTICE:  Matched alias '{matched_alias}' in build "
                     f"name '{self.build_name}' to environment name '{matched_env_name}'."
-                )
+                    )
 
             self._qualified_env_name = f"{self.system_name}{self.delim}{matched_env_name}"
 
@@ -184,7 +180,7 @@ class EnvKeywordParser(KeywordParser):
         except AssertionError:
             msg = self.get_msg_for_list(
                 f"Aliases for '{self.system_name}' contains duplicates:", duplicates
-            )
+                )
             sys.exit(msg)
         return
 
@@ -217,7 +213,7 @@ class EnvKeywordParser(KeywordParser):
             msg = self.get_msg_for_list(
                 f"Alias found for '{self.system_name}' that matches an environment name:",
                 duplicates,
-            )
+                )
             sys.exit(msg)
         return
 
