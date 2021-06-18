@@ -91,5 +91,6 @@ proj.launch-config = {loc('../../coding/pyExampleLib/configparser/configparser-e
          'launch-5Gyw4cvA0PytPLLy'))}
 proj.main-file = loc('exec-example-SetEnvironment.py')
 testing.auto-test-file-specs = (('regex',
-                                 'unittests\\\\test_.*\\.py'),)
+                                 'setenvironment\\\\unittests\\\\test_.*\\.p'\
+                                 'y'),)
 testing.test-framework = {None: ':internal pytest'}

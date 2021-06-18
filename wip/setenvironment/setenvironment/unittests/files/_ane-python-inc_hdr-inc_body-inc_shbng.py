@@ -13,7 +13,7 @@ if not sys.version_info.major >= 3:
 from setenvironment import ModuleHelper
 
 
-def envvar_set(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> int:
+def envvar_set(envvar_name: str, envvar_value: str, allow_empty: bool = True) -> int:
     """Assign an environment variable.
 
     Assigns an environment variable (envvar) to a set value.
@@ -36,16 +36,20 @@ def envvar_set(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> i
 
             - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
     """
-    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
-    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
-    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
-    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
 
     os.environ[envvar_name] = envvar_value
     return 0
 
 
-def envvar_set_if_empty(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> int:
+def envvar_set_if_empty(envvar_name: str, envvar_value: str, allow_empty: bool = True) -> int:
     """Set an environment variable if it is empty or not set.
 
     Assigns an environment variable (envvar) to a value if
@@ -71,12 +75,16 @@ def envvar_set_if_empty(envvar_name: str, envvar_value: str, allow_empty: bool=T
 
             - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
     """
-    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
-    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
-    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
-    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
 
-    if envvar_name not in os.environ.keys() or os.environ[envvar_name]=="":
+    if envvar_name not in os.environ.keys() or os.environ[envvar_name] == "":
         os.environ[envvar_name] = envvar_value
     return 0
 
@@ -111,7 +119,7 @@ def envvar_find_in_path(exe_file) -> str:
     return str(output)
 
 
-def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True) -> int:
+def envvar_op(op, envvar_name: str, envvar_value: str = "", allow_empty: bool = True) -> int:
     """Envvar operation helper
 
     This function generates a wrapper for envvar operations.
@@ -133,12 +141,16 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
         allow_empty (bool): If False, we throw a ``ValueError`` if
             assignment of an empty value is attempted. Default: True.
     """
-    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
-    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
-    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
-    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
 
-    envvar_exists    = envvar_name in os.environ.keys()
+    envvar_exists = envvar_name in os.environ.keys()
     envvar_value_old = [os.environ[envvar_name]] if envvar_exists else []
 
     if envvar_value != "" and '$' in envvar_value:
@@ -149,11 +161,11 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
     elif op == "set_if_empty":
         envvar_set_if_empty(envvar_name, envvar_value, allow_empty)
     elif op == "append":
-        tmp = envvar_value_old + [ envvar_value ]
+        tmp = envvar_value_old + [envvar_value]
         newval = os.pathsep.join(tmp)
         envvar_set(envvar_name, newval, allow_empty)
     elif op == "prepend":
-        tmp = [ envvar_value ] + envvar_value_old
+        tmp = [envvar_value] + envvar_value_old
         newval = os.pathsep.join(tmp)
         envvar_set(envvar_name, newval, allow_empty)
     elif op == "unset":
@@ -161,12 +173,12 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
             del os.environ[envvar_name]
     elif op == "remove_substr":
         if envvar_exists:
-            newval = os.environ[envvar_name].replace(envvar_value,"")
+            newval = os.environ[envvar_name].replace(envvar_value, "")
             envvar_set(envvar_name, newval, allow_empty)
     elif op == "remove_path_entry":
         if envvar_exists:
             entry_list_old = os.environ[envvar_name].split(os.pathsep)
-            entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
+            entry_list_new = [x for x in entry_list_old if x != envvar_value]
             newval = os.pathsep.join(entry_list_new)
             envvar_set(envvar_name, newval, allow_empty)
     elif op == "find_in_path":

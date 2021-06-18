@@ -12,7 +12,7 @@ Todo:
     - Evan Harvey <eharvey@sandia.gov>
     - Joshua Braun <josbrau@sandia.gov>
 
-:Version: 0.4.0
+:Version: 0.5.1
 """
 from __future__ import print_function
 
@@ -24,23 +24,21 @@ from textwrap import dedent
 
 try:
     # @final decorator, requires Python 3.8.x
-    from typing import final                                                                        # pragma: no cover
-except ImportError:                                                                                 # pragma: no cover
-    pass                                                                                            # pragma: no cover
-
+    from typing import final # pragma: no cover
+except ImportError:          # pragma: no cover
+    pass                     # pragma: no cover
 
 from configparserenhanced import *
 
 from . import ModuleHelper
-
-
 
 # ==============================
 #  F R E E   F U N C T I O N S
 # ==============================
 
 
-def envvar_set(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> int:
+
+def envvar_set(envvar_name: str, envvar_value: str, allow_empty: bool = True) -> int:
     """Assign an environment variable.
 
     Assigns an environment variable (envvar) to a set value.
@@ -63,16 +61,21 @@ def envvar_set(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> i
 
             - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
     """
-    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
-    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
-    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
-    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
 
     os.environ[envvar_name] = envvar_value
     return 0
 
 
-def envvar_set_if_empty(envvar_name: str, envvar_value: str, allow_empty: bool=True) -> int:
+
+def envvar_set_if_empty(envvar_name: str, envvar_value: str, allow_empty: bool = True) -> int:
     """Set an environment variable if it is empty or not set.
 
     Assigns an environment variable (envvar) to a value if
@@ -98,14 +101,19 @@ def envvar_set_if_empty(envvar_name: str, envvar_value: str, allow_empty: bool=T
 
             - ``allow_empty`` is True *and* ``envvar_value`` is an empty string.
     """
-    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
-    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
-    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
-    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
 
-    if envvar_name not in os.environ.keys() or os.environ[envvar_name]=="":
+    if envvar_name not in os.environ.keys() or os.environ[envvar_name] == "":
         os.environ[envvar_name] = envvar_value
     return 0
+
 
 
 def envvar_find_in_path(exe_file) -> str:
@@ -138,7 +146,8 @@ def envvar_find_in_path(exe_file) -> str:
     return str(output)
 
 
-def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True) -> int:
+
+def envvar_op(op, envvar_name: str, envvar_value: str = "", allow_empty: bool = True) -> int:
     """Envvar operation helper
 
     This function generates a wrapper for envvar operations.
@@ -160,12 +169,16 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
         allow_empty (bool): If False, we throw a ``ValueError`` if
             assignment of an empty value is attempted. Default: True.
     """
-    if not isinstance(envvar_name, (str)):     raise TypeError("`envvar_name` must be a string.")
-    if not isinstance(envvar_value, (str)):    raise TypeError("`envvar_value` must be a string.")
-    if not isinstance(allow_empty, (bool)):    raise TypeError("`allow_empty` must be a boolean.")
-    if not allow_empty and envvar_value == "": raise ValueError("`envvar_value` must not be empty.")
+    if not isinstance(envvar_name, (str)):
+        raise TypeError("`envvar_name` must be a string.")
+    if not isinstance(envvar_value, (str)):
+        raise TypeError("`envvar_value` must be a string.")
+    if not isinstance(allow_empty, (bool)):
+        raise TypeError("`allow_empty` must be a boolean.")
+    if not allow_empty and envvar_value == "":
+        raise ValueError("`envvar_value` must not be empty.")
 
-    envvar_exists    = envvar_name in os.environ.keys()
+    envvar_exists = envvar_name in os.environ.keys()
     envvar_value_old = [os.environ[envvar_name]] if envvar_exists else []
 
     if envvar_value != "" and '$' in envvar_value:
@@ -176,11 +189,11 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
     elif op == "set_if_empty":
         envvar_set_if_empty(envvar_name, envvar_value, allow_empty)
     elif op == "append":
-        tmp = envvar_value_old + [ envvar_value ]
+        tmp = envvar_value_old + [envvar_value]
         newval = os.pathsep.join(tmp)
         envvar_set(envvar_name, newval, allow_empty)
     elif op == "prepend":
-        tmp = [ envvar_value ] + envvar_value_old
+        tmp = [envvar_value] + envvar_value_old
         newval = os.pathsep.join(tmp)
         envvar_set(envvar_name, newval, allow_empty)
     elif op == "unset":
@@ -188,12 +201,12 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
             del os.environ[envvar_name]
     elif op == "remove_substr":
         if envvar_exists:
-            newval = os.environ[envvar_name].replace(envvar_value,"")
+            newval = os.environ[envvar_name].replace(envvar_value, "")
             envvar_set(envvar_name, newval, allow_empty)
     elif op == "remove_path_entry":
         if envvar_exists:
             entry_list_old = os.environ[envvar_name].split(os.pathsep)
-            entry_list_new = [ x for x in entry_list_old if x != envvar_value ]
+            entry_list_new = [x for x in entry_list_old if x != envvar_value]
             newval = os.pathsep.join(entry_list_new)
             envvar_set(envvar_name, newval, allow_empty)
     elif op == "find_in_path":
@@ -219,6 +232,7 @@ def envvar_op(op, envvar_name: str, envvar_value: str="", allow_empty: bool=True
 # ===============================
 
 
+
 class SetEnvironment(ConfigParserEnhanced):
     """Handle Environment Operations using a .ini based configuration.
 
@@ -237,15 +251,14 @@ class SetEnvironment(ConfigParserEnhanced):
     .. docstrings style reference:
         https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html
     """
+
     def __init__(self, filename=None):
         if filename is not None:
             self.inifilepath = filename
 
-
     # -----------------------
     #   P R O P E R T I E S
     # -----------------------
-
 
     @property
     def actions(self) -> dict:
@@ -275,7 +288,6 @@ class SetEnvironment(ConfigParserEnhanced):
             self._var_actions_cache = {}
         return self._var_actions_cache
 
-
     @actions.setter
     def actions(self, value) -> dict:
         self._validate_parameter(value, (dict))
@@ -283,11 +295,9 @@ class SetEnvironment(ConfigParserEnhanced):
         self._var_actions_cache = value
         return self._var_actions_cache
 
-
     # ------------------------------
     #   P U B L I C   M E T H O D S
     # ------------------------------
-
 
     def apply(self, section) -> int:
         """Apply the set of instructions stored in ``actions``.
@@ -313,8 +323,8 @@ class SetEnvironment(ConfigParserEnhanced):
         self.configparserenhanceddata[section]
 
         for iaction in self.actions[section]:
-            rval  = 0
-            op    = iaction['op']
+            rval = 0
+            op = iaction['op']
             value = iaction['value']
 
             if 'envvar' in iaction.keys():
@@ -326,7 +336,6 @@ class SetEnvironment(ConfigParserEnhanced):
             output = max(output, rval)
 
         return output
-
 
     def pretty_print_actions(self, section: str):
         """Pretty print the list of actions that ``apply()`` would execute.
@@ -369,10 +378,10 @@ class SetEnvironment(ConfigParserEnhanced):
         for iaction in self.actions[section]:
             operation = iaction['op']
 
-            print("--> {:<{width}} : ".format(operation,width=max_op_len), end="")
+            print("--> {:<{width}} : ".format(operation, width=max_op_len), end="")
 
             if operation == "module_load":
-                if iaction['value'] in [ None, '' ]:
+                if iaction['value'] in [None, '']:
                     print("{} (default)".format(iaction['module']))
                 else:
                     print("{}/{}".format(iaction['module'], iaction['value']))
@@ -385,20 +394,20 @@ class SetEnvironment(ConfigParserEnhanced):
             elif operation == "module_use":
                 print("{}".format(iaction['value']))
             elif operation == "envvar_append":
-                arg = "${%s}"%(iaction['envvar'])
-                print("{}=\"{}:{}\"".format(iaction['envvar'],arg,iaction['value']))
+                arg = "${%s}" % (iaction['envvar'])
+                print("{}=\"{}:{}\"".format(iaction['envvar'], arg, iaction['value']))
             elif operation == "envvar_assert_not_empty":
                 print("{}".format(iaction['envvar']))
             elif operation == "envvar_find_in_path":
                 print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
             elif operation == "envvar_prepend":
-                arg = "${%s}"%(iaction['envvar'])
-                print("{}=\"{}:{}\"".format(iaction['envvar'],iaction['value'],arg))
+                arg = "${%s}" % (iaction['envvar'])
+                print("{}=\"{}:{}\"".format(iaction['envvar'], iaction['value'], arg))
             elif operation == "envvar_remove_path_entry":
-                arg = "${%s}"%(iaction['envvar'])
-                print("remove path `{}` from `{}`".format(iaction['value'],iaction['envvar']))
+                arg = "${%s}" % (iaction['envvar'])
+                print("remove path `{}` from `{}`".format(iaction['value'], iaction['envvar']))
             elif operation == "envvar_remove_substr":
-                arg = "${%s}"%(iaction['envvar'])
+                arg = "${%s}" % (iaction['envvar'])
                 print("remove string `{}` from `{}`".format(iaction['value'], arg, iaction['envvar']))
             elif operation == "envvar_set":
                 print("{}=\"{}\"".format(iaction['envvar'], iaction['value']))
@@ -410,7 +419,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 print("(unhandled) {}".format(iaction))
 
         return
-
 
     def pretty_print_envvars(self, envvar_filter=None, filtered_keys_only=False) -> int:
         """
@@ -459,13 +467,13 @@ class SetEnvironment(ConfigParserEnhanced):
         self._validate_parameter(filtered_keys_only, (bool))
 
         # Prefix for each envvar line
-        prefix="[envvar]:"
+        prefix = "[envvar]:"
 
         # Print a banner
         print("+" + "="*68 + "+")
         print("|   P R I N T   E N V I R O N M E N T   V A R S")
         print("+" + "="*68 + "+")
-        for k,v in os.environ.items():
+        for k, v in os.environ.items():
             matched_key = False
             if envvar_filter is not None:
                 for f in envvar_filter:
@@ -484,12 +492,15 @@ class SetEnvironment(ConfigParserEnhanced):
                 print("")
         return 0
 
-
-    def write_actions_to_file(self, filename, section,
-                              include_header=True,
-                              include_body=True,
-                              include_shebang=True,
-                              interpreter="bash") -> int:
+    def write_actions_to_file(
+        self,
+        filename,
+        section,
+        include_header=True,
+        include_body=True,
+        include_shebang=True,
+        interpreter="bash"
+        ) -> int:
         """Write the actions to an 'executable' file.
 
         Generates an executable script that will execute the actions
@@ -521,36 +532,29 @@ class SetEnvironment(ConfigParserEnhanced):
             In the future, generate options to write out the actions as
             "python".
         """
-        self._validate_parameter(filename,        (str, Path))
-        self._validate_parameter(section,         (str))
-        self._validate_parameter(include_header,  (bool))
-        self._validate_parameter(include_body,    (bool))
+        self._validate_parameter(filename, (str, Path))
+        self._validate_parameter(section, (str))
+        self._validate_parameter(include_header, (bool))
+        self._validate_parameter(include_body, (bool))
         self._validate_parameter(include_shebang, (bool))
-        self._validate_parameter(interpreter,     (str))
+        self._validate_parameter(interpreter, (str))
 
         allowable_interpreter_list = ["bash", "python"]
         if interpreter not in allowable_interpreter_list:
-            errmsg  = "Invalid interpreter provided: {}\n".format(interpreter)
+            errmsg = "Invalid interpreter provided: {}\n".format(interpreter)
             errmsg += "Allowable values must be one of: {}.".format(", ".join(allowable_interpreter_list))
             self.exception_control_event("SERIOUS", ValueError, errmsg)
             return 1
 
-        output_file_str = self.generate_actions_script(section,
-                                                       incl_hdr=include_header,
-                                                       incl_body=include_body,
-                                                       incl_shebang=include_shebang,
-                                                       interp=interpreter)
+        output_file_str = self.generate_actions_script(
+            section, incl_hdr=include_header, incl_body=include_body, incl_shebang=include_shebang, interp=interpreter
+            )
         with open(filename, "w") as ofp:
             ofp.write(output_file_str)
 
         return 0
 
-
-    def generate_actions_script(self, section,
-                                incl_hdr=True,
-                                incl_body=True,
-                                incl_shebang=True,
-                                interp='bash') -> str:
+    def generate_actions_script(self, section, incl_hdr=True, incl_body=True, incl_shebang=True, interp='bash') -> str:
         """Generate a script that will implement the computed list of actions.
 
         Generates a script in the language of the specified interpreter (currently
@@ -576,15 +580,15 @@ class SetEnvironment(ConfigParserEnhanced):
         Returns:
             str: containing the bash script that can be written.
         """
-        self._validate_parameter(section,      (str))
-        self._validate_parameter(incl_hdr,     (bool))
-        self._validate_parameter(incl_body,    (bool))
+        self._validate_parameter(section, (str))
+        self._validate_parameter(incl_hdr, (bool))
+        self._validate_parameter(incl_body, (bool))
         self._validate_parameter(incl_shebang, (bool))
-        self._validate_parameter(interp,       (str))
+        self._validate_parameter(interp, (str))
 
         allowable_interpreter_list = ["bash", "python"]
         if interp not in allowable_interpreter_list:
-            errmsg  = "Invalid interpreter provided: {}\n".format(interp)
+            errmsg = "Invalid interpreter provided: {}\n".format(interp)
             errmsg += "Allowable values must be one of: {}.".format(", ".join(allowable_interpreter_list))
             self.exception_control_event("SERIOUS", ValueError, errmsg)
             return ""
@@ -600,8 +604,9 @@ class SetEnvironment(ConfigParserEnhanced):
             elif interp == "python":
                 output_file_str += self._gen_script_header_python()
             else:                                                                                   # pragma: no cover (unreachable)
-                self.exception_control_event("CRITICAL", RuntimeError,
-                    "'Unreachable' branch executed, something is broken!")
+                self.exception_control_event(
+                    "CRITICAL", RuntimeError, "'Unreachable' branch executed, something is broken!"
+                    )
             output_file_str += "\n\n"
 
         if incl_body:
@@ -620,21 +625,15 @@ class SetEnvironment(ConfigParserEnhanced):
             for iaction in self.actions[section]:
 
                 action_val = iaction['value']
-                action_op  = iaction['op']
+                action_op = iaction['op']
 
                 if "envvar" in iaction.keys():
                     action_name = iaction['envvar']
-                    output_file_str += self._gen_actioncmd_envvar(action_op,
-                                                                  action_name,
-                                                                  action_val,
-                                                                  interp=interp)
+                    output_file_str += self._gen_actioncmd_envvar(action_op, action_name, action_val, interp=interp)
 
                 elif "module" in iaction.keys():
                     action_name = iaction['module']
-                    output_file_str += self._gen_actioncmd_module(action_op,
-                                                                  action_name,
-                                                                  action_val,
-                                                                  interp=interp)
+                    output_file_str += self._gen_actioncmd_module(action_op, action_name, action_val, interp=interp)
                 else:
                     raise ValueError("Unknown action class.")
 
@@ -644,11 +643,9 @@ class SetEnvironment(ConfigParserEnhanced):
 
         return output_file_str
 
-
     # --------------------
     #   H A N D L E R S
     # --------------------
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_append(self, section_name, handler_parameters) -> int:
@@ -671,7 +668,6 @@ class SetEnvironment(ConfigParserEnhanced):
 
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_assert_not_empty(self, section_name, handler_parameters) -> int:
@@ -724,7 +720,6 @@ class SetEnvironment(ConfigParserEnhanced):
         handler_parameters.value = "" if handler_parameters.value is None else handler_parameters.value
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
-
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_find_in_path(self, section_name, handler_parameters) -> int:
         """Handler: for ``envvar-find-in-path``
@@ -757,7 +752,6 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
-
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_prepend(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-prepend operations.
@@ -772,7 +766,6 @@ class SetEnvironment(ConfigParserEnhanced):
 
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_remove(self, section_name, handler_parameters) -> int:
@@ -798,14 +791,13 @@ class SetEnvironment(ConfigParserEnhanced):
                 if idata['envvar'] != envvar_name:
                     new_data_shared.append(idata)
                 else:
-                    self.debug_message(1, "Removed entry:{}".format(idata))                         # Console
+                    self.debug_message(1, "Removed entry:{}".format(idata)) # Console
             else:
                 new_data_shared.append(idata)
 
         handler_parameters.data_shared['setenvironment'] = new_data_shared
         # -----[ Handler Content End ]-------------------
         return 0
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_remove_path_entry(self, section_name, handler_parameters) -> int:
@@ -838,7 +830,6 @@ class SetEnvironment(ConfigParserEnhanced):
             * > 10  : An unknown failure occurred (CRITICAL)
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_remove_substr(self, section_name, handler_parameters) -> int:
@@ -876,7 +867,6 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
-
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_set(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-set operations.
@@ -890,7 +880,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_set_if_empty(self, section_name, handler_parameters) -> int:
@@ -907,7 +896,6 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
 
-
     @ConfigParserEnhanced.operation_handler
     def _handler_envvar_unset(self, section_name, handler_parameters) -> int:
         """Handler: for envvar-unset operations.
@@ -921,7 +909,6 @@ class SetEnvironment(ConfigParserEnhanced):
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
         return self._helper_handler_common_envvar(section_name, handler_parameters)
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_module_load(self, section_name, handler_parameters) -> int:
@@ -940,7 +927,6 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         return self._helper_handler_common_module(section_name, handler_parameters)
 
-
     @ConfigParserEnhanced.operation_handler
     def _handler_module_purge(self, section_name, handler_parameters) -> int:
         """Handler: for module-purge operations
@@ -958,7 +944,6 @@ class SetEnvironment(ConfigParserEnhanced):
 
         """
         return self._helper_handler_common_module(section_name, handler_parameters)
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_module_remove(self, section_name, handler_parameters) -> int:
@@ -995,17 +980,17 @@ class SetEnvironment(ConfigParserEnhanced):
 
             if 'module' in idata.keys():
                 # Note: idata['value'] can be None in some cases
-                if (idata['module'] != module_name) and ((idata['value'] == None) or (module_name not in idata['value'])):
+                if (idata['module'] !=
+                    module_name) and ((idata['value'] == None) or (module_name not in idata['value'])):
                     new_data_shared.append(idata)
                 else:
-                    self.debug_message(1, "Removed entry:{}".format(idata))                         # Console
+                    self.debug_message(1, "Removed entry:{}".format(idata)) # Console
             else:
                 new_data_shared.append(idata)
 
         handler_parameters.data_shared['setenvironment'] = new_data_shared
         # -----[ Handler Content End ]-------------------
         return 0
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_module_swap(self, section_name, handler_parameters) -> int:
@@ -1025,7 +1010,6 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         return self._helper_handler_common_module(section_name, handler_parameters)
 
-
     @ConfigParserEnhanced.operation_handler
     def _handler_module_unload(self, section_name, handler_parameters) -> int:
         """Handler: for module-unload operations.
@@ -1043,7 +1027,6 @@ class SetEnvironment(ConfigParserEnhanced):
 
         """
         return self._helper_handler_common_module(section_name, handler_parameters)
-
 
     @ConfigParserEnhanced.operation_handler
     def _handler_module_use(self, section_name, handler_parameters) -> int:
@@ -1063,7 +1046,6 @@ class SetEnvironment(ConfigParserEnhanced):
         """
         return self._helper_handler_common_module(section_name, handler_parameters)
 
-
     @ConfigParserEnhanced.operation_handler
     def handler_initialize(self, section_name, handler_parameters) -> int:
         """Initialize a recursive parse search.
@@ -1082,7 +1064,6 @@ class SetEnvironment(ConfigParserEnhanced):
         self._initialize_handler_parameters(section_name, handler_parameters)
         return 0
 
-
     @ConfigParserEnhanced.operation_handler
     def handler_finalize(self, section_name, handler_parameters) -> int:
         """Finalize a recursive parse search.
@@ -1097,11 +1078,9 @@ class SetEnvironment(ConfigParserEnhanced):
         self.actions[section_name] = handler_parameters.data_shared["setenvironment"]
         return 0
 
-
     # ---------------
     #  H E L P E R S
     # ---------------
-
 
     def _apply_envvar(self, operation, envvar_name, envvar_value) -> int:
         """Apply an ENVVAR operation
@@ -1138,18 +1117,17 @@ class SetEnvironment(ConfigParserEnhanced):
         self._validate_parameter(envvar_name, (str))
         self._validate_parameter(envvar_value, (str, None))
 
-        self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value))         # Console
+        self.debug_message(2, "{} :: {} - {}".format(operation, envvar_name, envvar_value)) # Console
 
         command = self._gen_actioncmd_envvar(operation, envvar_name, envvar_value, interp='python')
-        output  = self._exec_helper(command)
+        output = self._exec_helper(command)
 
         if output != 0:
-            output  = 1
+            output = 1
             message = "ENVVAR operation {} failed with {} rval.".format(operation, output)
             self.exception_control_event("CRITICAL", RuntimeError, message)
 
         return output
-
 
     def _apply_module(self, operation, module_name, module_value) -> int:
         """Apply MODULE operations
@@ -1183,17 +1161,16 @@ class SetEnvironment(ConfigParserEnhanced):
         self._validate_parameter(module_name, (str, None))
         self._validate_parameter(module_value, (str, None))
 
-        self.debug_message(2, "{} :: `{}` - `{}`".format(operation, module_name, module_value))         # Console
+        self.debug_message(2, "{} :: `{}` - `{}`".format(operation, module_name, module_value)) # Console
 
         command = self._gen_actioncmd_module(operation, module_name, module_value, interp='python')
-        output  = self._exec_helper(command)
+        output = self._exec_helper(command)
 
         if output != 0:
             message = "MODULE operation `{}` failed with rval == `{}`.".format(operation, output)
             self.exception_control_event("CRITICAL", RuntimeError, message)
 
         return output
-
 
     def _exec_helper(self, command):
         """Wrapper for ``exec()`` that properly captures the return value.
@@ -1209,9 +1186,8 @@ class SetEnvironment(ConfigParserEnhanced):
             - https://docs.python.org/3/library/functions.html#exec
         """
         ldict = {}
-        exec( "_rval = "+ command, globals(), ldict)
+        exec("_rval = " + command, globals(), ldict)
         return ldict['_rval']
-
 
     def _helper_handler_common_envvar(self, section_name, handler_parameters) -> int:
         """Common handler for envvar actions
@@ -1247,24 +1223,20 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        operation_ref    = handler_parameters.op
+        operation_ref = handler_parameters.op
         envvar_value_ref = handler_parameters.value
-        envvar_name_ref  = handler_parameters.params[0]
+        envvar_name_ref = handler_parameters.params[0]
 
         self._initialize_handler_parameters(section_name, handler_parameters)
 
         data_shared_actions_ref = handler_parameters.data_shared['setenvironment']
 
-        action = {'op'    : operation_ref,
-                  'envvar': envvar_name_ref,
-                  'value' : envvar_value_ref
-                 }
+        action = {'op': operation_ref, 'envvar': envvar_name_ref, 'value': envvar_value_ref}
 
-        self.debug_message(3, "--> Append to 'setenvironment' action list:")                        # Console
-        self.debug_message(3, "    {}".format(action))                                              # Console
+        self.debug_message(3, "--> Append to 'setenvironment' action list:") # Console
+        self.debug_message(3, "    {}".format(action))                       # Console
         data_shared_actions_ref.append(action)
         return 0
-
 
     def _helper_handler_common_module(self, section_name, handler_parameters) -> int:
         """Common handler for module actions
@@ -1299,28 +1271,23 @@ class SetEnvironment(ConfigParserEnhanced):
                 - [1-10]: Reserved for future use (WARNING)
                 - > 10  : An unknown failure occurred (SERIOUS)
         """
-        operation_ref    = handler_parameters.op
+        operation_ref = handler_parameters.op
         module_value_ref = handler_parameters.value
-        module_name_ref  = None
+        module_name_ref = None
 
         if len(handler_parameters.params) > 0:
             module_name_ref = handler_parameters.params[0]
-
 
         self._initialize_handler_parameters(section_name, handler_parameters)
 
         data_shared_actions_ref = handler_parameters.data_shared['setenvironment']
 
-        action = {'op'    : operation_ref,
-                  'module': module_name_ref,
-                  'value' : module_value_ref
-                 }
+        action = {'op': operation_ref, 'module': module_name_ref, 'value': module_value_ref}
 
-        self.debug_message(3, "--> Append to 'setenvironment' action list:")                        # Console
-        self.debug_message(3, "    {}".format(action))                                              # Console
+        self.debug_message(3, "--> Append to 'setenvironment' action list:") # Console
+        self.debug_message(3, "    {}".format(action))                       # Console
         data_shared_actions_ref.append(action)
         return 0
-
 
     def _initialize_handler_parameters(self, section_name, handler_parameters):
         """Initialize ``handler_parameters``
@@ -1341,7 +1308,6 @@ class SetEnvironment(ConfigParserEnhanced):
             data_shared_ref['setenvironment'] = []
 
         return
-
 
     def _gen_actioncmd_envvar(self, op, *args, interp='python') -> str:
         """
@@ -1460,47 +1426,47 @@ class SetEnvironment(ConfigParserEnhanced):
 
         # Validate parameters
         num_args_req = 0
-        if   op in ['unset']: num_args_req = 1
-        else:                 num_args_req = 2
+        if op in ['unset']:
+            num_args_req = 1
+        else:
+            num_args_req = 2
 
         if len(args) < num_args_req:
             errmsg = "Incorrect # of arguments provided for `envvar-{}`".format(op)
             self.exception_control_event("CRITICAL", IndexError, errmsg)
 
-        oplist_argcount_1 = ["unset"
-                            ]
-        oplist_argcount_2 = ['append',
-                             'assert_not_empty',
-                             'find_in_path',
-                             'prepend',
-                             'remove_path_entry',
-                             'remove_substr',
-                             'set',
-                             'set_if_empty']
+        oplist_argcount_1 = ["unset"]
+        oplist_argcount_2 = [
+            'append',
+            'assert_not_empty',
+            'find_in_path',
+            'prepend',
+            'remove_path_entry',
+            'remove_substr',
+            'set',
+            'set_if_empty'
+            ]
 
-        arglist = [ op ]
+        arglist = [op]
 
         if op in oplist_argcount_1:
-            arglist += [ args[0] ]
+            arglist += [args[0]]
         elif op in oplist_argcount_2:
-            arglist += [ args[0], args[1] ]
+            arglist += [args[0], args[1]]
 
         else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid module operation provided: {}".format(op))
+            self.exception_control_event("SERIOUS", ValueError, "Invalid module operation provided: {}".format(op))
 
-        if interp=="python":
-            arglist = [ '"' + x + '"' for x in arglist ]
+        if interp == "python":
+            arglist = ['"' + x + '"' for x in arglist]
             output = "envvar_op({})".format(",".join(arglist))
-        elif interp=="bash":
-            arglist[2:] = [ x if x!="" and ' ' not in x else '"'+x+'"' for x in arglist[2:] ]
+        elif interp == "bash":
+            arglist[2 :] = [x if x != "" and ' ' not in x else '"' + x + '"' for x in arglist[2 :]]
             output = "envvar_op {}".format(" ".join(arglist))
         else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid interpreter provided: {}".format(interp))
+            self.exception_control_event("SERIOUS", ValueError, "Invalid interpreter provided: {}".format(interp))
 
         return output
-
 
     def _gen_actioncmd_module(self, op, *args, interp='python') -> str:
         """
@@ -1557,15 +1523,18 @@ class SetEnvironment(ConfigParserEnhanced):
 
         # Validate parameters
         num_args_req = 0
-        if   op in ['purge']:          num_args_req = 0
-        elif op in ['use',  'unload']: num_args_req = 1
-        elif op in ['load', 'swap']:   num_args_req = 2
+        if op in ['purge']:
+            num_args_req = 0
+        elif op in ['use', 'unload']:
+            num_args_req = 1
+        elif op in ['load', 'swap']:
+            num_args_req = 2
 
         if len(args) < num_args_req:
             errmsg = "Incorrect # of arguments provided for `module-{}`".format(op)
             self.exception_control_event("CRITICAL", IndexError, errmsg)
 
-        arglist = [ op ]
+        arglist = [op]
         if op == "purge":
             pass
         elif op == "use":
@@ -1583,33 +1552,30 @@ class SetEnvironment(ConfigParserEnhanced):
             #if  not os.path.isdir(arg2):
             #    self.exception_control_event("SERIOUS", FileNotFoundError,
             #                                 "`module use` PATH is not a dir: `{}`".format(arg2))
-            arglist += [ args[1] ]
+            arglist += [args[1]]
         elif op == "load":
-            if args[1] in [ None, '']:
-                arglist += [ args[0] ]
+            if args[1] in [None, '']:
+                arglist += [args[0]]
             else:
-                arglist += [ args[0] + "/" + args[1] ]
+                arglist += [args[0] + "/" + args[1]]
         elif op == "unload":
-            arglist += [ args[0] ]
+            arglist += [args[0]]
         elif op == "swap":
-            arglist += [ args[0], args[1] ]
+            arglist += [args[0], args[1]]
         else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid module operation provided: {}".format(op))
+            self.exception_control_event("SERIOUS", ValueError, "Invalid module operation provided: {}".format(op))
 
-        if interp=="python":
-            arglist = [ '"' + x + '"' for x in arglist ]
+        if interp == "python":
+            arglist = ['"' + x + '"' for x in arglist]
             output = "ModuleHelper.module({})".format(",".join(arglist))
-        elif interp=="bash":
-            output  = "module {}".format(" ".join(arglist))
+        elif interp == "bash":
+            output = "module {}".format(" ".join(arglist))
             #output += "; if [ $? -ne 0 ]; then exit 1; fi"
             #^^^^^^ (uncomment if we want to exit if the module failed to load)
         else:
-            self.exception_control_event("SERIOUS", ValueError,
-                                         "Invalid interpreter provided: {}".format(interp))
+            self.exception_control_event("SERIOUS", ValueError, "Invalid interpreter provided: {}".format(interp))
 
         return output
-
 
     def _gen_script_header_bash(self) -> str:
         """Generate "common" Bash functions
@@ -1622,7 +1588,8 @@ class SetEnvironment(ConfigParserEnhanced):
             str: A string containing the helper functions required if we generate
             a Python output script.
         """
-        output = dedent("""\
+        output = dedent(
+            """\
         # ---------------------------------------------------
         #   S E T E N V I R O N M E N T   F U N C T I O N S
         # ---------------------------------------------------
@@ -1750,9 +1717,9 @@ class SetEnvironment(ConfigParserEnhanced):
                 echo -e "!! ERROR (BASH): Unknown operation: ${op:?}"
             fi
         }
-        """)
+        """
+            )
         return output
-
 
     def _gen_script_header_python(self) -> str:
         """Generate "common" Python functions
@@ -1768,7 +1735,8 @@ class SetEnvironment(ConfigParserEnhanced):
                 generate a Python output script.
         """
 
-        output = dedent("""\
+        output = dedent(
+            """\
 
         # ---------------------------------------------------
         #   S E T E N V I R O N M E N T   F U N C T I O N S
@@ -1783,7 +1751,8 @@ class SetEnvironment(ConfigParserEnhanced):
         from setenvironment import ModuleHelper
 
 
-        """)
+        """
+            )
 
         # Note: We use `inspect` here to pull in the same code that's
         #       used in SetEnvironment itself to reduce technical debt.
@@ -1798,7 +1767,6 @@ class SetEnvironment(ConfigParserEnhanced):
 
         return output
 
-
     def _gen_shebang_line(self, interp="bash") -> str:
         """
         """
@@ -1809,26 +1777,26 @@ class SetEnvironment(ConfigParserEnhanced):
             output += "bash"
         elif interp == "python":
             output += "python3"
-        else:                                                                                       # pragma: no cover (unreachable)
-            self.exception_control_event("CRITICAL", RuntimeError,
-                "'Unreachable' branch executed, something is broken!")
+        else:                                                                                   # pragma: no cover (unreachable)
+            self.exception_control_event(
+                "CRITICAL", RuntimeError, "'Unreachable' branch executed, something is broken!"
+                )
         output += "\n"
         return output
-
 
     def _output_comment_col0_str(self, interp="bash") -> str:
         """
         """
         self._validate_parameter(interp, (str))
 
-        output="#"
+        output = "#"
         if interp in ["bash", "python"]:
-            output="#"
-        else:                                                                                       # pragma: no cover (unreachable)
-            self.exception_control_event("CRITICAL", RuntimeError,
-                "'Unreachable' branch executed, something is broken!")
+            output = "#"
+        else:                                                                                   # pragma: no cover (unreachable)
+            self.exception_control_event(
+                "CRITICAL", RuntimeError, "'Unreachable' branch executed, something is broken!"
+                )
         return output
-
 
     def _remove_prefix(self, text, prefix) -> str:
         """Remove a prefix string from another string
@@ -1859,7 +1827,6 @@ class SetEnvironment(ConfigParserEnhanced):
         if text.startswith(prefix):
             return text[len(prefix):]
         return text
-
 
 
 # EOF
