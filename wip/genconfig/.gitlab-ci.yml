@@ -11,7 +11,10 @@ before_script:
   #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
   - python3 -m pip install --user -U py pytest pytest-cov
   - python3 -m pip install --user -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+  - python3 -m pip install --user -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git@master#egg=setenvironment
+  - python3 -m pip install --user -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git@master#egg=determinesystem
   - python3 -m pip install --user -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git@master#egg=keywordparser
+  - python3 -m pip install --user -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/LoadEnv.git@master#egg=loadenv
 
 pytest:
   stage: test
