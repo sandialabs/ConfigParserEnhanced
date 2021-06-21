@@ -125,14 +125,14 @@ class ConfigKeywordParser(KeywordParser):
                                          if _ in build_name_options]
 
                 if (len(options_in_build_name) > 1
-                        and flag_type == "SELECT-ONE"):
+                        and flag_type == "SELECT_ONE"):
                     raise ValueError(self.get_msg_for_list(
-                        "Multiple options found in build name for SELECT-ONE "
+                        "Multiple options found in build name for SELECT_ONE "
                         f"flag '{flag_name}':",
                         options_in_build_name
                     ))
                 elif (len(options_in_build_name) > 1
-                        and flag_type == "SELECT-MANY"):
+                        and flag_type == "SELECT_MANY"):
                     selected_options[flag_name] = options_in_build_name
                     flags_selected_by_default[flag_name] = False
                 elif len(options_in_build_name) == 0:
@@ -148,8 +148,8 @@ class ConfigKeywordParser(KeywordParser):
     def get_options_and_flag_type_for_flag(self, flag_name):
         """
         A thin wrapper around :func:`get_values_for_section_key` that applies
-        special rules to ensure flags specify their type (SELECT-ONE or
-        SELECT-MANY) as the first option.
+        special rules to ensure flags specify their type (SELECT_ONE or
+        SELECT_MANY) as the first option.
 
         Returns:
             tuple:  A tuple containing the 1) list of options and 2) flag type,
@@ -159,12 +159,12 @@ class ConfigKeywordParser(KeywordParser):
         flag_type = options[0]
         options = options[1:]
 
-        if flag_type not in ["SELECT-ONE", "SELECT-MANY"]:
+        if flag_type not in ["SELECT_ONE", "SELECT_MANY"]:
             raise ValueError(self.get_formatted_msg(
                 f"The options for the '{flag_name}' "
-                "flag must begin with either\n'SELECT-ONE' or "
-                "'SELECT-MANY'.  For example:",
-                extras=(f"\n    {flag_name}:  SELECT-ONE\n"
+                "flag must begin with either\n'SELECT_ONE' or "
+                "'SELECT_MANY'.  For example:",
+                extras=(f"\n    {flag_name}:  SELECT_ONE\n"
                         "      option_1\n"
                         "      option_2\n"
                         "\nPlease modify your config file accordingly:\n"

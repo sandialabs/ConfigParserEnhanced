@@ -140,7 +140,7 @@ def test_multiple_options_for_select_one_flag_in_build_name_raises(data):
     ckp = ConfigKeywordParser(data["build_name"],
                               "test-supported-config-flags.ini")
 
-    match_str = ("Multiple options found in build name for SELECT-ONE flag "
+    match_str = ("Multiple options found in build name for SELECT_ONE flag "
                  f"'{data['flag']}':")
     with pytest.raises(ValueError, match=match_str):
         ckp.selected_options
@@ -152,7 +152,7 @@ def test_flag_without_type_in_config_ini_raises():
         "use-mpi:  # No type specified here\n"
         "    mpi\n"
         "    no-mpi\n"
-        "node-type:  SELECT-ONE\n"
+        "node-type:  SELECT_ONE\n"
         "    serial\n"
         "    openmp\n"
     )
@@ -163,9 +163,9 @@ def test_flag_without_type_in_config_ini_raises():
     msg_expected = textwrap.dedent(
         """
         |   ERROR:  The options for the 'use-mpi' flag must begin with either
-        |           'SELECT-ONE' or 'SELECT-MANY'.  For example:
+        |           'SELECT_ONE' or 'SELECT_MANY'.  For example:
         |
-        |       use-mpi:  SELECT-ONE
+        |       use-mpi:  SELECT_ONE
         |         option_1
         |         option_2
         |
@@ -183,11 +183,11 @@ def test_flag_without_type_in_config_ini_raises():
 def test_options_are_unique_for_all_flags(multiple):
     bad_ini = (
         "[configure-flags]\n"
-        "kokkos-arch:  SELECT-MANY\n"
+        "kokkos-arch:  SELECT_MANY\n"
         "    none\n"
         "    KNC\n"
         "    KNL\n"
-        "package-enables:  SELECT-MANY\n"
+        "package-enables:  SELECT_MANY\n"
         "    none\n"
         "    empire\n"
         "    sparc\n" +
@@ -232,10 +232,10 @@ def test_options_are_unique_for_all_flags(multiple):
 def test_supported_flags_shown_correctly():
     test_ini = (
         "[configure-flags]\n"
-        "use-mpi:  SELECT-ONE\n"
+        "use-mpi:  SELECT_ONE\n"
         "    mpi\n"
         "    no-mpi\n"
-        "node-type:  SELECT-ONE\n"
+        "node-type:  SELECT_ONE\n"
         "    serial\n"
         "    openmp\n"
     )
@@ -252,11 +252,11 @@ def test_supported_flags_shown_correctly():
         |
         |   - Supported Flags Are:
         |     - use-mpi
-        |       * Options (SELECT-ONE):
+        |       * Options (SELECT_ONE):
         |         - mpi (default)
         |         - no-mpi
         |     - node-type
-        |       * Options (SELECT-ONE):
+        |       * Options (SELECT_ONE):
         |         - serial (default)
         |         - openmp
         """
