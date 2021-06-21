@@ -125,6 +125,8 @@ class KeywordParser:
         """
         values_w_whitespace_or_delim = [_ for _ in values_list
                                         if " " in _ or "_" in _]
+        values_w_whitespace_or_delim = [_ for _ in values_w_whitespace_or_delim
+                                        if _ not in ["SELECT_ONE", "SELECT_MANY"]]
         try:
             assert values_w_whitespace_or_delim == []
         except AssertionError:
