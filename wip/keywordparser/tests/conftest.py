@@ -3,6 +3,7 @@ import pytest
 import shutil
 
 
+
 @pytest.fixture(autouse=True)
 def use_tmpdir(monkeypatch, tmpdir):
     """
@@ -12,6 +13,7 @@ def use_tmpdir(monkeypatch, tmpdir):
     these tests.
     """
 
-    shutil.copyfile(Path.cwd()/("tests/test_supported_envs.ini"),
-                    tmpdir.join("test_supported_envs.ini"))
+    shutil.copyfile(
+        Path.cwd() / ("tests/test_supported_envs.ini"), tmpdir.join("test_supported_envs.ini")
+    )
     monkeypatch.chdir(tmpdir)

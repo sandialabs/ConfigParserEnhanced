@@ -1,6 +1,9 @@
 import re
 
+
+
 class FormattedMsg:
+
     def get_formatted_msg(self, msg, kind="ERROR", extras=""):
         """
         This helper method handles multiline messages, rendering them like::
@@ -25,10 +28,12 @@ class FormattedMsg:
                 msg = f"|   {kind}:  {line}\n"
             else:
                 msg += f"|           {line}\n"
+
         for extra in extras.splitlines():
             msg += f"|   {extra}\n"
+
         msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
-        msg = re.sub(r"\s+\n", "\n", msg)  # Remove trailing whitespace
+        msg = re.sub(r"\s+\n", "\n", msg) # Remove trailing whitespace
 
         return msg
 
@@ -56,8 +61,10 @@ class FormattedMsg:
             str:  The formatted message.
         """
         new_extras = ""
+
         for item in item_list:
             new_extras += f"  - {item}\n"
+
         new_extras += extras
         msg = self.get_formatted_msg(msg, kind=kind, extras=new_extras)
         return msg

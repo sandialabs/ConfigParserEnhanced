@@ -4,7 +4,9 @@ import re
 import sys
 
 
+
 class KeywordParser(FormattedMsg):
+
     def __init__(self, config_filename):
         self.config_filename = config_filename
 
@@ -21,9 +23,7 @@ class KeywordParser(FormattedMsg):
         if hasattr(self, "_config"):
             return self._config
 
-        self._config = ConfigParserEnhanced(
-            self.config_filename
-        ).configparserenhanceddata
+        self._config = ConfigParserEnhanced(self.config_filename).configparserenhanceddata
 
         # Actually parses the sections. Shouldn't be needed in the near future
         # once the ConfigParserEnhanced bug is addressed.
@@ -42,13 +42,9 @@ class KeywordParser(FormattedMsg):
             list:  The validated list of values for the given section and key.
         """
         # e.g. values = '\ngnu  # GNU\ndefault-env # The default'
-        values_str = (self.config[section][key]
-                      if self.config[section][key] is not None
-                      else "")
+        values_str = (self.config[section][key] if self.config[section][key] is not None else "")
 
-        uncommented_values_list = re.findall(
-            r"(?:\s*?#.*\n*)*([^#^\n]*)", values_str
-        )
+        uncommented_values_list = re.findall(r"(?:\s*?#.*\n*)*([^#^\n]*)", values_str)
         # Regex Explanation
         # =================
         # (?:\s*?#.*\n*)*([^#^\n]*)
@@ -105,10 +101,11 @@ class KeywordParser(FormattedMsg):
             assert duplicates == []
         except AssertionError:
             msg = self.get_msg_for_list(
-                f"Values for '{self.config_filename}'['{section}']['{key}'] "
-                "contains duplicates: ", duplicates
+                f"Values for '{self.config_filename}'['{section}']['{key}'] contains duplicates: ",
+                duplicates
             )
             sys.exit(msg)
+        return
 
     def assert_values_do_not_contain_whitespace_or_delimiter(self, values_list):
         """
@@ -124,18 +121,17 @@ class KeywordParser(FormattedMsg):
         Raises:
             SystemExit:  If any value contains whitespace.
         """
-        values_w_whitespace_or_delim = [_ for _ in values_list
-                                        if " " in _ or "_" in _]
-        values_w_whitespace_or_delim = [_ for _ in values_w_whitespace_or_delim
-                                        if _ not in ["SELECT_ONE", "SELECT_MANY"]]
+        values_w_whitespace_or_delim = [_ for _ in values_list if " " in _ or "_" in _]
+        values_w_whitespace_or_delim = [
+            _ for _ in values_w_whitespace_or_delim if _ not in ["SELECT_ONE", "SELECT_MANY"]
+        ]
         try:
             assert values_w_whitespace_or_delim == []
         except AssertionError:
             es = "es" if len(values_w_whitespace_or_delim) > 1 else "e"
             s = "s" if len(values_w_whitespace_or_delim) == 1 else ""
             msg = self.get_msg_for_list(
-                f"The following valu{es} contain{s} whitespace or "
-                "the delimiter '_': ",
+                f"The following valu{es} contain{s} whitespace or the delimiter '_': ",
                 values_w_whitespace_or_delim
             )
             sys.exit(msg)
@@ -168,9 +164,8 @@ class KeywordParser(FormattedMsg):
                 matched_key = key
 
         if matched_key is None:
-            msg = self.get_formatted_msg("Unable to find value "
-                                         f"'{value}' in values "
-                                         f"for '{section}'.\n")
+            msg = self.get_formatted_msg(
+                f"Unable to find value '{value}' in values for '{section}'.\n"
+            )
             sys.exit(msg)
-
         return matched_key
