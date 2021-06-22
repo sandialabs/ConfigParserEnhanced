@@ -8,8 +8,8 @@ before making a change.
 Code Style
 ----------
 Please adhere to PEP8 style guidelines unless called out in this document.
-1. Add 3 lines of whitespace between classes.
-2. Add 2 lines of whitespace between methods within classes or free-functions.
+1. Add 3 lines of whitespace between classes and free functions.
+2. Prefer 2 lines of whitespace between methods within classes.
 3. Prefer all methods in classes should have an explicit `return` statement.
 4. All `pytest` tests shoud `return 0` if the test is successful.
 5. Conform to Google-style docstrings except for where it might break Sphinx
