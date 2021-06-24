@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# All imports must be base python or trilinos-consolidation modules only.
 import argparse
 from configparserenhanced import ConfigParserEnhanced
 from contextlib import redirect_stdout
@@ -13,7 +14,6 @@ from src.config_keyword_parser import ConfigKeywordParser
 import sys
 import textwrap
 from typing import List
-# TODO: Probably will need to import LoadEnv from somewhere here
 
 
 class GenConfig:
@@ -41,6 +41,7 @@ class GenConfig:
                         f"'{section}' section."
                     ))
 
+            # Check paths specified in gen-config.ini
             section_keys = [
                 ("gen-config", "supported-config-flags"),
                 ("gen-config", "config-specs"),
@@ -67,6 +68,14 @@ class GenConfig:
                         self.gen_config_config_data[section][key] = str(
                             self.gen_config_ini_file.parent / value
                         )
+
+                if not Path(self.gen_config_config_data[section][key]).exists():
+                    raise ValueError(self.get_formatted_msg(
+                        f"The file specified for '{key}' in "
+                        f"'{self.gen_config_ini_file}' does not exist:",
+                        extras=f"  {key} : "
+                        f"{self.gen_config_config_data[section][key]}.ini"
+                    ))
 
     def __init__(
         self, argv:List[str],

@@ -173,27 +173,27 @@ def test_gen_config_ini_file_used_if_nothing_else_explicitly_specified():
         "gen_config_section_name": "invalid_section_name",
         "load_env_section_name": "load-env",
         "key1": "supported-config-flags",
-        "value1": "test_supported_config_flags.ini",
+        "value1": "test-supported-config-flags.ini",
         "key2": "supported-systems",
-        "value2": "test_supported_systems.ini",
+        "value2": "test-supported-systems.ini",
         "err_msg": "'bad_gen_config.ini' must contain a 'gen-config' section.",
     },
     {
         "gen_config_section_name": "gen-config",
         "load_env_section_name": "invalid_section_name",
         "key1": "supported-config-flags",
-        "value1": "test_supported_config_flags.ini",
+        "value1": "test-supported-config-flags.ini",
         "key2": "supported-systems",
-        "value2": "test_supported_systems.ini",
+        "value2": "test-supported-systems.ini",
         "err_msg": "'bad_gen_config.ini' must contain a 'load-env' section.",
     },
     {
         "gen_config_section_name": "gen-config",
         "load_env_section_name": "load-env",
         "key1": "bad-key",
-        "value1": "test_supported_config_flags.ini",
+        "value1": "test-supported-config-flags.ini",
         "key2": "supported-systems",
-        "value2": "test_supported_systems.ini",
+        "value2": "test-supported-systems.ini",
         "err_msg": ("'bad_gen_config.ini' must contain the following in the "
                     "'gen-config' section:"),
     },
@@ -201,9 +201,9 @@ def test_gen_config_ini_file_used_if_nothing_else_explicitly_specified():
         "gen_config_section_name": "gen-config",
         "load_env_section_name": "load-env",
         "key1": "supported-config-flags",
-        "value1": "test_supported_config_flags.ini",
+        "value1": "test-supported-config-flags.ini",
         "key2": "bad-key",
-        "value2": "test_supported_systems.ini",
+        "value2": "test-supported-systems.ini",
         "err_msg": ("'bad_gen_config.ini' must contain the following in the "
                     "'load-env' section:"),
     },
@@ -213,7 +213,7 @@ def test_gen_config_ini_file_used_if_nothing_else_explicitly_specified():
         "key1": "supported-config-flags",
         "value1": "",
         "key2": "supported-systems",
-        "value2": "test_supported_systems.ini",
+        "value2": "test-supported-systems.ini",
         "err_msg": ("The path specified for 'supported-config-flags' in "
                     "'bad_gen_config.ini' must be non-empty"),
     },
@@ -221,7 +221,7 @@ def test_gen_config_ini_file_used_if_nothing_else_explicitly_specified():
         "gen_config_section_name": "gen-config",
         "load_env_section_name": "load-env",
         "key1": "supported-config-flags",
-        "value1": "test_supported_config_flags.ini",
+        "value1": "test-supported-config-flags.ini",
         "key2": "supported-systems",
         "value2": "",
         "err_msg": ("The path specified for 'supported-systems' in "
@@ -232,10 +232,29 @@ def test_invalid_gen_config_file_raises(data):
     bad_gen_config_ini = (
         f"[{data['gen_config_section_name']}]\n"
         f"{data['key1']} : {data['value1']}\n"
-        f"config-specs : test_config_specs.ini\n"
+        f"config-specs : test-config-specs.ini\n"
         "\n"
         f"[{data['load_env_section_name']}]\n"
         f"{data['key2']} : {data['value2']}\n"
+        f"supported-envs : test-supported-envs.ini\n"
+        f"environment-specs : test-environment-specs.ini\n"
+    )
+    filename = "bad_gen_config.ini"
+    with open(filename, "w") as f:
+        f.write(bad_gen_config_ini)
+
+    with pytest.raises(ValueError, match=data["err_msg"]):
+        GenConfig(["build_name"], gen_config_ini_file=filename)
+
+
+def test_config_file_specified_in_gen_config_ini_does_not_exist_raises():
+    bad_gen_config_ini = (
+        f"[gen-config]\n"
+        f"supported-config-flags : non-existent-file.ini\n"
+        f"config-specs : test_config_specs.ini\n"
+        "\n"
+        f"[load-env]\n"
+        f"supported-systems : test-supported-systems.ini\n"
         f"supported-envs : test_supported_envs.ini\n"
         f"environment-specs : test_environment_specs.ini\n"
     )
@@ -243,5 +262,10 @@ def test_invalid_gen_config_file_raises(data):
     with open(filename, "w") as f:
         f.write(bad_gen_config_ini)
 
-    with pytest.raises(ValueError, match=data["err_msg"]):
+    err_msg = (
+        "ERROR:  The file specified for 'supported-config-flags' in "
+        "'bad_gen_config.ini' does not exist:"
+    )
+
+    with pytest.raises(ValueError, match=err_msg):
         GenConfig(["build_name"], gen_config_ini_file=filename)
