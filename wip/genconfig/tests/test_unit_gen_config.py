@@ -244,7 +244,8 @@ def test_invalid_gen_config_file_raises(data):
         f.write(bad_gen_config_ini)
 
     with pytest.raises(ValueError, match=data["err_msg"]):
-        GenConfig(["build_name"], gen_config_ini_file=filename)
+        gc = GenConfig(["build_name"], gen_config_ini_file=filename)
+        gc.gen_config_config_data
 
 
 def test_config_file_specified_in_gen_config_ini_does_not_exist_raises():
@@ -268,4 +269,5 @@ def test_config_file_specified_in_gen_config_ini_does_not_exist_raises():
     )
 
     with pytest.raises(ValueError, match=err_msg):
-        GenConfig(["build_name"], gen_config_ini_file=filename)
+        gc = GenConfig(["build_name"], gen_config_ini_file=filename)
+        gc.gen_config_config_data

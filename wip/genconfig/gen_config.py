@@ -24,59 +24,6 @@ class GenConfig:
         argv:  The command line arguments passed to ``gen_config.py``.
     """
 
-    def parse_top_level_config_file(self):
-        """
-        Parse the ``gen-config.ini`` file and store the corresponding
-        ``configparserenhanceddata`` object as :attr:`gen_config_config_data`.
-        """
-        if self.gen_config_config_data is None:
-            self.gen_config_config_data = ConfigParserEnhanced(
-                self.gen_config_ini_file
-            ).configparserenhanceddata
-
-            for section in ["gen-config", "load-env"]:
-                if not self.gen_config_config_data.has_section(section):
-                    raise ValueError(self.get_formatted_msg(
-                        f"'{self.gen_config_ini_file}' must contain a "
-                        f"'{section}' section."
-                    ))
-
-            # Check paths specified in gen-config.ini
-            section_keys = [
-                ("gen-config", "supported-config-flags"),
-                ("gen-config", "config-specs"),
-                ("load-env", "supported-systems"),
-                ("load-env", "supported-envs"),
-                ("load-env", "environment-specs"),
-            ]
-            for section, key in section_keys:
-                if not self.gen_config_config_data.has_option(section, key):
-                    raise ValueError(self.get_formatted_msg(
-                        f"'{self.gen_config_ini_file}' must contain the "
-                        f"following in the '{section}' section:",
-                        extras=f"  {key} : /path/to/{key}.ini"
-                    ))
-                value = self.gen_config_config_data[section][key]
-                if value == "" or value is None:
-                    raise ValueError(self.get_formatted_msg(
-                        f"The path specified for '{key}' in "
-                        f"'{self.gen_config_ini_file}' must be non-empty, e.g.:",
-                        extras=f"  {key} : /path/to/{key}.ini"
-                    ))
-                else:
-                    if not Path(value).is_absolute():
-                        self.gen_config_config_data[section][key] = str(
-                            self.gen_config_ini_file.parent / value
-                        )
-
-                if not Path(self.gen_config_config_data[section][key]).exists():
-                    raise ValueError(self.get_formatted_msg(
-                        f"The file specified for '{key}' in "
-                        f"'{self.gen_config_ini_file}' does not exist:",
-                        extras=f"  {key} : "
-                        f"{self.gen_config_config_data[section][key]}.ini"
-                    ))
-
     def __init__(
         self, argv:List[str],
         gen_config_ini_file=(Path(os.path.realpath(__file__)).parent /
@@ -89,12 +36,92 @@ class GenConfig:
                             "command line arguments.")
         self.argv = argv
         self.gen_config_ini_file = Path(gen_config_ini_file)
-        self.gen_config_config_data = None
-        self.parse_top_level_config_file()
+        self._gen_config_config_data = None
         self.config_keyword_parser = None
         self.set_program_options = None
         self.load_env = None
         self.has_been_validated = False
+
+    @property
+    def generated_config_flags_str(self):
+        if not hasattr(self, "_generated_config_flags_str"):
+            if self.set_program_options is None:
+                self.load_set_program_options()
+            if not self.has_been_validated:
+                self.validate_config_specs_ini()
+
+            options_list = self.set_program_options.gen_option_list(
+                self.complete_config, "bash"
+            )
+            self._generated_config_flags_str = " \\\n    ".join(options_list)
+
+        return self._generated_config_flags_str
+
+    def write_cmake_fragment(self):
+        """
+        Returns:
+            Path:  The path to the cmake fragment that was written, either the
+            default or whatever the user requested with ``--cmake-fragment``.
+        """
+        if not hasattr(self, "_cmake_fragment_file"):
+            if self.set_program_options is None:
+                self.load_set_program_options()
+            if not self.has_been_validated:
+                self.validate_config_specs_ini()
+
+            cmake_options_list = self.set_program_options.gen_option_list(
+                self.complete_config, "cmake_fragment"
+            )
+
+            file = self.args.cmake_fragment
+            if file.exists():
+                file.unlink()
+            file.parent.mkdir(parents=True, exist_ok=True)
+
+            with open(file, "w") as F:
+                F.write("\n".join(cmake_options_list))
+
+            self._cmake_fragment_file = file
+
+        return self._cmake_fragment_file
+
+    def list_config_flags(self):
+        """
+        List the available config flags form ``supported-config-flags.ini``.
+
+        Raises:
+            SystemExit:  With the message displaying the available config flags
+            from which to choose.
+        """
+        if self.config_keyword_parser is None:
+            self.load_config_keyword_parser()
+        sys.exit(
+            self.config_keyword_parser.get_msg_showing_supported_flags(
+                "Please select one of the following.",
+                kind="INFO"
+            )
+        )
+
+    @property
+    def complete_config(self):
+        """
+        The selected config flag options name parsed from the
+        :attr:`build_name` via the :class:`ConfigKeywordParser`.
+        """
+        if not hasattr(self, "_complete_config"):
+            if self.config_keyword_parser is None:
+                self.load_config_keyword_parser()
+            if self.load_env is None:
+                self.load_load_env()
+            self._complete_config = (
+                f"{self.load_env.parsed_env_name}"
+                f"{self.config_keyword_parser.selected_options_str}"
+            )
+
+            print(f"Matched complete configuration '{self._complete_config}'"
+                  f"\n  for build name '{self.args.build_name}'.")
+
+        return self._complete_config
 
     def validate_config_specs_ini(self):
         if self.config_keyword_parser is None:
@@ -193,88 +220,6 @@ class GenConfig:
             argv += [self.args.build_name]
             self.load_env = LoadEnv(argv=argv)
 
-    @property
-    def complete_config(self):
-        """
-        The selected config flag options name parsed from the
-        :attr:`build_name` via the :class:`ConfigKeywordParser`.
-        """
-        if not hasattr(self, "_complete_config"):
-            if self.config_keyword_parser is None:
-                self.load_config_keyword_parser()
-            if self.load_env is None:
-                self.load_load_env()
-            self._complete_config = (
-                f"{self.load_env.parsed_env_name}"
-                f"{self.config_keyword_parser.selected_options_str}"
-            )
-
-            print(f"Matched complete configuration '{self._complete_config}'"
-                  f"\n  for build name '{self.args.build_name}'.")
-
-        return self._complete_config
-
-    @property
-    def generated_config_flags_str(self):
-        if not hasattr(self, "_generated_config_flags_str"):
-            if self.set_program_options is None:
-                self.load_set_program_options()
-            if not self.has_been_validated:
-                self.validate_config_specs_ini()
-
-            options_list = self.set_program_options.gen_option_list(
-                self.complete_config, "bash"
-            )
-            self._generated_config_flags_str = " \\\n    ".join(options_list)
-
-        return self._generated_config_flags_str
-
-    def write_cmake_fragment(self):
-        # TODO: Update this docstring.
-        """
-        Returns:
-            Path:  The path to the cmake fragment that was written, either the
-            default or whatever the user requested with ``--cmake-fragment``.
-        """
-        if not hasattr(self, "_cmake_fragment_file"):
-            if self.set_program_options is None:
-                self.load_set_program_options()
-            if not self.has_been_validated:
-                self.validate_config_specs_ini()
-
-            cmake_options_list = self.set_program_options.gen_option_list(
-                self.complete_config, "cmake_fragment"
-            )
-
-            file = self.args.cmake_fragment
-            if file.exists():
-                file.unlink()
-            file.parent.mkdir(parents=True, exist_ok=True)
-
-            with open(file, "w") as F:
-                F.write("\n".join(cmake_options_list))
-
-            self._cmake_fragment_file = file
-
-        return self._cmake_fragment_file
-
-    def list_config_flags(self):
-        """
-        List the available config flags form ``supported-config-flags.ini``.
-
-        Raises:
-            SystemExit:  With the message displaying the available config flags
-            from which to choose.
-        """
-        if self.config_keyword_parser is None:
-            self.load_config_keyword_parser()
-        sys.exit(
-            self.config_keyword_parser.get_msg_showing_supported_flags(
-                "Please select one of the following.",
-                kind="INFO"
-            )
-        )
-
     def get_formatted_msg(self, msg:str, kind:str="ERROR",
                           extras:str="") -> str:
         """
@@ -305,6 +250,67 @@ class GenConfig:
         msg = re.sub(r"\s+\n", "\n", msg)  # Remove trailing machine-name-4space
 
         return msg
+
+    @property
+    def gen_config_config_data(self):
+        """
+        Parse the ``gen-config.ini`` file and store the corresponding
+        ``configparserenhanceddata`` object as :attr:`gen_config_config_data`.
+        """
+        if self._gen_config_config_data is None:
+            self._gen_config_config_data = ConfigParserEnhanced(
+                self.gen_config_ini_file
+            ).configparserenhanceddata
+
+        self.validate_gen_config_config_data()
+        return self._gen_config_config_data
+
+    def validate_gen_config_config_data(self):
+        if self._gen_config_config_data is None:
+            return
+
+        for section in ["gen-config", "load-env"]:
+            if not self._gen_config_config_data.has_section(section):
+                raise ValueError(self.get_formatted_msg(
+                    f"'{self.gen_config_ini_file}' must contain a "
+                    f"'{section}' section."
+                ))
+
+        # Check paths specified in gen-config.ini
+        section_keys = [
+            ("gen-config", "supported-config-flags"),
+            ("gen-config", "config-specs"),
+            ("load-env", "supported-systems"),
+            ("load-env", "supported-envs"),
+            ("load-env", "environment-specs"),
+        ]
+        for section, key in section_keys:
+            if not self._gen_config_config_data.has_option(section, key):
+                raise ValueError(self.get_formatted_msg(
+                    f"'{self.gen_config_ini_file}' must contain the "
+                    f"following in the '{section}' section:",
+                    extras=f"  {key} : /path/to/{key}.ini"
+                ))
+            value = self._gen_config_config_data[section][key]
+            if value == "" or value is None:
+                raise ValueError(self.get_formatted_msg(
+                    f"The path specified for '{key}' in "
+                    f"'{self.gen_config_ini_file}' must be non-empty, e.g.:",
+                    extras=f"  {key} : /path/to/{key}.ini"
+                ))
+            else:
+                if not Path(value).is_absolute():
+                    self._gen_config_config_data[section][key] = str(
+                        self.gen_config_ini_file.parent / value
+                    )
+
+            if not Path(self._gen_config_config_data[section][key]).exists():
+                raise ValueError(self.get_formatted_msg(
+                    f"The file specified for '{key}' in "
+                    f"'{self.gen_config_ini_file}' does not exist:",
+                    extras=f"  {key} : "
+                    f"{self._gen_config_config_data[section][key]}.ini"
+                ))
 
     @property
     def args(self):
