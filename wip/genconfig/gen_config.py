@@ -5,6 +5,7 @@ import argparse
 from configparserenhanced import ConfigParserEnhanced
 from contextlib import redirect_stdout
 import io
+from keywordparser import FormattedMsg
 from loadenv import LoadEnv
 import os
 from pathlib import Path
@@ -16,7 +17,7 @@ import textwrap
 from typing import List
 
 
-class GenConfig:
+class GenConfig(FormattedMsg):
     """
     Insert description here.
 
@@ -219,37 +220,6 @@ class GenConfig:
             argv += ["--force"] if self.args.force else []
             argv += [self.args.build_name]
             self.load_env = LoadEnv(argv=argv)
-
-    def get_formatted_msg(self, msg:str, kind:str="ERROR",
-                          extras:str="") -> str:
-        """
-        This helper method handles multiline messages, rendering them like::
-
-            +=================================================================+
-            |   {kind}:  Unable to find alias or environment name for system
-            |            'machine-type-5' in keyword string 'bad_kw_str'.
-            +=================================================================+
-
-        Parameters:
-            msg (str):  The error message, potentially with multiple lines.
-            kind (str):  The kind of message being generated, e.g., "ERROR",
-                "WARNING", "INFO", etc.
-            extras (str):  Any extra text to include after the initial ``msg``.
-
-        Returns:
-            str:  The formatted message.
-        """
-        for idx, line in enumerate(msg.splitlines()):
-            if idx == 0:
-                msg = f"|   {kind}:  {line}\n"
-            else:
-                msg += f"|           {line}\n"
-        for extra in extras.splitlines():
-            msg += f"|   {extra}\n"
-        msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
-        msg = re.sub(r"\s+\n", "\n", msg)  # Remove trailing machine-name-4space
-
-        return msg
 
     @property
     def gen_config_config_data(self):
