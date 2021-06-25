@@ -5,4 +5,5 @@ Init script for the KeywordParser package
 """
 from .version import __version__
 
+from .FormattedMsg import FormattedMsg
 from .KeywordParser import KeywordParser
