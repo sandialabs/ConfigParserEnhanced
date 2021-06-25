@@ -23,7 +23,7 @@ class FormattedMsg:
         for idx, line in enumerate(msg.splitlines()):
             if idx == 0:
                 msg = f"|   {kind}:  {line}\n"
-            elif line != "":
+            else:
                 msg += f"|           {line}\n"
         for extra in extras.splitlines():
             msg += f"|   {extra}\n"
