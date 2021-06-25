@@ -14,8 +14,13 @@ git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/SetProgr
 cd -
 
 # snapshot dependencies in
+rm setenvironment > /dev/null 2>&1
+rm configparserenhanced > /dev/null 2>&1
+rm determinesystem > /dev/null 2>&1
+rm keywordparser > /dev/null 2>&1
 rm loadenv > /dev/null 2>&1
 rm setprogramoptions > /dev/null 2>&1
+
 
 ln -s deps/SetEnvironment/setenvironment/ .
 ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
