@@ -8,6 +8,12 @@ before_script:
 
   # Pull required packages
   - python3 -m pip install -U py pytest pytest-cov
+  - mkdir deps; cd deps
+  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git
+  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
+  - cd ..
+  - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
+  - ln -s deps/KeywordParser/keywordparser/ .
 
 pytest:
   stage: test
