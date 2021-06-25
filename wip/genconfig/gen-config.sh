@@ -34,9 +34,23 @@ fi
 
 
 
-#### BEGIN environment setup ####
 # Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-echo $script_dir
 
-source $script_dir/deps/LoadEnv/load-env.sh
+if [ $# -eq 0 ]; then
+  cd ${script_dir} >/dev/null; python3 -E -s -m gen_config --help; cd - >/dev/null
+  # cleanup; return 1
+  return 1
+fi
+
+
+
+#### BEGIN environment setup ####
+echo "********************************************************************************"
+echo "                B E G I N  L O A D I N G  E N V I R O N M E N T"
+echo "********************************************************************************"
+
+source $script_dir/load-env.sh --ci-mode $@
+
+echo "After sourcing load-env.sh"
+#### END environment setup ####
