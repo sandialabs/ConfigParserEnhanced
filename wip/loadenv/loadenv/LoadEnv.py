@@ -3,6 +3,7 @@
 import argparse
 from configparserenhanced import ConfigParserEnhanced
 from determinesystem import DetermineSystem
+from keywordparser import FormattedMsg
 import getpass
 import os
 from pathlib import Path
@@ -19,7 +20,7 @@ except ImportError:
 
 
 
-class LoadEnv:
+class LoadEnv(FormattedMsg):
     """
     TODO: Insert description here.
 
@@ -267,37 +268,6 @@ class LoadEnv:
                 ).resolve()
 
         return self._tmp_load_matching_env_file
-
-
-    def get_formatted_msg(self, msg, kind="ERROR", extras=""):
-        """
-        This helper method handles multiline messages, rendering them like::
-
-            +=================================================================+
-            |   {kind}:  Unable to find alias or environment name for system
-            |            'machine-type-1' in keyword string 'bad_kw_str'.
-            +=================================================================+
-
-        Parameters:
-            msg (str):  The error message, potentially with multiple lines.
-            kind (str):  The kind of message being generated, e.g., "ERROR",
-                "WARNING", "INFO", etc.
-            extras (str):  Any extra text to include after the initial ``msg``.
-
-        Returns:
-            str:  The formatted message.
-        """
-        for idx, line in enumerate(msg.splitlines()):
-            if idx == 0:
-                msg = f"|   {kind}:  {line}\n"
-            else:
-                msg += f"|           {line}\n"
-
-        for extra in extras.splitlines():
-            msg += f"|   {extra}\n"
-
-        msg = "\n+" + "="*78 + "+\n" + msg + "+" + "="*78 + "+\n"
-        return msg
 
 
     @property
