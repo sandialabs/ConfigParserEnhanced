@@ -22,6 +22,6 @@ ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
 ln -s deps/DetermineSystem/determinesystem/ .
 ln -s deps/KeywordParser/keywordparser/ .
 ln -s deps/LoadEnv/loadenv/ .
-ln -s deps/SetProgramOptions/setprogramoptions/ .
+ln -s deps/SetProgramOptions/src/setprogramoptions .
 
 popd
