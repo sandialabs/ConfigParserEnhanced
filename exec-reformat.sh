@@ -7,7 +7,21 @@ printf "${yellow}"
 print_banner "Reformatting - Started"
 printf "${normal}\n"
 
-execute_command "yapf -vv -i -p -r -e venv- -e .git -e doc -e deps -e __pycache__ ."
+exclude_dirs=(
+    .git
+    doc
+    __pycache__
+    deps
+    venv-*
+)
+
+exclude_opts=()
+for exc in ${exclude_dirs[*]}; do
+    exclude_opts+=("-e")
+    exclude_opts+=("${exc}")
+done
+
+execute_command "yapf -vv -i -p -r ${exclude_opts[*]} ."
 
 printf "${yellow}"
 print_banner "Reformatting - Done"
