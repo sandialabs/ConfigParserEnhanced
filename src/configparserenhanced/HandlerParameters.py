@@ -42,14 +42,14 @@ def value_len_eq_2(value):
 class HandlerParameters(object):
     """Contains the set of parameters that we pass to *handlers*.
     """
-    section_root  = typed_property("section_root", (str), default=None)
-    raw_option    = typed_property("raw_option", tuple, default=(None, None), validator=value_len_eq_2)
-    op            = typed_property("op", str, default="")
-    params        = typed_property("params", (list, tuple), default=[], internal_type=list)
-    value         = typed_property("value", (str, type(None)), "")
-    data_shared   = typed_property("data_shared", dict, {})
+    section_root = typed_property("section_root", (str), default=None)
+    raw_option = typed_property("raw_option", tuple, default=(None, None), validator=value_len_eq_2)
+    op = typed_property("op", str, default="")
+    params = typed_property("params", (list, tuple), default=[], internal_type=list)
+    value = typed_property("value", (str, type(None)), "")
+    data_shared = typed_property("data_shared", dict, {})
     data_internal = typed_property("data_internal", dict, {})
-    handler_name  = typed_property("handler_name", str, "")
+    handler_name = typed_property("handler_name", str, "")
 
 
 

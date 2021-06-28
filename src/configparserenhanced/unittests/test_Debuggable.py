@@ -66,7 +66,6 @@ class DebuggableTest(TestCase):
         print("")
         return
 
-
     def test_Debuggable_property_debug_level(self):
         """
         Test reading and setting the property `debug_level`
@@ -98,7 +97,6 @@ class DebuggableTest(TestCase):
 
         print("OK")
         return 0
-
 
     def test_Debuggable_method_debug_message(self):
 

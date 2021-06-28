@@ -69,7 +69,9 @@ def typed_property(
                 setattr(self, varname, copy.deepcopy(default))
             else:
                 if not callable(default_factory):
-                    raise TypeError("default_factory `{}` in `{}` must be callable.".format(default_factory, name))
+                    raise TypeError(
+                        "default_factory `{}` in `{}` must be callable.".format(default_factory, name)
+                    )
                 setattr(self, varname, default_factory())
         return getattr(self, varname)
 
@@ -94,17 +96,17 @@ def typed_property(
                 if internal_type is not None:
                     value = internal_type(value)
             else:
-                raise TypeError("transform '{}' for property '{}' is not callable.".format(transform, name))
+                raise TypeError(f"transform '{transform}' for property '{name}' is not callable.")
 
         if validator is not None:
             if callable(validator):
                 if not validator(value):
                     raise ValueError(
-                        "Assignment of `{}` to property `{}` ".format(value, name) +
-                        "failed validation check in `{}`".format(validator)
+                        f"Assignment of `{value}` to property `{name}` " +
+                        f"failed validation check in `{validator}`"
                     )
             else:
-                raise TypeError("Validator '{}' for property '{}' is not callable.".format(validator, name))
+                raise TypeError(f"Validator '{validator}' for property '{name}' is not callable.")
 
         # Assign the value to the property
         setattr(self, varname, value)

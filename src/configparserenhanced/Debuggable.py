@@ -47,12 +47,10 @@ class Debuggable(object):
             self._debug_level = 0
         return self._debug_level
 
-
     @debug_level.setter
     def debug_level(self, value):
         self._debug_level = max(int(value), 0)
         return self._debug_level
-
 
     def debug_message(self, debug_level, message, end="\n", useprefix=True):
         """Optionally prints a message based on the ``debug_level`` setting.
@@ -81,8 +79,8 @@ class Debuggable(object):
             if debug_level > 0:
                 prefix = ""
                 if useprefix:
-                    prefix = "[D-{}] ".format(debug_level)
-                message = "{}{}".format(prefix, message)
+                    prefix = f"[D-{debug_level}] "
+                message = f"{prefix}{message}"
 
             print(message, end=end)
 

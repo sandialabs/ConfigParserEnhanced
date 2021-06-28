@@ -92,7 +92,6 @@ class ExceptionControl(object):
         output = {"SILENT": 5, "WARNING": 5, "MINOR": 4, "SERIOUS": 3, "CRITICAL": 2, "CATASTROPHIC": 0}
         return output
 
-
     @property
     def exception_control_silent_warnings(self) -> bool:
         """A flag that toggles silencing of warnings.
@@ -110,14 +109,12 @@ class ExceptionControl(object):
             self._exception_control_silent_warnings = False
         return self._exception_control_silent_warnings
 
-
     @exception_control_silent_warnings.setter
     def exception_control_silent_warnings(self, value) -> bool:
         if not isinstance(value, (bool)):
             raise TypeError("Value must be a `bool` type in assignment.")
         self._exception_control_silent_warnings = value
         return self._exception_control_silent_warnings
-
 
     @property
     def exception_control_compact_warnings(self) -> bool:
@@ -134,14 +131,12 @@ class ExceptionControl(object):
             self._exception_control_compact_warnings = False
         return self._exception_control_compact_warnings
 
-
     @exception_control_compact_warnings.setter
     def exception_control_compact_warnings(self, value) -> bool:
         if not isinstance(value, (bool)):
             raise TypeError("Value must be a `bool` type in assignment.")
         self._exception_control_compact_warnings = value
         return self._exception_control_compact_warnings
-
 
     @property
     def exception_control_level(self):
@@ -161,7 +156,6 @@ class ExceptionControl(object):
             self._exception_control_level = 4
         return self._exception_control_level
 
-
     @exception_control_level.setter
     def exception_control_level(self, value):
         value = int(value)
@@ -169,7 +163,6 @@ class ExceptionControl(object):
         value = min(5, value)
         self._exception_control_level = value
         return self._exception_control_level
-
 
     def exception_control_event(self, event_type, exception_type, message=None):
         """An event that conditinally raises an exception.
@@ -241,16 +234,17 @@ class ExceptionControl(object):
                         tb_last = tb_last.splitlines()[0]
                         tb_last = tb_last.strip()
                         print(
-                            "!! EXCEPTION SKIPPED ({} : {}) @ {}".format(event_type, exception_type.__name__, tb_last)
-                            )
+                            f"!! EXCEPTION SKIPPED ({event_type} :"
+                            f" {exception_type.__name__}) @ {tb_last}"
+                        )
                     else:
-                        print("!! " + "="*80)
-                        print("!! EXCEPTION SKIPPED")
-                        print("!! Event Type : {}".format(event_type))
-                        print("!! Exception  : {}".format(exception_type.__name__))
+                        print(f"!! " + "="*80)
+                        print(f"!! EXCEPTION SKIPPED")
+                        print(f"!! Event Type : {event_type}")
+                        print(f"!! Exception  : {exception_type.__name__}")
                         if message != None:
                             message = message.replace("\n", "\n!!            : ")
-                            print("!! Message    : {}".format(message))
+                            print(f"!! Message    : {message}")
 
                         print("!!")
                         print("!! Call Stack:")
@@ -259,13 +253,13 @@ class ExceptionControl(object):
                         for line in traceback.format_stack()[:-1]:
                             line = line.strip()
                             line = line.replace("\n", "\n!! ")
-                            print("!! {}".format(line.strip()))
+                            print(f"!! {line.strip()}")
 
                         print("!!")
                         print(
-                            "!! Increase `exception_control_level` to {} to raise this exception."
-                            .format(req_exception_control_level)
-                            )
+                            f"!! Increase `exception_control_level` to "
+                            f"{req_exception_control_level} to raise this exception."
+                        )
                         print("!! " + "="*80)
 
                     sys.stdout.flush()

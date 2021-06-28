@@ -24,6 +24,20 @@ Updates and Changes
 ### Security
 -->
 
+## [0.6.1] - <!-- YYYY-MM-DD or --> [UNRELEASED]
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Internal
+- Updated `.style.yapf` and `exec-reformat.sh` and ran a pass through the code to do a formatting
+  pass.
+- Added Python 3.6.x check to `ConfigParserEnhanced.py`
+- Changed many strings to use *f-strings* instead of `.format()` (requires Python 3.6)
+### Security
+
+
 ## [0.6.0] - 2021-06-18
 ### Added
 - property: `default_section_name` - parameterizes the CPE's version of the "DEFAULT" section.

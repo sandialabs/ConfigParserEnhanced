@@ -287,7 +287,7 @@ class ConfigParserEnhancedTest(TestCase):
             ('op1', ['op2', '+++']),
             ('opA', []),
             ('op_A', []),
-            ]
+        ]
         print("results_expected ({}):".format(len(results_expected)))
         pprint(results_expected)
 
@@ -342,7 +342,7 @@ class ConfigParserEnhancedTest(TestCase):
             "_generic_option_handler",
             "_generic_option_handler",
             "handler_finalize"
-            ]
+        ]
         handler_exit_list_expected = [
             "handler_initialize",
             "_generic_option_handler",
@@ -351,7 +351,7 @@ class ConfigParserEnhancedTest(TestCase):
             "_handler_use",
             "_generic_option_handler",
             "handler_finalize"
-            ]
+        ]
 
         self.assertListEqual(handler_entry_list_expected, handler_entry_list)
         self.assertListEqual(handler_exit_list_expected, handler_exit_list)
@@ -394,7 +394,9 @@ class ConfigParserEnhancedTest(TestCase):
         section_entry_list_actual = [d['name'] for d in parser._loginfo if d['type'] == 'section-entry']
 
         # What did we expect to get?
-        section_entry_list_expect = ['CYCLE_TEST_A', 'CYCLE_TEST_B', 'CYCLE_TEST_C', 'CYCLE_TEST_B', 'CYCLE_TEST_C']
+        section_entry_list_expect = [
+            'CYCLE_TEST_A', 'CYCLE_TEST_B', 'CYCLE_TEST_C', 'CYCLE_TEST_B', 'CYCLE_TEST_C'
+        ]
 
         print("section_entry_list_expect: {}".format(section_entry_list_expect))
         print("section_entry_list_actual: {}".format(section_entry_list_actual))
@@ -533,7 +535,9 @@ class ConfigParserEnhancedTest(TestCase):
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
             @ConfigParserEnhanced.operation_handler
-            def _handler_test_handler_fail(self, section_name, handler_parameters, processed_sections=None) -> int:
+            def _handler_test_handler_fail(
+                self, section_name, handler_parameters, processed_sections=None
+            ) -> int:
                 print("_handler_test_handler_fail()")
                 print("---> Returns 1!")
                 return 1
@@ -767,7 +771,9 @@ class ConfigParserEnhancedTest(TestCase):
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
             @ConfigParserEnhanced.operation_handler
-            def _handler_test_handler_fail(self, section_name, handler_parameters, processed_sections=None) -> int:
+            def _handler_test_handler_fail(
+                self, section_name, handler_parameters, processed_sections=None
+            ) -> int:
                 print("_handler_test_handler_fail()")
                 print("---> This one goes to 11!")
                 return 11
@@ -955,7 +961,7 @@ class ConfigParserEnhancedTest(TestCase):
             "SECTION-A",
             parser.configparserenhanceddata.keys(),
             "Check `SECTION-A` membership in 'configparserenhanceddata.keys()"
-            )
+        )
 
         # Test iterator (__item__)
         print("\nTest Iterator")
@@ -985,8 +991,10 @@ class ConfigParserEnhancedTest(TestCase):
         self.assertEqual(
             num_sections_expected,
             num_sections_actual,
-            "ERROR: Length returned is {} but we expected {}".format(num_sections_actual, num_sections_expected)
+            "ERROR: Length returned is {} but we expected {}".format(
+                num_sections_actual, num_sections_expected
             )
+        )
 
         # Test options()
         print("\nTest options()")
@@ -1192,8 +1200,12 @@ class ConfigParserEnhancedTest(TestCase):
         data_actual = parser.configparserenhanceddata["KEY_VARIANT_TEST"]
 
         data_expected = {
-            "key1": "value1", "key two": "value two", "key 'three A'": "value string", "key four": "", "key five": None
-            }
+            "key1": "value1",
+            "key two": "value two",
+            "key 'three A'": "value string",
+            "key four": "",
+            "key five": None
+        }
 
         print("")
         print("Data Expected:")
@@ -1285,9 +1297,11 @@ class ConfigParserEnhancedTest(TestCase):
         key2:value2
         key3:value3
         """
-            )
+        )
 
-        text_actual = parser.unroll_to_str(section=section, space_around_delimiters=False, use_base_class_parser=False)
+        text_actual = parser.unroll_to_str(
+            section=section, space_around_delimiters=False, use_base_class_parser=False
+        )
 
         print("Expected:\n{}".format(text_expect))
         print("Actual  :\n{}".format(text_expect))
@@ -1325,7 +1339,7 @@ class ConfigParserEnhancedTest(TestCase):
             'key A2': 'value A2',
             'key A3': 'value A+3',  # overwritten in section A+
             'key A+4': 'value A+4'
-            }
+        }
 
         # retrieves the _cached_ result from the earlier parse.
         # - Note: if we omit the `parse_section` command above then
@@ -1343,7 +1357,9 @@ class ConfigParserEnhancedTest(TestCase):
 
         ref_cpedata = parser.configparserenhanceddata
 
-        section_data_expect = {'Key D1': 'value D1', 'key A1': 'value A1', 'key A2': 'value A2', 'key A3': 'value A3'}
+        section_data_expect = {
+            'Key D1': 'value D1', 'key A1': 'value A1', 'key A2': 'value A2', 'key A3': 'value A3'
+        }
 
         section_data_actual = ref_cpedata.get(section)
         self.assertDictEqual(section_data_expect, section_data_actual)
@@ -1727,8 +1743,12 @@ class ConfigParserEnhancedDataTest(TestCase):
         section = "KEY_VARIANT_TEST"
         print("Section  : {}".format(section))
         result_expect = {
-            'key1': 'value1', 'key two': 'value two', "key 'three A'": 'value string', 'key four': '', 'key five': None
-            }
+            'key1': 'value1',
+            'key two': 'value two',
+            "key 'three A'": 'value string',
+            'key four': '',
+            'key five': None
+        }
         result_actual = parser.configparserenhanceddata[section]
         self.assertDictEqual(result_expect, result_actual)
 
@@ -1882,7 +1902,7 @@ class ConfigParserEnhancedDataTest(TestCase):
             'TEST_SECTION-0.1.0',
             'TEST_SECTION-0.2.0',
             'EMPTY_SECTION'
-            ]
+        ]
         len_expect = len(key_list_expect)
 
         keys = parser.configparserenhanceddata.keys()
@@ -1934,7 +1954,7 @@ class ConfigParserEnhancedDataTest(TestCase):
             'TEST_SECTION-0.1.0',
             'TEST_SECTION-0.2.0',
             'EMPTY_SECTION'
-            ]
+        ]
         len_expect = len(sec_list_expect)
 
         sections = parser.configparserenhanceddata.sections()

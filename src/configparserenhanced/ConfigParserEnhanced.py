@@ -45,7 +45,7 @@ Todo:
     - Jason M. Gates <jmgate@sandia.gov>
     - Josh Braun <josbrau@sandia.gov>
 
-:Version: 0.6.0
+:Version: 0.6.1
 
 """
 from __future__ import print_function
@@ -70,12 +70,10 @@ from .ExceptionControl import ExceptionControl
 from .HandlerParameters import HandlerParameters
 from .TypedProperty import typed_property
 
-
 # Check for minimum required Python version
-MIN_PYTHON=(3,6)
-if sys.version_info < MIN_PYTHON:                                                 # pragma: no cover
-    raise RuntimeError("Python %s.%s or later is required.\n"%(MIN_PYTHON))
-
+MIN_PYTHON = (3, 6)
+if sys.version_info < MIN_PYTHON: # pragma: no cover
+    raise RuntimeError("Python %s.%s or later is required.\n" % (MIN_PYTHON))
 
 # ============================================================
 #  S U P P O R T   F U N C T I O N S   A N D   C L A S S E S
@@ -124,28 +122,19 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if filename is not None:
             self.inifilepath = filename
 
-
     # -----------------------
     #   P R O P E R T I E S
     # -----------------------
 
-
     parse_section_last_result = typed_property(
-        "parse_section_last_result",
-        (dict),
-        default=None,
-        req_assign_before_use=True,
-        internal_type=dict
+        "parse_section_last_result", (dict), default=None, req_assign_before_use=True, internal_type=dict
     )
 
     default_section_name = typed_property("default_section_name", str, default="DEFAULT")
 
     _internal_default_section_name = typed_property(
-        "_internal_default_section_name",
-        str,
-        default="CONFIGPARSERENHANCED_COMMON"
+        "_internal_default_section_name", str, default="CONFIGPARSERENHANCED_COMMON"
     )
-
 
     @property
     def inifilepath(self) -> list:
@@ -168,7 +157,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if not hasattr(self, '_inifilepath'):
             raise ValueError("ERROR: The filename has not been specified yet.")
         return self._inifilepath
-
 
     @inifilepath.setter
     def inifilepath(self, value) -> list:
@@ -196,7 +184,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 raise ex
 
         return self._inifilepath
-
 
     @property
     def configparserdata(self) -> configparser.ConfigParser:
@@ -249,12 +236,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     raise TypeError("INTERNAL ERROR: .ini file paths should be Path objects!")
 
                 if (inifilepath_i.exists() and inifilepath_i.is_file()) is not True:
-                    msg = "\n" + \
-                          "+" + "="*78 + "+\n" + \
-                          "|   ERROR: Unable to load configuration .ini file\n" + \
-                          "|   - Requested file: `{}`\n".format(inifilepath_i) + \
-                          "|   - CWD: `{}`\n".format(os.getcwd()) + \
-                          "+" + "="*78 + "+\n"
+                    msg = f"\n" + \
+                          f"+" + "="*78 + "+\n" + \
+                          f"|   ERROR: Unable to load configuration .ini file\n" + \
+                          f"|   - Requested file: `{inifilepath_i}`\n" + \
+                          f"|   - CWD: `{os.getcwd()}`\n" + \
+                          f"+" + "="*78 + "+\n"
                     raise IOError(msg)
 
             try:
@@ -267,7 +254,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 raise ex
 
         return self._configparserdata
-
 
     @property
     def configparser_delimiters(self) -> tuple:
@@ -291,7 +277,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._configparser_delimiters = ('=', ':')
         return self._configparser_delimiters
 
-
     @configparser_delimiters.setter
     def configparser_delimiters(self, value) -> tuple:
         self._validate_parameter(value, (tuple, list, str))
@@ -301,7 +286,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._configparser_delimiters = tuple(value)
 
         return self._configparser_delimiters
-
 
     @property
     def configparserenhanceddata(self):
@@ -346,13 +330,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._configparserenhanceddata = self.ConfigParserEnhancedData(owner=self)
         return self._configparserenhanceddata
 
-
     # ---------------------------------------
     #   P U B L I C   A P I   M E T H O D S
     # ---------------------------------------
 
-
-    def write(self, file_object, space_around_delimiters=True, section=None, use_base_class_parser=True) -> int:
+    def write(
+        self, file_object, space_around_delimiters=True, section=None, use_base_class_parser=True
+    ) -> int:
         """File writer utility for ConfigParserEnhanced objects.
 
         Writes the output of :py:meth:`unroll_to_str` to a file.
@@ -379,7 +363,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         file_object.write(text)
 
         return 0
-
 
     def unroll_to_str(self, section=None, space_around_delimiters=True, use_base_class_parser=True) -> str:
         """Unroll a section or whole .ini file to a string
@@ -420,13 +403,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             output = ""
             if parser.configparserenhanceddata.has_section(section):
-                output += "[" + section + "]\n"
+                output += f"[{section}]\n"
                 for key, value in parser.configparserenhanceddata.items(section):
                     if value is None:
                         value = ""
                     output += delimiter.join([key, value]).strip() + "\n"
             else:
-                raise KeyError("Section `{}` was not found.".format(section))
+                raise KeyError(f"Section `{section}` was not found.")
             return output
 
         self._validate_parameter(section, (type(None), str))
@@ -464,11 +447,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         return output_str
 
-
     # -------------------------------------
     #   P A R S E R   P U B L I C   A P I
     # -------------------------------------
-
 
     def parse_all_sections(self):
         """Parse ALL sections in the .ini file.
@@ -478,7 +459,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         self.configparserenhanceddata.sections(True)
         return
-
 
     def parse_section(self, section, initialize=True, finalize=True):
         """Execute parser operations for the provided *section*.
@@ -496,9 +476,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # If a previous run generated _loginfo, clear it before this run.
         self._reset_lazy_attr("_loginfo")
 
-        self.debug_message(1, "[" + "-"*58 + ']')
-        self.debug_message(1, "  Parse section `{}` START".format(section))
-        self.debug_message(1, "[" + "-"*58 + ']')
+        self.debug_message(1, f"[" + "-"*58 + ']')
+        self.debug_message(1, f"  Parse section `{section}` START")
+        self.debug_message(1, f"[" + "-"*58 + ']')
         self._validate_parameter(section, (str))
 
         if section == "":
@@ -510,16 +490,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # caches the "data_shared" component of handler_parameters
         self.parse_section_last_result = result
 
-        self.debug_message(1, "[" + "-"*58 + ']')
-        self.debug_message(1, "  Parse section `{}` FINISH".format(section))
-        self.debug_message(1, "[" + "-"*58 + ']')
+        self.debug_message(1, f"[" + "-"*58 + ']')
+        self.debug_message(1, f"  Parse section `{section}` FINISH")
+        self.debug_message(1, f"[" + "-"*58 + ']')
         return result
-
 
     # ---------------------------------
     #   D E C O R A T O R S
     # ---------------------------------
-
 
     def operation_handler(func_handler):
         """
@@ -551,11 +529,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         return wrapper
 
-
     # ---------------------------------
     #   P U B L I C   H A N D L E R S
     # ---------------------------------
-
 
     def enter_handler(self, handler_parameters):
         """General tasks to do when entering a handler
@@ -571,24 +547,22 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_handlerparameters(handler_parameters)
 
         handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Enter handler    : {}".format(handler_name))                     # Console
-        self.debug_message(1, " -> raw_option   : {}".format(handler_parameters.raw_option))    # Console
-        self.debug_message(2, " -> op           : {}".format(handler_parameters.op))            # Console
-        self.debug_message(2, " -> params       : {}".format(handler_parameters.params))        # Console
-        self.debug_message(2, " -> value        : {}".format(handler_parameters.value))         # Console
-        self.debug_message(3, " -> data_shared  : {}".format(handler_parameters.data_shared))   # Console
-        self.debug_message(4, " -> data_internal: {}".format(handler_parameters.data_internal)) # Console
+        self.debug_message(1, f"Enter handler    : {handler_name}")                     # Console
+        self.debug_message(1, f" -> raw_option   : {handler_parameters.raw_option}")    # Console
+        self.debug_message(2, f" -> op           : {handler_parameters.op}")            # Console
+        self.debug_message(2, f" -> params       : {handler_parameters.params}")        # Console
+        self.debug_message(2, f" -> value        : {handler_parameters.value}")         # Console
+        self.debug_message(3, f" -> data_shared  : {handler_parameters.data_shared}")   # Console
+        self.debug_message(4, f" -> data_internal: {handler_parameters.data_internal}") # Console
 
         self._loginfo_add(
-            'handler-entry',
-            {
+            'handler-entry', {
                 'name': handler_name,
                 'entry': handler_parameters.raw_option,
                 'parameters': handler_parameters
             }
         )
         return
-
 
     def exit_handler(self, handler_parameters):
         """General tasks to do when entering a handler
@@ -604,21 +578,19 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_handlerparameters(handler_parameters)
 
         handler_name = handler_parameters.handler_name
-        self.debug_message(1, "Exit handler     : {}".format(handler_name))                     # Console
-        self.debug_message(1, " -> raw_option   : {}".format(handler_parameters.raw_option))    # Console
-        self.debug_message(3, " -> data_shared  : {}".format(handler_parameters.data_shared))   # Console
-        self.debug_message(4, " -> data_internal: {}".format(handler_parameters.data_internal)) # Console
+        self.debug_message(1, f"Exit handler     : {handler_name}")                     # Console
+        self.debug_message(1, f" -> raw_option   : {handler_parameters.raw_option}")    # Console
+        self.debug_message(3, f" -> data_shared  : {handler_parameters.data_shared}")   # Console
+        self.debug_message(4, f" -> data_internal: {handler_parameters.data_internal}") # Console
 
         self._loginfo_add(
-            'handler-exit',
-            {
+            'handler-exit', {
                 'name': handler_name,
                 'entry': handler_parameters.raw_option,
                 'parameters': handler_parameters
             }
         )
         return
-
 
     @operation_handler
     def _generic_option_handler(self, section_name, handler_parameters) -> int:
@@ -650,7 +622,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # -----[ Handler Content End ]---------------------
         return 0
 
-
     @operation_handler
     def handler_initialize(self, section_name, handler_parameters) -> int:
         """Initialize a recursive parse search.
@@ -673,7 +644,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # -----[ Handler Content Start ]-------------------
         # -----[ Handler Content End ]---------------------
         return 0
-
 
     @operation_handler
     def handler_finalize(self, section_name, handler_parameters) -> int:
@@ -702,11 +672,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # -----[ Handler Content End ]---------------------
         return 0
 
-
     # ---------------------------------------------------
     #   P A R S E R   H E L P E R S   ( P R I V A T E )
     # ---------------------------------------------------
-
 
     def _parse_section_r(self, section_name, handler_parameters=None, initialize=True, finalize=True):
         """Recursive driver of the parser.
@@ -769,8 +737,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     finalize=False
                 )
 
-        self.debug_message(1, ">>> Enter section    : `{}`".format(section_name)) # Console Logging
-        self._loginfo_add('section-entry', {'name': section_name})              # Logging
+        self.debug_message(1, f">>> Enter section    : `{section_name}`") # Console Logging
+        self._loginfo_add('section-entry', {'name': section_name})      # Logging
 
         # Load the section from the configparser.ConfigParser data.
         current_section = None
@@ -778,8 +746,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             current_section = self.configparserdata[section_name]
         except KeyError:
             message = "ERROR: No section named `{}` was found in the configuration file {}.".format(
-                section_name,
-                self.inifilepath
+                section_name, self.inifilepath
             )
             raise KeyError(message)
 
@@ -811,10 +778,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             handler_parameters.raw_option = (sec_k, sec_v)
             handler_parameters.value = sec_v
 
-            self.debug_message(2, "==>")
-            self.debug_message(2, "==> Entry        : `{}` : `{}`".format(sec_k, sec_v)) # Console
-            self.debug_message(2, "==>")
-            self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v})   # Logging
+            self.debug_message(2, f"==>")
+            self.debug_message(2, f"==> Entry        : `{sec_k}` : `{sec_v}`")         # Console
+            self.debug_message(2, f"==>")
+            self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v}) # Logging
 
             sec_k_tok = shlex.split(sec_k)
 
@@ -832,10 +799,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 handler_parameters.op = op
                 handler_parameters.params = params
 
-                self._loginfo_add('section-operation', {'op': op, 'params': params})         # Logging
-                self.debug_message(2, " -> op           : {}".format(handler_parameters.op))     # Console
-                self.debug_message(2, " -> params       : {}".format(handler_parameters.params)) # Console
-                self.debug_message(2, " -> value        : {}".format(handler_parameters.value))  # Console
+                self._loginfo_add('section-operation', {'op': op, 'params': params}) # Logging
+                self.debug_message(2, f" -> op           : {handler_parameters.op}")     # Console
+                self.debug_message(2, f" -> params       : {handler_parameters.params}") # Console
+                self.debug_message(2, f" -> value        : {handler_parameters.value}")  # Console
 
                 handler_name, ophandler_f = self._locate_handler_method(handler_parameters.op)
 
@@ -866,7 +833,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         return output
 
-
     def _validate_handlerparameters(self, handler_parameters):
         """Check :class:`HandlerParameters`.
 
@@ -886,7 +852,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             raise TypeError(message)
 
         return None
-
 
     def _new_handler_parameters(self, handler_parameters=None) -> HandlerParameters:
         """Generate a new :class:`~configparserenhanced.HandlerParameters` object.
@@ -914,7 +879,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         return new_handler_parameters
 
-
     def _apply_transformation_to_operation(self, operation) -> str:
         """
         Apply transformations to the **operator** parameters which are necessary
@@ -930,7 +894,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         output = operation.replace("-", "_")
         return output
 
-
     def _apply_transformation_to_parameter(self, parameter) -> str:
         """
         Applies transformations to the **parameter** field if necessary.
@@ -944,7 +907,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         output = parameter
         return output
-
 
     def _locate_handler_method(self, operation) -> tuple:
         """Convert ``operation`` to a handler name and get the reference to the handler.
@@ -1000,16 +962,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         output = (None, None)
         if handler_public[1] is not None:
-            self.debug_message(4, " -> Using _public_ handler : `{}`".format(handler_name_public))  # Console
+            self.debug_message(4, f" -> Using _public_ handler : `{handler_name_public}`")  # Console
             output = handler_public
         elif handler_private[1] is not None:
-            self.debug_message(4, " -> Using _private_ handler: `{}`".format(handler_name_private)) # Console
+            self.debug_message(4, f" -> Using _private_ handler: `{handler_name_private}`") # Console
             output = handler_private
         else:
-            self.debug_message(4, " -> No handler found for operation `{}`".format(handler_name))   # Console
+            self.debug_message(4, f" -> No handler found for operation `{handler_name}`")   # Console
 
         return output
-
 
     def _locate_class_method(self, method_name) -> tuple:
         """Helper that locates a class method (if it exists)
@@ -1026,10 +987,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         output = (method_name, method_f)
 
         if output[1] == None:
-            self.debug_message(5, " -> Class method `{}` was not found.".format(method_name)) # Console
+            self.debug_message(5, f" -> Class method `{method_name}` was not found.") # Console
 
         return output
-
 
     def _check_handler_rval(self, handler_name, handler_rval) -> 0:
         """Check the returned value from a handler.
@@ -1048,7 +1008,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self._validate_parameter(handler_name, (str))
         self._validate_parameter(handler_rval, (int))
 
-        self.debug_message(2, "_check_handler_rval({}, {})".format(handler_name, handler_rval))
+        self.debug_message(2, f"_check_handler_rval({handler_name}, {handler_rval})")
 
         output = 0
         if handler_rval == 0:
@@ -1058,21 +1018,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # throw a critical error to get the developers' attention to either
             # expand rval handling or users should use something > 10.
             self.exception_control_event(
-                "WARNING",
-                RuntimeError,
-                "Handler `{}` returned {}".format(handler_name,
-                                                  handler_rval)
+                "WARNING", RuntimeError, f"Handler `{handler_name}` returned {handler_rval}"
             )
             output = 1
         else:
             self.exception_control_event(
-                "CATASTROPHIC",
-                RuntimeError,
-                "Handler `{}` returned {}".format(handler_name,
-                                                  handler_rval)
+                "CATASTROPHIC", RuntimeError, f"Handler `{handler_name}` returned {handler_rval}"
             )
         return output
-
 
     def _launch_generic_option_handler(self, section_name, handler_parameters, sec_k, sec_v) -> int:
         """Launcher for ``_generic_option_handler()``
@@ -1104,11 +1057,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         return output
 
-
     # ---------------------------------------
     #   H A N D L E R S   ( P R I V A T E )
     # ---------------------------------------
-
 
     @operation_handler
     def _handler_use(self, section_name, handler_parameters) -> int:
@@ -1143,17 +1094,15 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._loginfo_add('cycle-detected', {'sec-src': section_name, 'sec-dst': op1}) # Logging
             self._loginfo_add('handler-exit', {'name': handler_name, 'entry': entry})      # Logging
 
-            message = "Detected a cycle in `use` dependencies in .ini file {}.\n".format(self.inifilepath)
-            message += "- cannot load [{}] from [{}].".format(op2, section_name)
+            message = f"Detected a cycle in `use` dependencies in .ini file {self.inifilepath}.\n"
+            message += f"- cannot load [{op2}] from [{section_name}]."
             self.exception_control_event("WARNING", ValueError, message)
 
         return 0
 
-
     # -------------------------------------
     #   H E L P E R S   ( P R I V A T E )
     # -------------------------------------
-
 
     def _reset_configparserdata(self) -> int:
         """Reset the internal state for all of the ConfigParser data.
@@ -1170,7 +1119,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         del self.parse_section_last_result
         return 0
 
-
     def _reset_lazy_attr(self, attribute: str) -> int:
         """Deletes an attribute of the class if it exists.
 
@@ -1181,7 +1129,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if hasattr(self, attribute):
             delattr(self, attribute)
         return 0
-
 
     def _loginfo_add(self, typeinfo, entry) -> None:
         """
@@ -1210,7 +1157,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._loginfo.append(entry)
 
         return
-
 
     def _loginfo_print(self, pretty=True) -> None:
         """
@@ -1251,7 +1197,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
         return
 
-
     def _validate_parameter(self, parameter, type_restriction, exception_class="CATASTROPHIC") -> int:
         """Parameter validation with ExcpetionControl event on failure.
 
@@ -1274,18 +1219,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if not isinstance(parameter, type_restriction):
             output = 1
             self.exception_control_event(
-                exception_class,
-                TypeError,
-                "`{}` must be a `{}` type.".format(parameter,
-                                                   type_restriction)
+                exception_class, TypeError, f"`{parameter}` must be a `{type_restriction}` type."
             )
         return output
-
 
     # ===========================================================
     #  I N N E R   C L A S S ( E S )
     # ===========================================================
-
 
     class ConfigParserEnhancedData(Debuggable, ExceptionControl):
         """ConfigParserEnhancedData
@@ -1373,11 +1313,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self._owner = owner
             self._set_owner_options()
 
-
         def __repr__(self):
             repr_entries = ["owner={}".format(self._owner), "data={}".format(self.data)]
-            return 'ConfigParserEnhancedData({})'.format(", ".join(repr_entries))
-
+            return "ConfigParserEnhancedData({})".format(", ".join(repr_entries))
 
         @property
         def data(self) -> dict:
@@ -1387,7 +1325,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._data = {}
             return self._data
 
-
         @data.setter
         def data(self, value) -> dict:
             """
@@ -1396,7 +1333,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 raise TypeError("data must be a `dict` type.")
             self._data = value
             return self._data
-
 
         def items(self, section=None):
             """Iterator over all sections and their values in the ``.ini`` file.
@@ -1412,7 +1348,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 output = self.options(section).items()
             return output
 
-
         def keys(self):
             """
             Returns an iterable of sections in the ``.ini`` file.
@@ -1427,17 +1362,14 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             return section_list
 
-
         def __iter__(self):
             for k in self.keys():
                 yield k
-
 
         def __getitem__(self, key):
             if not self.has_section(key):
                 raise KeyError(key)
             return self.data[key]
-
 
         def __len__(self) -> int:
             """
@@ -1451,7 +1383,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 int: The number of sections in the .ini file.
             """
             return len(self.keys())
-
 
         def sections(self, parse=False):
             """
@@ -1490,7 +1421,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     self._parse_owner_section(section, force_parse)
             return self.keys()
 
-
         def has_section(self, section) -> bool:
             """Checks if the section exists in the data.
 
@@ -1514,7 +1444,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
             return self.has_section_no_parse(section)
 
-
         def has_section_no_parse(self, section):
             """Check for existence of the section without parsing
 
@@ -1528,12 +1457,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             return section in self.data.keys()
 
-
         def options(self, section):
             if not self.has_section(section):
                 raise KeyError("Section {} does not exist.".format(section))
             return self.data[section]
-
 
         def has_option(self, section, option) -> bool:
             """
@@ -1541,7 +1468,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if self._owner != None:
                 self._parse_owner_section(section)
             return (section in self.data.keys()) and (option in self.data[section].keys())
-
 
         def get(self, section, option=None):
             """
@@ -1561,8 +1487,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                     self.exception_control_event(
                         "CATASTROPHIC",
                         KeyError,
-                        "Missing section:option -> '{}': '{}'".format(section,
-                                                                      option)
+                        "Missing section:option -> '{}': '{}'".format(section, option)
                     )
 
             # This is not reachable with a bad section name
@@ -1573,7 +1498,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             # which Python won't prevent, we could get here... so
             # this check helps prevent one from doing bad things.
             raise KeyError("Missing section {}.".format(section))
-
 
         def add_section(self, section, force=False):
             """Add a new empty section.
@@ -1595,7 +1519,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.data[section] = {}
             return self.data[section]
 
-
         def set(self, section, option, value):
             """
             Directly set an option. If the section is missing, we create an empty one.
@@ -1607,11 +1530,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.data[section][option] = value
             return self.data[section][option]
 
-
         # -------------------------------------
         #   H E L P E R S   ( P R I V A T E )
         # -------------------------------------
-
 
         @property
         def _owner(self):
@@ -1619,14 +1540,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self._owner_data = None
             return self._owner_data
 
-
         @_owner.setter
         def _owner(self, value):
             if not isinstance(value, (ConfigParserEnhanced)):
                 raise TypeError("Owner class must be a ConfigParserEnhanced or derivitive.")
             self._owner_data = value
             return self._owner_data
-
 
         @property
         def _sections_checked(self):
@@ -1637,7 +1556,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             if not hasattr(self, '_sections_checked_data'):
                 self._sections_checked_data = set()
             return self._sections_checked_data
-
 
         def _set_owner_options(self):
             """
@@ -1650,7 +1568,6 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 self.debug_level = self._owner.debug_level
 
             return
-
 
         def _parse_owner_section(self, section, force_parse=False):
             """Parse the section from the owner class.
@@ -1667,7 +1584,9 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             """
             # Check the parameters.
             if not isinstance(force_parse, (bool)):
-                self.exception_control_event("CATASTROPHIC", TypeError, "`force_parse` must be a `bool` type.")
+                self.exception_control_event(
+                    "CATASTROPHIC", TypeError, "`force_parse` must be a `bool` type."
+                )
 
             if self._owner != None:
 

@@ -61,8 +61,7 @@ from .common import *
 class HandlerParametersTest(TestCase):
 
     def setUp(self):
-        return 0  # pragma: no cover
-
+        return 0             # pragma: no cover
 
     def test_HandlerParameters_property_section_root(self):
         """
@@ -79,7 +78,6 @@ class HandlerParametersTest(TestCase):
         with self.assertRaises(TypeError):
             hp.section_root = None
         return 0
-
 
     def test_HandlerParameters_property_raw_option(self):
         """
@@ -110,7 +108,6 @@ class HandlerParametersTest(TestCase):
         self.assertEqual(rval, hp.raw_option)
         return 0
 
-
     def test_HandlerParameters_property_data_shared(self):
         """
         Validate the property `data_shared`
@@ -122,7 +119,7 @@ class HandlerParametersTest(TestCase):
         # Check the default value. Should be an empty dict.
         self.assertDictEqual(
             hp.data_shared, expected_default, "Default `data_shared` should be: {}".format(expected_default)
-            )
+        )
 
         # Validate assignment check(s).
         with self.assertRaises(TypeError):
@@ -139,7 +136,6 @@ class HandlerParametersTest(TestCase):
         self.assertDictEqual(hp.data_shared, expected_new)
         return 0
 
-
     def test_HandlerParameters_property_data_internal(self):
         """
         Validate the property `data_internal`
@@ -150,8 +146,10 @@ class HandlerParametersTest(TestCase):
 
         # Check the default value. Should be an empty dict.
         self.assertDictEqual(
-            hp.data_internal, expected_default, "Default `data_internal` should be: {}".format(expected_default)
-            )
+            hp.data_internal,
+            expected_default,
+            "Default `data_internal` should be: {}".format(expected_default)
+        )
 
         # Validate assignment check(s).
         with self.assertRaises(TypeError):
@@ -167,7 +165,6 @@ class HandlerParametersTest(TestCase):
         hp.data_internal = expected_new
         self.assertDictEqual(hp.data_internal, expected_new)
         return 0
-
 
     def test_HandlerParameters_property_value(self):
         """
@@ -194,7 +191,6 @@ class HandlerParametersTest(TestCase):
 
         return 0
 
-
     def test_HandlerParameters_property_handler_name(self):
         """
         Validate the property ``handler_name``
@@ -210,7 +206,6 @@ class HandlerParametersTest(TestCase):
         with self.assertRaises(TypeError):
             hp.handler_name = None
         return 0
-
 
     def test_HandlerParameters_property_op(self):
         """
@@ -228,7 +223,6 @@ class HandlerParametersTest(TestCase):
             hp.op = None
 
         return 0
-
 
     def test_HandlerParameters_property_params(self):
         """

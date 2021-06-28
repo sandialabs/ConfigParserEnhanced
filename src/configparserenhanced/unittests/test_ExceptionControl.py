@@ -65,7 +65,6 @@ class ExceptionControlTest(TestCase):
         print("")
         return
 
-
     def test_ExceptionControl_property_exception_control_level(self):
         """
         Test reading and setting the property `exception_control_level`
@@ -115,7 +114,6 @@ class ExceptionControlTest(TestCase):
 
         print("OK")
         return 0
-
 
     def test_ExceptionControl_method_exception_control_event(self):
 
@@ -328,7 +326,6 @@ class ExceptionControlTest(TestCase):
         print("OK")
         return 0
 
-
     def test_ExceptionControl_method_exception_control_event_nomsg(self):
 
         class testme(ExceptionControl):
@@ -409,7 +406,6 @@ class ExceptionControlTest(TestCase):
         print("OK")
         return 0
 
-
     def test_ExceptionControl_method_exception_control_event_badexception(self):
 
         class testme(ExceptionControl):
@@ -460,7 +456,6 @@ class ExceptionControlTest(TestCase):
 
         print("OK")
         return
-
 
     def test_ExceptionControl_method_exception_control_event_silent_warnings(self):
 
@@ -712,7 +707,6 @@ class ExceptionControlTest(TestCase):
 
         print("OK")
         return 0
-
 
     def test_ExceptionControl_method_exception_control_event_compact_warnings(self):
 

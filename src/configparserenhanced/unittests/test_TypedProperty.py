@@ -66,7 +66,6 @@ class TypedPropertyTest(TestCase):
         print("")
         return 0
 
-
     def test_TypedProperty_typed_propertry_with_default(self):
         """
         Test a typed_property with a default
@@ -93,7 +92,6 @@ class TypedPropertyTest(TestCase):
         print("OK")
         return 0
 
-
     def test_TypedProperty_req_assign_before_use(self):
         """
         Test typed property ``req_assign_before_use`` properly triggers
@@ -112,7 +110,6 @@ class TypedPropertyTest(TestCase):
         print("OK")
         return 0
 
-
     def test_TypedProperty_wrong_type(self):
         """
         Test the sanity check that a validator must be callable.
@@ -128,7 +125,6 @@ class TypedPropertyTest(TestCase):
 
         print("OK")
         return 0
-
 
     def test_TypedProperty_validator(self):
         """
@@ -152,7 +148,6 @@ class TypedPropertyTest(TestCase):
         print("OK")
         return 0
 
-
     def test_TypedProperty_validator_must_be_callable(self):
         """
         Test the sanity check that a validator must be callable.
@@ -168,7 +163,6 @@ class TypedPropertyTest(TestCase):
 
         print("OK")
         return 0
-
 
     def test_TypedProperty_deleter(self):
         """
@@ -201,7 +195,6 @@ class TypedPropertyTest(TestCase):
         print("OK")
         return 0
 
-
     def test_TypedProperty_transform(self):
         """
         Test a transform
@@ -228,7 +221,6 @@ class TypedPropertyTest(TestCase):
         print("OK")
         return 0
 
-
     def test_TypedProperty_transform_with_internal_type(self):
         """
         Test a transform
@@ -242,7 +234,7 @@ class TypedPropertyTest(TestCase):
         class TestClass(object):
             data = typed_property(
                 "data", expected_type=int, internal_type=int, default=None, transform=transform_int_range_0_5
-                )
+            )
 
         obj = TestClass()
 
@@ -256,7 +248,6 @@ class TypedPropertyTest(TestCase):
 
         print("OK")
         return 0
-
 
     def test_TypedProperty_transform_is_callable(self):
         """
@@ -273,7 +264,6 @@ class TypedPropertyTest(TestCase):
 
         print("OK")
         return 0
-
 
     def test_TypedProperty_default(self):
         """
@@ -300,7 +290,6 @@ class TypedPropertyTest(TestCase):
         print("OK")
         return 0
 
-
     def test_TypedProperty_default_factory(self):
         """
         Test a strict default entry.
@@ -321,7 +310,6 @@ class TypedPropertyTest(TestCase):
         self.assertNotEqual(id(obj1.data), id(obj2.data))
 
         return 0
-
 
     def test_TypedProperty_default_factory_is_callable(self):
         """
