@@ -27,7 +27,7 @@ base_python_test:
     - python3 -m venv ./base_python_test
     - source ./base_python_test/bin/activate
     - source load-env.sh --help
-    - source load-env.sh --list-envs --force rhel7 || true
+    - source load-env.sh --list-envs --force rhel7
     - source load-env.sh --ci-mode --force rhel7_cuda
     - deactivate
 

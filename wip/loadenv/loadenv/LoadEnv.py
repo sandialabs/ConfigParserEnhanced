@@ -165,11 +165,9 @@ class LoadEnv(FormattedMsg):
         if self.env_keyword_parser is None:
             self.load_env_keyword_parser()
 
-        sys.exit(
-            self.env_keyword_parser.get_msg_showing_supported_environments(
-                "Please select one of the following.", kind="INFO"
-                )
-            )
+        print(self.env_keyword_parser.get_msg_showing_supported_environments(
+                "Please select one of the following.", kind="INFO"))
+        sys.exit()
         return
 
 
