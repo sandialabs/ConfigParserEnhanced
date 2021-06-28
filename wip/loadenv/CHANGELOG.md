@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.2] [Unreleased]
 #### Added
+- .gitlab-ci.yml: base_python_only integration test.
 #### Changed
 - load-env.sh:
   - Now accepts a '--ci_mode' positional argument. The default behavior
