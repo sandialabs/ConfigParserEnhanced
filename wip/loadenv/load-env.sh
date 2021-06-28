@@ -33,7 +33,7 @@ fi
 function cleanup()
 {
    [ -f ${script_dir}/.load_matching_env_loc ] && rm -f ${script_dir}/.load_matching_env_loc 2>/dev/null
-   [ -f .ci_mode ] && rm -f .ci_mode 2>/dev/null
+   [ -f ${script_dir}/.ci_mode ] && rm -f ${script_dir}/.ci_mode 2>/dev/null
    [ ! -z ${env_file} ]          && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
 
    unset python_too_old script_dir ci_mode cleanup env_file
@@ -78,7 +78,7 @@ fi
 
 # Check for Continuous Integration mode.
 ci_mode=0
-if [ -f .ci_mode ]; then
+if [ -f ${script_dir}/.ci_mode ]; then
     ci_mode=1
     echo "+==============================================================================+"
     echo "|   WARNING:  ci mode is enabled."
