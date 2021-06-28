@@ -346,7 +346,7 @@ class LoadEnv(FormattedMsg):
                 you can find out what environments are supported through the `--force`
                 option:
 
-                    $ source load-env.sh --force <system_type>
+                    $ source load-env.sh --list-envs --force <system_type>
 
                 where <system_type> is one of the section headers in `supported-envs.ini`,
                 such as "rhel7".
