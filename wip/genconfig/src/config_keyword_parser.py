@@ -111,6 +111,7 @@ class ConfigKeywordParser(KeywordParser):
                         and flag_type == "SELECT_MANY"):
                     selected_options[flag_name] = sorted(options_in_build_name)
                 elif len(options_in_build_name) == 0:
+                    # Select default option if none in build name
                     selected_options[flag_name] = options[0]
                 else:
                     selected_options[flag_name] = options_in_build_name[0]
