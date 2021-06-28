@@ -70,6 +70,13 @@ from .ExceptionControl import ExceptionControl
 from .HandlerParameters import HandlerParameters
 from .TypedProperty import typed_property
 
+
+# Check for minimum required Python version
+MIN_PYTHON=(3,6)
+if sys.version_info < MIN_PYTHON:                                                 # pragma: no cover
+    raise RuntimeError("Python %s.%s or later is required.\n"%(MIN_PYTHON))
+
+
 # ============================================================
 #  S U P P O R T   F U N C T I O N S   A N D   C L A S S E S
 # ============================================================
