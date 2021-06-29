@@ -30,10 +30,8 @@ def test_list_config_flags():
 
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(TypeError):
         GenConfig(data)
-    exc_msg = excinfo.value.args[0]
-    assert "must be instantiated with a list" in exc_msg
 
 
 
