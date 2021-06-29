@@ -1,4 +1,5 @@
 from keywordparser import KeywordParser
+import re
 import sys
 
 
@@ -45,35 +46,19 @@ class ConfigKeywordParser(KeywordParser):
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
 
     @property
-    def build_name(self):
-        return self._build_name
-
-    @build_name.setter
-    def build_name(self, new_build_name):
-        # Clear any data generated from the old build_name
-        if hasattr(self, "_complete_config"):
-            delattr(self, "_complete_config")
-        if hasattr(self, "_selected_options"):
-            delattr(self, "_selected_options")
-        if hasattr(self, "_flags_selected_by_default"):
-            delattr(self, "_flags_selected_by_default")
-
-        self._build_name = new_build_name
-
-    @property
-    def complete_config(self):
-        if not hasattr(self, "_complete_config"):
-            complete_config = ""
+    def selected_options_str(self):
+        if not hasattr(self, "_selected_options_str"):
+            selected_options_str = ""
             for flag in self.selected_options.keys():
                 if type(self.selected_options[flag]) == list:
                     for option in self.selected_options[flag]:
-                        complete_config += f"_{option}"
+                        selected_options_str += f"_{option}"
                 else:
-                    complete_config += f"_{self.selected_options[flag]}"
+                    selected_options_str += f"_{self.selected_options[flag]}"
 
-            self._complete_config = complete_config
+            self._selected_options_str = selected_options_str
 
-        return self._complete_config
+        return self._selected_options_str
 
     @property
     def selected_options(self):
@@ -81,13 +66,6 @@ class ConfigKeywordParser(KeywordParser):
             self.parse_selected_options()
 
         return self._selected_options
-
-    @property
-    def flags_selected_by_default(self):
-        if not hasattr(self, "_flags_selected_by_default"):
-            self.parse_selected_options()
-
-        return self._flags_selected_by_default
 
     # TODO: UPDATE THIS DOCSTRING
     def parse_selected_options(self):
@@ -111,39 +89,34 @@ class ConfigKeywordParser(KeywordParser):
             dict:  A `dict` containing key/value pairs of flags and selected
             options, as found in the :attr:`build_name`.
         """
-        if (not hasattr(self, "_selected_options")
-                or not hasattr(self, "_flags_selected_by_default")):
+        if not hasattr(self, "_selected_options"):
             self.assert_options_are_unique_across_all_flags()
 
             build_name_options = self.build_name.split(self.delimiter)
             selected_options = {}
-            flags_selected_by_default = {}
 
             for flag_name in self.flag_names:
                 options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
                 options_in_build_name = [_ for _ in options
                                          if _ in build_name_options]
 
-                if (len(options_in_build_name) > 1
-                        and flag_type == "SELECT_ONE"):
+                if (flag_type == "SELECT_ONE"
+                        and len(options_in_build_name) > 1):
                     raise ValueError(self.get_msg_for_list(
                         "Multiple options found in build name for SELECT_ONE "
                         f"flag '{flag_name}':",
                         options_in_build_name
                     ))
-                elif (len(options_in_build_name) > 1
-                        and flag_type == "SELECT_MANY"):
-                    selected_options[flag_name] = options_in_build_name
-                    flags_selected_by_default[flag_name] = False
+                elif (flag_type == "SELECT_MANY"
+                        and len(options_in_build_name) > 1):
+                    selected_options[flag_name] = sorted(options_in_build_name)
                 elif len(options_in_build_name) == 0:
+                    # Select default option if none in build name
                     selected_options[flag_name] = options[0]
-                    flags_selected_by_default[flag_name] = True
-                else:
+                else:  # len(options_in_build_name) == 1 case
                     selected_options[flag_name] = options_in_build_name[0]
-                    flags_selected_by_default[flag_name] = False
 
             self._selected_options = selected_options
-            self._flags_selected_by_default = flags_selected_by_default
 
     def get_options_and_flag_type_for_flag(self, flag_name):
         """
@@ -187,18 +160,9 @@ class ConfigKeywordParser(KeywordParser):
         return option in self._default_options
 
     def assert_options_are_unique_across_all_flags(self):
-        if not hasattr(self, "_options_list"):
-            options_list = []
-            for flag_name in self.flag_names:
-                options, flag_type = self.get_options_and_flag_type_for_flag(
-                    flag_name
-                )
-                options_list += options
-
-            self._options_list = options_list
-
-        duplicates = [_ for _ in set(self._options_list)
-                      if self._options_list.count(_) > 1]
+        options_list = self.get_options_list_for_all_flags()
+        duplicates = [_ for _ in set(options_list)
+                      if options_list.count(_) > 1]
         try:
             assert duplicates == []
         except AssertionError:
@@ -212,6 +176,33 @@ class ConfigKeywordParser(KeywordParser):
                 f"for each flag\nin which {it} appear{s}."
             )
             sys.exit(msg)
+
+    def get_options_list_for_all_flags(self):
+        if not hasattr(self, "_options_list"):
+            options_list = []
+            for flag_name in self.flag_names:
+                options, flag_type = self.get_options_and_flag_type_for_flag(
+                    flag_name
+                )
+                options_list += options
+
+            self._options_list = options_list
+
+        return self._options_list
+
+    @property
+    def build_name(self):
+        return self._build_name
+
+    @build_name.setter
+    def build_name(self, new_build_name):
+        # Clear any data generated from the old build_name
+        if hasattr(self, "_selected_options_str"):
+            delattr(self, "_selected_options_str")
+        if hasattr(self, "_selected_options"):
+            delattr(self, "_selected_options")
+
+        self._build_name = new_build_name
 
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """
