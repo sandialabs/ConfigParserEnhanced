@@ -76,13 +76,30 @@ class GenConfig(FormattedMsg):
 
             file = self.args.cmake_fragment
             if file.exists():
+                if not self.args.yes:
+                    response = input(
+                        "\n**WARNING** A cmake fragment file containing configuration "
+                        "data already exists\nat the location you specified "
+                        f"({self.args.cmake_fragment}).\n"
+                        "* Would you like to overwrite this file? [y/n] "
+                    )
+                    while response.lower()[0] not in ["y", "n"]:
+                        response = input(
+                            "  * Input not recognized. Please enter [y/n]: "
+                        )
+
+                    if response.lower()[0] == "n":
+                        print("* Cmake fragment file not written.")
+                        sys.exit(1)
+
                 file.unlink()
+
             file.parent.mkdir(parents=True, exist_ok=True)
 
             with open(file, "w") as F:
                 F.write("\n".join(cmake_options_list))
-
             self._cmake_fragment_file = file
+
 
         return self._cmake_fragment_file
 
@@ -366,7 +383,10 @@ class GenConfig(FormattedMsg):
                             "system name specified in the build_name rather "
                             "than the system name matched via the hostname "
                             "and the supported-systems.ini file "
-                            "(see LoadEnv).")  # NOTE: Should this be changed?
+                            "(see LoadEnv).")
+        parser.add_argument("-y", "--yes", action="store_true",
+                            default=False, help="Automatically say yes to any "
+                            "yes/no prompts.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"

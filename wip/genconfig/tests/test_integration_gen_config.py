@@ -2,6 +2,7 @@ from pathlib import Path
 import pytest
 import sys
 import textwrap
+from unittest.mock import patch
 
 root_dir = (Path.cwd()/".."
             if (Path.cwd()/"conftest.py").exists()
@@ -107,6 +108,52 @@ def test_cmake_fragment_file_stored_correctly(data):
         test_fragment_contents = F.read()
 
     assert test_fragment_contents == data["expected_fragment_contents"]
+
+
+@pytest.mark.parametrize("data", [
+    {"--yes flag": False, "should_exit": False, "user_input": ["Y"]},
+    {"--yes flag": False, "should_exit": False, "user_input": ["8", "y"]},
+    {"--yes flag": True, "should_exit": False, "user_input": []},
+    {"--yes flag": False, "should_exit": True, "user_input": ["N"]},
+    {"--yes flag": False, "should_exit": True, "user_input": ["8", "n"]},
+])
+@patch("gen_config.input")
+def test_existing_cmake_fragment_file_asks_user_for_overwrite(mock_input, data):
+    argv = [
+        "--config-specs", "test-config-specs.ini",
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--cmake-fragment", "test_fragment.cmake",
+        "--force",
+        "machine-type-5_intel-hsw"
+    ]
+    if data["--yes flag"]:
+        argv.insert(-1, "--yes")
+
+    expected_fragment_contents = (
+        'set(MPI_EXEC_NUMPROCS_FLAG -p CACHE STRING "from .ini configuration")'
+    )
+    Path("test_fragment.cmake").touch()
+
+    mock_input.side_effect = data["user_input"]
+    if data["should_exit"]:
+        with pytest.raises(SystemExit):
+            gen_config.main(argv)
+    else:
+        gen_config.main(argv)
+        with open("test_fragment.cmake", "r") as F:
+            test_fragment_contents = F.read()
+
+        assert test_fragment_contents == expected_fragment_contents
+
+    if not data["--yes flag"]:
+        script_input_text = mock_input.call_args[0][0]
+        if data["user_input"][0].lower() not in ["y", "n"]:
+            assert "not recognized" in script_input_text
+        else:
+            assert "not recognized" not in script_input_text
 
 
 ###############################################################################
