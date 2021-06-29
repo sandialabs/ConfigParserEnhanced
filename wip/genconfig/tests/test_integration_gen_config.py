@@ -52,7 +52,7 @@ def test_complete_config_generated_correctly(data):
                      "    -DTrilinos_ENABLE_Panzer:BOOL=ON")
     },
 ])
-def test_config_flags_printed_correctly(data, capsys):
+def test_bash_cmake_flags_generated_correctly(data):
     gen_config.main([
         "--config-specs", "test-config-specs.ini",
         "--supported-config-flags", "test-supported-config-flags.ini",
@@ -63,8 +63,12 @@ def test_config_flags_printed_correctly(data, capsys):
         data["build_name"]
     ])
 
-    out, err = capsys.readouterr()
-    assert err == data["expected_flag_str"]
+    flags_file = Path(".bash_cmake_flags_from_gen_config")
+    assert flags_file.exists()
+    with open(flags_file, "r") as F:
+        bash_cmake_flags = F.read()
+
+    assert bash_cmake_flags == data["expected_flag_str"]
 
 
 @pytest.mark.parametrize("data", [

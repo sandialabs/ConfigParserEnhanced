@@ -418,8 +418,14 @@ def main(argv):
         gc.list_config_flags()
     if gc.args.cmake_fragment is not None:
         gc.write_cmake_fragment()
-    else:
-        print(gc.generated_config_flags_str, file=sys.stderr, end="")
+    else:  # Output bash cmake flags...
+        #
+        # To be read by gen-config.sh:
+        #   # gen-config.sh
+        #   cmake $(cat .bash_cmake_flags_from_gen_config) /path/to/src
+        #
+        with open(".bash_cmake_flags_from_gen_config", "w") as F:
+            F.write(gc.generated_config_flags_str)
 
 
 if __name__ == "__main__":
