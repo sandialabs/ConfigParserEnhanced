@@ -200,7 +200,7 @@ def run_common_validation_test(test_ini_filename, section_names, should_raise):
         "--supported-envs", "test-supported-envs.ini",
         "--environment-specs", "test-environment-specs.ini",
         "--force",
-        "any_build_name"
+        "machine-type-5_any_build_name"
     ])
 
 
