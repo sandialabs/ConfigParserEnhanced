@@ -199,6 +199,7 @@ def run_common_validation_test(test_ini_filename, section_names, should_raise):
         "--supported-systems", "test-supported-systems.ini",
         "--supported-envs", "test-supported-envs.ini",
         "--environment-specs", "test-environment-specs.ini",
+        "--force",
         "any_build_name"
     ])
 
