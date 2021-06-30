@@ -1,67 +1,115 @@
 stages:
+  - prepare
   - test
   - deploy
-  - docs
+  - examples
+  - documentation
   - publish
+  - cleanup
+
 
 before_script:
-  # display centos version
-  # - cat /etc/issue
+  - export LSB_RELEASE=$(which lsb_release)
+  - if [ -x ${LSB_RELEASE} ]; then ${LSB_RELEASE} -a; fi
+  - if [ -e venv-clean-python ]; then source venv-clean-python/bin/activate; else exit 1; fi
+  - echo "VIRTUAL_ENV = ${VIRTUAL_ENV:?}"
 
-  # Pull required packages
-  - python3 -m pip install --user -r requirements.txt
-  - python3 -m pip install --user -r requirements-test.txt
-  - python3 -m pip install --user -r doc/requirements.txt
-  # - python3 -m pip install pytest pytest-cov
-  - python3 -m pip list
 
-pytest:
-  stage: test
-  timeout: 20m
+after_script:
+  - if [ ! -z ${VIRTUAL_ENV} ]; then deactivate; fi
+
+
+install_requirements:
+  stage: prepare
+  artifacts:
+    untracked: true
+  before_script:
+    - python3 -m venv venv-clean-python
   script:
-    - python3 -m pytest --cov=configparserenhanced --cov-report=html --cov-report=term --cov-config=.coveragerc
-  coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+    - source venv-clean-python/bin/activate
 
-apptest:
+    # Remove configparserenhanced if it's been installed
+    - python3 -m pip uninstall -y configparserenhanced
+
+    # Pull required packages
+    - python3 -m pip install -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
+
+    # Get ConfigParserEnhanced
+    # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
+    #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
+    #- python3 -m pip uninstall -y configparserenhanced
+    #- python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+    # Methods that work on the command line but not in CI.
+    # - python3 -m pip install --user -r requirements.txt
+
+
+
+unit_tests:
   stage: test
   timeout: 10m
+  dependencies:
+  - install_requirements
   script:
-    - cd examples/
-    - python3 ./ConfigParserEnhanced-example-01.py
+    - python3 -m pytest --cov=configparserenhanced  --cov-report=term --cov-report=html --cov-config=.coveragerc
+  coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+  cache:
+    key: coverage-data
+    paths:
+      - tests/htmlcov/
+
+build_dist:
+  stage: deploy
+  script:
+    - python3 -m pip install wheel
+    - python3 -m pip wheel --no-deps -w dist .
+  artifacts:
+    name: "configparserenhanced-dist"
+    paths:
+      - dist/configparserenhanced*.whl
+    expire_in: 6 weeks
+
 
 install:
   stage: deploy
-  needs: [pytest]
-  timeout: 20m
   script:
-    - python3 -m pip install --user .
-    - python3 -m pip uninstall -y configparserenhanced
+    - python3 -m pip install .
+
+
+examples:
+  stage: examples
+  timeout: 10m
+  script:
+    - cd examples
+    - python3 ./ConfigParserEnhanced-example-01.py
+
 
 sphinx-documentation:
-  stage: docs
-  needs: [install]
-  timeout: 20m
+  stage: documentation
+  timeout: 10m
   script:
     - cd doc/
-    # - python3 -m pip install -r requirements.txt
     - bash make_html_docs.sh
+
 
 publish coverage:
   stage: publish
-  needs: [pytest]
-  timeout: 20m
+  timeout: 10m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -m pytest --cov=configparserenhanced --cov-report=html --cov-report=term --cov-config=.coveragerc
+    #- python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mv tests/htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
+  cache:
+    key: coverage-data
+    paths:
+      - tests/htmlcov/
+
 
 publish docs:
   stage: publish
-  needs: [sphinx-documentation]
-  timeout: 20m
+  timeout: 10m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
@@ -71,5 +119,16 @@ publish docs:
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/doc
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/doc
     - mv html/* /home/josbrau/html_files/ConfigParserEnhanced/doc/
+
+
+uninstall:
+  stage: cleanup
+  timeout: 20m
+  script:
+    - python3 -m pip uninstall -y configparserenhanced
+
+    # - python3 -m pip uninstall -y -r requirements.txt
+    # >>> In a virtual environment, this won't work if there are no entries in
+    # >>> the requirements.txt file.
 
 
