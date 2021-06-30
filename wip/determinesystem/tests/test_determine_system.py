@@ -81,7 +81,7 @@ def test_multiple_sys_names_in_build_name_raises_regardless_of_hostname_match(
 
 @pytest.mark.parametrize("data", [
     {"build_name": "no-system-here", "sys_name": None, "raises": True, "hostname": "unsupported_hostname"},
-    {"build_name": "any-host_build-name", "sys_name": "any-host", "raises": False, "hostname": "machine-prefix-1"},
+    {"build_name": "machine-type-1_build-name", "sys_name": "machine-type-1", "raises": False, "hostname": "machine-prefix-1"},
 ])
 @patch("socket.gethostname")
 def test_unsupported_hostname_handled_correctly(mock_gethostname, data,
