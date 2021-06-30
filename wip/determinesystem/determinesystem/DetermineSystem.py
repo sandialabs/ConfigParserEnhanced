@@ -76,9 +76,8 @@ class DetermineSystem(FormattedMsg):
                        "Overriding") +
                       f" system to '{self._system_name}' based on "
                       f"specification in build name '{self.build_name}'.")
-                if (sys_name_from_hostname is not None
-                        and sys_name_from_hostname != self._system_name
-                        and self.force_build_name is False):
+                if (sys_name_from_hostname != self._system_name
+                    and self.force_build_name is False):
                     msg = self.get_formatted_msg(textwrap.fill(
                         f"Hostname '{hostname}' matched to system "
                         f"'{sys_name_from_hostname}' in "
