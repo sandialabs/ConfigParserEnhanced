@@ -35,7 +35,10 @@ class GenConfig(FormattedMsg):
         if not isinstance(argv, list):
             raise TypeError("GenConfig must be instantiated with a list of "
                             "command line arguments.")
-        self.argv = argv
+        final_argv = []
+        for arg in argv:
+            final_argv += arg.split(" ")
+        self.argv = final_argv
         self.gen_config_ini_file = Path(gen_config_ini_file)
         self._gen_config_config_data = None
         self.config_keyword_parser = None
@@ -100,6 +103,7 @@ class GenConfig(FormattedMsg):
                 F.write("\n".join(cmake_options_list))
             self._cmake_fragment_file = file
 
+            print(f"* Cmake fragment file written to: {str(file)}")
 
         return self._cmake_fragment_file
 
@@ -149,6 +153,7 @@ class GenConfig(FormattedMsg):
 
         ckp = self.config_keyword_parser
         le = self.load_env
+        le.args.force = True
         config_specs = ConfigParserEnhanced(
             self.args.config_specs_file
         ).configparserenhanceddata
@@ -197,6 +202,7 @@ class GenConfig(FormattedMsg):
             ))
 
         self.load_env.build_name = self.args.build_name
+        self.load_env.args.force = self.args.force
         self.config_keyword_parser.build_name = self.args.build_name
         self.has_been_validated = True
 
@@ -229,14 +235,19 @@ class GenConfig(FormattedMsg):
         files. Save the resulting object as :attr:`load_env`.
         """
         if self.load_env is None:
-            argv = [
-                "--supported-systems", str(self.args.supported_systems_file),
-                "--supported-envs", str(self.args.supported_envs_file),
-                "--environment-specs", str(self.args.environment_specs_file),
-            ]
-            argv += ["--force"] if self.args.force else []
-            argv += [self.args.build_name]
-            self.load_env = LoadEnv(argv=argv)
+            self.load_env = LoadEnv(argv=self.load_env_args)
+
+    @property
+    def load_env_args(self):
+        argv = [
+            "--supported-systems", str(self.args.supported_systems_file),
+            "--supported-envs", str(self.args.supported_envs_file),
+            "--environment-specs", str(self.args.environment_specs_file),
+        ]
+        argv += ["--force"] if self.args.force else []
+        argv += [self.args.build_name]
+
+        return argv
 
     @property
     def gen_config_config_data(self):
@@ -387,6 +398,11 @@ class GenConfig(FormattedMsg):
         parser.add_argument("-y", "--yes", action="store_true",
                             default=False, help="Automatically say yes to any "
                             "yes/no prompts.")
+        parser.add_argument("--save-load-env-args", action="store",
+                            default=None, type=lambda p: Path(p).resolve(),
+                            help="Based on the command line arguments passed to "
+                            "GenConfig, write the corresponding command line "
+                            "arguments for LoadEnv to a specified file.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"
@@ -436,7 +452,10 @@ def main(argv):
     gc = GenConfig(argv)
     if gc.args.list_config_flags:
         gc.list_config_flags()
-    if gc.args.cmake_fragment is not None:
+    elif gc.args.save_load_env_args is not None:
+        with open(gc.args.save_load_env_args, "w") as F:
+            F.write(" ".join(gc.load_env_args))
+    elif gc.args.cmake_fragment is not None:
         gc.write_cmake_fragment()
     else:  # Output bash cmake flags...
         #

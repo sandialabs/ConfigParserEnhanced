@@ -43,40 +43,48 @@ if [ $# -eq 0 ]; then
   return 1
 fi
 
-# Get proper call args to pass to GenConfig python module. This does not include
+# Get proper call args to pass to GenConfig python module. This DOES NOT include
 # the /path/to/src that is specified as the last positional argument when
 # --cmake-fragment is not specified. For example:
 #
 # $ source gen_config.sh \
-#     build_name_here \      <-|-- py_call_args=${@:1:$#-1}
+#     --cmake-fragment foo.cmake \  <-|-- gen_config_py_call_args=$@
+#     build_name_here               <-|                (all args)
+#
+# $ source gen_config.sh \
+#     build_name_here \      <-|-- gen_config_py_call_args=${@: 1:$(expr $# - 1)}
 #     --force \              <-|                (all but last)
 #     /path/to/src
 #
-# $ source gen_config.sh \
-#     --cmake-fragment foo.cmake \  <-|-- py_call_args=$@
-#     build_name_here               <-|
-#
 if [[ $@ != *"--cmake-fragment"* ]]; then
   if [ -d ${@: -1} ]; then
-    py_call_args=${@:1:$#-1}
+    gen_config_py_call_args=${@: 1:$(expr $# - 1)}
+    path_to_src=${@: -1}
   else
     echo "+==============================================================================+"
     echo "|   ERROR:  A valid path to source was not specified as the last positional"
     echo "|           argument. Please correct this like:"
     echo "|"
-    echo "|           source gen-config.sh $1 \\"
-    shift
+    echo "|           $ source gen-config.sh \\"
     while [[ $# -gt 0 ]]; do
-      echo "|             $1 \\"
+      echo "|               $1 \\"
       shift
     done
+    echo "|               /path/to/src"
     echo "|"
     echo "+==============================================================================+"
+    return 1
   fi
 else
-  py_call_args=$@
+  gen_config_py_call_args=$@
 fi
 
+# Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
+cd ${script_dir} >/dev/null
+python3 -E -s -m gen_config $gen_config_py_call_args --save-load-env-args .load_env_args
+cd - >/dev/null
+load_env_py_call_args=$(cat .load_env_args)
+rm .load_env_args
 
 
 #### BEGIN environment setup ####
@@ -84,8 +92,8 @@ echo "**************************************************************************
 echo "                B E G I N  L O A D I N G  E N V I R O N M E N T"
 echo "********************************************************************************"
 
-# Last call arg should be the /path/to/src, not used by load-env.sh
-source ${script_dir}/load-env.sh --ci-mode $py_call_args
+echo "source load-env.sh $load_env_py_call_args"
+source ${script_dir}/deps/LoadEnv/load-env.sh --ci-mode "$load_env_py_call_args"
 #### END environment setup ####
 
 
@@ -98,15 +106,20 @@ echo "**************************************************************************
 # Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
-cd ${script_dir} >/dev/null; python3 -E -s -m gen_config $py_call_args; cd - >/dev/null
+cd ${script_dir} >/dev/null; python3 -E -s -m gen_config $gen_config_py_call_args; cd - >/dev/null
 
-if [[ -f .bash_cmake_flags_from_gen_config ]]; then
-  echo "cmake \\" > .cmake_call
-  cat .bash_cmake_flags_from_gen_config >> .cmake_call
-  echo ${@: -1} >> .cmake_call
+if [[ -f .bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
+  echo
+  echo "*** Running cmake command: ***"
+  echo "cmake $(cat .bash_cmake_flags_from_gen_config) \\" > .cmake_call
+  echo "    $path_to_src" >> .cmake_call
 
-  # Execute cmake
+  # Print cmake call
   cmake_call=$(cat .cmake_call)
   rm .cmake_call
+  echo $cmake_call
+  echo
+
+  # Execute cmake call
   eval $cmake_call
 fi
