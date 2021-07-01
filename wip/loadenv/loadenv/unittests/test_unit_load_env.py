@@ -101,6 +101,17 @@ def test_argv_non_list_raises(data):
             "supported_envs_expected": "default",
             "environment_specs_expected": "non_default/environment-specs.ini",
             },
+        {
+            "argv": [
+                # argv has two args in one string. LoadEnv should split this.
+                "--environment-specs non_default/environment-specs.ini",
+                "keyword-str",
+                ],
+            "build_name_expected": "keyword-str",
+            "supported_sys_expected": "default",
+            "supported_envs_expected": "default",
+            "environment_specs_expected": "non_default/environment-specs.ini",
+            },
         ],
     )
 def test_argument_parser_functions_correctly(data):

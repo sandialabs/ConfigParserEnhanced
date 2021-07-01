@@ -97,7 +97,10 @@ class LoadEnv(FormattedMsg):
         if not isinstance(argv, list):
             raise TypeError("LoadEnv must be instantiated with a list of command line arguments.")
 
-        self.argv = argv
+        final_argv = []
+        for arg in argv:
+            final_argv += arg.split(" ")
+        self.argv = final_argv
         self.load_env_ini_file = load_env_ini_file
         self.load_env_config_data = None
         self.parse_top_level_config_file()
