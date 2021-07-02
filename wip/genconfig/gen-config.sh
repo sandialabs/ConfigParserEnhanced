@@ -40,7 +40,7 @@ function cleanup()
    [ -f .load_matching_env_loc ] && rm -f .load_matching_env_loc 2>/dev/null
    [ -f .ci_mode ] && rm -f .ci_mode 2>/dev/null
    [ ! -z ${env_file} ] && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
-   [ -f ${script_dir}/.bash_cmake_flags_from_gen_config ] && rm -f ${script_dir}/.bash_cmake_flags_from_gen_config 2>/dev/null
+   [ -f .bash_cmake_flags_from_gen_config ] && rm -f .bash_cmake_flags_from_gen_config 2>/dev/null
    [ -f ${script_dir}/.pwd ] && rm -f ${script_dir}/.pwd 2>/dev/null
 
    unset python_too_old script_dir ci_mode cleanup env_file gen_config_py_call_args
@@ -135,20 +135,20 @@ echo "**************************************************************************
 # Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
-cd ${script_dir} >/dev/null; python3 -E -s -m gen_config $gen_config_py_call_args; cd - >/dev/null
+python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
 
-if [[ -f ${script_dir}/.bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
+if [[ -f .bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
   echo
-  echo "*** Running Generated CMake Command: ***"
-  echo "\$ cmake $(cat ${script_dir}/.bash_cmake_flags_from_gen_config) \\" > .cmake_call
-  echo "    $path_to_src" >> .cmake_call
+  echo "*** Running CMake Command: ***"
+  cmake_args="$(cat .bash_cmake_flags_from_gen_config) $path_to_src"
 
   # Print cmake call
-  cmake_call=$(cat .cmake_call)
-  rm .cmake_call
-  echo -e "$cmake_call"
+  echo -e "\$ cmake $cmake_args"
   echo
 
   # Execute cmake call
-  eval $cmake_call
+  cmake $cmake_args
 fi
+
+[ -f .bash_cmake_flags_from_gen_config ] && rm -f .bash_cmake_flags_from_gen_config 2>/dev/null
+[ -f ${script_dir}/.pwd ] && rm -f ${script_dir}/.pwd 2>/dev/null

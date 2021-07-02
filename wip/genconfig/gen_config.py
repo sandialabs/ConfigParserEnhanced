@@ -92,7 +92,7 @@ class GenConfig(FormattedMsg):
                         )
 
                     if response.lower()[0] == "n":
-                        print("* Cmake fragment file not written.")
+                        print("* CMake fragment file not written.")
                         sys.exit(1)
 
                 file.unlink()
@@ -365,9 +365,22 @@ class GenConfig(FormattedMsg):
         ).ljust(79)
 
         examples = """
-            Basic Usage::
+            NOTE:  In each of the following examples, GenConfig first runs
+                   LoadEnv to load the correct environment.
 
-                python3 gen_config.py <build-name>
+            Run CMake Using Configure Flags from GenConfig::
+
+                source /path/to/gen-config.sh \\
+                    <build-name> \\
+                    /path/to/src
+
+            Save CMake Fragment File to Use with CMake::
+
+                source /path/to/gen-config.sh \\
+                    --cmake-fragment foo.cmake \\
+                    <build-name>
+
+                cmake -C foo.cmake /path/to/src
         """
         examples = textwrap.dedent(examples)
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
