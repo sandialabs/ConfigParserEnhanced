@@ -40,7 +40,8 @@ function cleanup()
    [ -f .load_matching_env_loc ] && rm -f .load_matching_env_loc 2>/dev/null
    [ -f .ci_mode ] && rm -f .ci_mode 2>/dev/null
    [ ! -z ${env_file} ] && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
-   [ -f .bash_cmake_flags_from_gen_config ] && rm -f .bash_cmake_flags_from_gen_config 2>/dev/null
+   [ -f ${script_dir}/.bash_cmake_flags_from_gen_config ] && rm -f ${script_dir}/.bash_cmake_flags_from_gen_config 2>/dev/null
+   [ -f ${script_dir}/.pwd ] && rm -f ${script_dir}/.pwd 2>/dev/null
 
    unset python_too_old script_dir ci_mode cleanup env_file gen_config_py_call_args
    unset path_to_src load_env_call_args cmake_call full_load_env_args
@@ -99,9 +100,9 @@ fi
 # Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
 cd ${script_dir} >/dev/null
 python3 -E -s -m gen_config $gen_config_py_call_args --save-load-env-args .load_env_args
-cd - >/dev/null
 load_env_call_args=$(cat .load_env_args)
 rm .load_env_args
+cd - >/dev/null
 
 
 #### BEGIN environment setup ####
@@ -112,10 +113,15 @@ echo "**************************************************************************
 if [ ! -z $LOAD_ENV_INTERACTIVE_MODE ]; then
   echo "* Environment already loaded in interactive mode. Skipping..."
 else
-    full_load_env_args="--ci-mode $load_env_call_args"
-    echo "*** Running LoadEnv Command: ***"
-    echo -e "\$ source ${script_dir}/deps/LoadEnv/load-env.sh \\ \n    $(echo $full_load_env_args | sed 's/ / \\ \\n    /g')\n"
-    source ${script_dir}/deps/LoadEnv/load-env.sh "$full_load_env_args"
+  # Need to save this to a file since LoadEnv will overwrite cd history (can't do `cd -` afterwards)
+  pwd > ${script_dir}/.pwd
+
+  full_load_env_args="--ci-mode $load_env_call_args"
+  echo "*** Running LoadEnv Command: ***"
+  echo -e "\$ source ${script_dir}/load-env.sh \\ \n    $(echo $full_load_env_args | sed 's/ / \\ \\n    /g')\n"
+  cd ${script_dir} >/dev/null
+  source ${script_dir}/load-env.sh "$full_load_env_args"
+  cd $(cat .pwd) >/dev/null
 fi
 #### END environment setup ####
 
@@ -131,16 +137,16 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 cd ${script_dir} >/dev/null; python3 -E -s -m gen_config $gen_config_py_call_args; cd - >/dev/null
 
-if [[ -f .bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
+if [[ -f ${script_dir}/.bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
   echo
   echo "*** Running CMake Command: ***"
-  echo "\$ cmake $(cat .bash_cmake_flags_from_gen_config) \\" > .cmake_call
+  echo "\$ cmake $(cat ${script_dir}/.bash_cmake_flags_from_gen_config) \\" > .cmake_call
   echo "    $path_to_src" >> .cmake_call
 
   # Print cmake call
   cmake_call=$(cat .cmake_call)
   rm .cmake_call
-  echo $cmake_call
+  echo -e "$cmake_call"
   echo
 
   # Execute cmake call
