@@ -140,7 +140,7 @@ python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
 if [[ -f .bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
   echo
   echo "*** Running CMake Command: ***"
-  cmake_args="$(cat .bash_cmake_flags_from_gen_config) $path_to_src"
+  cmake_args="$(cat .bash_cmake_flags_from_gen_config) \\ \n    $path_to_src"
 
   # Print cmake call
   echo -e "\$ cmake $cmake_args"
