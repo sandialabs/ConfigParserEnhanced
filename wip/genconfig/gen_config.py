@@ -35,10 +35,12 @@ class GenConfig(FormattedMsg):
         if not isinstance(argv, list):
             raise TypeError("GenConfig must be instantiated with a list of "
                             "command line arguments.")
-        final_argv = []
-        for arg in argv:
-            final_argv += arg.split(" ")
-        self.argv = final_argv
+
+        self.argv = argv
+        # final_argv = []
+        # for arg in argv:
+        #     final_argv += arg.split(" ")
+        # self.argv = final_argv
         self.gen_config_ini_file = Path(gen_config_ini_file)
         self._gen_config_config_data = None
         self.config_keyword_parser = None

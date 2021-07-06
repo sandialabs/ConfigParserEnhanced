@@ -130,16 +130,16 @@ function gen_config_helper()
     if [[ -f $gc_working_dir/.bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
 	echo
 	echo "*** Running CMake Command: ***"
-	cmake_args="$(cat $gc_working_dir/.bash_cmake_flags_from_gen_config) \\ \n    $path_to_src"
+	cmake_args="$(cat $gc_working_dir/.bash_cmake_flags_from_gen_config)"
 
 	# Print cmake call
-	echo -e "\$ cmake $cmake_args"
+	echo -e "\$ cmake $cmake_args \\ \n    $path_to_src"
 	echo
 
 	sleep 2s
 
 	# Execute cmake call
-	cmake $cmake_args
+	cmake $cmake_args $path_to_src
     fi
 }
 declare -x -f gen_config_helper
