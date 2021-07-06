@@ -120,6 +120,8 @@ export path_to_src
 export gc_working_dir
 export cmake_args
 
+# This function gets called from WITHIN load-env.sh, either in the current shell
+# when --ci-mode is enabled, or from within the sub-shell created by load-env.sh.
 function gen_config_helper()
 {
     echo -e "\n\n********************************************************************************"
