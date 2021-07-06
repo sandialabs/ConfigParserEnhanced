@@ -87,10 +87,32 @@ def test_values_are_unique():
             kp.get_values_for_section_key("machine-type-1", key)
     exc_msg = excinfo.value.args[0]
 
-    print(exc_msg)
     assert ("Values for 'bad_config.ini'['machine-type-1']['intel-18.0.5-mpich-7.7.15'] "
             "contains duplicates:") in exc_msg
     assert "- intel-18" in exc_msg
+
+
+def test_values_do_not_match_any_keys():
+    bad_config = (
+        "[machine-type-1]\n"
+        "intel-18.0.5-mpich-7.7.15: # Comment here\n"
+        "    intel-18               # Space in this value\n"
+        "    intel-default\n"
+        "intel-19.0.4-mpich-7.7.15-knl-openmp:\n"
+        "    intel-18.0.5-mpich-7.7.15  # Matches a key! Bad!"
+    )
+    filename = "bad_config.ini"
+    with open(filename, "w") as f:
+        f.write(bad_config)
+
+    with pytest.raises(SystemExit) as excinfo:
+        kp = KeywordParser(filename)
+        for key in kp.config["machine-type-1"].keys():
+            kp.get_values_for_section_key("machine-type-1", key)
+    exc_msg = excinfo.value.args[0]
+
+    assert "Value found for 'machine-type-1' that matches an key:" in exc_msg
+    assert "- intel-18.0.5-mpich-7.7.15" in exc_msg
 
 
 @pytest.mark.parametrize("general_section_order", ["first", "last"])

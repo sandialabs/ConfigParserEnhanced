@@ -81,6 +81,7 @@ class KeywordParser(FormattedMsg):
 
         self.assert_values_are_unique(values_list, section, key)
         self.assert_values_do_not_contain_whitespace_or_delimiter(values_list)
+        self.assert_no_value_is_equal_to_a_key_name(section, values_list)
 
         return values_list
 
@@ -98,7 +99,12 @@ class KeywordParser(FormattedMsg):
         Called automatically by :func:`get_values_for_section_key`.
 
         Parameters:
-            values_list (str): A list of values to check for duplicates.
+            values_list (list): A list of values to check for duplicates.
+            section (str): The section to check in.
+            key (str): The key to check.
+
+        Raises:
+            SystemExit: If multiple values are the same.
         """
         duplicates = [_ for _ in set(values_list) if values_list.count(_) > 1]
         try:
@@ -139,6 +145,42 @@ class KeywordParser(FormattedMsg):
                 values_w_whitespace_or_delim
             )
             sys.exit(msg)
+
+
+    def assert_no_value_is_equal_to_a_key_name(self, section, values_list):
+        """
+        Ensures we don't run into a situation like::
+
+            [machine-type-1]
+            key1:
+                value1
+                value2
+                value3
+            key2:
+                value4
+                key1  # Same name as one of the keys!
+
+        Called automatically by :func:`get_values_for_section_key`.
+
+        Parameters:
+            section (str):  The name of the section to check.
+            values_list (list):  A list of values to check against key names.
+
+        Raises:
+            SystemExit:  If one of the values matches a key name.
+        """
+        keys_for_section = [_ for _ in self.config[section].keys()]
+        duplicates = [_ for _ in values_list if _ in keys_for_section]
+        try:
+            assert duplicates == []
+        except AssertionError:
+            msg = self.get_msg_for_list(
+                f"Value found for '{section}' that matches an key:",
+                duplicates,
+                )
+            sys.exit(msg)
+        return
+
 
     def get_key_for_section_value(self, section, value):
         """
