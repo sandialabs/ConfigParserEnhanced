@@ -92,14 +92,16 @@ def test_values_are_unique():
     assert "- intel-18" in exc_msg
 
 
-def test_values_do_not_match_any_keys():
+@pytest.mark.parametrize("bad_value", ["intel-18.0.5-mpich-7.7.15",
+                                       "intel-19.0.4-mpich-7.7.15-knl-openmp"])
+def test_values_do_not_match_any_keys(bad_value):
     bad_config = (
         "[machine-type-1]\n"
         "intel-18.0.5-mpich-7.7.15: # Comment here\n"
         "    intel-18               # Space in this value\n"
         "    intel-default\n"
         "intel-19.0.4-mpich-7.7.15-knl-openmp:\n"
-        "    intel-18.0.5-mpich-7.7.15  # Matches a key! Bad!"
+        f"    {bad_value}  # Matches a key! Bad!"
     )
     filename = "bad_config.ini"
     with open(filename, "w") as f:
@@ -112,7 +114,7 @@ def test_values_do_not_match_any_keys():
     exc_msg = excinfo.value.args[0]
 
     assert "Value found for 'machine-type-1' that matches an key:" in exc_msg
-    assert "- intel-18.0.5-mpich-7.7.15" in exc_msg
+    assert f"- {bad_value}" in exc_msg
 
 
 @pytest.mark.parametrize("general_section_order", ["first", "last"])
