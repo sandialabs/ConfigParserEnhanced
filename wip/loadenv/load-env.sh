@@ -32,11 +32,12 @@ fi
 ################################################################################
 function cleanup()
 {
-   [ -f ${script_dir}/.load_matching_env_loc ] && rm -f ${script_dir}/.load_matching_env_loc 2>/dev/null
-   [ -f ${script_dir}/.ci_mode ] && rm -f ${script_dir}/.ci_mode 2>/dev/null
-   [ ! -z ${env_file} ]          && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
+   [ -f ${script_dir}/.load_matching_env_loc ] && rm -f ${script_dir}/.load_matching_env_loc 2>/dev/null || true
+   [ -f ${script_dir}/.ci_mode ] && rm -f ${script_dir}/.ci_mode 2>/dev/null || true
+   [ ! -z ${env_file} ]          && rm -f ${env_file} 2>/dev/null || true; rm -f ${env_file::-2}rc 2>/dev/null || true
 
-   unset python_too_old script_dir ci_mode cleanup env_file
+   unset python_too_old script_dir ci_mode cleanup env_file || true
+
    return 0
 }
 
@@ -105,11 +106,11 @@ if [ -f ${script_dir}/.load_matching_env_loc ]; then
       echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
       echo "export PS1=\"(\$LOADED_ENV_NAME) $ \""                                                      >> ${env_file::-2}rc
       echo "export LOAD_ENV_INTERACTIVE_MODE=\"True\""                                                  >> ${env_file::-2}rc
-      echo "declare -f -F gen_config_helper >/dev/null; [ \$? -eq 0 ] && gen_config_helper"             >> ${env_file::-2}rc
+      echo "declare -f -F gen_config_helper >/dev/null && [ \$? -eq 0 ] && gen_config_helper || true"   >> ${env_file::-2}rc
       /bin/bash --init-file ${env_file::-2}rc -i
     else
       # Intentionally do no invoke cleanup() if this exits such that artifacts in /tmp/$USER are preserved.
-      echo "declare -f -F gen_config_helper >/dev/null; [ \$? -eq 0 ] && gen_config_helper"             >> ${env_file::-2}rc
+      echo "declare -f -F gen_config_helper >/dev/null && [ \$? -eq 0 ] && gen_config_helper || true"   >> ${env_file::-2}rc
       source ${env_file::-2}rc
     fi
 
