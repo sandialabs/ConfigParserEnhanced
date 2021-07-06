@@ -194,25 +194,7 @@ def test_unsupported_node_types_are_rejected(inputs):
 
 
 
-@pytest.mark.parametrize(
-    "bad_alias",
-    [
-        {
-            "alias": "intel",
-            "err_msg": "ERROR:  Aliases for 'machine-type-1' contains duplicates:",
-            },
-        {
-            "alias": "intel-18.0.5-mpich-7.7.15",
-            "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an "
-                        "environment name:"),
-            },
-        {
-            "alias": "intel-19.0.4-mpich-7.7.15",
-            "err_msg": ("ERROR:  Alias found for 'machine-type-1' that matches an "
-                        "environment name:"),
-            },
-        ],
-    )
+@pytest.mark.parametrize("bad_alias", ["intel", "intel-18"])
 def test_alias_values_are_unique(bad_alias):
     bad_supported_envs = (
         "[machine-type-1]\n"
@@ -222,7 +204,7 @@ def test_alias_values_are_unique(bad_alias):
         "    default-env           # It's the default\n"
         "intel-19.0.4-mpich-7.7.15:\n"
         "    intel-19\n"
-        f"    {bad_alias['alias']}\n"
+        f"    {bad_alias}\n"
         )
     filename = "bad_supported_envs.ini"
     with open(filename, "w") as f:
@@ -232,8 +214,8 @@ def test_alias_values_are_unique(bad_alias):
         EnvKeywordParser("default-env", "machine-type-1", filename)
     exc_msg = excinfo.value.args[0]
 
-    assert bad_alias["err_msg"] in exc_msg
-    assert f"- {bad_alias['alias']}\n" in exc_msg
+    assert "ERROR:  Aliases for 'machine-type-1' contains duplicates:" in exc_msg
+    assert f"- {bad_alias}\n" in exc_msg
     return
 
 
