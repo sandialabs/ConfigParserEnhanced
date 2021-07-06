@@ -90,8 +90,11 @@ install:
   stage: deploy
   dependencies:
   - install_requirements
+<<<<<<< HEAD
   artifacts:
     untracked: true
+=======
+>>>>>>> master
   script:
     - python3 -m pip install .
 
