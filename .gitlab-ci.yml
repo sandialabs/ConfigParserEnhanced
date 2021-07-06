@@ -15,14 +15,28 @@ stages:
 
 
 before_script:
-  - export LSB_RELEASE=$(which lsb_release)
-  - if [ -x ${LSB_RELEASE} ]; then ${LSB_RELEASE} -a; fi
-  - if [ -e venv-clean-python ]; then source venv-clean-python/bin/activate; else exit 1; fi
-  - echo "VIRTUAL_ENV = ${VIRTUAL_ENV:?}"
+  - |-
+    export LSB_RELEASE=$(which lsb_release)
+    if [ -x ${LSB_RELEASE} ]; then
+        ${LSB_RELEASE} -a
+    fi
+  - |-
+    if [ -d "venv-clean-python" ]; then
+        source venv-clean-python/bin/activate
+    else
+        echo "Virtual Environment 'venv-clean-python' was not found"
+        exit 1
+    fi
+    echo "-----"
+    echo "VIRTUAL_ENV = ${VIRTUAL_ENV:?}"
+    echo "-----"
 
 
 after_script:
-  - if [ ! -z ${VIRTUAL_ENV} ]; then deactivate; fi
+  - |-
+    if [ ! -z ${VIRTUAL_ENV} ]; then
+        deactivate
+    fi
 
 
 install_requirements:
@@ -40,10 +54,10 @@ install_requirements:
     # Pull required packages
     - python3 -m pip install -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
 
-  cache:
-    key: venv
-    paths:
-    - venv-clean-python/
+  #cache:
+  #  key: venv
+  #  paths:
+  #  - venv-clean-python/
 
 
 unit_tests:
@@ -76,8 +90,11 @@ install:
   stage: deploy
   dependencies:
   - install_requirements
+  artifacts:
+    untracked: true
   script:
     - python3 -m pip install .
+
 
 
 examples:
@@ -131,7 +148,9 @@ publish docs:
 
 uninstall:
   stage: cleanup
-  timeout: 20m
+  timeout: 10m
+  dependencies:
+  - install
   script:
     - python3 -m pip uninstall -y configparserenhanced
 
