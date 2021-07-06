@@ -73,27 +73,28 @@ fi
 #     --force \              <-|                (all but last)
 #     /path/to/src
 #
-if [[ $@ != *"--cmake-fragment"* ]]; then
-  if [ -d ${@: -1} ]; then
+
+if [ -d ${@: -1} ]; then
     gen_config_py_call_args=${@: 1:$(expr $# - 1)}
     path_to_src=${@: -1}
-  else
-    echo "+==============================================================================+"
-    echo "|   ERROR:  A valid path to source was not specified as the last positional"
-    echo "|           argument. Please correct this like:"
-    echo "|"
-    echo "|           $ source gen-config.sh \\"
-    while [[ $# -gt 0 ]]; do
-      echo "|               $1 \\"
-      shift
-    done
-    echo "|               /path/to/src"
-    echo "|"
-    echo "+==============================================================================+"
-    return 1
-  fi
 else
-  gen_config_py_call_args=$@
+    if [[ $@ != *"--cmake-fragment"* ]]; then
+	echo "+==============================================================================+"
+	echo "|   ERROR:  A valid path to source was not specified as the last positional"
+	echo "|           argument. Please correct this like:"
+	echo "|"
+	echo "|           $ source gen-config.sh \\"
+	while [[ $# -gt 0 ]]; do
+	    echo "|               $1 \\"
+	    shift
+	done
+	echo "|               /path/to/src"
+	echo "|"
+	echo "+==============================================================================+"
+	cleanup_gc; return 1
+    fi
+
+    gen_config_py_call_args=$@
 fi
 
 
@@ -125,9 +126,9 @@ function gen_config_helper()
     echo "                      B E G I N  C O N F I G U R A T I O N"
     echo "********************************************************************************"
 
-    sleep 2s
-
     if [[ -f $gc_working_dir/.bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
+	sleep 2s
+
 	echo
 	echo "*** Running CMake Command: ***"
 	cmake_args="$(cat $gc_working_dir/.bash_cmake_flags_from_gen_config)"
@@ -140,6 +141,10 @@ function gen_config_helper()
 
 	# Execute cmake call
 	cmake $cmake_args $path_to_src
+    else
+	echo; echo
+	echo "Please run: \"cmake\" with the generated cmake fragment file as input"
+	echo
     fi
 }
 declare -x -f gen_config_helper
