@@ -245,6 +245,7 @@ class GenConfig(FormattedMsg):
             "--environment-specs", str(self.args.environment_specs_file),
         ]
         argv += ["--force"] if self.args.force else []
+        argv += ["--ci-mode"] if self.args.ci_mode else []
         argv += [self.args.build_name]
 
         return argv
@@ -411,6 +412,11 @@ class GenConfig(FormattedMsg):
         parser.add_argument("-y", "--yes", action="store_true",
                             default=False, help="Automatically say yes to any "
                             "yes/no prompts.")
+        parser.add_argument(
+            "--ci-mode", action="store_true",
+            default=False,
+            help="Causes gen-config.sh to modify your current shell rather "
+                 "than putting you in a interactive subshell.")
         parser.add_argument("--save-load-env-args", action="store",
                             default=None, type=lambda p: Path(p).resolve(),
                             help="Based on the command line arguments passed to "
