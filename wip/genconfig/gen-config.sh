@@ -14,13 +14,13 @@ if [[ ! -z $(which python3 2>/dev/null) ]]; then
 else
   echo "This script requires Python 3.6+."
   echo "Please load Python 3.6+ into your path."
-  cleanup; return 1
+  unset python_too_old; return 1
 fi
 
 if [[ "${python_too_old}" == "True" ]]; then
   echo "This script requires Python 3.6+."
   echo "Your current python3 is only $(python3 --version)."
-  cleanup; return 1
+  unset python_too_old; return 1
 fi
 
 #### END runnable checks ####
@@ -35,16 +35,13 @@ fi
 # This function should be called anytime this script returns control to the
 # caller.
 ################################################################################
-function cleanup()
+function cleanup_gc()
 {
-   [ -f .load_matching_env_loc ] && rm -f .load_matching_env_loc 2>/dev/null
-   [ -f .ci_mode ] && rm -f .ci_mode 2>/dev/null
-   [ ! -z ${env_file} ] && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
    [ -f .bash_cmake_flags_from_gen_config ] && rm -f .bash_cmake_flags_from_gen_config 2>/dev/null
    [ -f ${script_dir}/.pwd ] && rm -f ${script_dir}/.pwd 2>/dev/null
 
-   unset python_too_old script_dir ci_mode cleanup env_file gen_config_py_call_args
-   unset path_to_src load_env_call_args cmake_call full_load_env_args
+   unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
+   unset gc_working_dir path_to_src load_env_call_args cmake_call full_load_env_args
    return 0
 }
 
@@ -57,9 +54,11 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 if [ $# -eq 0 ]; then
   cd ${script_dir} >/dev/null; python3 -E -s -m gen_config --help; cd - >/dev/null
-  # cleanup; return 1
+  # cleanup_gc; return 1
   return 1
 fi
+
+#### BEGIN configuration ####
 
 # Get proper call args to pass to GenConfig python module. This DOES NOT include
 # the /path/to/src that is specified as the last positional argument when
@@ -97,58 +96,55 @@ else
   gen_config_py_call_args=$@
 fi
 
+
 # Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
 cd ${script_dir} >/dev/null
 python3 -E -s -m gen_config $gen_config_py_call_args --save-load-env-args .load_env_args
+if [[ $? -ne 0 ]]; then
+  cleanup_gc; return $?
+fi
 load_env_call_args=$(cat .load_env_args)
-rm .load_env_args
+rm -f .load_env_args 2>/dev/null
 cd - >/dev/null
 
 
-#### BEGIN environment setup ####
-echo "********************************************************************************"
-echo "                B E G I N  L O A D I N G  E N V I R O N M E N T"
-echo "********************************************************************************"
-
-if [ ! -z $LOAD_ENV_INTERACTIVE_MODE ]; then
-  echo "* Environment already loaded in interactive mode. Skipping..."
-else
-  # Need to save this to a file since LoadEnv will overwrite cd history (can't do `cd -` afterwards)
-  pwd > ${script_dir}/.pwd
-
-  full_load_env_args="--ci-mode $load_env_call_args"
-  echo "*** Running LoadEnv Command: ***"
-  echo -e "\$ source ${script_dir}/load-env.sh \\ \n    $(echo $full_load_env_args | sed 's/ / \\ \\n    /g')\n"
-  cd ${script_dir} >/dev/null
-  source ${script_dir}/load-env.sh "$full_load_env_args"
-  cd $(cat .pwd) >/dev/null
-fi
-#### END environment setup ####
-
-
-
-#### BEGIN configuration ####
-echo -e "\n\n********************************************************************************"
-echo "                      B E G I N  C O N F I G U R A T I O N"
-echo "********************************************************************************"
-
-# Get the location to the Python script.
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
-
-if [[ -f .bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
-  echo
-  echo "*** Running CMake Command: ***"
-  cmake_args="$(cat .bash_cmake_flags_from_gen_config) \\ \n    $path_to_src"
-
-  # Print cmake call
-  echo -e "\$ cmake $cmake_args"
-  echo
-
-  # Execute cmake call
-  cmake $cmake_args
+if [[ $? -ne 0 ]]; then
+  cleanup_gc; return $?
 fi
 
-[ -f .bash_cmake_flags_from_gen_config ] && rm -f .bash_cmake_flags_from_gen_config 2>/dev/null
-[ -f ${script_dir}/.pwd ] && rm -f ${script_dir}/.pwd 2>/dev/null
+# Export these for load-env.sh
+export gc_working_dir=$PWD
+export path_to_src
+export gc_working_dir
+export cmake_args
+
+function gen_config_helper()
+{
+    echo -e "\n\n********************************************************************************"
+    echo "                      B E G I N  C O N F I G U R A T I O N"
+    echo "********************************************************************************"
+
+    sleep 2s
+
+    if [[ -f $gc_working_dir/.bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
+	echo
+	echo "*** Running CMake Command: ***"
+	cmake_args="$(cat $gc_working_dir/.bash_cmake_flags_from_gen_config) \\ \n    $path_to_src"
+
+	# Print cmake call
+	echo -e "\$ cmake $cmake_args"
+	echo
+
+	sleep 2s
+
+	# Execute cmake call
+	cmake $cmake_args
+    fi
+}
+declare -x -f gen_config_helper
+
+source ${script_dir}/load-env.sh ${load_env_call_args}
+#### END configuration ####
+
+cleanup_gc
