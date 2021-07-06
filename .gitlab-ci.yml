@@ -1,3 +1,9 @@
+#
+#
+# Useful Links:
+# - CI/CD Lint : https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced/-/ci/lint
+# - Gitlab YAML: https://docs.gitlab.com/ee/ci/yaml/
+
 stages:
   - prepare
   - test
@@ -34,14 +40,10 @@ install_requirements:
     # Pull required packages
     - python3 -m pip install -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
 
-    # Get ConfigParserEnhanced
-    # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
-    #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
-    #- python3 -m pip uninstall -y configparserenhanced
-    #- python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
-    # Methods that work on the command line but not in CI.
-    # - python3 -m pip install --user -r requirements.txt
-
+  cache:
+    key: venv
+    paths:
+    - venv-clean-python/
 
 
 unit_tests:
@@ -57,6 +59,7 @@ unit_tests:
     paths:
       - tests/htmlcov/
 
+
 build_dist:
   stage: deploy
   script:
@@ -71,12 +74,17 @@ build_dist:
 
 install:
   stage: deploy
+  dependencies:
+  - install_requirements
   script:
     - python3 -m pip install .
 
 
 examples:
   stage: examples
+  dependencies:
+  - install_requirements
+  - install
   timeout: 10m
   script:
     - cd examples
