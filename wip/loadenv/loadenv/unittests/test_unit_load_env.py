@@ -14,7 +14,7 @@ from loadenv import LoadEnv
 
 
 @pytest.mark.parametrize("system_name", ["machine-type-1", "test-system"])
-def test_list_envs(system_name):
+def test_list_envs(system_name, capsys):
     le = LoadEnv(
         [
             "--supported-systems",
@@ -28,7 +28,7 @@ def test_list_envs(system_name):
         )
     with pytest.raises(SystemExit) as excinfo:
         le.list_envs()
-    exc_msg = excinfo.value.args[0]
+    exc_msg, stderr = capsys.readouterr();
     if system_name == "machine-type-1":
         for line in [
             "Supported Environments for 'machine-type-1':",

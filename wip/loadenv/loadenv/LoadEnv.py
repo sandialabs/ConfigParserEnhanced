@@ -165,11 +165,9 @@ class LoadEnv(FormattedMsg):
         if self.env_keyword_parser is None:
             self.load_env_keyword_parser()
 
-        sys.exit(
-            self.env_keyword_parser.get_msg_showing_supported_environments(
-                "Please select one of the following.", kind="INFO"
-                )
-            )
+        print(self.env_keyword_parser.get_msg_showing_supported_environments(
+                "Please select one of the following.", kind="INFO"))
+        sys.exit()
         return
 
 
@@ -346,7 +344,7 @@ class LoadEnv(FormattedMsg):
                 you can find out what environments are supported through the `--force`
                 option:
 
-                    $ source load-env.sh --force <system_type>
+                    $ source load-env.sh --list-envs --force <system_type>
 
                 where <system_type> is one of the section headers in `supported-envs.ini`,
                 such as "rhel7".
