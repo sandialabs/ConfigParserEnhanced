@@ -167,7 +167,7 @@ publish coverage:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   cache:
     <<: *global_cache
-    policy: pull-push
+    policy: pull
   script:
     #- python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/coverage
