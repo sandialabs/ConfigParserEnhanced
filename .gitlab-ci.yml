@@ -4,6 +4,16 @@
 # - CI/CD Lint : https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced/-/ci/lint
 # - Gitlab YAML: https://docs.gitlab.com/ee/ci/yaml/
 
+
+# Set up a global cache to pass info across stages
+cache: &global_cache
+  key: "${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHORT_SHA}"
+  paths:
+    - tests/htmlcov/
+    - venv-clean-python/
+
+
+# Set up pipeline stages
 stages:
   - prepare
   - test
@@ -14,6 +24,7 @@ stages:
   - cleanup
 
 
+# Script to run before every job
 before_script:
   - |-
     export LSB_RELEASE=$(which lsb_release)
@@ -32,6 +43,7 @@ before_script:
     echo "-----"
 
 
+# Script to run after every job
 after_script:
   - |-
     if [ ! -z ${VIRTUAL_ENV} ]; then
@@ -39,45 +51,56 @@ after_script:
     fi
 
 
+# Create venv, install requirements, save cache
 install_requirements:
   stage: prepare
-  artifacts:
-    untracked: true
+  timeout: 10m
+  #artifacts:
+  #  untracked: true
   before_script:
     - python3 -m venv venv-clean-python
   script:
+    #- echo "CI_COMMIT_REF_SLUG = ${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHORT_SHA}"
     - source venv-clean-python/bin/activate
 
     # Remove configparserenhanced if it's been installed
     - python3 -m pip uninstall -y configparserenhanced
 
     # Pull required packages
-    - python3 -m pip install -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
+    - python3 -m pip install wheel -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
+  cache:
+    <<: *global_cache
+    policy: push
+    when: on_success
 
-  #cache:
-  #  key: venv
-  #  paths:
-  #  - venv-clean-python/
 
-
+# Execute unit tests
 unit_tests:
   stage: test
-  timeout: 10m
-  dependencies:
-  - install_requirements
+  timeout: 5m
+  #dependencies:
+  #- install_requirements
   script:
     - python3 -m pytest --cov=configparserenhanced  --cov-report=term --cov-report=html --cov-config=.coveragerc
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   cache:
-    key: coverage-data
-    paths:
-      - tests/htmlcov/
+    <<: *global_cache
+    policy: pull-push
 
 
+# Test distribution building
 build_dist:
   stage: deploy
+  timeout: 5m
+  #cache:
+  #  key: venv
+  #  paths:
+  #  - venv-clean-python/
+  cache:
+    <<: *global_cache
+    policy: pull
   script:
-    - python3 -m pip install wheel
+    #- python3 -m pip install wheel
     - python3 -m pip wheel --no-deps -w dist .
   artifacts:
     name: "configparserenhanced-dist"
@@ -86,57 +109,85 @@ build_dist:
     expire_in: 6 weeks
 
 
+# Test installation of package
 install:
   stage: deploy
-  dependencies:
-  - install_requirements
+  timeout: 5m
+  #dependencies:
+  #- install_requirements
   artifacts:
     untracked: true
+  #cache:
+  #  key: venv
+  #  paths:
+  #  - venv-clean-python/
+  cache:
+    <<: *global_cache
+    policy: pull-push
   script:
     - python3 -m pip install .
 
 
-
+# Test example(s)
 examples:
   stage: examples
-  dependencies:
-  - install_requirements
-  - install
-  timeout: 10m
+  #dependencies:
+  #- install_requirements
+  #- install
+  timeout: 5m
+  #cache:
+  #  key: venv
+  #  paths:
+  #  - venv-clean-python/
+  cache:
+    <<: *global_cache
+    policy: pull
   script:
     - cd examples
     - python3 ./ConfigParserEnhanced-example-01.py
 
 
+# Generate documentation
 sphinx-documentation:
   stage: documentation
-  timeout: 10m
+  timeout: 5m
+  cache:
+    <<: *global_cache
+    policy: pull-push
   script:
     - cd doc/
     - bash make_html_docs.sh
 
 
+# Publish coverage data (if on main branch)
 publish coverage:
   stage: publish
-  timeout: 10m
+  timeout: 5m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  cache:
+    <<: *global_cache
+    policy: pull-push
   script:
     #- python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mv tests/htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
-  cache:
-    key: coverage-data
-    paths:
-      - tests/htmlcov/
+  #cache:
+  #  key: coverage-data
+  #  paths:
+  #    - tests/htmlcov/
 
 
+# Publish documentation (if on main branch)
 publish docs:
   stage: publish
-  timeout: 10m
+  timeout: 5m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  cache:
+    <<: *global_cache
+    policy: pull
   script:
     - cd doc/
     # - python3 -m pip install -r requirements.txt
@@ -146,16 +197,25 @@ publish docs:
     - mv html/* /home/josbrau/html_files/ConfigParserEnhanced/doc/
 
 
+# Test uninstall from venv works
 uninstall:
   stage: cleanup
-  timeout: 10m
-  dependencies:
-  - install
+  timeout: 5m
+  #dependencies:
+  #- install
+  #cache:
+  #  key: venv
+  #  paths:
+  #  - venv-clean-python/
+  cache:
+    <<: *global_cache
+    policy: pull-push
   script:
     - python3 -m pip uninstall -y configparserenhanced
 
     # - python3 -m pip uninstall -y -r requirements.txt
     # >>> In a virtual environment, this won't work if there are no entries in
     # >>> the requirements.txt file.
+
 
 
