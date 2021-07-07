@@ -67,12 +67,12 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
-  cd ${script_dir} >/dev/null; python3 -E -s -m loadenv --help; cd - >/dev/null
+  python3 -E -s ${script_dir}/loadenv/LoadEnv.py --help
   cleanup; return 1
 fi
 
 # Pass the input on to LoadEnv.py to do the real work.
-cd ${script_dir} >/dev/null; python3 -E -s -m loadenv $@; cd - >/dev/null
+  python3 -E -s ${script_dir}/loadenv/LoadEnv.py $@
 if [[ $? -ne 0 ]]; then
   cleanup; return $?
 fi
