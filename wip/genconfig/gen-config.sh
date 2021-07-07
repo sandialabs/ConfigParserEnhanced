@@ -52,6 +52,7 @@ function cleanup_gc()
 # Get the location to the Python script.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
+# If no command line args were provided, show the --help
 if [ $# -eq 0 ]; then
   cd ${script_dir} >/dev/null; python3 -E -s -m gen_config --help; cd - >/dev/null
   # cleanup_gc; return 1
@@ -66,17 +67,18 @@ fi
 #
 # $ source gen_config.sh \
 #     --cmake-fragment foo.cmake \  <-|-- gen_config_py_call_args=$@
-#     build_name_here               <-|                (all args)
+#     build_name_here               <-|                           (all args)
 #
 # $ source gen_config.sh \
 #     build_name_here \      <-|-- gen_config_py_call_args=${@: 1:$(expr $# - 1)}
-#     --force \              <-|                (all but last)
+#     --force \              <-|                           (all but last arg)
 #     /path/to/src
 #
 
+# If the last command line argument is a directory...
 if [ -d ${@: -1} ]; then
-    gen_config_py_call_args=${@: 1:$(expr $# - 1)}
-    path_to_src=${@: -1}
+    gen_config_py_call_args=${@: 1:$(expr $# - 1)}  # All but last arg (/path/to/src)
+    path_to_src=${@: -1}  # Last arg
 else
     if [[ $@ != *"--cmake-fragment"* ]]; then
 	echo "+==============================================================================+"
