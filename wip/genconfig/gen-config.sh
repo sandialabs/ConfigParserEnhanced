@@ -4,23 +4,23 @@
 
 # Ensure that this script is sourced.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]] ; then
-  echo "This script must be sourced."
-  exit 1
+    echo "This script must be sourced."
+    exit 1
 fi
 
 # Ensure python3 is in PATH and that the version is high enough.
 if [[ ! -z $(which python3 2>/dev/null) ]]; then
-  python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
+    python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
 else
-  echo "This script requires Python 3.6+."
-  echo "Please load Python 3.6+ into your path."
-  unset python_too_old; return 1
+    echo "This script requires Python 3.6+."
+    echo "Please load Python 3.6+ into your path."
+    unset python_too_old; return 1
 fi
 
 if [[ "${python_too_old}" == "True" ]]; then
-  echo "This script requires Python 3.6+."
-  echo "Your current python3 is only $(python3 --version)."
-  unset python_too_old; return 1
+    echo "This script requires Python 3.6+."
+    echo "Your current python3 is only $(python3 --version)."
+    unset python_too_old; return 1
 fi
 
 #### END runnable checks ####
@@ -37,12 +37,12 @@ fi
 ################################################################################
 function cleanup_gc()
 {
-   [ -f .bash_cmake_flags_from_gen_config ] && rm -f .bash_cmake_flags_from_gen_config 2>/dev/null
-   [ -f ${script_dir}/.pwd ] && rm -f ${script_dir}/.pwd 2>/dev/null
-
-   unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
-   unset gc_working_dir path_to_src load_env_call_args cmake_call full_load_env_args
-   return 0
+    [ -f .bash_cmake_flags_from_gen_config ] && rm -f .bash_cmake_flags_from_gen_config 2>/dev/null
+    [ -f ${script_dir}/.pwd ] && rm -f ${script_dir}/.pwd 2>/dev/null
+ 
+    unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
+    unset gc_working_dir path_to_src load_env_call_args cmake_call full_load_env_args
+    return 0
 }
 
 #### END helper functions ####
@@ -54,9 +54,9 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # If no command line args were provided, show the --help
 if [ $# -eq 0 ]; then
-  cd ${script_dir} >/dev/null; python3 -E -s -m gen_config --help; cd - >/dev/null
-  # cleanup_gc; return 1
-  return 1
+    cd ${script_dir} >/dev/null; python3 -E -s -m gen_config --help; cd - >/dev/null
+    # cleanup_gc; return 1
+    return 1
 fi
 
 #### BEGIN configuration ####
@@ -81,21 +81,21 @@ if [ -d ${@: -1} ]; then
     path_to_src=${@: -1}  # Last arg
 else
     if [[ $@ != *"--cmake-fragment"* ]]; then
-	echo "+==============================================================================+"
-	echo "|   ERROR:  A valid path to source was not specified as the last positional"
-	echo "|           argument. Please correct this like:"
-	echo "|"
-	echo "|           $ source gen-config.sh \\"
-	while [[ $# -gt 0 ]]; do
-	    echo "|               $1 \\"
-	    shift
-	done
-	echo "|               /path/to/src"
-	echo "|"
-	echo "+==============================================================================+"
-	cleanup_gc; return 1
+        echo "+==============================================================================+"
+        echo "|   ERROR:  A valid path to source was not specified as the last positional"
+        echo "|           argument. Please correct this like:"
+        echo "|"
+        echo "|           $ source gen-config.sh \\"
+        while [[ $# -gt 0 ]]; do
+            echo "|               $1 \\"
+            shift
+        done
+        echo "|               /path/to/src"
+        echo "|"
+        echo "+==============================================================================+"
+        cleanup_gc; return 1
     fi
-
+    
     gen_config_py_call_args=$@
 fi
 
@@ -104,7 +104,7 @@ fi
 cd ${script_dir} >/dev/null
 python3 -E -s -m gen_config $gen_config_py_call_args --save-load-env-args .load_env_args
 if [[ $? -ne 0 ]]; then
-  cleanup_gc; return $?
+    cleanup_gc; return $?
 fi
 load_env_call_args=$(cat .load_env_args)
 rm -f .load_env_args 2>/dev/null
@@ -113,7 +113,7 @@ cd - >/dev/null
 
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
 if [[ $? -ne 0 ]]; then
-  cleanup_gc; return $?
+    cleanup_gc; return $?
 fi
 
 # Export these for load-env.sh
@@ -129,26 +129,26 @@ function gen_config_helper()
     echo -e "\n\n********************************************************************************"
     echo "                      B E G I N  C O N F I G U R A T I O N"
     echo "********************************************************************************"
-
+    
     if [[ -f $gc_working_dir/.bash_cmake_flags_from_gen_config && $path_to_src != "" ]]; then
-	sleep 2s
-
-	echo
-	echo "*** Running CMake Command: ***"
-	cmake_args="$(cat $gc_working_dir/.bash_cmake_flags_from_gen_config)"
-
-	# Print cmake call
-	echo -e "\$ cmake $cmake_args \\ \n    $path_to_src"
-	echo
-
-	sleep 2s
-
-	# Execute cmake call
-	cmake $cmake_args $path_to_src
+        sleep 2s
+        
+        echo
+        echo "*** Running CMake Command: ***"
+        cmake_args="$(cat $gc_working_dir/.bash_cmake_flags_from_gen_config)"
+        
+        # Print cmake call
+        echo -e "\$ cmake $cmake_args \\ \n    $path_to_src"
+        echo
+        
+        sleep 2s
+        
+        # Execute cmake call
+        cmake $cmake_args $path_to_src
     else
-	echo; echo
-	echo "Please run: \"cmake\" with the generated cmake fragment file as input"
-	echo
+        echo; echo
+        echo "Please run: \"cmake\" with the generated cmake fragment file as input"
+        echo
     fi
 }
 declare -x -f gen_config_helper
