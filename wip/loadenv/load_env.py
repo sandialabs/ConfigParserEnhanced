@@ -14,7 +14,7 @@ import textwrap
 import uuid
 
 try:
-    from .EnvKeywordParser import EnvKeywordParser
+    from loadenv.EnvKeywordParser import EnvKeywordParser
 except ImportError:
     from EnvKeywordParser import EnvKeywordParser
 
@@ -86,7 +86,7 @@ class LoadEnv(FormattedMsg):
 
 
     def __init__(
-        self, argv, load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "load-env.ini")
+        self, argv, load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "loadenv/load-env.ini")
         ):
         """
         Note:

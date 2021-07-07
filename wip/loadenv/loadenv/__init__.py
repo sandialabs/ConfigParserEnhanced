@@ -4,5 +4,3 @@
 Init script for the LoadEnv package
 """
 from .version import __version__
-
-from .LoadEnv import LoadEnv

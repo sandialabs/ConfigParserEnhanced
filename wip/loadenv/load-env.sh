@@ -5,17 +5,17 @@
 
 # Ensure that this script is sourced.
 if [ "${BASH_SOURCE[0]}" == "${0}" ] ; then
-  echo "This script must be sourced."
-  exit 1
+    echo "This script must be sourced."
+    exit 1
 fi
 
 if [ ! -z $LOAD_ENV_INTERACTIVE_MODE ]; then
-  echo "+==============================================================================+"
-  echo "|   ERROR:  An environment is already loaded."
-  echo "|           Type \"exit\" before loading another environment."
-  echo "+==============================================================================+"
-
-  return 1
+    echo "+==============================================================================+"
+    echo "|   ERROR:  An environment is already loaded."
+    echo "|           Type \"exit\" before loading another environment."
+    echo "+==============================================================================+"
+  
+    return 1
 fi
 
 #### END runnable checks ####
@@ -32,13 +32,12 @@ fi
 ################################################################################
 function cleanup()
 {
-   [ -f ${script_dir}/.load_matching_env_loc ] && rm -f ${script_dir}/.load_matching_env_loc 2>/dev/null || true
-   [ -f ${script_dir}/.ci_mode ] && rm -f ${script_dir}/.ci_mode 2>/dev/null || true
-   [ ! -z ${env_file} ]          && rm -f ${env_file} 2>/dev/null || true; rm -f ${env_file::-2}rc 2>/dev/null || true
+    [ -f ${script_dir}/.load_matching_env_loc ] && rm -f ${script_dir}/.load_matching_env_loc 2>/dev/null
+    [ -f .ci_mode ] && rm -f .ci_mode 2>/dev/null
+    [ ! -z ${env_file} ]          && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
 
-   unset python_too_old script_dir ci_mode cleanup env_file || true
-
-   return 0
+    unset python_too_old script_dir ci_mode cleanup env_file
+    return 0
 }
 
 #### END helper functions ####
@@ -49,17 +48,17 @@ function cleanup()
 
 # Ensure python3 is in PATH and that the version is high enough.
 if [[ ! -z $(which python3 2>/dev/null) ]]; then
-  python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
+    python_too_old=$(python3 -c 'import sys; print(sys.version_info < (3, 6))')
 else
-  echo "This script requires Python 3.6+."
-  echo "Please load Python 3.6+ into your path."
-  cleanup; return 1
+    echo "This script requires Python 3.6+."
+    echo "Please load Python 3.6+ into your path."
+    cleanup; return 1
 fi
 
 if [[ "${python_too_old}" == "True" ]]; then
-  echo "This script requires Python 3.6+."
-  echo "Your current python3 is only $(python3 --version)."
-  cleanup; return 1
+    echo "This script requires Python 3.6+."
+    echo "Your current python3 is only $(python3 --version)."
+    cleanup; return 1
 fi
 
 # Get the location to the Python script.
@@ -67,14 +66,14 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # Ensure that an argument is supplied.
 if [ $# -eq 0 ]; then
-  python3 -E -s ${script_dir}/loadenv/LoadEnv.py --help
-  cleanup; return 1
+    python3 -E -s ${script_dir}/load_env.py --help
+    cleanup; return 1
 fi
 
 # Pass the input on to LoadEnv.py to do the real work.
-  python3 -E -s ${script_dir}/loadenv/LoadEnv.py $@
+python3 -E -s ${script_dir}/load_env.py $@
 if [[ $? -ne 0 ]]; then
-  cleanup; return $?
+    cleanup; return $?
 fi
 
 # Check for Continuous Integration mode.
@@ -89,36 +88,34 @@ fi
 
 # Source the generated script to pull the environment into the current shell.
 if [ -f ${script_dir}/.load_matching_env_loc ]; then
-  env_file=$(cat ${script_dir}/.load_matching_env_loc)
-
-  if [ -f ${env_file} ]; then
-    echo "source ${env_file}"                                                                          > ${env_file::-2}rc
-    echo "echo; echo; echo"                                                                           >> ${env_file::-2}rc
-    echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-    echo "echo \"           E N V I R O N M E N T  L O A D E D  S U C E S S F U L L Y\""              >> ${env_file::-2}rc
-    echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-
-    # Enter subshell and set prompt by default
-    if [[ $ci_mode -eq 0 ]]; then
-      echo "echo; echo; echo"                                                                           >> ${env_file::-2}rc
-      echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-      echo "echo \"          T Y P E  \"exit\"  T O  L E A V E  T H E  E N V I R O N M E N T\""         >> ${env_file::-2}rc
-      echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-      echo "export PS1=\"(\$LOADED_ENV_NAME) $ \""                                                      >> ${env_file::-2}rc
-      echo "export LOAD_ENV_INTERACTIVE_MODE=\"True\""                                                  >> ${env_file::-2}rc
-      echo "declare -f -F gen_config_helper >/dev/null && [ \$? -eq 0 ] && gen_config_helper || true"   >> ${env_file::-2}rc
-      /bin/bash --init-file ${env_file::-2}rc -i
+    env_file=$(cat ${script_dir}/.load_matching_env_loc)
+  
+    if [ -f ${env_file} ]; then
+        echo "source ${env_file}"                                                                          > ${env_file::-2}rc
+        echo "echo; echo; echo"                                                                           >> ${env_file::-2}rc
+        echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
+        echo "echo \"           E N V I R O N M E N T  L O A D E D  S U C E S S F U L L Y\""              >> ${env_file::-2}rc
+        echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
+  
+        # Enter subshell and set prompt by default
+        if [[ $ci_mode -eq 0 ]]; then
+            echo "echo; echo; echo"                                                                           >> ${env_file::-2}rc
+            echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
+            echo "echo \"          T Y P E  \"exit\"  T O  L E A V E  T H E  E N V I R O N M E N T\""         >> ${env_file::-2}rc
+            echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
+            echo "export PS1=\"(\$LOADED_ENV_NAME) $ \""                                                      >> ${env_file::-2}rc
+            echo "export LOAD_ENV_INTERACTIVE_MODE=\"True\""                                                  >> ${env_file::-2}rc
+            /bin/bash --init-file ${env_file::-2}rc -i
+        else
+            # Intentionally do no invoke cleanup() if this exits such that artifacts in /tmp/$USER are preserved.
+            source ${env_file::-2}rc
+        fi
+  
     else
-      # Intentionally do no invoke cleanup() if this exits such that artifacts in /tmp/$USER are preserved.
-      echo "declare -f -F gen_config_helper >/dev/null && [ \$? -eq 0 ] && gen_config_helper || true"   >> ${env_file::-2}rc
-      source ${env_file::-2}rc
+        echo "load_env.py failed to generate ${env_file}."
+        echo "Unable to load the environment."
+        cleanup; return 1
     fi
-
-  else
-    echo "load_env.py failed to generate ${env_file}."
-    echo "Unable to load the environment."
-    cleanup; return 1
-  fi
 fi
 
 cleanup
