@@ -25,10 +25,6 @@ class KeywordParser(FormattedMsg):
             self.config_filename
         ).configparserenhanceddata
 
-        # Actually parses the sections. Shouldn't be needed in the near future
-        # once the ConfigParserEnhanced bug is addressed.
-        self.config.items()
-
         return self._config
 
     def get_values_for_section_key(self, section, key):
