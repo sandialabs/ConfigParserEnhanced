@@ -54,7 +54,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # If no command line args were provided, show the --help
 if [ $# -eq 0 ]; then
-    cd ${script_dir} >/dev/null; python3 -E -s -m gen_config --help; cd - >/dev/null
+    python3 -E -s ${script_dir}/gen_config.py --help
     # cleanup_gc; return 1
     return 1
 fi
@@ -101,14 +101,12 @@ fi
 
 
 # Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
-cd ${script_dir} >/dev/null
-python3 -E -s -m gen_config $gen_config_py_call_args --save-load-env-args .load_env_args
+python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args --save-load-env-args .load_env_args
 if [[ $? -ne 0 ]]; then
     cleanup_gc; return $?
 fi
 load_env_call_args=$(cat .load_env_args)
 rm -f .load_env_args 2>/dev/null
-cd - >/dev/null
 
 
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
