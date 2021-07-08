@@ -148,7 +148,6 @@ class EnvKeywordParser(KeywordParser):
             aliases += self.get_values_for_section_key(self.system_name, env_name)
 
         self.assert_alias_list_values_are_unique(aliases)
-        self.assert_aliases_not_equal_to_env_names(aliases)
 
         return aliases
 
@@ -180,39 +179,6 @@ class EnvKeywordParser(KeywordParser):
         except AssertionError:
             msg = self.get_msg_for_list(
                 f"Aliases for '{self.system_name}' contains duplicates:", duplicates
-                )
-            sys.exit(msg)
-        return
-
-
-    def assert_aliases_not_equal_to_env_names(self, alias_list):
-        """
-        Ensures we don't run into a situation like::
-
-            [machine-type-1]
-            intel-18.0.5-mpich-7.7.6:
-                intel-18
-                intel
-                default-env
-            intel-19.0.4-mpich-7.7.6:
-                intel-19
-                intel-18.0.5-mpich-7.7.6  # Same as the other environment name!
-
-        Called automatically by :func:`get_aliases`.
-
-        Parameters:
-            alias_list (str): A list of aliases to check for environemnt names.
-
-        Raises:
-            SystemExit:  If the user requests an unsupported version.
-        """
-        duplicates = [_ for _ in alias_list if _ in self.env_names]
-        try:
-            assert duplicates == []
-        except AssertionError:
-            msg = self.get_msg_for_list(
-                f"Alias found for '{self.system_name}' that matches an environment name:",
-                duplicates,
                 )
             sys.exit(msg)
         return
