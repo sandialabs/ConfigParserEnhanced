@@ -32,9 +32,9 @@ fi
 ################################################################################
 function cleanup()
 {
-    [ -f ${script_dir}/.load_matching_env_loc ] && rm -f ${script_dir}/.load_matching_env_loc 2>/dev/null
-    [ -f .ci_mode ] && rm -f .ci_mode 2>/dev/null
-    [ ! -z ${env_file} ]          && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
+    [ -f /tmp/$USER/.load_matching_env_loc ] && rm -f /tmp/$USER/.load_matching_env_loc 2>/dev/null
+    [ -f /tmp/$USER/.ci_mode ] && rm -f /tmp/$USER/.ci_mode 2>/dev/null
+    [ ! -z ${env_file} ] && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
 
     unset python_too_old script_dir ci_mode cleanup env_file
     return 0
@@ -78,7 +78,7 @@ fi
 
 # Check for Continuous Integration mode.
 ci_mode=0
-if [ -f ${script_dir}/.ci_mode ]; then
+if [ -f /tmp/$USER/.ci_mode ]; then
     ci_mode=1
     echo "+==============================================================================+"
     echo "|   WARNING:  ci mode is enabled."
@@ -87,8 +87,8 @@ if [ -f ${script_dir}/.ci_mode ]; then
 fi
 
 # Source the generated script to pull the environment into the current shell.
-if [ -f .load_matching_env_loc ]; then
-    env_file=$(cat .load_matching_env_loc)
+if [ -f /tmp/$USER/.load_matching_env_loc ]; then
+    env_file=$(cat /tmp/$USER/.load_matching_env_loc)
   
     if [ -f ${env_file} ]; then
         echo "source ${env_file}"                                                                          > ${env_file::-2}rc
