@@ -1,3 +1,4 @@
+import getpass
 from pathlib import Path
 import pytest
 import sys
@@ -39,16 +40,16 @@ def test_complete_config_generated_correctly(data):
 @pytest.mark.parametrize("data", [
     {
         "build_name": "machine-type-5_intel-hsw",
-        "expected_flag_str": "-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p"
+        "expected_args_str": "-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p"
     },
     {
         "build_name": "machine-type-5_intel-hsw_sparc",
-        "expected_flag_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
+        "expected_args_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
                      "    -DTPL_ENABLE_MPI:BOOL=ON")
     },
     {
         "build_name": "machine-type-5_intel-hsw_empire_sparc",
-        "expected_flag_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
+        "expected_args_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
                      "    -DTPL_ENABLE_MPI:BOOL=ON \\\n"
                      "    -DTrilinos_ENABLE_Panzer:BOOL=ON")
     },
@@ -64,12 +65,18 @@ def test_bash_cmake_flags_generated_correctly(data):
         data["build_name"]
     ])
 
-    flags_file = Path(".bash_cmake_flags_from_gen_config")
-    assert flags_file.exists()
-    with open(flags_file, "r") as F:
-        bash_cmake_flags = F.read()
+    user = getpass.getuser()
+    loc_file = Path(f"/tmp/{user}/.bash_cmake_args_loc")
+    assert loc_file.exists()
+    with open(loc_file, "r") as F:
+        bash_cmake_args_loc = Path(F.read())
+    with open(bash_cmake_args_loc, "r") as F:
+        bash_cmake_args = F.read()
 
-    assert bash_cmake_flags == data["expected_flag_str"]
+    assert bash_cmake_args == data["expected_args_str"]
+
+    loc_file.unlink()
+    bash_cmake_args_loc.unlink()
 
 
 @pytest.mark.parametrize("data", [
