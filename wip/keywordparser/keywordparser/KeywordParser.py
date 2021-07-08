@@ -175,7 +175,7 @@ class KeywordParser(FormattedMsg):
             assert duplicates == []
         except AssertionError:
             msg = self.get_msg_for_list(
-                f"Value found for '{section}' that matches an key:",
+                f"Value found for '{section}' that matches a key:",
                 duplicates,
                 )
             sys.exit(msg)
