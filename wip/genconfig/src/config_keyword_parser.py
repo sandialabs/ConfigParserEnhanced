@@ -1,5 +1,4 @@
 from keywordparser import KeywordParser
-import re
 import sys
 
 

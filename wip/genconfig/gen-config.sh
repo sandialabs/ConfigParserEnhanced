@@ -44,6 +44,7 @@ function cleanup_gc()
     unset path_to_src load_env_call_args cmake_args_file
     return 0
 }
+trap "cleanup_gc; return 1" SIGHUP SIGINT SIGTERM
 
 #### END helper functions ####
 
@@ -105,7 +106,6 @@ if [[ $? -ne 0 ]]; then
     cleanup_gc; return $?
 fi
 load_env_call_args=$(cat /tmp/$USER/.load_env_args)
-
 
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
 if [[ $? -ne 0 ]]; then
