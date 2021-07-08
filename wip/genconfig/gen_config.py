@@ -85,7 +85,7 @@ class GenConfig(FormattedMsg):
                     response = input(
                         "\n**WARNING** A cmake fragment file containing configuration "
                         "data already exists\nat the location you specified "
-                        f"({self.args.cmake_fragment}).\n"
+                        f"({str(self.args.cmake_fragment)}).\n"
                         "* Would you like to overwrite this file? [y/n] "
                     )
                     while response.lower()[0] not in ["y", "n"]:
@@ -273,7 +273,7 @@ class GenConfig(FormattedMsg):
         for section in ["gen-config", "load-env"]:
             if not self._gen_config_config_data.has_section(section):
                 raise ValueError(self.get_formatted_msg(
-                    f"'{self.gen_config_ini_file}' must contain a "
+                    f"'{str(self.gen_config_ini_file)}' must contain a "
                     f"'{section}' section."
                 ))
 
@@ -288,7 +288,7 @@ class GenConfig(FormattedMsg):
         for section, key in section_keys:
             if not self._gen_config_config_data.has_option(section, key):
                 raise ValueError(self.get_formatted_msg(
-                    f"'{self.gen_config_ini_file}' must contain the "
+                    f"'{str(self.gen_config_ini_file)}' must contain the "
                     f"following in the '{section}' section:",
                     extras=f"  {key} : /path/to/{key}.ini"
                 ))
@@ -296,7 +296,7 @@ class GenConfig(FormattedMsg):
             if value == "" or value is None:
                 raise ValueError(self.get_formatted_msg(
                     f"The path specified for '{key}' in "
-                    f"'{self.gen_config_ini_file}' must be non-empty, e.g.:",
+                    f"'{str(self.gen_config_ini_file)}' must be non-empty, e.g.:",
                     extras=f"  {key} : /path/to/{key}.ini"
                 ))
             else:
@@ -308,7 +308,7 @@ class GenConfig(FormattedMsg):
             if not Path(self._gen_config_config_data[section][key]).exists():
                 raise ValueError(self.get_formatted_msg(
                     f"The file specified for '{key}' in "
-                    f"'{self.gen_config_ini_file}' does not exist:",
+                    f"'{str(self.gen_config_ini_file)}' does not exist:",
                     extras=f"  {key} : "
                     f"{self._gen_config_config_data[section][key]}.ini"
                 ))

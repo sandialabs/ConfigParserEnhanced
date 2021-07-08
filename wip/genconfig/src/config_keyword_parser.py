@@ -141,7 +141,7 @@ class ConfigKeywordParser(KeywordParser):
                         "      option_1\n"
                         "      option_2\n"
                         "\nPlease modify your config file accordingly:\n"
-                        f"  '{self.config_filename}'.")
+                        f"  '{str(self.config_filename)}'.")
             ))
 
         return options, flag_type
@@ -171,7 +171,7 @@ class ConfigKeywordParser(KeywordParser):
             s = "s" if len(duplicates) > 1 else ""
             msg = self.get_msg_for_list(
                 "The following options appear for multiple flags in\n"
-                f"'{self.config_filename}':",
+                f"'{str(self.config_filename)}':",
                 duplicates, extras=f"Please change {these} to be unique "
                 f"for each flag\nin which {it} appear{s}."
             )
@@ -245,6 +245,6 @@ class ConfigKeywordParser(KeywordParser):
                 default = " (default)" if idx == 0 else ""
                 extras += (f"      - {o}{default}\n")
 
-        extras += f"\nSee {self.config_filename} for details."
+        extras += f"\nSee {str(self.config_filename)} for details."
         msg = self.get_formatted_msg(msg, kind=kind, extras=extras)
         return msg
