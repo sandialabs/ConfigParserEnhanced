@@ -4,6 +4,7 @@
 import argparse
 from configparserenhanced import ConfigParserEnhanced
 from contextlib import redirect_stdout
+import getpass
 import io
 from keywordparser import FormattedMsg
 from loadenv import LoadEnv
@@ -15,6 +16,7 @@ from src.config_keyword_parser import ConfigKeywordParser
 import sys
 import textwrap
 from typing import List
+import uuid
 
 
 class GenConfig(FormattedMsg):
@@ -478,14 +480,30 @@ def main(argv):
             F.write(" ".join(gc.load_env_args))
     elif gc.args.cmake_fragment is not None:
         gc.write_cmake_fragment()
-    else:  # Output bash cmake flags...
+    else:  # Output bash cmake args to be used by gen-config.sh...
         #
-        # To be read by gen-config.sh:
-        #   # gen-config.sh
-        #   cmake $(cat .bash_cmake_flags_from_gen_config) /path/to/src
+        # * gen_config.py saves generated cmake args to, i.e.,
+        #     /tmp/$USER/bash_cmake_args_from_gen_config_82dk2h
         #
-        with open(".bash_cmake_flags_from_gen_config", "w") as F:
+        # * gen_config.py saves this location to /tmp/$USER/.bash_cmake_args_file_loc
+        #
+        # * gen-config.sh reads and uses the cmake args in the following manner:
+        #
+        #       # gen-config.sh
+        #       bash_cmake_args_file=$(cat /tmp/$USER/.bash_cmake_args_file_loc)
+        #       cmake $(cat $bash_cmake_args_file) /path/to/src
+        #
+        unique_str = uuid.uuid4().hex[: 8]
+        user = getpass.getuser()
+        bash_cmake_args_file_loc = Path(
+            f"/tmp/{user}/bash_cmake_args_from_gen_config_{unique_str}"
+        ).resolve()
+        with open(bash_cmake_args_file_loc, "w") as F:
             F.write(gc.generated_config_flags_str)
+
+        # Location to the unique file ^^. Used in gen-config.sh.
+        with open(f"/tmp/{user}/.bash_cmake_args_loc", "w") as F:
+            F.write(str(bash_cmake_args_file_loc))
 
 
 if __name__ == "__main__":
