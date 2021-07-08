@@ -90,26 +90,27 @@ fi
 # Source the generated script to pull the environment into the current shell.
 if [ -f /tmp/$USER/.load_matching_env_loc ]; then
     env_file=$(cat /tmp/$USER/.load_matching_env_loc)
+	env_file_rc=${env_file::-2}rc  # Remove .sh ending and replace with .rc
   
     if [ -f ${env_file} ]; then
-        echo "source ${env_file}"                                                                          > ${env_file::-2}rc
-        echo "echo; echo; echo"                                                                           >> ${env_file::-2}rc
-        echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-        echo "echo \"           E N V I R O N M E N T  L O A D E D  S U C E S S F U L L Y\""              >> ${env_file::-2}rc
-        echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
+        echo "source ${env_file}"                                                                          > ${env_file_rc}
+        echo "echo; echo; echo"                                                                           >> ${env_file_rc}
+        echo "echo \"********************************************************************************\""  >> ${env_file_rc}
+        echo "echo \"           E N V I R O N M E N T  L O A D E D  S U C E S S F U L L Y\""              >> ${env_file_rc}
+        echo "echo \"********************************************************************************\""  >> ${env_file_rc}
   
         # Enter subshell and set prompt by default
         if [[ $ci_mode -eq 0 ]]; then
-            echo "echo; echo; echo"                                                                           >> ${env_file::-2}rc
-            echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-            echo "echo \"          T Y P E  \"exit\"  T O  L E A V E  T H E  E N V I R O N M E N T\""         >> ${env_file::-2}rc
-            echo "echo \"********************************************************************************\""  >> ${env_file::-2}rc
-            echo "export PS1=\"(\$LOADED_ENV_NAME) $ \""                                                      >> ${env_file::-2}rc
-            echo "export LOAD_ENV_INTERACTIVE_MODE=\"True\""                                                  >> ${env_file::-2}rc
-            /bin/bash --init-file ${env_file::-2}rc -i
+            echo "echo; echo; echo"                                                                           >> ${env_file_rc}
+            echo "echo \"********************************************************************************\""  >> ${env_file_rc}
+            echo "echo \"          T Y P E  \"exit\"  T O  L E A V E  T H E  E N V I R O N M E N T\""         >> ${env_file_rc}
+            echo "echo \"********************************************************************************\""  >> ${env_file_rc}
+            echo "export PS1=\"(\$LOADED_ENV_NAME) $ \""                                                      >> ${env_file_rc}
+            echo "export LOAD_ENV_INTERACTIVE_MODE=\"True\""                                                  >> ${env_file_rc}
+            /bin/bash --init-file ${env_file_rc} -i
         else
             # Intentionally do no invoke cleanup() if this exits such that artifacts in /tmp/$USER are preserved.
-            source ${env_file::-2}rc
+            source ${env_file_rc}
         fi
   
     else
