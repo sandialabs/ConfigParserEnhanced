@@ -87,8 +87,8 @@ if [ -f ${script_dir}/.ci_mode ]; then
 fi
 
 # Source the generated script to pull the environment into the current shell.
-if [ -f ${script_dir}/.load_matching_env_loc ]; then
-    env_file=$(cat ${script_dir}/.load_matching_env_loc)
+if [ -f .load_matching_env_loc ]; then
+    env_file=$(cat .load_matching_env_loc)
   
     if [ -f ${env_file} ]; then
         echo "source ${env_file}"                                                                          > ${env_file::-2}rc
