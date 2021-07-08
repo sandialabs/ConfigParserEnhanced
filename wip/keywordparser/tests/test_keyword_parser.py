@@ -113,7 +113,7 @@ def test_values_do_not_match_any_keys(bad_value):
             kp.get_values_for_section_key("machine-type-1", key)
     exc_msg = excinfo.value.args[0]
 
-    assert "Value found for 'machine-type-1' that matches an key:" in exc_msg
+    assert "Value found for 'machine-type-1' that matches a key:" in exc_msg
     assert f"- {bad_value}" in exc_msg
 
 
