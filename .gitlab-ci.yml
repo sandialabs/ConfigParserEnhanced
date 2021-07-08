@@ -75,7 +75,7 @@ install_requirements:
 
 
 # Execute unit tests
-unit_tests:
+pytest:
   stage: test
   timeout: 5m
   #dependencies:
