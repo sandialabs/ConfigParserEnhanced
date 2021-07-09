@@ -11,6 +11,7 @@ cache: &global_cache
   paths:
     - tests/htmlcov/
     - venv-clean-python/
+  policy: pull-push
 
 
 # Set up pipeline stages
@@ -59,6 +60,9 @@ install_requirements:
   #  untracked: true
   before_script:
     - python3 -m venv venv-clean-python
+  cache:
+    <<: *global_cache
+    when: on_success
   script:
     #- echo "CI_COMMIT_REF_SLUG = ${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHORT_SHA}"
     - source venv-clean-python/bin/activate
@@ -68,10 +72,7 @@ install_requirements:
 
     # Pull required packages
     - python3 -m pip install wheel -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
-  cache:
-    <<: *global_cache
-    policy: push
-    when: on_success
+
 
 
 # Execute unit tests
@@ -85,7 +86,6 @@ pytest:
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   cache:
     <<: *global_cache
-    policy: pull-push
 
 
 # Test distribution building
@@ -115,15 +115,14 @@ install:
   timeout: 5m
   #dependencies:
   #- install_requirements
-  artifacts:
-    untracked: true
+  #artifacts:
+  #  untracked: true
   #cache:
   #  key: venv
   #  paths:
   #  - venv-clean-python/
   cache:
     <<: *global_cache
-    policy: pull-push
   script:
     - python3 -m pip install .
 
@@ -153,7 +152,6 @@ sphinx-documentation:
   timeout: 5m
   cache:
     <<: *global_cache
-    policy: pull-push
   script:
     - cd doc/
     - bash make_html_docs.sh
@@ -209,7 +207,6 @@ uninstall:
   #  - venv-clean-python/
   cache:
     <<: *global_cache
-    policy: pull-push
   script:
     - python3 -m pip uninstall -y configparserenhanced
 
