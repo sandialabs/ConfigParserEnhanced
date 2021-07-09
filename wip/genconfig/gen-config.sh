@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#### BEGIN runnable checks ####
-
+####### BEGIN runnable checks #######
 # Ensure that this script is sourced.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]] ; then
     echo "This script must be sourced."
@@ -22,13 +21,11 @@ if [[ "${python_too_old}" == "True" ]]; then
     echo "Your current python3 is only $(python3 --version)."
     unset python_too_old; return 1
 fi
-
-#### END runnable checks ####
-
+####### END runnable checks #######
 
 
-#### BEGIN helper functions ####
 
+####### BEGIN helper functions #######
 ################################################################################
 # cleanup function
 #
@@ -37,6 +34,7 @@ fi
 ################################################################################
 function cleanup_gc()
 {
+	echo "Enter cleanup_gc"
 	[ -f /tmp/$USER/.bash_cmake_args_loc ] && rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
 	[ -f /tmp/$USER/.load_env_args ] && rm -f /tmp/$USER/.load_env_args 2>/dev/null
  
@@ -45,8 +43,7 @@ function cleanup_gc()
     return 0
 }
 trap "cleanup_gc; return 1" SIGHUP SIGINT SIGTERM
-
-#### END helper functions ####
+####### END helper functions #######
 
 
 
@@ -59,8 +56,9 @@ if [ $# -eq 0 ]; then
     cleanup_gc; return 1
 fi
 
-#### BEGIN configuration ####
 
+
+####### BEGIN configuration #######
 # Get proper call args to pass to GenConfig python module. This DOES NOT include
 # the /path/to/src that is specified as the last positional argument when
 # --cmake-fragment is not specified. For example:
@@ -100,18 +98,15 @@ else
 fi
 
 
-# Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
-python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args --save-load-env-args /tmp/$USER/.load_env_args
-if [[ $? -ne 0 ]]; then
-    cleanup_gc; return $?
-fi
-load_env_call_args=$(cat /tmp/$USER/.load_env_args)
-
+### Generate the configuration ###
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
 if [[ $? -ne 0 ]]; then
     cleanup_gc; return $?
 fi
+### ========================== ###
 
+
+### Run LoadEnv and CMake ###
 # Export these for load-env.sh
 export cmake_args_file=$(cat /tmp/$USER/.bash_cmake_args_loc)
 export path_to_src
@@ -149,7 +144,17 @@ function gen_config_helper()
 }
 declare -x -f gen_config_helper
 
+# Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
+python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args --save-load-env-args /tmp/$USER/.load_env_args
+if [[ $? -ne 0 ]]; then
+    cleanup_gc; return $?
+fi
+load_env_call_args=$(cat /tmp/$USER/.load_env_args)
+
+# Actually run LoadEnv:
 source ${script_dir}/load-env.sh ${load_env_call_args}
-#### END configuration ####
+### ========================== ###
+
+####### END configuration #######
 
 cleanup_gc
