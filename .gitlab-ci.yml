@@ -79,8 +79,6 @@ install_requirements:
 pytest:
   stage: test
   timeout: 5m
-  #dependencies:
-  #- install_requirements
   script:
     - python3 -m pytest --cov=configparserenhanced  --cov-report=term --cov-report=html --cov-config=.coveragerc
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
@@ -92,15 +90,10 @@ pytest:
 build_dist:
   stage: deploy
   timeout: 5m
-  #cache:
-  #  key: venv
-  #  paths:
-  #  - venv-clean-python/
   cache:
     <<: *global_cache
     policy: pull
   script:
-    #- python3 -m pip install wheel
     - python3 -m pip wheel --no-deps -w dist .
   artifacts:
     name: "configparserenhanced-dist"
@@ -113,14 +106,6 @@ build_dist:
 install:
   stage: deploy
   timeout: 5m
-  #dependencies:
-  #- install_requirements
-  #artifacts:
-  #  untracked: true
-  #cache:
-  #  key: venv
-  #  paths:
-  #  - venv-clean-python/
   cache:
     <<: *global_cache
   script:
@@ -130,14 +115,7 @@ install:
 # Test example(s)
 examples:
   stage: examples
-  #dependencies:
-  #- install_requirements
-  #- install
   timeout: 5m
-  #cache:
-  #  key: venv
-  #  paths:
-  #  - venv-clean-python/
   cache:
     <<: *global_cache
     policy: pull
@@ -167,14 +145,9 @@ publish coverage:
     <<: *global_cache
     policy: pull
   script:
-    #- python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/coverage
     - mv tests/htmlcov/* /home/josbrau/html_files/ConfigParserEnhanced/coverage/
-  #cache:
-  #  key: coverage-data
-  #  paths:
-  #    - tests/htmlcov/
 
 
 # Publish documentation (if on main branch)
@@ -188,7 +161,6 @@ publish docs:
     policy: pull
   script:
     - cd doc/
-    # - python3 -m pip install -r requirements.txt
     - bash make_html_docs.sh
     - rm -rf /home/josbrau/html_files/ConfigParserEnhanced/doc
     - mkdir -p /home/josbrau/html_files/ConfigParserEnhanced/doc
@@ -199,12 +171,6 @@ publish docs:
 uninstall:
   stage: cleanup
   timeout: 5m
-  #dependencies:
-  #- install
-  #cache:
-  #  key: venv
-  #  paths:
-  #  - venv-clean-python/
   cache:
     <<: *global_cache
   script:
