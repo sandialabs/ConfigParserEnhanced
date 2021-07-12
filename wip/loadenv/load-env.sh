@@ -92,11 +92,11 @@ fi
 # Source the generated script to pull the environment into the current shell.
 if [ -f /tmp/$USER/.load_matching_env_loc ]; then
     env_file=$(cat /tmp/$USER/.load_matching_env_loc)
-	env_file_rc=${env_file::-2}rc  # Remove .sh ending and replace with .rc
+    env_file_rc=${env_file::-2}rc  # Remove .sh ending and replace with .rc
 
-	# If load-env.sh is being called via gen-config.sh (from the GenConfig repository), then
-	# the function 'gen_config_helper' should be declared. If it is, run it automatically.
-	run_gen_config_helper_cmd="declare -f -F gen_config_helper >/dev/null && [ \$? -eq 0 ] && gen_config_helper || true"
+    # If load-env.sh is being called via gen-config.sh (from the GenConfig repository), then
+    # the function 'gen_config_helper' should be declared. If it is, run it automatically.
+    run_gen_config_helper_cmd="declare -f -F gen_config_helper >/dev/null && [ \$? -eq 0 ] && gen_config_helper || true"
   
     if [ -f ${env_file} ]; then
         echo "source ${env_file}"                                                                          > ${env_file_rc}
@@ -113,11 +113,11 @@ if [ -f /tmp/$USER/.load_matching_env_loc ]; then
             echo "echo \"********************************************************************************\""  >> ${env_file_rc}
             echo "export PS1=\"(\$LOADED_ENV_NAME) $ \""                                                      >> ${env_file_rc}
             echo "export LOAD_ENV_INTERACTIVE_MODE=\"True\""                                                  >> ${env_file_rc}
-			echo $run_gen_config_helper_cmd                                                                   >> ${env_file_rc}
+            echo $run_gen_config_helper_cmd                                                                   >> ${env_file_rc}
             /bin/bash --init-file ${env_file_rc} -i
         else
             # Intentionally do no invoke cleanup() if this exits such that artifacts in /tmp/$USER are preserved.
-			echo $run_gen_config_helper_cmd >> ${env_file_rc}
+            echo $run_gen_config_helper_cmd >> ${env_file_rc}
             source ${env_file_rc}
         fi
   
