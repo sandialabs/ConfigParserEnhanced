@@ -34,9 +34,8 @@ fi
 ################################################################################
 function cleanup_gc()
 {
-	echo "Enter cleanup_gc"
-	[ -f /tmp/$USER/.bash_cmake_args_loc ] && rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
-	[ -f /tmp/$USER/.load_env_args ] && rm -f /tmp/$USER/.load_env_args 2>/dev/null
+    [ -f /tmp/$USER/.bash_cmake_args_loc ] && rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
+    [ -f /tmp/$USER/.load_env_args ] && rm -f /tmp/$USER/.load_env_args 2>/dev/null
  
     unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
     unset path_to_src load_env_call_args cmake_args_file
@@ -110,8 +109,6 @@ fi
 # Export these for load-env.sh
 export cmake_args_file=$(cat /tmp/$USER/.bash_cmake_args_loc)
 export path_to_src
-export cmake_flags_file
-export cmake_args
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
 # when --ci-mode is enabled, or from within the sub-shell created by load-env.sh.

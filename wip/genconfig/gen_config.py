@@ -87,7 +87,7 @@ class GenConfig(FormattedMsg):
                     response = input(
                         "\n**WARNING** A cmake fragment file containing configuration "
                         "data already exists\nat the location you specified "
-                        f"({str(self.args.cmake_fragment)}).\n"
+                        f"({self.args.cmake_fragment}).\n"
                         "* Would you like to overwrite this file? [y/n] "
                     )
                     while response.lower()[0] not in ["y", "n"]:
@@ -493,8 +493,10 @@ def main(argv):
         #       bash_cmake_args_file=$(cat /tmp/$USER/.bash_cmake_args_file_loc)
         #       cmake $(cat $bash_cmake_args_file) /path/to/src
         #
-        unique_str = uuid.uuid4().hex[: 8]
         user = getpass.getuser()
+        Path(f"/tmp/{user}").mkdir(parents=True, exist_ok=True)
+
+        unique_str = uuid.uuid4().hex[: 8]
         bash_cmake_args_file_loc = Path(
             f"/tmp/{user}/bash_cmake_args_from_gen_config_{unique_str}"
         ).resolve()
