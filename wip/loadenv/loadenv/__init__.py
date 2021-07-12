@@ -4,3 +4,9 @@
 Init script for the LoadEnv package
 """
 from .version import __version__
+
+from pathlib import Path
+import sys
+sys.path.insert(0, Path("..").resolve())
+
+from load_env import LoadEnv
