@@ -37,7 +37,7 @@ sphinx:
   timeout: 20m
   script:
     - cd doc/
-    - python3 -m pip install -U -r requirements.txt
+    - python3 -m pip install -U --user -r requirements.txt
     - bash make_html_docs.sh
 
 publish coverage:
@@ -59,7 +59,7 @@ publish docs:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - cd doc/
-    - python3 -m pip install -U -r requirements.txt
+    - python3 -m pip install -U --user -r requirements.txt
     - bash make_html_docs.sh
     - rm -rf /home/josbrau/html_files/GenConfig/doc
     - mkdir -p /home/josbrau/html_files/GenConfig/doc
