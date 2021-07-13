@@ -36,7 +36,7 @@ function cleanup_gc()
 {
     [ -f /tmp/$USER/.bash_cmake_args_loc ] && rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
     [ -f /tmp/$USER/.load_env_args ] && rm -f /tmp/$USER/.load_env_args 2>/dev/null
- 
+
     unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
     unset path_to_src load_env_call_args cmake_args_file
     return 0
@@ -46,7 +46,8 @@ trap "cleanup_gc; return 1" SIGHUP SIGINT SIGTERM
 
 
 
-# Get the location to the Python script.
+# Get the location to the Python script in a subshell. cd does not change the previous
+# working directory of the caller since this is run in a subshell.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # If no command line args were provided, show the --help
@@ -92,7 +93,7 @@ else
         echo "+==============================================================================+"
         cleanup_gc; return 1
     fi
-    
+
     gen_config_py_call_args=$@
 fi
 
@@ -117,20 +118,20 @@ function gen_config_helper()
     echo -e "\n\n********************************************************************************"
     echo "                      B E G I N  C O N F I G U R A T I O N"
     echo "********************************************************************************"
-    
+
     if [[ -f $cmake_args_file && $path_to_src != "" ]]; then
         sleep 2s
-        
+
         echo
         echo "*** Running CMake Command: ***"
         cmake_args="$(cat $cmake_args_file)"
-        
+
         # Print cmake call
         echo -e "\$ cmake $cmake_args \\ \n    $path_to_src"
         echo
-        
+
         sleep 2s
-        
+
         # Execute cmake call
         cmake $cmake_args $path_to_src
     else
