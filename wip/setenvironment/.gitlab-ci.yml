@@ -120,10 +120,11 @@ examples:
     <<: *global_cache
     policy: pull
   script:
-    - cd examples
-    - python3 ./example-01.py
-    - python3 ./example-02.py
-    - python3 ./example-03.py
+    - python3 ./exec-example-SetEnvironment.py
+    #- cd examples
+    #- python3 ./example-01.py
+    #- python3 ./example-02.py
+    #- python3 ./example-03.py
 
 
 # Generate documentation

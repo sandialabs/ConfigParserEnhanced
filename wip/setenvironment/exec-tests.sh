@@ -53,6 +53,7 @@ if [ -d examples ]; then
     #execute_command_checked "python3 example-03.py >& _test-example-03.log"
     execute_command_checked "popd"
 fi
+execute_command_checked "python3 exec-example-SetEnvironment.py"
 
 
 # Clean up installed package
