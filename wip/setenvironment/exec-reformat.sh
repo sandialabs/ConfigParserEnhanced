@@ -13,6 +13,7 @@ exclude_dirs=(
     __pycache__
     deps
     venv-*
+    src/setenvironment/unittests/files
 )
 
 exclude_opts=()
@@ -21,8 +22,8 @@ for exc in ${exclude_dirs[*]}; do
     exclude_opts+=("${exc}")
 done
 
-execute_command "yapf -vv -i -p -r ${exclude_opts[*]} src/."
-execute_command "yapf -vv -i -p -r ${exclude_opts[*]} examples/."
+execute_command "yapf -vv -i -p -r ${exclude_opts[*]} src"
+execute_command "yapf -vv -i -p -r ${exclude_opts[*]} examples"
 
 printf "${yellow}"
 print_banner "Reformatting - Done"
