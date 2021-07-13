@@ -238,7 +238,7 @@ class ModuleHelperTest(TestCase):
     """
 
     def setUp(self):
-        ModuleHelper.module("use", "setenvironment/unittests/modulefiles")
+        ModuleHelper.module("use", "src/setenvironment/unittests/modulefiles")
         return
 
     @patch('subprocess.run', side_effect=mock_run_status_ok)

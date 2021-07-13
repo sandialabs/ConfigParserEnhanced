@@ -8,7 +8,6 @@ ___*
 *,cover
 htmlcov
 doc/html
-src
 dist
 setenvironment-dist
 *.whl
