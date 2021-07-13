@@ -39,6 +39,25 @@ def find_config_ini(filename="config.ini", rootpath="." ):
 
 
 
+def parse_section(parser, section):
+    data = parser.configparserenhanceddata[section]
+
+    print("\nAction Data")
+    print("===========")
+    pprint(parser.actions[section], width=120)
+
+    # Print the loginfo from the last search
+    print("\nLogInfo")
+    print("=======")
+    handler_list = [ (d['type'], d['name']) for d in parser._loginfo if d['type'] in ['handler-entry','handler-exit']]
+    pprint(handler_list, width=120)
+
+    assert len(parser.actions[section]) > 0
+
+    return data
+
+
+
 def test_setenvironment(filename="config.ini"):
     print("filename    : {}".format(filename))
     print("")
@@ -51,11 +70,9 @@ def test_setenvironment(filename="config.ini"):
     parser.parse_all_sections()
 
     section_name = "CONFIG_A+"      # ENVVARS + USE
-    section_name = "CONFIG_B+"      # MODULES + USE
-    section_name = "CONFIG_A"       # ENVVARS ONLY
-    section_name = "CONFIG_B"       # MODULES ONLY
-    section_name = "ENVVAR_REMOVE_SUBSTR_TEST"
-    section_name = "ENVVAR_FIND_IN_PATH_TEST"
+    #section_name = "CONFIG_B+"      # MODULES + USE
+    #section_name = "CONFIG_A"       # ENVVARS ONLY
+    #section_name = "CONFIG_B"       # MODULES ONLY
 
     parse_section(parser, section_name)
 
@@ -76,41 +93,11 @@ def test_setenvironment(filename="config.ini"):
 
 
 
-def parse_section(parser, section):
-
-    # Test out something that might be experimental
-    experimental(parser, section)
-
-    #data = parser.parse_section(section)
-    data = parser.configparserenhanceddata[section]
-
-    print("\nAction Data")
-    print("===========")
-    pprint(parser.actions[section], width=120)
-
-    # Print the loginfo from the last search
-    print("\nLogInfo")
-    print("=======")
-    #parser._loginfo_print(pretty=True)
-    handler_list = [ (d['type'], d['name']) for d in parser._loginfo if d['type'] in ['handler-entry','handler-exit']]
-    pprint(handler_list, width=120)
-
-    assert len(parser.actions[section]) > 0
-
-    return data
-
-
-
-def experimental(parser, section):
-    return
-
-
-
 def main():
     """
     main app
     """
-    fname_ini = "config_test_setenvironment.ini"
+    fname_ini = "example-01.ini"
     fpath_ini = find_config_ini(filename=fname_ini)
 
     test_setenvironment(filename=fpath_ini)

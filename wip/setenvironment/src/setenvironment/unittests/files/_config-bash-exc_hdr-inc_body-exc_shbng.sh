@@ -8,7 +8,7 @@ envvar_op set BAR foo
 envvar_op remove_substr FOO bar
 envvar_op unset FOO
 module purge
-module use setenvironment/unittests/modulefiles
+module use src/setenvironment/unittests/modulefiles
 module load gcc/4.8.4
 module load boost/1.10.1
 module load gcc/4.8.4

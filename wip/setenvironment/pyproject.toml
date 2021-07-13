@@ -16,7 +16,7 @@ classifiers = [
     'Programming Language :: Python :: 3 :: Only',
 ]
 packages = [
-    { include = 'setenvironment' }
+    { include = 'setenvironment', from = 'src' }
 ]
 include = [ "CHANGELOG.md" ]
 

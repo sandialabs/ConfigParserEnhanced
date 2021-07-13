@@ -13,6 +13,9 @@ dist
 setenvironment-dist
 *.whl
 
+*.bak
+*.log
+
 # python object files
 *.pyo
 *.pyc
