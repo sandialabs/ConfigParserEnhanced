@@ -500,7 +500,7 @@ class SetEnvironment(ConfigParserEnhanced):
         include_body=True,
         include_shebang=True,
         interpreter="bash"
-        ) -> int:
+    ) -> int:
         """Write the actions to an 'executable' file.
 
         Generates an executable script that will execute the actions
@@ -547,14 +547,20 @@ class SetEnvironment(ConfigParserEnhanced):
             return 1
 
         output_file_str = self.generate_actions_script(
-            section, incl_hdr=include_header, incl_body=include_body, incl_shebang=include_shebang, interp=interpreter
-            )
+            section,
+            incl_hdr=include_header,
+            incl_body=include_body,
+            incl_shebang=include_shebang,
+            interp=interpreter
+        )
         with open(filename, "w") as ofp:
             ofp.write(output_file_str)
 
         return 0
 
-    def generate_actions_script(self, section, incl_hdr=True, incl_body=True, incl_shebang=True, interp='bash') -> str:
+    def generate_actions_script(
+        self, section, incl_hdr=True, incl_body=True, incl_shebang=True, interp='bash'
+    ) -> str:
         """Generate a script that will implement the computed list of actions.
 
         Generates a script in the language of the specified interpreter (currently
@@ -606,16 +612,22 @@ class SetEnvironment(ConfigParserEnhanced):
             else:                                                                                   # pragma: no cover (unreachable)
                 self.exception_control_event(
                     "CRITICAL", RuntimeError, "'Unreachable' branch executed, something is broken!"
-                    )
+                )
             output_file_str += "\n\n"
 
         if incl_body:
             if incl_shebang and not incl_hdr:
                 output_file_str += self._gen_shebang_line(interp)
 
-            output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
-            output_file_str += "{}   S E T E N V I R O N M E N T   C O M M A N D S\n".format(output_comment_str)
-            output_file_str += "{} -------------------------------------------------\n".format(output_comment_str)
+            output_file_str += "{} -------------------------------------------------\n".format(
+                output_comment_str
+            )
+            output_file_str += "{}   S E T E N V I R O N M E N T   C O M M A N D S\n".format(
+                output_comment_str
+            )
+            output_file_str += "{} -------------------------------------------------\n".format(
+                output_comment_str
+            )
 
             # kick off a parse of the section.
             if section not in self.actions.keys():
@@ -629,11 +641,15 @@ class SetEnvironment(ConfigParserEnhanced):
 
                 if "envvar" in iaction.keys():
                     action_name = iaction['envvar']
-                    output_file_str += self._gen_actioncmd_envvar(action_op, action_name, action_val, interp=interp)
+                    output_file_str += self._gen_actioncmd_envvar(
+                        action_op, action_name, action_val, interp=interp
+                    )
 
                 elif "module" in iaction.keys():
                     action_name = iaction['module']
-                    output_file_str += self._gen_actioncmd_module(action_op, action_name, action_val, interp=interp)
+                    output_file_str += self._gen_actioncmd_module(
+                        action_op, action_name, action_val, interp=interp
+                    )
                 else:
                     raise ValueError("Unknown action class.")
 
@@ -1445,7 +1461,7 @@ class SetEnvironment(ConfigParserEnhanced):
             'remove_substr',
             'set',
             'set_if_empty'
-            ]
+        ]
 
         arglist = [op]
 
@@ -1455,7 +1471,9 @@ class SetEnvironment(ConfigParserEnhanced):
             arglist += [args[0], args[1]]
 
         else:
-            self.exception_control_event("SERIOUS", ValueError, "Invalid module operation provided: {}".format(op))
+            self.exception_control_event(
+                "SERIOUS", ValueError, "Invalid module operation provided: {}".format(op)
+            )
 
         if interp == "python":
             arglist = ['"' + x + '"' for x in arglist]
@@ -1464,7 +1482,9 @@ class SetEnvironment(ConfigParserEnhanced):
             arglist[2 :] = [x if x != "" and ' ' not in x else '"' + x + '"' for x in arglist[2 :]]
             output = "envvar_op {}".format(" ".join(arglist))
         else:
-            self.exception_control_event("SERIOUS", ValueError, "Invalid interpreter provided: {}".format(interp))
+            self.exception_control_event(
+                "SERIOUS", ValueError, "Invalid interpreter provided: {}".format(interp)
+            )
 
         return output
 
@@ -1563,7 +1583,9 @@ class SetEnvironment(ConfigParserEnhanced):
         elif op == "swap":
             arglist += [args[0], args[1]]
         else:
-            self.exception_control_event("SERIOUS", ValueError, "Invalid module operation provided: {}".format(op))
+            self.exception_control_event(
+                "SERIOUS", ValueError, "Invalid module operation provided: {}".format(op)
+            )
 
         if interp == "python":
             arglist = ['"' + x + '"' for x in arglist]
@@ -1573,7 +1595,9 @@ class SetEnvironment(ConfigParserEnhanced):
             #output += "; if [ $? -ne 0 ]; then exit 1; fi"
             #^^^^^^ (uncomment if we want to exit if the module failed to load)
         else:
-            self.exception_control_event("SERIOUS", ValueError, "Invalid interpreter provided: {}".format(interp))
+            self.exception_control_event(
+                "SERIOUS", ValueError, "Invalid interpreter provided: {}".format(interp)
+            )
 
         return output
 
@@ -1718,7 +1742,7 @@ class SetEnvironment(ConfigParserEnhanced):
             fi
         }
         """
-            )
+        )
         return output
 
     def _gen_script_header_python(self) -> str:
@@ -1752,7 +1776,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
 
         """
-            )
+        )
 
         # Note: We use `inspect` here to pull in the same code that's
         #       used in SetEnvironment itself to reduce technical debt.
@@ -1780,7 +1804,7 @@ class SetEnvironment(ConfigParserEnhanced):
         else:                                                                                   # pragma: no cover (unreachable)
             self.exception_control_event(
                 "CRITICAL", RuntimeError, "'Unreachable' branch executed, something is broken!"
-                )
+            )
         output += "\n"
         return output
 
@@ -1795,7 +1819,7 @@ class SetEnvironment(ConfigParserEnhanced):
         else:                                                                                   # pragma: no cover (unreachable)
             self.exception_control_event(
                 "CRITICAL", RuntimeError, "'Unreachable' branch executed, something is broken!"
-                )
+            )
         return output
 
     def _remove_prefix(self, text, prefix) -> str:
@@ -1827,6 +1851,7 @@ class SetEnvironment(ConfigParserEnhanced):
         if text.startswith(prefix):
             return text[len(prefix):]
         return text
+
 
 
 # EOF
