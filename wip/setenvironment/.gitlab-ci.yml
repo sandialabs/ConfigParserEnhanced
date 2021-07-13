@@ -1,86 +1,187 @@
+#
+#
+# Useful Links:
+# - CI/CD Lint : https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment/-/ci/lint
+# - Gitlab YAML: https://docs.gitlab.com/ee/ci/yaml/
+
+
+# Set up a global cache to pass info across stages
+cache: &global_cache
+  key: "${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHORT_SHA}"
+  paths:
+    - tests/htmlcov/
+    - venv-clean-python/
+  policy: pull-push
+
+
+# Set up pipeline stages
 stages:
+  - prepare
   - test
   - deploy
-  - make_docs
+  - examples
+  - documentation
   - publish
+  - cleanup
 
+
+# Script to run before every job
 before_script:
-  # display centos version
-  - cat /etc/issue
-  # - git config user.email
+  - |-
+    export LSB_RELEASE=$(which lsb_release)
+    if [ -x ${LSB_RELEASE} ]; then
+        ${LSB_RELEASE} -a
+    fi
+  - |-
+    if [ -d "venv-clean-python" ]; then
+        source venv-clean-python/bin/activate
+    else
+        echo "Virtual Environment 'venv-clean-python' was not found"
+        exit 1
+    fi
+    echo "-----"
+    echo "VIRTUAL_ENV = ${VIRTUAL_ENV:?}"
+    echo "-----"
 
-  # Pull required packages
-  - python3 -m pip install pytest pytest-cov
 
-  # Get ConfigParserEnhanced
-  # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
-  #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
-  - python3 -m pip uninstall -y configparserenhanced
-  # make sure this wasn't installed somewhere?
-  - python3 -m pip uninstall -y setenvironment
-  - python3 -m pip install --user git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
-  # Methods that work on the command line but not in CI.
-  # - python3 -m pip install --user -r requirements.txt
+# Script to run after every job
+after_script:
+  - |-
+    if [ ! -z ${VIRTUAL_ENV} ]; then
+        deactivate
+    fi
 
+
+# Create venv, install requirements, save cache
+install_requirements:
+  stage: prepare
+  timeout: 10m
+  #artifacts:
+  #  untracked: true
+  before_script:
+    - python3 -m venv venv-clean-python
+  cache:
+    <<: *global_cache
+    when: on_success
+  script:
+    #- echo "CI_COMMIT_REF_SLUG = ${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHORT_SHA}"
+    - source venv-clean-python/bin/activate
+
+    # Remove setenvironment if it's been installed
+    - python3 -m pip uninstall -y setenvironment
+
+    # Pull required packages
+    - python3 -m pip install wheel -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
+
+
+
+# Execute unit tests
 pytest:
   stage: test
-  timeout: 10m
+  timeout: 5m
   script:
-    #- bash ./exec-reqs-install.sh
     - python3 -m pytest --cov=setenvironment  --cov-report=term --cov-report=html --cov-config=.coveragerc
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+  cache:
+    <<: *global_cache
 
-apptest:
-  stage: test
-  timeout: 10m
-  script:
-    - python3 ./exec-example-SetEnvironment.py
 
-install:
+# Test distribution building
+build_dist:
   stage: deploy
-  needs: [pytest]
+  timeout: 5m
+  cache:
+    <<: *global_cache
+    policy: pull
   script:
-    - python3 -m pip install --user wheel
-    # - python3 -m pip install --user .
-    # - python3 -m pip uninstall -y setenvironment configparserenhanced
-    - python3 -m pip wheel --no-deps -w setenvironment-dist .
+    - python3 -m pip wheel --no-deps -w dist .
   artifacts:
     name: "setenvironment-dist"
     paths:
-      - setenvironment-dist/setenvironment*.whl
-    expire_in: 2 weeks
+      - dist/setenvironment*.whl
+    expire_in: 6 weeks
 
+
+# Test installation of package
+install:
+  stage: deploy
+  timeout: 5m
+  cache:
+    <<: *global_cache
+  script:
+    - python3 -m pip install .
+
+
+# Test example(s)
+examples:
+  stage: examples
+  timeout: 5m
+  cache:
+    <<: *global_cache
+    policy: pull
+  script:
+    - python3 ./exec-example-SetEnvironment.py
+    #- cd examples
+    #- python3 ./example-01.py
+    #- python3 ./example-02.py
+    #- python3 ./example-03.py
+
+
+# Generate documentation
 sphinx-documentation:
-  stage: make_docs
-  timeout: 20m
+  stage: documentation
+  timeout: 5m
+  cache:
+    <<: *global_cache
   script:
     - cd doc/
-    - python3 -m pip install -r requirements.txt
     - bash make_html_docs.sh
 
+
+# Publish coverage data (if on main branch)
 publish coverage:
   stage: publish
-  timeout: 20m
+  timeout: 5m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  cache:
+    <<: *global_cache
+    policy: pull
   script:
-    - python3 -m pytest --cov=setenvironment --cov-report=term --cov-report=html --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/SetEnvironment/coverage
     - mkdir -p /home/josbrau/html_files/SetEnvironment/coverage
     - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironment/coverage/
 
+
+# Publish documentation (if on main branch)
 publish docs:
   stage: publish
-  timeout: 20m
+  timeout: 5m
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  cache:
+    <<: *global_cache
+    policy: pull
   script:
     - cd doc/
-    - python3 -m pip install -r requirements.txt
     - bash make_html_docs.sh
     - rm -rf /home/josbrau/html_files/SetEnvironment/doc
     - mkdir -p /home/josbrau/html_files/SetEnvironment/doc
     - mv html/* /home/josbrau/html_files/SetEnvironment/doc/
+
+
+# Test uninstall from venv works
+uninstall:
+  stage: cleanup
+  timeout: 5m
+  cache:
+    <<: *global_cache
+  script:
+    - python3 -m pip uninstall -y setenvironment
+
+    # - python3 -m pip uninstall -y -r requirements.txt
+    # >>> In a virtual environment, this won't work if there are no entries in
+    # >>> the requirements.txt file.
 
 
 
