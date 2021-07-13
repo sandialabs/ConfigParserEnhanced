@@ -14,7 +14,7 @@ if [ ! -z $LOAD_ENV_INTERACTIVE_MODE ]; then
     echo "|   ERROR:  An environment is already loaded."
     echo "|           Type \"exit\" before loading another environment."
     echo "+==============================================================================+"
-  
+
     return 1
 fi
 
@@ -62,7 +62,8 @@ if [[ "${python_too_old}" == "True" ]]; then
     cleanup; return 1
 fi
 
-# Get the location to the Python script.
+# Get the location to the Python script in a subshell. cd does not change the previous
+# working directory of the caller since this is run in a subshell.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # Ensure that an argument is supplied.
@@ -97,14 +98,14 @@ if [ -f /tmp/$USER/.load_matching_env_loc ]; then
     # If load-env.sh is being called via gen-config.sh (from the GenConfig repository), then
     # the function 'gen_config_helper' should be declared. If it is, run it automatically.
     run_gen_config_helper_cmd="declare -f -F gen_config_helper >/dev/null && [ \$? -eq 0 ] && gen_config_helper || true"
-  
+
     if [ -f ${env_file} ]; then
         echo "source ${env_file}"                                                                          > ${env_file_rc}
         echo "echo; echo; echo"                                                                           >> ${env_file_rc}
         echo "echo \"********************************************************************************\""  >> ${env_file_rc}
         echo "echo \"           E N V I R O N M E N T  L O A D E D  S U C E S S F U L L Y\""              >> ${env_file_rc}
         echo "echo \"********************************************************************************\""  >> ${env_file_rc}
-  
+
         # Enter subshell and set prompt by default
         if [[ $ci_mode -eq 0 ]]; then
             echo "echo; echo; echo"                                                                           >> ${env_file_rc}
@@ -120,7 +121,7 @@ if [ -f /tmp/$USER/.load_matching_env_loc ]; then
             echo $run_gen_config_helper_cmd >> ${env_file_rc}
             source ${env_file_rc}
         fi
-  
+
     else
         echo "load_env.py failed to generate ${env_file}."
         echo "Unable to load the environment."
