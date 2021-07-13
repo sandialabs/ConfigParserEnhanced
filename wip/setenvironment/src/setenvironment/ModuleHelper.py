@@ -216,17 +216,22 @@ except ImportError:          # pragma: cover if not on lmod
                               #           eval `/opt/cray/pe/modules/3.2.11.4/bin/modulecmd bash $*`
                               #       }
 
-                module_func = subprocess.run("type module", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                module_func = subprocess.run(
+                    "type module", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+                )
                 matches = re.findall(r"eval `(\S*) bash.*", module_func.stdout.decode())
                 if len(matches) != 1:
-                    raise RuntimeError("Unable to find path to modulecmd from " "output of bash command: 'type module'")
+                    raise RuntimeError(
+                        "Unable to find path to modulecmd from "
+                        "output of bash command: 'type module'"
+                    )
 
                 modulecmd = matches[0]
                 if shutil.which(modulecmd) is None:
                     raise FileNotFoundError(
                         "Path to modulecmd, found by output of bash command "
                         "'type module', cannot be found by 'which' command."
-                        )
+                    )
             except:
                 raise FileNotFoundError("Unable to find modulecmd")
 

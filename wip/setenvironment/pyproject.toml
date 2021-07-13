@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "setenvironment"
-version = "0.5.1"
+version = "0.6.0"
 description = "Environment configuration helper."
 authors = [
     "William McLendon <wcmclen@sandia.gov>"
@@ -16,7 +16,7 @@ classifiers = [
     'Programming Language :: Python :: 3 :: Only',
 ]
 packages = [
-    { include = 'setenvironment' }
+    { include = 'setenvironment', from = 'src' }
 ]
 include = [ "CHANGELOG.md" ]
 

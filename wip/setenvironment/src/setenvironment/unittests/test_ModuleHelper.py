@@ -323,7 +323,9 @@ class ModuleHelperTest(TestCase):
     @patch('distutils.spawn.find_executable', side_effect=Exception("mock side-effect error"))
     @patch('subprocess.Popen', side_effect=mock_popen_status_mlstatus_error)
     @patch('os.system', side_effect=mock_system_status_error)
-    def test_ModuleHelper_module_load_error_no_modulecmd(self, arg_system, arg_popen, arg_find_executable, arg_run):
+    def test_ModuleHelper_module_load_error_no_modulecmd(
+        self, arg_system, arg_popen, arg_find_executable, arg_run
+    ):
         r = ModuleHelper.module("load", "dummy-gcc/4.8.4")
         print("result = {}".format(r))
         self.assertNotEqual(0, r)
@@ -370,7 +372,9 @@ class ModuleHelperTest(TestCase):
     @patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_raise)
     @patch('shutil.which', side_effect=mock_shutil_which_returns_none)
     @patch('os.getenv', side_effect=mock_getenv_empty)
-    def test_ModuleHelper_modulecmd_not_found(self, arg_getenv, arg_shutil, arg_distutils, arg_popen, arg_run):
+    def test_ModuleHelper_modulecmd_not_found(
+        self, arg_getenv, arg_shutil, arg_distutils, arg_popen, arg_run
+    ):
         """
         Test a failure to find a `modulecmd` binary with the environment
         modules subsystem.

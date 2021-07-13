@@ -282,8 +282,10 @@ class SetEnvironmentTest(TestCase):
         actions_default_actual = parser.actions
         print("Default `actions` property = {}".format(actions_default_actual))
         self.assertEqual(
-            actions_default_actual, actions_default_expected, msg="Default actions property value should be `{}`"
-            )
+            actions_default_actual,
+            actions_default_expected,
+            msg="Default actions property value should be `{}`"
+        )
 
         print("OK")
 
@@ -366,10 +368,10 @@ class SetEnvironmentTest(TestCase):
         actions_expected = [
             {
                 'op': 'module_use', 'module': None, 'value': '/foo/bar/baz'
-                }, {
-                    'op': 'envvar_set', 'envvar': 'BAR', 'value': 'foo'
-                    }
-            ]
+            }, {
+                'op': 'envvar_set', 'envvar': 'BAR', 'value': 'foo'
+            }
+        ]
 
         print("Verify Matching `actions`:")
         print("Expected:")
@@ -664,8 +666,9 @@ class SetEnvironmentTest(TestCase):
         parser.apply(section)
 
         envvar_truth = [
-            ("ENVVAR_PARAM_01", "AAA"), ("ENVVAR_PARAM_02", "BAAAB"), ("ENVVAR_PARAM_03", "AAA -- BAAAB -- ${ADFASF}")
-            ]
+            ("ENVVAR_PARAM_01", "AAA"), ("ENVVAR_PARAM_02", "BAAAB"),
+            ("ENVVAR_PARAM_03", "AAA -- BAAAB -- ${ADFASF}")
+        ]
         for ienvvar_name, ienvvar_val in envvar_truth:
             self.assertTrue(ienvvar_name in os.environ.keys())
             self.assertEqual(ienvvar_val, os.environ[ienvvar_name])
@@ -853,18 +856,18 @@ class SetEnvironmentTest(TestCase):
         actions_expect = [
             {
                 'op': 'envvar_set', 'envvar': 'FOO', 'value': 'bar'
-                }, {
-                    'op': 'envvar_append', 'envvar': 'FOO', 'value': 'baz'
-                    }, {
-                        'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'
-                        }, {
-                            'op': 'envvar_set', 'envvar': 'BAR', 'value': 'foo'
-                            }, {
-                                'op': 'envvar_remove_substr', 'envvar': 'FOO', 'value': 'bar'
-                                }, {
-                                    'op': 'envvar_unset', 'envvar': 'FOO', 'value': None
-                                    }
-            ]
+            }, {
+                'op': 'envvar_append', 'envvar': 'FOO', 'value': 'baz'
+            }, {
+                'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'
+            }, {
+                'op': 'envvar_set', 'envvar': 'BAR', 'value': 'foo'
+            }, {
+                'op': 'envvar_remove_substr', 'envvar': 'FOO', 'value': 'bar'
+            }, {
+                'op': 'envvar_unset', 'envvar': 'FOO', 'value': None
+            }
+        ]
 
         rval_expect_cped = {}
 
@@ -881,12 +884,12 @@ class SetEnvironmentTest(TestCase):
         actions_expect = [
             {
                 'op': 'envvar_set', 'envvar': 'FOO', 'value': 'bar'
-                }, {
-                    'op': 'envvar_append', 'envvar': 'FOO', 'value': 'baz'
-                    }, {
-                        'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'
-                        }
-            ]
+            }, {
+                'op': 'envvar_append', 'envvar': 'FOO', 'value': 'baz'
+            }, {
+                'op': 'envvar_prepend', 'envvar': 'FOO', 'value': 'foo'
+            }
+        ]
 
         rval_expect_cped = {'key1': 'value1'}
 
@@ -974,10 +977,10 @@ class SetEnvironmentTest(TestCase):
                         envvar_op remove_substr FOO bar
                         envvar_op unset FOO
                         """
-            ).strip()
+        ).strip()
         rval_actual = parser.generate_actions_script(
             section, incl_hdr=test_incl_hdr, incl_shebang=False, interp=test_interp
-            )
+        )
         rval_actual = rval_actual.strip()
 
         self.assertEqual(rval_expect, rval_actual)
@@ -1306,8 +1309,13 @@ class SetEnvironmentTest(TestCase):
         self.assertEqual(envvar_bif_expect, envvar_bif_actual)
 
         options = {
-            "prefix": "sie", "section": section, "header": True, "body": True, "shebang": True, "interpreter": "bash"
-            }
+            "prefix": "sie",
+            "section": section,
+            "header": True,
+            "body": True,
+            "shebang": True,
+            "interpreter": "bash"
+        }
         self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
 
         options["interpreter"] = "python"
@@ -1521,8 +1529,13 @@ class SetEnvironmentTest(TestCase):
         self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_05 "ERROR -', script_bash_actual)
 
         options = {
-            "prefix": "ane", "section": section, "header": True, "body": True, "shebang": True, "interpreter": "bash"
-            }
+            "prefix": "ane",
+            "section": section,
+            "header": True,
+            "body": True,
+            "shebang": True,
+            "interpreter": "bash"
+        }
         self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
         print("-----[ TEST END ]------------------------------------------")
 
@@ -1583,7 +1596,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": True,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1591,7 +1604,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": True,
                 "shebang": False
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1599,7 +1612,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": False,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1607,7 +1620,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": False,
                 "shebang": False
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1615,7 +1628,7 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": True,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1623,7 +1636,7 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": True,
                 "shebang": False
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1631,7 +1644,7 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": False,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1639,7 +1652,7 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": False,
                 "shebang": False
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1647,7 +1660,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": True,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1655,7 +1668,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": True,
                 "shebang": False
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1663,7 +1676,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": False,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1671,7 +1684,7 @@ class SetEnvironmentTest(TestCase):
                 "header": True,
                 "body": False,
                 "shebang": False
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1679,7 +1692,7 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": True,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1687,7 +1700,7 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": True,
                 "shebang": False
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1695,7 +1708,7 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": False,
                 "shebang": True
-                },
+            },
             {
                 "prefix": "config",
                 "section": section,
@@ -1703,8 +1716,8 @@ class SetEnvironmentTest(TestCase):
                 "header": False,
                 "body": False,
                 "shebang": False
-                },
-            ]
+            },
+        ]
 
         for options in options_list:
             self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
@@ -1737,7 +1750,9 @@ class SetEnvironmentTest(TestCase):
         print("Warning on bad interpreter")
         parser.exception_control_level = 2
         rval_expect = 1
-        rval_actual = parser.write_actions_to_file("___tmp.txt", section, interpreter="not a valid interpreter")
+        rval_actual = parser.write_actions_to_file(
+            "___tmp.txt", section, interpreter="not a valid interpreter"
+        )
         self.assertEqual(rval_expect, rval_actual)
         print("-----[ TEST END ]------------------------------------------")
 
@@ -1822,15 +1837,18 @@ class SetEnvironmentTest(TestCase):
         envvar_name = "TEST_ENVVAR_NOTFOUND"
         self.assertTrue(envvar_name in os.environ.keys(), "Missing expected envvar: {}".format(envvar_name))
         self.assertTrue(
-            os.environ[envvar_name] == "", "Missing executable {} expected an empty-envvar".format(envvar_name)
-            )
+            os.environ[envvar_name] == "",
+            "Missing executable {} expected an empty-envvar".format(envvar_name)
+        )
         print("-----[ TEST END ]------------------------------------------")
 
         print("-----[ TEST BEGIN ]----------------------------------------")
         print("Test location of app that IS IN PATH:")
         print("- distutils.spawn.find_executable fails")
         print("- shutil.which succeeds")
-        with patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_NotFound):
+        with patch(
+            'distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_NotFound
+        ):
             parser.apply(section)
 
         envvar_name = "TEST_ENVVAR_PATH"
@@ -1842,14 +1860,17 @@ class SetEnvironmentTest(TestCase):
         print("Test location of app that IS NOT IN PATH:")
         print("- distutils.spawn.find_executable fails")
         print("- shutil.which fails")
-        with patch('distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_NotFound):
+        with patch(
+            'distutils.spawn.find_executable', side_effect=mock_distutils_spawn_find_executable_NotFound
+        ):
             parser.apply(section)
 
         envvar_name = "TEST_ENVVAR_NOTFOUND"
         self.assertTrue(envvar_name in os.environ.keys(), "Missing expected envvar: {}".format(envvar_name))
         self.assertTrue(
-            os.environ[envvar_name] == "", "Missing executable {} expected an empty-envvar".format(envvar_name)
-            )
+            os.environ[envvar_name] == "",
+            "Missing executable {} expected an empty-envvar".format(envvar_name)
+        )
         print("-----[ TEST END ]------------------------------------------")
         print("OK")
         return
@@ -1943,7 +1964,7 @@ class SetEnvironmentTest(TestCase):
 
         self.assertListEqual(
             actions_expect, actions_actual_cped, "configparserenhanceddata[] results validation failed."
-            )
+        )
 
         self.assertListEqual(actions_expect, actions_actual_ps, "parse_section() results validation failed.")
 
@@ -2025,7 +2046,7 @@ class SetEnvironmentTest(TestCase):
             include_body=filename_body,
             include_shebang=filename_shebang,
             interpreter=filename_interp
-            )
+        )
 
         if gen_new_ground_truth:
             rval_actual = parser.write_actions_to_file(
@@ -2035,7 +2056,7 @@ class SetEnvironmentTest(TestCase):
                 include_body=filename_body,
                 include_shebang=filename_shebang,
                 interpreter=filename_interp
-                )
+            )
 
         self.assertEqual(rval_expect, rval_actual)
         self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))

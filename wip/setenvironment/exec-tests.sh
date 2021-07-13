@@ -48,12 +48,11 @@ execute_command_checked "python3 -m pip install ${pip_opt_user} . >& _test-insta
 # Check the examples
 if [ -d examples ]; then
     execute_command_checked "pushd examples"
-    #execute_command_checked "python3 example-01.py >& _test-example-01.log"
+    execute_command_checked "python3 example-01.py >& _test-example-01.log"
     #execute_command_checked "python3 example-02.py >& _test-example-02.log"
     #execute_command_checked "python3 example-03.py >& _test-example-03.log"
     execute_command_checked "popd"
 fi
-execute_command_checked "python3 exec-example-SetEnvironment.py"
 
 
 # Clean up installed package

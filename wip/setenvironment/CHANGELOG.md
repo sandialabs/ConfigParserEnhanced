@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
-## [0.5.1] - [Unreleased]
+## [0.6.0] - 2021-07-13
 #### Added
 #### Changed
 #### Deprecated
@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Internal
 - Added `.style.yapf` rules and refactored code to match style.
 - Added _virtual environment_ detection to helper scripts.
+- Refactored the directory structure to put the example
+  into an `examples` directory and to move the source code itself
+  into `src/setenvironment`.
 #### Todo (for Unreleased)
 
 

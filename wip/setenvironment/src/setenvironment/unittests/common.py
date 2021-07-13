@@ -52,7 +52,7 @@ class mock_run_status_ok(object):
         self.stdout = (
             b"module is a function\nmodule () \n{ \n    eval "
             b"`/opt/cray/pe/modules/3.2.11.4/bin/modulecmd bash $*`\n}\n"
-            )
+        )
         self.stderr = stderr
         self.returncode = 0
 
