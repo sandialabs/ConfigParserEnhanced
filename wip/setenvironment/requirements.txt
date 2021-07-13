@@ -1,11 +1,10 @@
+#
+# Main requiremetns for using this project are in this file.
+#
+
 # Core Requirements
-# configparser (should be packaged with Python)
 
-# Unit Testing Requirements
-mock >= 4
-pytest >= 6.2
-pytest-cov >= 2.4
 
-# Sandia Repositories
+# Privately hosted repositories
 configparserenhanced @ git+ssh://git@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
 

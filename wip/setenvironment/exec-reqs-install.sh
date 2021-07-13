@@ -7,15 +7,9 @@
 # Source the common helpers script.
 source scripts/common.bash
 
-
 printf "${yellow}"
 print_banner "INSTALL REQUIRED PACKAGES"
 printf "${normal}"
-
-opt_venv='--user'
-if [ ! -z ${VIRTUAL_ENV} ]; then
-    opt_venv=''
-fi
 
 python_exe="python3"
 
@@ -25,11 +19,12 @@ execute_command "${python_exe:?} --version"
 options=(
     -m pip
     install
-    ${opt_venv}
+    --user
     -r requirements.txt
+    -r requirements-test.txt
     -r doc/requirements.txt
 )
 
 cmd="${python_exe} ${options[@]}"
-execute_command_checked "${cmd}"
+execute_command_checked "${cmd} > _test-reqs-install.log 2>&1"
 
