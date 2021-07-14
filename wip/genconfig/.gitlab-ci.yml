@@ -29,7 +29,7 @@ pytest:
   stage: test
   timeout: 20m
   script:
-    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -s -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 sphinx:
@@ -37,7 +37,7 @@ sphinx:
   timeout: 20m
   script:
     - cd doc/
-    - python3 -m pip install -U --user -r requirements.txt
+    - python3 -s -m pip install -U --user -r requirements.txt
     - bash make_html_docs.sh
 
 publish coverage:
@@ -46,7 +46,7 @@ publish coverage:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -s -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
     - rm -rf /home/josbrau/html_files/GenConfig/coverage
     - mkdir -p /home/josbrau/html_files/GenConfig/coverage
     - mv htmlcov/* /home/josbrau/html_files/GenConfig/coverage/
@@ -59,7 +59,7 @@ publish docs:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - cd doc/
-    - python3 -m pip install -U --user -r requirements.txt
+    - python3 -s -m pip install -U --user -r requirements.txt
     - bash make_html_docs.sh
     - rm -rf /home/josbrau/html_files/GenConfig/doc
     - mkdir -p /home/josbrau/html_files/GenConfig/doc
