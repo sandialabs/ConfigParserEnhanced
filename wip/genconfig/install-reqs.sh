@@ -18,8 +18,7 @@ rm setenvironment > /dev/null 2>&1
 rm configparserenhanced > /dev/null 2>&1
 rm determinesystem > /dev/null 2>&1
 rm keywordparser > /dev/null 2>&1
-rm loadenv > /dev/null 2>&1
-rm load-env.sh > /dev/null 2>&1
+rm LoadEnv > /dev/null 2>&1
 rm setprogramoptions > /dev/null 2>&1
 
 
@@ -27,8 +26,7 @@ ln -s deps/SetEnvironment/src/setenvironment/ .
 ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
 ln -s deps/DetermineSystem/determinesystem/ .
 ln -s deps/KeywordParser/keywordparser/ .
-ln -s deps/LoadEnv/loadenv/ .
-ln -s deps/LoadEnv/load-env.sh .
+ln -s deps/LoadEnv .
 ln -s deps/SetProgramOptions/src/setprogramoptions .
 
 popd

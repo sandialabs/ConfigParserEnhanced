@@ -151,7 +151,7 @@ fi
 load_env_call_args=$(cat /tmp/$USER/.load_env_args)
 
 # Actually run LoadEnv:
-source ${script_dir}/load-env.sh ${load_env_call_args}
+source ${script_dir}/LoadEnv/load-env.sh ${load_env_call_args}
 ### ========================== ###
 
 ####### END configuration #######
