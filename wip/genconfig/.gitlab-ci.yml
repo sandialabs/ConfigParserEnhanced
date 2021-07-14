@@ -22,7 +22,9 @@ before_script:
   - ln -s deps/SetEnvironment/src/setenvironment/ .
   - ln -s deps/DetermineSystem/determinesystem/ .
   - ln -s deps/KeywordParser/keywordparser/ .
-  - ln -s deps/LoadEnv/loadenv/ .
+  - ln -s deps/LoadEnv/loadenv .
+  - ln -s deps/LoadEnv/load-env.sh .
+  - ln -s deps/LoadEnv/load_env.py .
   - ln -s deps/SetProgramOptions/src/setprogramoptions .
 
 pytest:

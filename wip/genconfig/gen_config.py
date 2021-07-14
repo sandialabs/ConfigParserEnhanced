@@ -7,7 +7,7 @@ from contextlib import redirect_stdout
 import getpass
 import io
 from keywordparser import FormattedMsg
-from loadenv import LoadEnv
+from load_env import LoadEnv
 import os
 from pathlib import Path
 import re
