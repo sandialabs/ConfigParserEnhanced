@@ -17,7 +17,7 @@ rm configparserenhanced > /dev/null 2>&1
 rm determinesystem > /dev/null 2>&1
 rm keywordparser > /dev/null 2>&1
 
-ln -s deps/SetEnvironment/setenvironment/ .
+ln -s deps/SetEnvironment/src/setenvironment/ .
 ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
 ln -s deps/DetermineSystem/determinesystem/ .
 ln -s deps/KeywordParser/keywordparser/ .

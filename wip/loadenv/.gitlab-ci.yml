@@ -16,7 +16,7 @@ before_script:
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
   - cd ..
   - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
-  - ln -s deps/SetEnvironment/setenvironment/ .
+  - ln -s deps/SetEnvironment/src/setenvironment/ .
   - ln -s deps/DetermineSystem/determinesystem/ .
   - ln -s deps/KeywordParser/keywordparser/ .
 
@@ -48,7 +48,7 @@ pytest:
     - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
     - cd ..
     - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
-    - ln -s deps/SetEnvironment/setenvironment/ .
+    - ln -s deps/SetEnvironment/src/setenvironment/ .
     - ln -s deps/DetermineSystem/determinesystem/ .
     - ln -s deps/KeywordParser/keywordparser/ .
     - python3 -m pip install --user -U py pytest pytest-cov
