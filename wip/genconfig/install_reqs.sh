@@ -23,7 +23,7 @@ rm load-env.sh > /dev/null 2>&1
 rm setprogramoptions > /dev/null 2>&1
 
 
-ln -s deps/SetEnvironment/setenvironment/ .
+ln -s deps/SetEnvironment/src/setenvironment/ .
 ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
 ln -s deps/DetermineSystem/determinesystem/ .
 ln -s deps/KeywordParser/keywordparser/ .
