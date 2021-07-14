@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 
 import argparse
-from configparserenhanced import ConfigParserEnhanced
-from determinesystem import DetermineSystem
-from keywordparser import FormattedMsg
 import getpass
 import os
 from pathlib import Path
-from setenvironment import SetEnvironment
 import socket
 import sys
 import textwrap
 import uuid
+
+try:  # Packages are snapshotted via install_reqs.sh or these are in Python's site-packages
+    from configparserenhanced import ConfigParserEnhanced
+    from determinesystem import DetermineSystem
+    from keywordparser import FormattedMsg
+    from setenvironment import SetEnvironment
+except ImportError:  # Perhaps LoadEnv was snapshotted and these packages lie up one dir.
+    p = Path(__file__).parents[1]  # One dir up from the path to this file
+    sys.path.insert(0, str(p))
+
+    from configparserenhanced import ConfigParserEnhanced
+    from determinesystem import DetermineSystem
+    from keywordparser import FormattedMsg
+    from setenvironment import SetEnvironment
 
 try:  # CWD is LoadEnv repository root
     from loadenv.EnvKeywordParser import EnvKeywordParser
