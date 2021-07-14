@@ -19,7 +19,7 @@ before_script:
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetProgramOptions.git
   - cd ..
   - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
-  - ln -s deps/SetEnvironment/setenvironment/ .
+  - ln -s deps/SetEnvironment/src/setenvironment/ .
   - ln -s deps/DetermineSystem/determinesystem/ .
   - ln -s deps/KeywordParser/keywordparser/ .
   - ln -s deps/LoadEnv/loadenv/ .
