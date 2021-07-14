@@ -3,8 +3,6 @@ stages:
   - deploy
 
 before_script:
-  - find . -name "*.*,cover" -exec rm {} \;
-  - find . -name "__pycache__" -exec rm -rf {} \
   # display centos version
   - cat /etc/issue
 
@@ -31,7 +29,7 @@ pytest:
   stage: test
   timeout: 20m
   script:
-    - python3 -s -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 sphinx:
