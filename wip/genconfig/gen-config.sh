@@ -39,6 +39,7 @@ function cleanup_gc()
 
     unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
     unset path_to_src load_env_call_args cmake_args_file
+    trap -  SIGHUP SIGINT SIGTERM
     return 0
 }
 trap "cleanup_gc; return 1" SIGHUP SIGINT SIGTERM
