@@ -13,11 +13,13 @@ import sys
 import textwrap
 import uuid
 
-try:
+try:  # CWD is LoadEnv repository root
     from loadenv.EnvKeywordParser import EnvKeywordParser
 except ImportError:
-    from EnvKeywordParser import EnvKeywordParser
-
+    try:  # e.g. LoadEnv repository is snapshotted into the CWD
+        from LoadEnv.loadenv.EnvKeywordParser import EnvKeywordParser
+    except ImportError:  # CWD is LoadEnv/loadenv
+        from EnvKeywordParser import EnvKeywordParser
 
 
 class LoadEnv(FormattedMsg):
