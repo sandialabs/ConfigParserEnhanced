@@ -14,7 +14,7 @@ import textwrap
 import uuid
 
 try:
-    from .EnvKeywordParser import EnvKeywordParser
+    from loadenv.EnvKeywordParser import EnvKeywordParser
 except ImportError:
     from EnvKeywordParser import EnvKeywordParser
 
@@ -86,7 +86,7 @@ class LoadEnv(FormattedMsg):
 
 
     def __init__(
-        self, argv, load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "load-env.ini")
+        self, argv, load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "loadenv/load-env.ini")
         ):
         """
         Note:
@@ -464,13 +464,12 @@ def main(argv):
     print(f"Environment '{le.parsed_env_name}' validated.")
     le.write_load_matching_env()
 
-    cwd = Path.cwd().resolve()
-
-    with open(cwd / ".load_matching_env_loc", "w") as F:
+    user = getpass.getuser()
+    with open(f"/tmp/{user}/.load_matching_env_loc", "w") as F:
         F.write(str(le.tmp_load_matching_env_file))
 
     if le.args.ci_mode:
-        (cwd / ".ci_mode").touch()
+        Path(f"/tmp/{user}/.ci_mode").touch()
 
 
 
