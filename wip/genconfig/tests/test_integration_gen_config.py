@@ -1,3 +1,4 @@
+from configparserenhanced import ConfigParserEnhanced
 import getpass
 from pathlib import Path
 import pytest
@@ -17,6 +18,27 @@ import gen_config
 ###############################################################################
 ########################     Functionality     ################################
 ###############################################################################
+@pytest.mark.parametrize("sys_name", ["machine-type-5", "machine-type-4"])
+def test_list_configs_shows_correct_sections(sys_name):
+    config_specs = ConfigParserEnhanced("test-config-specs.ini").configparserenhanceddata
+    expected_configs = [_ for _ in config_specs.sections() if _.startswith(sys_name)]
+
+    with pytest.raises(SystemExit) as excinfo:
+        gen_config.main([
+            "--config-specs", "test-config-specs.ini",
+            "--supported-config-flags", "test-supported-config-flags.ini",
+            "--supported-systems", "test-supported-systems.ini",
+            "--supported-envs", "test-supported-envs.ini",
+            "--environment-specs", "test-environment-specs.ini",
+            "--list-configs",
+            "--force", sys_name
+        ])
+
+    exc_msg = excinfo.value.args[0]
+    for config in expected_configs:
+        assert f"- {config}" in exc_msg
+
+
 @pytest.mark.parametrize("data", [
     {
         "build_name": "machine-type-5_intel-hsw",
@@ -217,8 +239,6 @@ def run_common_validation_test(test_ini_filename, section_names, should_raise):
 
         exc_msg = excinfo.value.args[0]
         msg_expected = get_expected_exc_msg(section_names, test_ini_filename)
-        print(msg_expected)
-        print(exc_msg)
         assert msg_expected in exc_msg
 
 
