@@ -147,12 +147,11 @@ class GenConfig(FormattedMsg):
         complete_configs = [_ for _ in config_specs.sections()
                             if _.startswith(sys_name)]
 
-        sys.exit(
-            self.get_msg_for_list(
-                "Please select one of the following complete configurations from\n"
-                f"{str(self.args.config_specs_file)}\n\n", complete_configs,
-                kind="INFO", extras="\n")
-        )
+        print(self.get_msg_for_list(
+            "Please select one of the following complete configurations from\n"
+            f"{str(self.args.config_specs_file)}\n\n", complete_configs,
+            kind="INFO", extras="\n"))
+        sys.exit()
 
     @property
     def complete_config(self):
