@@ -125,7 +125,7 @@ function gen_config_helper()
 
         echo
         echo "*** Running CMake Command: ***"
-        cmake_args="$(cat $cmake_args_file)"
+        cmake_args="$(cat $cmake_args_file | envsubst)"
 
         # Print cmake call
         echo -e "\$ cmake $cmake_args \\ \n    $path_to_src"
