@@ -1,23 +1,35 @@
 #!/usr/bin/env python3
 
 import argparse
-from configparserenhanced import ConfigParserEnhanced
-from determinesystem import DetermineSystem
-from keywordparser import FormattedMsg
 import getpass
 import os
 from pathlib import Path
-from setenvironment import SetEnvironment
 import socket
 import sys
 import textwrap
 import uuid
 
-try:
-    from .EnvKeywordParser import EnvKeywordParser
-except ImportError:
-    from EnvKeywordParser import EnvKeywordParser
+try:  # Packages are snapshotted via install_reqs.sh or these are in Python's site-packages
+    from configparserenhanced import ConfigParserEnhanced
+    from determinesystem import DetermineSystem
+    from keywordparser import FormattedMsg
+    from setenvironment import SetEnvironment
+except ImportError:  # Perhaps LoadEnv was snapshotted and these packages lie up one dir.
+    p = Path(__file__).parents[1]  # One dir up from the path to this file
+    sys.path.insert(0, str(p))
 
+    from configparserenhanced import ConfigParserEnhanced
+    from determinesystem import DetermineSystem
+    from keywordparser import FormattedMsg
+    from setenvironment import SetEnvironment
+
+try:  # CWD is LoadEnv repository root
+    from loadenv.EnvKeywordParser import EnvKeywordParser
+except ImportError:
+    try:  # e.g. LoadEnv repository is snapshotted into the CWD
+        from LoadEnv.loadenv.EnvKeywordParser import EnvKeywordParser
+    except ImportError:  # CWD is LoadEnv/loadenv
+        from EnvKeywordParser import EnvKeywordParser
 
 
 class LoadEnv(FormattedMsg):
@@ -86,7 +98,7 @@ class LoadEnv(FormattedMsg):
 
 
     def __init__(
-        self, argv, load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "load-env.ini")
+        self, argv, load_env_ini_file=(Path(os.path.realpath(__file__)).parent / "loadenv/load-env.ini")
         ):
         """
         Note:
@@ -165,11 +177,9 @@ class LoadEnv(FormattedMsg):
         if self.env_keyword_parser is None:
             self.load_env_keyword_parser()
 
-        sys.exit(
-            self.env_keyword_parser.get_msg_showing_supported_environments(
-                "Please select one of the following.", kind="INFO"
-                )
-            )
+        print(self.env_keyword_parser.get_msg_showing_supported_environments(
+                "Please select one of the following.", kind="INFO"))
+        sys.exit()
         return
 
 
@@ -346,7 +356,7 @@ class LoadEnv(FormattedMsg):
                 you can find out what environments are supported through the `--force`
                 option:
 
-                    $ source load-env.sh --force <system_type>
+                    $ source load-env.sh --list-envs --force <system_type>
 
                 where <system_type> is one of the section headers in `supported-envs.ini`,
                 such as "rhel7".
@@ -466,13 +476,12 @@ def main(argv):
     print(f"Environment '{le.parsed_env_name}' validated.")
     le.write_load_matching_env()
 
-    cwd = Path.cwd().resolve()
-
-    with open(cwd / ".load_matching_env_loc", "w") as F:
+    user = getpass.getuser()
+    with open(f"/tmp/{user}/.load_matching_env_loc", "w") as F:
         F.write(str(le.tmp_load_matching_env_file))
 
     if le.args.ci_mode:
-        (cwd / ".ci_mode").touch()
+        Path(f"/tmp/{user}/.ci_mode").touch()
 
 
 

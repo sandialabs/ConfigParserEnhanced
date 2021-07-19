@@ -7,7 +7,7 @@ from unittest.mock import patch
 root_dir = Path.cwd() / ".." if (Path.cwd() / "conftest.py").exists() else Path.cwd()
 
 sys.path.append(str(root_dir))
-from loadenv.LoadEnv import LoadEnv
+from load_env import LoadEnv
 
 
 
