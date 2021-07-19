@@ -19,7 +19,7 @@ import gen_config
 ########################     Functionality     ################################
 ###############################################################################
 @pytest.mark.parametrize("sys_name", ["machine-type-5", "machine-type-4"])
-def test_list_configs_shows_correct_sections(sys_name):
+def test_list_configs_shows_correct_sections(sys_name, capsys):
     config_specs = ConfigParserEnhanced("test-config-specs.ini").configparserenhanceddata
     expected_configs = [_ for _ in config_specs.sections() if _.startswith(sys_name)]
 
@@ -33,8 +33,8 @@ def test_list_configs_shows_correct_sections(sys_name):
             "--list-configs",
             "--force", sys_name
         ])
+    exc_msg, stderr = capsys.readouterr();
 
-    exc_msg = excinfo.value.args[0]
     for config in expected_configs:
         assert f"- {config}" in exc_msg
 
