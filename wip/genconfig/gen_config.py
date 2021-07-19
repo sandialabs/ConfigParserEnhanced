@@ -10,7 +10,6 @@ from keywordparser import FormattedMsg
 from LoadEnv.load_env import LoadEnv
 import os
 from pathlib import Path
-import re
 from setprogramoptions import SetProgramOptionsCMake
 from src.config_keyword_parser import ConfigKeywordParser
 import sys
@@ -127,6 +126,32 @@ class GenConfig(FormattedMsg):
                 kind="INFO"
             )
         )
+
+    def list_configs(self):
+        """
+        List the available complete configuration names from
+        ``config-specs.ini``.
+
+        Raises:
+            SystemExit:  With the message displaying the available complete
+            configs from which to choose.
+        """
+        if self.load_env is None:
+            self.load_load_env()
+
+        sys_name = self.load_env.system_name
+
+        config_specs = ConfigParserEnhanced(
+            self.args.config_specs_file
+        ).configparserenhanceddata
+        complete_configs = [_ for _ in config_specs.sections()
+                            if _.startswith(sys_name)]
+
+        print(self.get_msg_for_list(
+            "Please select one of the following complete configurations from\n"
+            f"{str(self.args.config_specs_file)}\n\n", complete_configs,
+            kind="INFO", extras="\n"))
+        sys.exit()
 
     @property
     def complete_config(self):
@@ -399,7 +424,10 @@ class GenConfig(FormattedMsg):
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to generate the"
                             " configuration flags.")
-        parser.add_argument("-l", "--list-config-flags", action="store_true",
+        parser.add_argument("-l", "--list-configs", action="store_true",
+                            default=False, help="List the available "
+                            "configurations for this system.")
+        parser.add_argument("--list-config-flags", action="store_true",
                             default=False, help="List the available "
                             "configuration flags and options.")
         parser.add_argument("--cmake-fragment", action="store", default=None,
@@ -475,6 +503,8 @@ def main(argv):
     gc = GenConfig(argv)
     if gc.args.list_config_flags:
         gc.list_config_flags()
+    elif gc.args.list_configs:
+        gc.list_configs()
     elif gc.args.save_load_env_args is not None:
         with open(gc.args.save_load_env_args, "w") as F:
             F.write(" ".join(gc.load_env_args))
