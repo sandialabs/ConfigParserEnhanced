@@ -101,7 +101,7 @@ fi
 
 ### Generate the configuration ###
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
-if [[ $? -ne 0 ]]; then
+if [[ $? -ne 0 || ! -f /tmp/$USER/.bash_cmake_args_loc ]]; then
     cleanup_gc; return $?
 fi
 ### ========================== ###
