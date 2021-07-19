@@ -128,13 +128,13 @@ function gen_config_helper()
         cmake_args="$(cat $cmake_args_file | envsubst)"
 
         # Print cmake call
-        echo -e "\$ cmake $cmake_args \\ \n    $path_to_src"
+        echo -e "cmake $cmake_args \\\n    $path_to_src" | sed 's/;/\\;/g' | tee ./do-configure.sh
         echo
 
         sleep 2s
 
         # Execute cmake call
-        cmake $(echo $cmake_args | tr -d ' \' | printf "%q" $cmake_args) $path_to_src
+	source ./do-configure.sh
     else
         echo; echo
         echo "Please run: \"cmake\" with the generated cmake fragment file as input"
