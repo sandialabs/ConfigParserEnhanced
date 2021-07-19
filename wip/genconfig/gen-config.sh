@@ -134,7 +134,7 @@ function gen_config_helper()
         sleep 2s
 
         # Execute cmake call
-        cmake $cmake_args $path_to_src
+        cmake $(printf "%q" $cmake_args | tr '\' ' ') $path_to_src
     else
         echo; echo
         echo "Please run: \"cmake\" with the generated cmake fragment file as input"
