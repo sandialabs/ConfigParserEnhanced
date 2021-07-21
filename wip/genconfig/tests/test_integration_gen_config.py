@@ -42,7 +42,8 @@ def test_list_configs_shows_correct_sections(sys_name, capsys):
 @pytest.mark.parametrize("data", [
     {
         "build_name": "machine-type-5_intel-hsw",
-        "expected_complete_config": "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_none"
+        "expected_complete_config":
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SERIAL and NO-PACKAGE-ENABLES"
     }
 ])
 def test_complete_config_generated_correctly(data):
@@ -189,7 +190,7 @@ def test_existing_cmake_fragment_file_asks_user_for_overwrite(mock_input, data):
 ##########################     Validation     #################################
 ###############################################################################
 def get_expected_exc_msg(section_names, test_ini_filename):
-    formatted_section_name = "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
+    formatted_section_name = "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SERIAL and SPARC"
     msg_expected = textwrap.dedent(
         f"""
         |   ERROR:  The following section(s) in your config-specs.ini file
@@ -245,17 +246,17 @@ def run_common_validation_test(test_ini_filename, section_names, should_raise):
 @pytest.mark.parametrize("data", [
     {
         "section_name":
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SERIAL and SPARC",
         "should_raise": False
     },
     {
         "section_name":
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_serial_sparc",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and SERIAL and SPARC",
         "should_raise": True
     },
     {
         "section_name":
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_sparc",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and SPARC",
         "should_raise": True
     },
 ])
@@ -274,17 +275,17 @@ def test_section_without_options_specified_for_all_flags_raises(data):
 @pytest.mark.parametrize("data", [
     {
         "section_name":
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SERIAL and SPARC",
         "should_raise": False
     },
     {
         "section_name":
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_serial_mpi_sparc",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and SERIAL and MPI and SPARC",
         "should_raise": True
     },
     {
         "section_name":
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_sparc_serial_mpi",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and SPARC and SERIAL and MPI",
         "should_raise": True
     },
 ])
@@ -303,13 +304,13 @@ def test_section_with_incorrect_flag_order_raises(data):
 @pytest.mark.parametrize("data", [
     {
         "section_name":
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SERIAL and SPARC",
         "should_raise": False
     },
     {
         "section_name":
-        ("machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
-         "_not-an-option"),
+        ("machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SERIAL and SPARC"
+         " and NOT-AN-OPTION"),
         "should_raise": True
     },
 ])
@@ -319,8 +320,8 @@ def test_items_in_config_specs_sections_that_arent_options_raises(data):
     exception::
 
         # config-specs.ini
-        [machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_not-an-option_sparc]
-        #                               invalid ---^___________^
+        [machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and NOT-AN-OPTION and SPARC]
+        #                                         invalid ---^___________^
     """
     bad_config_specs = (
         f"[{data['section_name']}]\n"
@@ -335,9 +336,9 @@ def test_items_in_config_specs_sections_that_arent_options_raises(data):
 
 def test_multiple_invalid_config_specs_sections_are_shown_in_one_err_msg():
     bad_section_names = [
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_serial_sparc",
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_sparc_serial",
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc_not-an-option"
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and SERIAL and SPARC",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SPARC and SERIAL",
+        "machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and MPI and SERIAL and SPARC and NOT-AN-OPTION"
     ]
     bad_config_specs = ""
     for sec_name in bad_section_names:

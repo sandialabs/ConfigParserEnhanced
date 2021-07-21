@@ -78,12 +78,12 @@ def test_parser_uses_correct_defaults():
 @pytest.mark.parametrize("data", [
     {
         "build_name": "machine-type-5",
-        "expected_selected_options_str": "_mpi_serial_none",
+        "expected_selected_options_str": " and MPI and SERIAL and NO-PACKAGE-ENABLES",
     },
     {
         "build_name": "machine-type-5_openmp_muelu_sparc_no-mpi",
-        "expected_selected_options_str": "_no-mpi_openmp_muelu_sparc",
-        # Order here is dependent --------^________________________^
+        "expected_selected_options_str": " and NO-MPI and OPENMP and MUELU and SPARC",
+        # Order here is dependent --------^________________________________________^
         # on the order within
         # supported-config-flags.ini
     },

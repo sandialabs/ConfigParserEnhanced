@@ -51,9 +51,9 @@ class ConfigKeywordParser(KeywordParser):
             for flag in self.selected_options.keys():
                 if type(self.selected_options[flag]) == list:
                     for option in self.selected_options[flag]:
-                        selected_options_str += f"_{option}"
+                        selected_options_str += f" and {option.upper()}"
                 else:
-                    selected_options_str += f"_{self.selected_options[flag]}"
+                    selected_options_str += f" and {self.selected_options[flag].upper()}"
 
             self._selected_options_str = selected_options_str
 

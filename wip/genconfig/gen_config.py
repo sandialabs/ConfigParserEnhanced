@@ -164,9 +164,11 @@ class GenConfig(FormattedMsg):
                 self.load_config_keyword_parser()
             if self.load_env is None:
                 self.load_load_env()
+
+            formatted_env_name = self.load_env.parsed_env_name.upper()
+            formatted_env_name = formatted_env_name.replace("_", " where ")
             self._complete_config = (
-                f"{self.load_env.parsed_env_name}"
-                f"{self.config_keyword_parser.selected_options_str}"
+                f"{formatted_env_name}{self.config_keyword_parser.selected_options_str}"
             )
 
             print(f"Matched complete configuration '{self._complete_config}'"
@@ -189,11 +191,39 @@ class GenConfig(FormattedMsg):
 
         invalid_sections = []
         for section_name in config_specs.keys():
-            if section_name.upper() == section_name:
+            # Only check sections that have 'where' and 'and', but not 'is':
+            # ==============================================================
+            # # WOULD validate this section
+            # [machine-type-5 where INTEL-19.0.4-MPICH-7.7.15-HSW-OPENMP and DEBUG and STATIC]
+            # ...
+            #
+            # # Would NOT validate this section
+            # [machine-type-5]
+            # ...
+            #
+            # # Would NOT validate this section
+            # [machine-type-5 where KOKKOS-ARCH is HSW]
+            # ...
+            #
+            # # Would NOT validate this section
+            # [machine-type-5 where KOKKOS-ARCH is HSW and NODE-TYPE is OPENMP]
+            # ...
+            #
+            # # Would NOT validate this section
+            # [USE-MPI is YES]
+            # ...
+            # ==============================================================
+            if not ("where" in section_name.lower()
+                    and "and" in section_name.lower()
+                    and not "is" in section_name.lower()):
                 continue  # This is just a supporting section
 
-            le.build_name = section_name
-            ckp.build_name = section_name
+            build_name = section_name.lower()
+            build_name = build_name.replace(" where ", "_")
+            build_name = build_name.replace(" and ", "_")
+
+            le.build_name = build_name
+            ckp.build_name = build_name
             try:
                 selected_options_str = ckp.selected_options_str
             except ValueError as e:
@@ -206,10 +236,12 @@ class GenConfig(FormattedMsg):
 
             # Silences the LoadEnv diagnostic messages for all the section name
             # matching (i.e. "Matched environment name ...")
-            with redirect_stdout(io.StringIO()):
-                formatted_section_name = (
-                    f"{le.parsed_env_name}{selected_options_str}"
-                )
+            # with redirect_stdout(io.StringIO()):
+            formatted_env_name = le.parsed_env_name.upper()
+            formatted_env_name = formatted_env_name.replace("_", " where ")
+            formatted_section_name = (
+                f"{formatted_env_name}{selected_options_str}"
+            )
             if formatted_section_name != section_name:
                 invalid_sections.append((section_name, formatted_section_name))
 
