@@ -1,7 +1,14 @@
 #!/bin/bash
 
+#path_cur="/scratch/eharvey/TRILINOS-CONSOLIDATION.base/Trilinos/build-gcc8.3.0"
+#path_pr="/scratch/trilinos/jenkins/ascic141/workspace/trilinos-folder/Trilinos_pullrequest_gcc_8.3.0/pull_request_test"
+
+#path_cur="/scratch/trilinos/jenkins/ascic142/workspace/trilinos-folder/Trilinos_pullrequest_rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_trilinos-pr/pull_request_test"
 path_cur="/scratch/eharvey/TRILINOS-CONSOLIDATION.base/Trilinos/build"
-path_pr="/scratch/trilinos/jenkins/ascic141/workspace/trilinos-folder/Trilinos_pullrequest_gcc_8.3.0/pull_request_test"
+path_pr="/scratch/trilinos/jenkins/ascic143/workspace/trilinos-folder/Trilinos_pullrequest_gcc_7.2.0_serial/pull_request_test"
+
+#path_cur="/scratch/eharvey/TRILINOS-CONSOLIDATION.base/Trilinos/build"
+#path_pr="/scratch/trilinos/jenkins/ascic166/workspace/trilinos-folder/Trilinos_pullrequest_clang_10.0.0/pull_request_test"
 
 if [[ ! "$@" == *"--include-cmake-var-type"* ]]; then
     echo "WARNING: Ignoring cmake variable types; to include, run this script with --include-cmake-var-type"
@@ -70,5 +77,10 @@ echo "STATUS: Done searching."
 echo ""
 echo "matched: $matches/$total, mismatched: $mismatched/$total, missing: $missing/$total"
 echo ""
-echo "**see \"grep -v INTERNAL cur_mismatch\", for all non-internal mismatched cmake vars that are in $2 but not in $1**"
-echo "**see \"grep -v INTERNAL cur_missing\", for all non-internal missing cmake vars that are in $2 but not in $1**"
+echo "**opening \"grep -v INTERNAL cur_mismatch\", for all non-internal mismatched cmake vars that are in $2 but not in $1**"
+echo "PRESS 'q' to quit"
+grep -v INTERNAL cur_mismatch | less
+
+echo "**opening \"grep -v INTERNAL cur_missing\", for all non-internal missing cmake vars that are in $2 but not in $1**"
+echo "PRESS 'q' to quit"
+grep -v INTERNAL cur_missing | less
