@@ -35,7 +35,7 @@ from src.config_keyword_parser import ConfigKeywordParser
         "expected_options": {
             "use-mpi": "mpi",
             "node-type": "openmp",
-            "package-enables": "none",
+            "package-enables": "no-package-enables",
         },
     },
 ])
@@ -68,7 +68,7 @@ def test_parser_uses_correct_defaults():
     expected_options = {
         "use-mpi": "mpi",
         "node-type": "serial",
-        "package-enables": "none",
+        "package-enables": "no-package-enables",
     }
     ckp = ConfigKeywordParser("machine-type-3",
                               "test-supported-config-flags.ini")
@@ -235,11 +235,11 @@ def test_supported_flags_shown_correctly():
 def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     data_1 = {
         "build_name": "machine-type-5",
-        "expected_selected_options_str": "_mpi_serial_none",
+        "expected_selected_options_str": " and MPI and SERIAL and NO-PACKAGE-ENABLES",
         "expected_selected_options": {
             "use-mpi": "mpi",
             "node-type": "serial",
-            "package-enables": "none",
+            "package-enables": "no-package-enables",
         },
     }
     ckp = ConfigKeywordParser(data_1["build_name"],
@@ -250,7 +250,7 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
 
     data_2 = {
         "build_name": "machine-type-5_openmp_muelu_empire_sparc",
-        "expected_selected_options_str": "_mpi_openmp_empire_muelu_sparc",
+        "expected_selected_options_str": " and MPI and OPENMP and EMPIRE and MUELU and SPARC",
         "expected_selected_options": {
             "use-mpi": "mpi",
             "node-type": "openmp",
@@ -267,7 +267,7 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     {"option": "no-mpi", "is_default": False},
     {"option": "mpi", "is_default": True},
     {"option": "muelu", "is_default": False},
-    {"option": "none", "is_default": True},
+    {"option": "no-package-enables", "is_default": True},
     {"option": "openmp", "is_default": False},
     {"option": "serial", "is_default": True},
 ])
