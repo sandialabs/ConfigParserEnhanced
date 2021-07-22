@@ -110,7 +110,7 @@ fi
 ### Run LoadEnv and CMake ###
 # Export these for load-env.sh
 export cmake_args_file=$(cat /tmp/$USER/.bash_cmake_args_loc)
-rm /tmp/$USER/.bash_cmake_args_loc
+rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
 export path_to_src
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
