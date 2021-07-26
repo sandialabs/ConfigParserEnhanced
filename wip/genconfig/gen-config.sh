@@ -101,7 +101,7 @@ fi
 
 ### Generate the configuration ###
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
-if [[ $? -ne 0 ]]; then
+if [[ $? -ne 0 || ! -f /tmp/$USER/.bash_cmake_args_loc ]]; then
     cleanup_gc; return $?
 fi
 ### ========================== ###
@@ -110,6 +110,7 @@ fi
 ### Run LoadEnv and CMake ###
 # Export these for load-env.sh
 export cmake_args_file=$(cat /tmp/$USER/.bash_cmake_args_loc)
+rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
 export path_to_src
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
@@ -125,16 +126,16 @@ function gen_config_helper()
 
         echo
         echo "*** Running CMake Command: ***"
-        cmake_args="$(cat $cmake_args_file)"
+        cmake_args="$(cat $cmake_args_file | envsubst)"
 
         # Print cmake call
-        echo -e "\$ cmake $cmake_args \\ \n    $path_to_src"
+        echo -e "cmake $cmake_args \\\n    $path_to_src" | sed 's/;/\\;/g' | tee ./do-configure.sh
         echo
 
         sleep 2s
 
         # Execute cmake call
-        cmake $cmake_args $path_to_src
+	source ./do-configure.sh
     else
         echo; echo
         echo "Please run: \"cmake\" with the generated cmake fragment file as input"
