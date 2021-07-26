@@ -37,6 +37,7 @@ function cleanup()
     [ ! -z ${env_file} ] && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
 
     unset python_too_old script_dir ci_mode cleanup env_file
+    trap -  SIGHUP SIGINT SIGTERM
     return 0
 }
 trap "cleanup; return 1" SIGHUP SIGINT SIGTERM
