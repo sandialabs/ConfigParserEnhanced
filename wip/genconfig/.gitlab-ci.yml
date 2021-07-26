@@ -46,7 +46,8 @@ publish coverage:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -s -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -s -m pip install -U --user -r requirements.txt
+    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
     - rm -rf /home/josbrau/html_files/GenConfig/coverage
     - mkdir -p /home/josbrau/html_files/GenConfig/coverage
     - mv htmlcov/* /home/josbrau/html_files/GenConfig/coverage/
