@@ -105,8 +105,8 @@ system name, the fully simplified build name could just be:
 intel
 ```
 > **NOTE:** In practice, this is not the way you should specify build names within a CI script -
-> it is best to be verbose in those scenarios. However, this syntax *does* afford
-> convenience to the developer running `GenConfig` from the comand line.
+> it is best to be verbose in those scenarios since default config options may change over time.
+> However, this syntax *does* afford convenience to the developer running `GenConfig` from the comand line.
 
 Lastly, you may want to include relevant information in your `<build-name>` that does not conflict
 with any options in `supported-config-flags.ini`. In case such information is present, `GenConfig`
