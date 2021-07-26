@@ -52,7 +52,7 @@ $ source gen-config.sh --cmake-fragment foo.cmake <build-name>
 $ cmake -C foo.cmake /path/to/src
 ```
 
-### Specifying the `<build-name>`
+## Specifying the `<build-name>`
 While it is easiest to copy-paste a configuration returned by
 `source gen-config.sh --list-configs /path/to/src` to use as the `<build-name>`,
 this rigid syntax is not a requirement. For example, say one of the
