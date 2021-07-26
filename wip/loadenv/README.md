@@ -64,7 +64,7 @@ source load-env.sh --ci-mode <build-name>
 ```
 
 When passing the `--ci-mode` flag to `load-env.sh`, your current shell's environment will be
-overwritten by `load-env.sh`. This mode is often useful in production environment when running
+overwritten by `load-env.sh`. This mode is often useful in production environments when running
 `load-env.sh` from a CI driver script.
 
 
@@ -72,13 +72,12 @@ overwritten by `load-env.sh`. This mode is often useful in production environmen
 
 ### Installing requirements
 You will need to follow the [Getting Started](https://internal.gitlab.server/trilinos-devops-consolidation/code/loadenv#getting-started)
-instructions up throught step 4. before attempting to load the LoadEnv module.
+instructions up through step 4. before attempting to load the LoadEnv module.
 
 ### LoadEnv API Documentation
-Please click the 'docs' badge are the top of this file or navigate to
-http://10.202.35.89:8080/LoadEnv/doc/index.html with your browser for the LoadEnv API
-documentation.
+Please click the 'docs' badge at the top of this file or navigate [here](https://internal.gitlab.server/trilinos-devops-consolidation/code/loadenv#getting-started)
+ with your browser for the LoadEnv API documentation.
 
-> **Note:** Note that when using LoadEnv in your python code, the environment will only
+> **Note:** when using LoadEnv in your python code, the environment will only
 exist in the python process you've run `import LoadEnv` from, not the shell which that
 python process was run from.
