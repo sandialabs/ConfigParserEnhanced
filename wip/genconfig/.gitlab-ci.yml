@@ -43,10 +43,8 @@ sphinx:
 publish coverage:
   stage: deploy
   timeout: 20m
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -s -m pip install -U --user -r requirements.txt
+    - find . -name '__pycache__' -exec rm -rf {} \;          > /dev/null 2>&1
     - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
     - rm -rf /home/josbrau/html_files/GenConfig/coverage
     - mkdir -p /home/josbrau/html_files/GenConfig/coverage
