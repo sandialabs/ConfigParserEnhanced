@@ -48,10 +48,36 @@ environments.
 > **Note:**  The first run of `load-env.sh` may take some time as Python
 > generates byte-code for the requirements.
 
+### Interactive mode
+```bash
+source load-env.sh <build-name>
+```
+
+By default, `load-env.sh` runs in interactive mode. In this mode, `load-env.sh` drops the user
+to a subshell where the environment is loaded. In this way, when the user is done, they can
+return to their previous environment by typing `exit`. This mode is often useful in development
+environments when user's are creating new environments by modifying ini files.
+
+### CI mode
+```bash
+source load-env.sh --ci-mode <build-name>
+```
+
+When passing the `--ci-mode` flag to `load-env.sh`, your current shell's environment will be
+overwritten by `load-env.sh`. This mode is often useful in production environment when running
+`load-env.sh` from a CI driver script.
+
+
 ## Using LoadEnv in your python code
 
-To use LoadEnv in your python code, please click the 'docs' badge are the top of this file
-or navigate to http://10.202.35.89:8080/LoadEnv/doc/index.html with your browser.
+### Installing requirements
+You will need to follow the [Getting Started](https://internal.gitlab.server/trilinos-devops-consolidation/code/loadenv#getting-started)
+instructions up throught step 4. before attempting to load the LoadEnv module.
+
+### LoadEnv API Documentation
+Please click the 'docs' badge are the top of this file or navigate to
+http://10.202.35.89:8080/LoadEnv/doc/index.html with your browser for the LoadEnv API
+documentation.
 
 > **Note:** Note that when using LoadEnv in your python code, the environment will only
 exist in the python process you've run `import LoadEnv` from, not the shell which that
