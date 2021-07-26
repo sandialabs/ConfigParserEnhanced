@@ -48,5 +48,11 @@ environments.
 > **Note:**  The first run of `load-env.sh` may take some time as Python
 > generates byte-code for the requirements.
 
-> **Note:**  You may have to repeat step 3 above after running `source
-> load-env.sh --ci_mode` since `load-env.sh` may run `module purge`.
+## Using LoadEnv in your python code
+
+To use LoadEnv in your python code, please click the 'docs' badge are the top of this file
+or navigate to http://10.202.35.89:8080/LoadEnv/doc/index.html with your browser.
+
+> **Note:** Note that when using LoadEnv in your python code, the environment will only
+exist in the python process you've run `import LoadEnv` from, not the shell which that
+python process was run from.
