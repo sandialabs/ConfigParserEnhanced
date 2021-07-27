@@ -261,18 +261,3 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     ckp.build_name = data_2["build_name"]
     assert ckp.selected_options == data_2["expected_selected_options"]
     assert ckp.selected_options_str == data_2["expected_selected_options_str"]
-
-
-@pytest.mark.parametrize("data", [
-    {"option": "no-mpi", "is_default": False},
-    {"option": "mpi", "is_default": True},
-    {"option": "muelu", "is_default": False},
-    {"option": "none", "is_default": True},
-    {"option": "openmp", "is_default": False},
-    {"option": "serial", "is_default": True},
-])
-def test_config_keyword_parser_accurately_checks_if_option_is_a_default(data):
-    ckp = ConfigKeywordParser("machine-type-5",
-                              "test-supported-config-flags.ini")
-    is_default = ckp.is_default_option(data["option"])
-    assert is_default == data["is_default"]

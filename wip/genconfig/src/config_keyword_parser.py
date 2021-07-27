@@ -5,26 +5,36 @@ import sys
 class ConfigKeywordParser(KeywordParser):
     """
     This class accepts a configuration file containing supported configuration
-    flags and corresponding options in the following format::
+    flags and corresponding options in the following format:
 
+    .. code-block:: ini
+
+        # Example
+        # -------
         # supported-config-flags.ini
+        #
+        # For full documentation on formatting, see
+        # GenConfig/examples/supported-config-flags.ini
+        #
 
         [configure-flags]
-        use-mpi:
+        use-mpi:  SELECT_ONE
             mpi # the first option is the default if neither is specified in the build name
             no-mpi
-        node-type:
+        node-type:  SELECT_ONE
             serial
             openmp
-        package-enables:
-            none   # by default, don't turn anything on
+        package-enables:  SELECT_MANY
+            no-package-enables   # by default, don't turn anything on
             empire
             sparc  # flags can support more than just two options
             muelu  # e.g., a common configuration used by the MueLu team
             jmgate # e.g., just my personal configuration, not intended to be used by others
         # etc.
 
-    Usage::
+    Usage:
+
+    .. code-block:: python
 
         ckp = ConfigKeywordParser("machine-type-5_mpi_serial_empire",
                                   "supported-config-flags.ini")
@@ -46,6 +56,22 @@ class ConfigKeywordParser(KeywordParser):
 
     @property
     def selected_options_str(self):
+        """
+        Takes the :attr:`selected_options` dictionary and parses options to
+        form a string for use in :class:`GenConfig`. The order in which options
+        are added to this string is the order in which they appear in
+        ``supported-config-flags.ini``. For example, given the example configuration
+        file in the class documentation:
+
+        .. code-block:: python
+
+            >>> ckp = ConfigKeywordParser("mpi_serial_sparc_empire", config_file)
+            >>> ckp.selected_options
+            {'use-mpi': 'mpi', 'node-type': 'serial'}
+            >>> ckp.selected_options_str
+            "_mpi_serial_empire_sparc"
+
+        """
         if not hasattr(self, "_selected_options_str"):
             selected_options_str = ""
             for flag in self.selected_options.keys():
@@ -61,12 +87,15 @@ class ConfigKeywordParser(KeywordParser):
 
     @property
     def selected_options(self):
+        """
+        This property gives easy access to the output of
+        :func:`parse_selected_options`.
+        """
         if not hasattr(self, "_selected_options"):
             self.parse_selected_options()
 
         return self._selected_options
 
-    # TODO: UPDATE THIS DOCSTRING
     def parse_selected_options(self):
         """
         Parses the :attr:`build_name` into a dictionary containing the
@@ -74,15 +103,19 @@ class ConfigKeywordParser(KeywordParser):
         values.
         The way this happens is:
 
-            * Split the :attr:`build_name` by the delimiter `_`.
-            * For each supported flag name in the `supported-config-flags.ini`:
+            * Split the :attr:`build_name` by the delimiter ``_``.
+            * For each supported flag name in the ``supported-config-flags.ini``:
+
                 * Find the options for this flag that exist in the
                   :attr:`build_name`.
-                * If more than one option is found in the :attr:`build_name`,
-                  raise an exception.
+                * If more than one option is found in the :attr:`build_name`
+                  and the flag type is ``SELECT_ONE``, raise an exception.
                 * If no option is found in the :attr:`build_name`, use the
                   default value (first option) from the `.ini` file.
                 * If one option is found, use that.
+                * If the flag type is ``SELECT_MANY``, aggregate the options
+                  present in the build name into a list; the order of the list
+                  is the order in which the options appear in the `.ini` file.
 
         Returns:
             dict:  A `dict` containing key/value pairs of flags and selected
@@ -108,7 +141,7 @@ class ConfigKeywordParser(KeywordParser):
                     ))
                 elif (flag_type == "SELECT_MANY"
                         and len(options_in_build_name) > 1):
-                    selected_options[flag_name] = sorted(options_in_build_name)
+                    selected_options[flag_name] = options_in_build_name
                 elif len(options_in_build_name) == 0:
                     # Select default option if none in build name
                     selected_options[flag_name] = options[0]
@@ -120,11 +153,11 @@ class ConfigKeywordParser(KeywordParser):
     def get_options_and_flag_type_for_flag(self, flag_name):
         """
         A thin wrapper around :func:`get_values_for_section_key` that applies
-        special rules to ensure flags specify their type (SELECT_ONE or
-        SELECT_MANY) as the first option.
+        special rules to ensure flags specify their type (``SELECT_ONE`` or
+        ``SELECT_MANY``) as the first option.
 
         Returns:
-            tuple:  A tuple containing the 1) list of options and 2) flag type,
+            tuple:  A tuple containing the list of options and flag type,
             respectively.
         """
         options = self.get_values_for_section_key("configure-flags", flag_name)
@@ -145,20 +178,21 @@ class ConfigKeywordParser(KeywordParser):
 
         return options, flag_type
 
-    def is_default_option(self, option):
-        if not hasattr(self, "_default_options"):
-            defaults = []
-            for flag_name in self.flag_names:
-                options, flag_type = self.get_options_and_flag_type_for_flag(
-                    flag_name
-                )
-                defaults.append(options[0])
-
-            self._default_options = defaults
-
-        return option in self._default_options
-
     def assert_options_are_unique_across_all_flags(self):
+        """
+        Ensures options are unique across all flags. So, an exception would be
+        raised for the following ``supported-config-flags.ini``:
+
+        .. code-block:: ini
+
+            [configure-flags]
+            use-mpi:
+                yes
+                no
+            use-asan:
+                yes  # Duplicate of 'yes' in 'use-mpi'!
+                no   # Same here
+        """
         options_list = self.get_options_list_for_all_flags()
         duplicates = [_ for _ in set(options_list)
                       if options_list.count(_) > 1]
@@ -177,6 +211,14 @@ class ConfigKeywordParser(KeywordParser):
             sys.exit(msg)
 
     def get_options_list_for_all_flags(self):
+        """
+        Get an list of all options for all flags in
+        ``supported-config-flags.ini``. This is uses to check for uniqueness in
+        :func:`assert_options_are_unique_across_all_flags`.
+
+        Returns:
+            list:  A list containing all options for all flags.
+        """
         if not hasattr(self, "_options_list"):
             options_list = []
             for flag_name in self.flag_names:
@@ -191,6 +233,22 @@ class ConfigKeywordParser(KeywordParser):
 
     @property
     def build_name(self):
+        """
+        This property provides a convenient way to reset any generated
+        information if one were to change the :attr:`build_name`. This enables
+        the same :class:`ConfigKeywordParser` object to be used to parse
+        multiple build names. For example:
+
+        .. code-block:: python
+
+            >>> ckp = ConfigKeywordParser(build_name_1, config_file)
+            >>> selected_options_1 = ckp.selected_options
+            >>> ckp.build_name = build_name_2  # Resets the `selected_options` property
+            >>> selected_options_2 = ckp.selected_options
+
+        Returns:
+            str:  The build name given in the class initializer.
+        """
         return self._build_name
 
     @build_name.setter
@@ -206,7 +264,10 @@ class ConfigKeywordParser(KeywordParser):
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """
         Similar to :func:`get_msg_for_list`, except it's a bit more specific.
-        Produces an error message like::
+        Produces an error message like:
+
+        .. highlight:: none
+        .. code-block::
 
             +=================================================================+
             |   {kind}:  {msg}

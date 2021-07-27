@@ -20,7 +20,67 @@ import uuid
 
 class GenConfig(FormattedMsg):
     """
-    Insert description here.
+    :class:`GenConfig` is a utility to convert a build name into a set of
+    configuration flags or CMake fragment file to be used with CMake. This is
+    accomplished using :class:`ConfigKeywordParser` and two configuration
+    files:
+
+    1. ``supported-config-flags.ini``: Lists the flags and corresponding
+    options supported for parsing within :class:`ConfigKeywordParser`.
+
+    .. code-block:: ini
+
+        # Example
+        # -------
+        # supported-config-flags.ini
+        #
+        # For full documentation on formatting, see
+        # GenConfig/examples/supported-config-flags.ini
+        #
+
+        [configure-flags]
+        use-mpi:  SELECT_ONE
+            mpi # the first option is the default if neither is specified in the build name
+            no-mpi
+        node-type:  SELECT_ONE
+            serial
+            openmp
+        package-enables:  SELECT_MANY
+            no-package-enables   # by default, don't turn anything on
+            empire
+            sparc  # flags can support more than just two options
+            muelu  # e.g., a common configuration used by the MueLu team
+            jmgate # e.g., just my personal configuration, not intended to be used by others
+        # etc.
+
+    2. ``config-specs.ini``: Contains CMake options to use for corresponding
+    configurations parsed from :class:`LoadEnv` and
+    :class:`ConfigKeywordParser`.
+
+    .. code-block:: ini
+
+        # Example
+        # -------
+        # config-specs.ini
+        #
+        # For full documentation on formatting, see
+        # GenConfig/examples/config-specs.ini
+        #
+
+        # Supporting sections are all-caps
+        [machine-type-5]
+        # Insert machine-type-5 CMake configuration here
+
+        [machine-type-5_MPI|YES]
+        # Insert machine-type-5/MPI-enabled CMake configuration here
+
+        # Complete configurations are mixed case
+        [machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_no-package-enables]
+        use machine-type-5
+        use machine-type-5_MPI|YES
+        # Insert CMake configuration, for example:
+        opt-set-cmake-var KokkosKernels_sparse_serial_MPI_1_DISABLE BOOL : ON
+
 
     Attributes:
         argv:  The command line arguments passed to ``gen_config.py``.
@@ -54,7 +114,9 @@ class GenConfig(FormattedMsg):
         """
         String representing the CMake configuration flags specified in
         ``config-specs.ini`` parsed for use in ``bash``. For example, say
-        ``config-specs.ini`` contained the following::
+        ``config-specs.ini`` contained the following:
+
+        .. code-block:: ini
 
             [build-name-here]
             opt-set-cmake-var KokkosKernels_sparse_serial_MPI_1_DISABLE BOOL : ON
@@ -235,7 +297,9 @@ class GenConfig(FormattedMsg):
                :attr:`build_name` via the :class:`ConfigKeywordParser`.
 
 
-        An example of this could be::
+        An example of this could be:
+
+        .. code-block:: python
 
               machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_debug_static
             # ^_______________________________________^ ^__________^
@@ -266,7 +330,6 @@ class GenConfig(FormattedMsg):
             ALL-CAPS sections in ``config-specs.ini`` are skipped in validation
             checks, as they are assumed to be supporting sections:
 
-            .. highlight:: ini
             .. code-block:: ini
 
                 [ALL-CAPS-SECTION]
@@ -284,12 +347,11 @@ class GenConfig(FormattedMsg):
 
         For example:
 
-        .. highlight:: none
-        .. code-block::
+        .. code-block:: python
 
-            rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_shared_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
-            ^_____________________________________________^^____________________________________________________________________________________^
-                      LoadEnv.parsed_env_name               ConfigKeywordParser.selected_options_str
+              rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_shared_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
+            # ^_____________________________________________^^____________________________________________________________________________________^
+            #           LoadEnv.parsed_env_name               ConfigKeywordParser.selected_options_str
         """
         if self.config_keyword_parser is None:
             self.load_config_keyword_parser()
