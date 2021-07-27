@@ -10,6 +10,7 @@ Welcome to GenConfig's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   GenConfig
    ConfigKeywordParser
 
 

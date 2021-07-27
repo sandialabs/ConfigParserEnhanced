@@ -51,6 +51,30 @@ class GenConfig(FormattedMsg):
 
     @property
     def generated_config_flags_str(self):
+        """
+        String representing the CMake configuration flags specified in
+        ``config-specs.ini`` parsed for use in ``bash``. For example, say
+        ``config-specs.ini`` contained the following::
+
+            [build-name-here]
+            opt-set-cmake-var KokkosKernels_sparse_serial_MPI_1_DISABLE BOOL : ON
+            opt-set-cmake-var TeuchosCore_show_stack_DISABLE            BOOL : ON
+
+        The output of this property would be::
+
+            >>> gen_config.generated_config_flags_str
+            -DKokkosKernels_sparse_serial_MPI_1_DISABLE:BOOL=ON \\
+                -DTeuchosCore_show_stack_DISABLE:BOOL=ON
+
+        This could be used with CMake in bash:
+
+        .. code-block:: bash
+
+            $ cmake $(<output-from-generated_config_flags_str>)
+            # Which turns into:
+            $ cmake -DKokkosKernels_sparse_serial_MPI_1_DISABLE:BOOL=ON \\
+                  -DTeuchosCore_show_stack_DISABLE:BOOL=ON
+        """
         if not hasattr(self, "_generated_config_flags_str"):
             if self.set_program_options is None:
                 self.load_set_program_options()
@@ -66,9 +90,11 @@ class GenConfig(FormattedMsg):
 
     def write_cmake_fragment(self):
         """
+        Writes the generated config flags to a CMake fragment file, where the
+        path is specified using the ``--cmake-fragment`` flag.
+
         Returns:
-            Path:  The path to the cmake fragment that was written, either the
-            default or whatever the user requested with ``--cmake-fragment``.
+            Path:  The path to the CMake fragment file.
         """
         if not hasattr(self, "_cmake_fragment_file"):
             if self.set_program_options is None:
@@ -112,17 +138,48 @@ class GenConfig(FormattedMsg):
 
     def list_config_flags(self):
         """
-        List the available config flags form ``supported-config-flags.ini``.
+        List the available config flags from ``supported-config-flags.ini``.
+        The message will be in the following format:
+
+        .. highlight:: none
+        .. code-block::
+
+            +==============================================================================+
+            |   INFO:  Please select options from the following.
+            |
+            |   - Supported Flags Are:
+            |     - build-type
+            |       * Options (SELECT_ONE):
+            |         - debug (default)
+            |         - release
+            |         - release-debug
+            |     - lib-type
+            |       * Options (SELECT_ONE):
+            |         - static (default)
+            |         - shared
+            |     - kokkos-arch
+            |       * Options (SELECT_MANY):
+            |         - no-kokkos-arch (default)
+            |         - KNC
+            |         - KNL
+            |         - SNB
+            |         - HSW
+            |         - BDW
+            |         - SKX
+            |         ...
+            |
+            |   See /path/to/GenConfig/examples/supported-config-flags.ini for details.
+            +==============================================================================+
 
         Raises:
             SystemExit:  With the message displaying the available config flags
-            from which to choose.
+                from which to choose.
         """
         if self.config_keyword_parser is None:
             self.load_config_keyword_parser()
         sys.exit(
             self.config_keyword_parser.get_msg_showing_supported_flags(
-                "Please select one of the following.",
+                "Please select options from the following.",
                 kind="INFO"
             )
         )
@@ -130,11 +187,26 @@ class GenConfig(FormattedMsg):
     def list_configs(self):
         """
         List the available complete configuration names from
-        ``config-specs.ini``.
+        ``config-specs.ini``. The message will be in the following format:
+
+        .. highlight:: none
+        .. code-block::
+
+            +==============================================================================+
+            |   INFO:  Please select one of the following complete configurations from
+            |           /path/to/GenConfig/examples/config-specs.ini
+            |
+            |     - rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_shared_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
+            |     - rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_static_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
+            |     - rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_static_Volta70_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-package-enables
+            |     - rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_debug_shared_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
+            |     ...
+            |
+            +==============================================================================+
 
         Raises:
             SystemExit:  With the message displaying the available complete
-            configs from which to choose.
+                configs from which to choose.
         """
         if self.load_env is None:
             self.load_load_env()
@@ -156,8 +228,18 @@ class GenConfig(FormattedMsg):
     @property
     def complete_config(self):
         """
-        The selected config flag options name parsed from the
-        :attr:`build_name` via the :class:`ConfigKeywordParser`.
+        A string that includes:
+
+            1. The matched environment name from ``LoadEnv``.
+            2. The selected config flag options parsed from the
+               :attr:`build_name` via the :class:`ConfigKeywordParser`.
+
+
+        An example of this could be::
+
+              machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_debug_static
+            # ^_______________________________________^ ^__________^
+            #  full environment name from LoadEnv        config flag options str from ConfigKeywordParser
         """
         if not hasattr(self, "_complete_config"):
             if self.config_keyword_parser is None:
@@ -175,6 +257,40 @@ class GenConfig(FormattedMsg):
         return self._complete_config
 
     def validate_config_specs_ini(self):
+        """
+        Validates each section in ``config-specs.ini`` to ensure the format is
+        correct.
+
+        Note:
+
+            ALL-CAPS sections in ``config-specs.ini`` are skipped in validation
+            checks, as they are assumed to be supporting sections:
+
+            .. highlight:: ini
+            .. code-block:: ini
+
+                [ALL-CAPS-SECTION]
+                # contents here
+
+                [section-to-be-validated]
+                use ALL-CAPS-SECTION
+
+        The correct format is:
+
+        .. highlight:: none
+        .. code-block::
+
+            <LoadEnv.parsed_env_name><ConfigKeywordParser.selected_options_str>
+
+        For example:
+
+        .. highlight:: none
+        .. code-block::
+
+            rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_shared_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
+            ^_____________________________________________^^____________________________________________________________________________________^
+                      LoadEnv.parsed_env_name               ConfigKeywordParser.selected_options_str
+        """
         if self.config_keyword_parser is None:
             self.load_config_keyword_parser()
         if self.load_env is None:
@@ -237,9 +353,9 @@ class GenConfig(FormattedMsg):
 
     def load_config_keyword_parser(self):
         """
-        Instantiate an :class:`ConfigKeywordParser` object with this object's
+        Instantiate a :class:`ConfigKeywordParser` object with this object's
         :attr:`build_name` and ``supported-config-flags.ini``.
-        Save the resulting object as :attr:`config_keyword_parser`.
+        Save the resulting object to ``self.config_keyword_parser``.
         """
         if self.config_keyword_parser is None:
             self.config_keyword_parser = ConfigKeywordParser(
@@ -250,8 +366,8 @@ class GenConfig(FormattedMsg):
     def load_set_program_options(self):
         """
         Instantiate a :class:`SetProgramOptions` object with this object's
-        ``config-specs.ini``.  Save the resulting object as
-        :attr:`set_program_options`.
+        ``config-specs.ini``.  Save the resulting object to
+        ``self.set_program_options``.
         """
         if self.set_program_options is None:
             self.set_program_options = SetProgramOptionsCMake(
@@ -261,13 +377,17 @@ class GenConfig(FormattedMsg):
     def load_load_env(self):
         """
         Instantiate a :class:`LoadEnv` object with this object's configuration
-        files. Save the resulting object as :attr:`load_env`.
+        files. Save the resulting object to ``self.load_env``.
         """
         if self.load_env is None:
             self.load_env = LoadEnv(argv=self.load_env_args)
 
     @property
     def load_env_args(self):
+        """
+        Given the :attr:`argv` passed to this :class:`GenConfig` object, return
+        just the ``argv`` that applies to :class:`LoadEnv`.
+        """
         argv = [
             "--supported-systems", str(self.args.supported_systems_file),
             "--supported-envs", str(self.args.supported_envs_file),
@@ -282,8 +402,7 @@ class GenConfig(FormattedMsg):
     @property
     def gen_config_config_data(self):
         """
-        Parse the ``gen-config.ini`` file and store the corresponding
-        ``configparserenhanceddata`` object as :attr:`gen_config_config_data`.
+        Parsed data from the ``gen-config.ini`` file.
         """
         if self._gen_config_config_data is None:
             self._gen_config_config_data = ConfigParserEnhanced(
@@ -294,6 +413,13 @@ class GenConfig(FormattedMsg):
         return self._gen_config_config_data
 
     def validate_gen_config_config_data(self):
+        """
+        Reads ``gen-config.ini`` and runs some validation:
+
+            * Ensure the file has the sections ``gen-config`` and ``load-env``.
+            * Ensure each section has key-value pairs for the required files.
+            * Ensure the specified files exist.
+        """
         if self._gen_config_config_data is None:
             return
 
