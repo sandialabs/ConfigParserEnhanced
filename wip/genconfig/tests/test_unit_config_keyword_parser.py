@@ -82,7 +82,7 @@ def test_parser_uses_correct_defaults():
     },
     {
         "build_name": "machine-type-5_openmp_muelu_sparc_no-mpi",
-        "expected_selected_options_str": "_no-mpi_openmp_muelu_sparc",
+        "expected_selected_options_str": "_no-mpi_openmp_sparc_muelu",
         # Order here is dependent --------^________________________^
         # on the order within
         # supported-config-flags.ini
@@ -250,29 +250,14 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
 
     data_2 = {
         "build_name": "machine-type-5_openmp_muelu_empire_sparc",
-        "expected_selected_options_str": "_mpi_openmp_empire_muelu_sparc",
+        "expected_selected_options_str": "_mpi_openmp_empire_sparc_muelu",
         "expected_selected_options": {
             "use-mpi": "mpi",
             "node-type": "openmp",
-            "package-enables": ["empire", "muelu", "sparc"],
+            "package-enables": ["empire", "sparc", "muelu"],
         },
     }
     # Setting build_name should be enough to clear old properties.
     ckp.build_name = data_2["build_name"]
     assert ckp.selected_options == data_2["expected_selected_options"]
     assert ckp.selected_options_str == data_2["expected_selected_options_str"]
-
-
-@pytest.mark.parametrize("data", [
-    {"option": "no-mpi", "is_default": False},
-    {"option": "mpi", "is_default": True},
-    {"option": "muelu", "is_default": False},
-    {"option": "none", "is_default": True},
-    {"option": "openmp", "is_default": False},
-    {"option": "serial", "is_default": True},
-])
-def test_config_keyword_parser_accurately_checks_if_option_is_a_default(data):
-    ckp = ConfigKeywordParser("machine-type-5",
-                              "test-supported-config-flags.ini")
-    is_default = ckp.is_default_option(data["option"])
-    assert is_default == data["is_default"]
