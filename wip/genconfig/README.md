@@ -116,3 +116,17 @@ will simply ignore it. For example:
 #                             ^_____________________^
 #        GenConfig only cares about this information
 ```
+
+## GenConfig API
+
+### Installing requirements
+You will need to follow the [Getting Started](https://internal.gitlab.server/trilinos-devops-consolidation/code/GenConfig#getting-started)
+instructions up through step 4. before attempting to load the GenConfig module.
+
+### GenConfig API Documentation
+Please click the 'docs' badge at the top of this file or navigate [here](http://10.202.35.89:8080/GenConfig/doc/index.html)
+ with your browser for the GenConfig API documentation.
+
+> **Note:** when using LoadEnv in your python code, the environment will only
+exist in the python process you've run `import LoadEnv` from, not the shell which that
+python process was run from.
