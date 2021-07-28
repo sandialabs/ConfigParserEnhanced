@@ -194,7 +194,7 @@ class GenConfig(FormattedMsg):
                 F.write("\n".join(cmake_options_list))
             self._cmake_fragment_file = file
 
-            print(f"* Cmake fragment file written to: {str(file)}")
+            print(f"* CMake fragment file written to: {str(file)}")
 
         return self._cmake_fragment_file
 
@@ -285,7 +285,7 @@ class GenConfig(FormattedMsg):
             "Please select one of the following complete configurations from\n"
             f"{str(self.args.config_specs_file)}\n\n", complete_configs,
             kind="INFO", extras="\n"))
-        sys.exit()
+        sys.exit(1)
 
     @property
     def complete_config(self):
