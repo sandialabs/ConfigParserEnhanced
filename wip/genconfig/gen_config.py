@@ -194,7 +194,7 @@ class GenConfig(FormattedMsg):
                 F.write("\n".join(cmake_options_list))
             self._cmake_fragment_file = file
 
-            print(f"* Cmake fragment file written to: {str(file)}")
+            print(f"* CMake fragment file written to: {str(file)}")
 
         return self._cmake_fragment_file
 

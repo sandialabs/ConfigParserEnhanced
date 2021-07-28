@@ -101,7 +101,7 @@ fi
 
 ### Generate the configuration ###
 python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args; ret=$?
-if [[ $ret -ne 0 || ! -f /tmp/$USER/.bash_cmake_args_loc ]]; then
+if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $ret
 fi
 ### ========================== ###
@@ -109,7 +109,7 @@ fi
 
 ### Run LoadEnv and CMake ###
 # Export these for load-env.sh
-export cmake_args_file=$(cat /tmp/$USER/.bash_cmake_args_loc)
+export cmake_args_file=$([ -f /tmp/$USER/.bash_cmake_args_loc ] && cat /tmp/$USER/.bash_cmake_args_loc)
 rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
 export path_to_src
 
