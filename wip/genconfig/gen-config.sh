@@ -100,9 +100,9 @@ fi
 
 
 ### Generate the configuration ###
-python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args
-if [[ $? -ne 0 || ! -f /tmp/$USER/.bash_cmake_args_loc ]]; then
-    cleanup_gc; return $?
+python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args; ret=$?
+if [[ $ret -ne 0 || ! -f /tmp/$USER/.bash_cmake_args_loc ]]; then
+    cleanup_gc; return $ret
 fi
 ### ========================== ###
 
@@ -145,9 +145,9 @@ function gen_config_helper()
 declare -x -f gen_config_helper
 
 # Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
-python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args --save-load-env-args /tmp/$USER/.load_env_args
-if [[ $? -ne 0 ]]; then
-    cleanup_gc; return $?
+python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args --save-load-env-args /tmp/$USER/.load_env_args; ret=$?
+if [[ $ret -ne 0 ]]; then
+    cleanup_gc; return $ret
 fi
 load_env_call_args=$(cat /tmp/$USER/.load_env_args)
 
