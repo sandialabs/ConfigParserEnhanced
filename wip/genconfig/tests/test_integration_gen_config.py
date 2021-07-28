@@ -62,18 +62,18 @@ def test_complete_config_generated_correctly(data):
 @pytest.mark.parametrize("data", [
     {
         "build_name": "machine-type-5_intel-hsw",
-        "expected_args_str": "-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p"
+        "expected_args_str": '-DMPI_EXEC_NUMPROCS_FLAG:STRING="-p"'
     },
     {
         "build_name": "machine-type-5_intel-hsw_sparc",
-        "expected_args_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
-                     "    -DTPL_ENABLE_MPI:BOOL=ON")
+        "expected_args_str": ('-DMPI_EXEC_NUMPROCS_FLAG:STRING="-p" \\\n'
+                     '    -DTPL_ENABLE_MPI:BOOL=ON')
     },
     {
         "build_name": "machine-type-5_intel-hsw_empire_sparc",
-        "expected_args_str": ("-DMPI_EXEC_NUMPROCS_FLAG:STRING=-p \\\n"
-                     "    -DTPL_ENABLE_MPI:BOOL=ON \\\n"
-                     "    -DTrilinos_ENABLE_Panzer:BOOL=ON")
+        "expected_args_str": ('-DMPI_EXEC_NUMPROCS_FLAG:STRING="-p" \\\n'
+                     '    -DTPL_ENABLE_MPI:BOOL=ON \\\n'
+                     '    -DTrilinos_ENABLE_Panzer:BOOL=ON')
     },
 ])
 def test_bash_cmake_flags_generated_correctly(data):
