@@ -285,7 +285,7 @@ class GenConfig(FormattedMsg):
             "Please select one of the following complete configurations from\n"
             f"{str(self.args.config_specs_file)}\n\n", complete_configs,
             kind="INFO", extras="\n"))
-        sys.exit()
+        sys.exit(1)
 
     @property
     def complete_config(self):
