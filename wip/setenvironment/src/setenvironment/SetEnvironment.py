@@ -345,7 +345,7 @@ class SetEnvironment(ConfigParserEnhanced):
 
         For example, output might look like:
 
-            >>> setenvobj.pretty_print_actins()
+            >>> setenvobj.pretty_print_actions()
             Actions
             =======
             --> envvar-set     : FOO="bar"
