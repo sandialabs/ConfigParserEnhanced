@@ -695,6 +695,7 @@ def main(argv):
     elif gc.args.list_configs:
         gc.list_configs()
     elif gc.args.save_load_env_args is not None:
+        gc.args.save_load_env_args.parent.mkdir(parents=True, exist_ok=True)
         with open(gc.args.save_load_env_args, "w") as F:
             F.write(" ".join(gc.load_env_args))
     elif gc.args.cmake_fragment is not None:
