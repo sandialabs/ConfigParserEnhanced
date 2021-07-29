@@ -138,7 +138,8 @@ function gen_config_helper()
 	source ./do-configure.sh
     else
         echo; echo
-        echo "Please run: \"cmake\" with the generated cmake fragment file as input"
+        echo "Please run: \"cmake -DTrilinos_CONFIGURE_OPTIONS_FILE:STRING=/path/to/fragment.cmake\""
+        echo "where \"/path/to/fragment.cmake\" is replaced by your generated cmake fragment file"
         echo
     fi
 }
