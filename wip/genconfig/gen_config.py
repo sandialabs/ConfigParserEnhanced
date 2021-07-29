@@ -515,7 +515,8 @@ class GenConfig(FormattedMsg):
                     extras=f"  {key} : /path/to/{key}.ini"
                 ))
             else:
-                if not Path(value).is_absolute():
+                if not Path(self._gen_config_config_data[section][key]).exists() and \
+                   not Path(value).is_absolute():
                     self._gen_config_config_data[section][key] = str(
                         self.gen_config_ini_file.parent / value
                     )
@@ -525,7 +526,7 @@ class GenConfig(FormattedMsg):
                     f"The file specified for '{key}' in "
                     f"'{str(self.gen_config_ini_file)}' does not exist:",
                     extras=f"  {key} : "
-                    f"{self._gen_config_config_data[section][key]}.ini"
+                    f"{self._gen_config_config_data[section][key]}"
                 ))
 
     @property
