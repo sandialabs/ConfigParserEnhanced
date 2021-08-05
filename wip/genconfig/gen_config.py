@@ -447,7 +447,7 @@ class GenConfig(FormattedMsg):
 
                 msg = ("The following invalid operations were found in\n" +
                        str(self.args.config_specs_file) + ":")
-                extras = "\nInstead, please use one of the following valid operations:\n"
+                extras = "\nPlease use one of the following valid operations instead:\n"
                 for operation in valid_operations:
                     extras += f"  - {operation}\n"
 
