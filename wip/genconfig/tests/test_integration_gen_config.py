@@ -188,6 +188,9 @@ def test_existing_cmake_fragment_file_asks_user_for_overwrite(mock_input, data):
 ###############################################################################
 ##########################     Validation     #################################
 ###############################################################################
+
+# Section Name Validation
+# =======================
 def get_expected_exc_msg(section_names, test_ini_filename):
     formatted_section_name = "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
     msg_expected = textwrap.dedent(
@@ -352,3 +355,59 @@ def test_multiple_invalid_config_specs_sections_are_shown_in_one_err_msg():
 
     should_raise = True
     run_common_validation_test(test_ini_filename, bad_section_names, should_raise)
+
+# Operation Validation
+# ====================
+@pytest.mark.parametrize("data", [
+    {
+        "operations": ["use"],
+        "invalid": [],
+        "should_raise": False
+    },
+    {
+        "operations": ["use", "invalid-operation"],
+        "invalid": ["invalid-operation"],
+        "should_raise": True
+    },
+    {
+        "operations": ["invalid-operation", "invalid-operation-2"],
+        "invalid": ["invalid-operation", "invalid-operation-2"],
+        "should_raise": True
+    },
+    {
+        "operations": ["use", "invalidOperationNoDashes"],
+        "invalid": ["invalidOperationNoDashes"],
+        "should_raise": True
+    },
+])
+def test_invalid_operations_raises(data):
+    valid_section_name = "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
+    bad_config_specs = f"[{valid_section_name}]\n"
+    for operation in data["operations"]:
+        bad_config_specs += f"{operation} other info: here\n"
+
+    test_ini_filename = "test_config_specs_invalid_operations.ini"
+    with open(test_ini_filename, "w") as F:
+        F.write(bad_config_specs)
+
+    gc = GenConfig([
+        "--config-specs", test_ini_filename,
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--force",
+        "machine-type-5_any_build_name"
+    ])
+
+
+    if data["should_raise"]:
+        with pytest.raises(ValueError) as excinfo:
+            gc.validate_config_specs_ini()
+
+        exc_msg = excinfo.value.args[0]
+        print(exc_msg)
+        for invalid_op in data["invalid"]:
+            assert f"- {invalid_op}" in exc_msg
+    else:
+        gc.validate_config_specs_ini()

@@ -321,6 +321,11 @@ class GenConfig(FormattedMsg):
         return self._complete_config
 
     def validate_config_specs_ini(self):
+        self.validate_config_specs_ini_section_names()
+        self.validate_config_specs_ini_operations()
+        self.has_been_validated = True
+
+    def validate_config_specs_ini_section_names(self):
         """
         Validates each section in ``config-specs.ini`` to ensure the format is
         correct.
@@ -411,7 +416,43 @@ class GenConfig(FormattedMsg):
         self.load_env.build_name = self.args.build_name
         self.load_env.args.force = self.args.force
         self.config_keyword_parser.build_name = self.args.build_name
-        self.has_been_validated = True
+
+    def validate_config_specs_ini_operations(self):
+        if self.set_program_options is None:
+            self.load_set_program_options()
+
+            # Get the operations present in config-specs.ini
+            # i.e. opt-set-cmake-var
+            config_data = self.set_program_options.configparserdata
+            operations = []
+            for section in config_data.sections():
+                operations += [_.split(" ")[0] for _ in config_data[section].keys()]
+            unique_operations = set(operations)
+
+            # Make sure SetProgramOptionsCMake has handlers for all of these
+            invalid_operations = []
+            for operation in unique_operations:
+                try:
+                    print(f"_handler_{operation.replace('-', '_')}")
+                    assert (f"_handler_{operation.replace('-', '_')}" in
+                            dir(self.set_program_options))
+                except AssertionError:
+                    invalid_operations.append(operation)
+
+            if len(invalid_operations) > 0:
+                valid_operations = [_.replace("_handler_", "")
+                                    for _ in dir(self.set_program_options)
+                                    if _.startswith("_handler_")]
+                valid_operations = [_.replace("_", "-") for _ in valid_operations]
+
+                msg = ("The following invalid operations were found in\n" +
+                       str(self.args.config_specs_file) + ":")
+                extras = "\nInstead, please use on of the following valid operations:\n"
+                for operation in valid_operations:
+                    extras += f"  - {operation}\n"
+
+                raise ValueError(self.get_msg_for_list(msg, invalid_operations,
+                                                       extras=extras))
 
     def load_config_keyword_parser(self):
         """
@@ -515,8 +556,7 @@ class GenConfig(FormattedMsg):
                     extras=f"  {key} : /path/to/{key}.ini"
                 ))
             else:
-                if not Path(self._gen_config_config_data[section][key]).exists() and \
-                   not Path(value).is_absolute():
+                if not Path(value).is_absolute():
                     self._gen_config_config_data[section][key] = str(
                         self.gen_config_ini_file.parent / value
                     )
@@ -526,7 +566,7 @@ class GenConfig(FormattedMsg):
                     f"The file specified for '{key}' in "
                     f"'{str(self.gen_config_ini_file)}' does not exist:",
                     extras=f"  {key} : "
-                    f"{self._gen_config_config_data[section][key]}"
+                    f"{self._gen_config_config_data[section][key]}.ini"
                 ))
 
     @property
@@ -690,6 +730,7 @@ def main(argv):
     DOCSTRING
     """
     gc = GenConfig(argv)
+    gc.validate_config_specs_ini()
     if gc.args.list_config_flags:
         gc.list_config_flags()
     elif gc.args.list_configs:
