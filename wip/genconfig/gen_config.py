@@ -421,38 +421,38 @@ class GenConfig(FormattedMsg):
         if self.set_program_options is None:
             self.load_set_program_options()
 
-            # Get the operations present in config-specs.ini
-            # i.e. opt-set-cmake-var
-            config_data = self.set_program_options.configparserdata
-            operations = []
-            for section in config_data.sections():
-                operations += [_.split(" ")[0] for _ in config_data[section].keys()]
-            unique_operations = set(operations)
+        # Get the operations present in config-specs.ini
+        # i.e. opt-set-cmake-var
+        config_data = self.set_program_options.configparserdata
+        operations = []
+        for section in config_data.sections():
+            operations += [_.split(" ")[0] for _ in config_data[section].keys()]
+        unique_operations = set(operations)
 
-            # Make sure SetProgramOptionsCMake has handlers for all of these
-            invalid_operations = []
-            for operation in unique_operations:
-                try:
-                    print(f"_handler_{operation.replace('-', '_')}")
-                    assert (f"_handler_{operation.replace('-', '_')}" in
-                            dir(self.set_program_options))
-                except AssertionError:
-                    invalid_operations.append(operation)
+        # Make sure SetProgramOptionsCMake has handlers for all of these
+        invalid_operations = []
+        for operation in unique_operations:
+            try:
+                print(f"_handler_{operation.replace('-', '_')}")
+                assert (f"_handler_{operation.replace('-', '_')}" in
+                        dir(self.set_program_options))
+            except AssertionError:
+                invalid_operations.append(operation)
 
-            if len(invalid_operations) > 0:
-                valid_operations = [_.replace("_handler_", "")
-                                    for _ in dir(self.set_program_options)
-                                    if _.startswith("_handler_")]
-                valid_operations = [_.replace("_", "-") for _ in valid_operations]
+        if len(invalid_operations) > 0:
+            valid_operations = [_.replace("_handler_", "")
+                                for _ in dir(self.set_program_options)
+                                if _.startswith("_handler_")]
+            valid_operations = [_.replace("_", "-") for _ in valid_operations]
 
-                msg = ("The following invalid operations were found in\n" +
-                       str(self.args.config_specs_file) + ":")
-                extras = "\nPlease use one of the following valid operations instead:\n"
-                for operation in valid_operations:
-                    extras += f"  - {operation}\n"
+            msg = ("The following invalid operations were found in\n" +
+                   str(self.args.config_specs_file) + ":")
+            extras = "\nPlease use one of the following valid operations instead:\n"
+            for operation in valid_operations:
+                extras += f"  - {operation}\n"
 
-                raise ValueError(self.get_msg_for_list(msg, invalid_operations,
-                                                       extras=extras))
+            raise ValueError(self.get_msg_for_list(msg, invalid_operations,
+                                                   extras=extras))
 
     def load_config_keyword_parser(self):
         """
