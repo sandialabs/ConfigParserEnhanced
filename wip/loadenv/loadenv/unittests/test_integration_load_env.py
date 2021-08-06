@@ -258,3 +258,56 @@ def test_main_with_unsuccessful_apply(mock_set_environment, mock_gethostname):
     expected_exc_msg = "Something unexpected went wrong in applying the environment."
     with pytest.raises(RuntimeError, match=expected_exc_msg):
         load_env.main(["arm", "--output", "test_out.sh"])
+
+
+# Operation Validation
+# ====================
+@pytest.mark.parametrize("data", [
+    {
+        "operations": ["use"],
+        "invalid": [],
+        "should_raise": False
+    },
+    {
+        "operations": ["use", "invalid-operation"],
+        "invalid": ["invalid-operation"],
+        "should_raise": True
+    },
+    {
+        "operations": ["invalid-operation", "invalid-operation-2"],
+        "invalid": ["invalid-operation", "invalid-operation-2"],
+        "should_raise": True
+    },
+    {
+        "operations": ["use", "invalidOperationNoDashes"],
+        "invalid": ["invalidOperationNoDashes"],
+        "should_raise": True
+    },
+])
+def test_invalid_operations_raises(data):
+    valid_section_name = "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp"
+    bad_environment_specs = f"[{valid_section_name}]\n"
+    for operation in data["operations"]:
+        bad_environment_specs += f"{operation} other info: here\n"
+
+    test_ini_filename = "test_environment_specs_invalid_operations.ini"
+    with open(test_ini_filename, "w") as F:
+        F.write(bad_environment_specs)
+
+    le = LoadEnv([
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", test_ini_filename,
+        "--force",
+        "machine-type-1_intel"
+    ])
+
+
+    if data["should_raise"]:
+        with pytest.raises(ValueError) as excinfo:
+            le.validate_environment_specs_ini_operations()
+
+        exc_msg = excinfo.value.args[0]
+        for invalid_op in data["invalid"]:
+            assert f"- {invalid_op}" in exc_msg
+    else:
+        le.validate_environment_specs_ini_operations()
