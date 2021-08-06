@@ -406,7 +406,6 @@ def test_invalid_operations_raises(data):
             gc.validate_config_specs_ini()
 
         exc_msg = excinfo.value.args[0]
-        print(exc_msg)
         for invalid_op in data["invalid"]:
             assert f"- {invalid_op}" in exc_msg
     else:
