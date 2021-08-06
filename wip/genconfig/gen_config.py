@@ -433,7 +433,6 @@ class GenConfig(FormattedMsg):
         invalid_operations = []
         for operation in unique_operations:
             try:
-                print(f"_handler_{operation.replace('-', '_')}")
                 assert (f"_handler_{operation.replace('-', '_')}" in
                         dir(self.set_program_options))
             except AssertionError:
@@ -450,6 +449,8 @@ class GenConfig(FormattedMsg):
             extras = "\nPlease use one of the following valid operations instead:\n"
             for operation in valid_operations:
                 extras += f"  - {operation}\n"
+            extras += ("\nFor more information about these operations, please see:\n"
+                       f"{str(Path(__file__).parent/'examples/config-specs.ini')}")
 
             raise ValueError(self.get_msg_for_list(msg, invalid_operations,
                                                    extras=extras))
