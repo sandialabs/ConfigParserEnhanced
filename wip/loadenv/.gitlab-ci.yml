@@ -53,7 +53,8 @@ pytest:
     - ln -s deps/KeywordParser/keywordparser/ .
     - python3 -m pip install --user -U py pytest pytest-cov
   script:
-    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    #- python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -m pytest -rs -vv --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 sphinx:
@@ -70,7 +71,7 @@ publish coverage:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - python3 -m pytest --cov=. --cov-report html --cov-report term
+    - python3 -m pytest --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/LoadEnv/coverage
     - mkdir -p /home/josbrau/html_files/LoadEnv/coverage
     - mv htmlcov/* /home/josbrau/html_files/LoadEnv/coverage/

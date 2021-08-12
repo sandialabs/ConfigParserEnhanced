@@ -1,4 +1,25 @@
 [run]
-omit =
-    tests/*
-    deps/*
+omit = */unittests/*
+       */deps/*
+       */tests/*
+branch = True
+dynamic_context = test_function
+
+[report]
+skip_covered = False
+fail_under = 99
+show_missing = True
+
+[html]
+directory = tests/htmlcov
+title = LoadEnv Coverage Report
+show_contexts = True
+
+[xml]
+output = tests/coverage.xml
+
+[json]
+output = tests/coverage.json
+pretty_print = True
+show_contexts = True
+
