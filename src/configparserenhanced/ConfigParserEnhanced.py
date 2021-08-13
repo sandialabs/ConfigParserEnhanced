@@ -51,6 +51,7 @@ Todo:
 from __future__ import print_function
 
 import configparser
+import inspect
 import io
 import os
 from pathlib import Path
@@ -363,6 +364,127 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         file_object.write(text)
 
         return 0
+
+    def assert_file_all_sections_handled(self) -> int:
+        """
+        Checks that ALL then options within a file are fully handled.
+        This calls ``assert_section_all_options_handled`` on all the sections
+        of a .ini file.
+        """
+        output = 0
+
+        for section in self.configparserenhanceddata.sections(parse=False):
+            err = self.assert_section_all_options_handled(section, do_raise=False)
+
+            if err != 0:
+                self.debug_message(0, err)
+                output = 1
+
+        if output != 0:
+            message = self.get_known_operations_message()
+            self.debug_message(0, message)
+            self.exception_control_event("SERIOUS", ValueError, message.strip())
+
+        return output
+
+    def assert_section_all_options_handled(self, section_name: str, do_raise: bool = True) -> int:
+        """
+        This method provides a validation capability against a *section* in a
+        .ini file to validate that all of the entries are handled. The use case
+        of this is fairly specific will flag any 'unhandled' options within
+        a section under an expectation that the intent or design of the .ini
+        file is that _all_ options are handled by some handler and _any_ that
+        are not indicate an error or typo of some sort.
+
+        Args:
+            section_name (str): The _name_ of the section that will be searched.
+                Note: in ``ConfigParserEnhanced`` this includes the fully parsed
+                section which includes the *transitive closure* of the dependency
+                graph imposed by ``use`` operations.
+
+            do_raise (bool): If True (default) then this assert will trigger
+                an ``exception_control_event`` that may raise a ``ValueError``
+                if there are unhandled entries detected.
+                If False then the return value is set to nonzero if unhandled
+                entries are found but the **ece** is not triggered.
+
+        Returns:
+            int: 0 indicates a successful parse with no errors, otherwise
+                 any nonzero return value indicates there is at least one
+                 entry in the section that was not properly handled.
+                 IF a *bad* entry is found then the output will be a string
+                 containing a message that indicates what the bad entries
+                 are.
+
+        Raises:
+            ValueError: A ValueError is raised if the current settings for
+                        ``exception_control_level`` is set to raise errors
+                        for **SERIOUS** events.
+        """
+        output = 0
+        section_data = self.configparserenhanceddata.get(section_name)
+
+        if len(section_data):
+            message = f"Unhandled option found in section `{section_name}`"
+            message += " or one of its dependent sections.\n"
+            message += "The following key(s) does not match any known operation handlers:\n"
+            for k, v in section_data.items():
+                message += f"- `{k}`\n"
+            if do_raise:
+                message += self.get_known_operations_message()
+                self.exception_control_event("SERIOUS", ValueError, message.strip())
+            output = message
+        return output
+
+    def get_known_operations_message(self):
+        """
+        Generate a string that lists valid **operations**.
+
+        Returns:
+            str: A string containing the message listing the valid operations.
+        """
+        message = "Valid operations are:\n"
+        for op in self.get_known_operations():
+            message += f"- `{op}`\n"
+        return message
+
+    def get_known_operations(self):
+        """
+        Generate a list of *known* operation keywords based on the
+        existing handlers defined in this class.
+
+        There is potentially some data loss here since there is nothing in
+        ConfigParserEnhanced that would prevent someone from defining an
+        *operation* of the form ``foo_bar`` rather than ``foo-bar`` but since
+        the parser will always convert ``-`` to ``_``, in terms of processing
+        an operation there would be no distinction between ``foo-bar`` and
+        ``foo_bar``.
+
+        Returns:
+            list: A list of strings is returned containing the list of
+                  known operations based on existing handlers.
+        """
+        # Regex that looks for ``_handler`` or ``handler`` at the front of a string
+        re_handler_name = re.compile(r"^_?handler_")
+
+        # Regex that looks for strings that match any one of these options:
+        # - "_handler_initialize"
+        # - "_handler_finalize"
+        # - "handler_initialize"
+        # - "handler_finalize"
+        re_handler_init_final = re.compile(r"^_?handler_((finalize)|(initialize))$")
+
+        # This list comprehension scans through the defined methods and will
+        # pull out every method that starts with "_handler" or "handler"
+        # and then strips the optional leading "_" off, then strips the
+        # leading "handler_" component off and finally replaces "_" with "-"
+        # in the handler name to generate the operation name.
+        output = [
+            x[0].lstrip("_").lstrip("handler_").replace("_", "-")
+            for x in inspect.getmembers(self, predicate=inspect.ismethod)
+            if re_handler_name.search(x[0]) and not re_handler_init_final.search(x[0])
+        ]
+        return output
 
     def unroll_to_str(self, section=None, space_around_delimiters=True, use_base_class_parser=True) -> str:
         """Unroll a section or whole .ini file to a string
@@ -783,18 +905,18 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
             self.debug_message(2, f"==>")
             self._loginfo_add('section-key-value', {'key': sec_k, 'value': sec_v}) # Logging
 
-            sec_k_tok = shlex.split(sec_k)
+            # sec_k_tok = shlex.split(sec_k)                                                        # DEPRECATED
+            sec_k_tok = self._tokenize_option_key(sec_k)
 
             if not re.match(r"^[\w\-]+$", sec_k_tok[0]):
                 # Call generic_handler if the first entry has invalid characters
                 self._launch_generic_option_handler(section_name, handler_parameters, sec_k, sec_v)
             else:
                 # Otherwise, it _could_ be a 'handled' operation
-                op = sec_k_tok[0]
-                params = sec_k_tok[1 :]
+                op, params = self._get_op_components_from_tokenized_option_key(sec_k_tok)
 
-                op = self._apply_transformation_to_operation(op)
-                params = [self._apply_transformation_to_parameter(x) for x in params]
+                #op = self._apply_transformation_to_operation(op)                                   # DEPRECATED
+                #params = [self._apply_transformation_to_parameter(x) for x in params]              # DEPRECATED
 
                 handler_parameters.op = op
                 handler_parameters.params = params
@@ -832,6 +954,31 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         self.debug_message(1, "Exit section: `{}`".format(section_name)) # Console
 
         return output
+
+    def _tokenize_option_key(self, option_key):
+        """
+        """
+        option_key = str(option_key).strip()
+        option_key_tok = shlex.split(option_key)
+        return option_key_tok
+
+    def _get_op_components_from_tokenized_option_key(self, option_key_tok):
+        """
+        Take a partitioned ``operation`` that comes in as a list and
+        split it up into the ``operation`` and ``parameters``.
+
+        Returns:
+            tuple: A tuple containing the ``(op, params)`` where ``op`` is
+                   a string and ``params`` will be a list of 0..N parameters.
+        """
+        op = option_key_tok[0]
+        params = option_key_tok[1 :]
+
+        # Clean up / apply necessary transformations to the operation and parameters
+        op = self._apply_transformation_to_operation(op)
+        params = [self._apply_transformation_to_parameter(x) for x in params]
+
+        return (op, params)
 
     def _validate_handlerparameters(self, handler_parameters):
         """Check :class:`HandlerParameters`.
