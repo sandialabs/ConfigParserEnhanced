@@ -1,13 +1,19 @@
 from pathlib import Path
 import pytest
 import sys
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 
-root_dir = Path.cwd() / ".." if (Path.cwd() / "conftest.py").exists() else Path.cwd()
+if (Path.cwd() / "conftest.py").exists():
+    root_dir = (Path.cwd()/"../..").resolve()
+elif (Path.cwd() / "unittests/conftest.py").exists():
+    root_dir = (Path.cwd()/"..").resolve()
+else:
+    root_dir = Path.cwd()
 
 sys.path.append(str(root_dir))
 from load_env import LoadEnv
+import load_env
 
 
 
@@ -80,6 +86,11 @@ def test_loadenv_obj_can_be_reused_for_multiple_build_names(mock_gethostname, in
             inputs_1["build_name"],
             ]
         )
+    # Sanity check / for the coverage
+    assert le.build_name == inputs_1["build_name"]
+    le.build_name = inputs_1["build_name"]
+    assert le.build_name == inputs_1["build_name"]
+
     assert le.parsed_env_name == inputs_1["expected_env_name"]
     assert le.system_name == inputs_1["expected_sys_name"]
 
@@ -204,3 +215,46 @@ def test_load_matching_env_is_set_correctly_and_directories_are_created(mock_get
     expected_file = (le.tmp_load_matching_env_file if output is None else Path(output)).resolve()
     assert expected_file.parent.exists()
     assert load_matching_env == expected_file
+
+
+@patch("socket.gethostname")
+def test_existing_load_matching_env_file_overwritten(mock_gethostname):
+    output_file = "test_load_matching_env.sh"
+    initial_contents = "test file contents"
+    with open(output_file, "w") as F:
+        F.write(initial_contents)
+
+    mock_gethostname.return_value = "stria"
+    le = LoadEnv(argv=["arm", "--output", output_file])
+
+    load_matching_env = le.write_load_matching_env()
+    with open(le.tmp_load_matching_env_file, "r") as F:
+        load_matching_env_contents = F.read()
+
+    assert initial_contents != load_matching_env_contents
+
+
+#  main()  #
+############
+@patch("socket.gethostname")
+@patch("load_env.SetEnvironment")
+def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
+    mock_gethostname.return_value = "stria"
+    mock_se = Mock()
+    mock_se.apply.return_value = 0
+    mock_set_environment.return_value = mock_se
+
+    load_env.main(["arm", "--output", "test_out.sh"])
+
+
+@patch("socket.gethostname")
+@patch("load_env.SetEnvironment")
+def test_main_with_unsuccessful_apply(mock_set_environment, mock_gethostname):
+    mock_gethostname.return_value = "stria"
+    mock_se = Mock()
+    mock_se.apply.return_value = 1
+    mock_set_environment.return_value = mock_se
+
+    expected_exc_msg = "Something unexpected went wrong in applying the environment."
+    with pytest.raises(RuntimeError, match=expected_exc_msg):
+        load_env.main(["arm", "--output", "test_out.sh"])

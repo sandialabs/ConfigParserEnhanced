@@ -110,7 +110,7 @@ class LoadEnv(FormattedMsg):
             raise TypeError("LoadEnv must be instantiated with a list of command line arguments.")
 
         self.argv = argv
-        self.load_env_ini_file = load_env_ini_file
+        self.load_env_ini_file = Path(load_env_ini_file)
         self.load_env_config_data = None
         self.parse_top_level_config_file()
         self.supported_systems_data = None
@@ -180,7 +180,6 @@ class LoadEnv(FormattedMsg):
         print(self.env_keyword_parser.get_msg_showing_supported_environments(
                 "Please select one of the following.", kind="INFO"))
         sys.exit()
-        return
 
 
     @property
