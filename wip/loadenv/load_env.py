@@ -14,14 +14,25 @@ try:  # Packages are snapshotted via install_reqs.sh or these are in Python's si
     from .determinesystem import DetermineSystem
     from .keywordparser import FormattedMsg
     from .setenvironment import SetEnvironment
-except ImportError:  # Perhaps LoadEnv was snapshotted and these packages lie up one dir.
-    p = Path(__file__).parents[1]  # One dir up from the path to this file
-    sys.path.insert(0, str(p))
 
-    from configparserenhanced import ConfigParserEnhanced
-    from determinesystem import DetermineSystem
-    from keywordparser import FormattedMsg
-    from setenvironment import SetEnvironment
+except ImportError:
+    try:  # Perhaps this file is being imported from another directory
+        p = Path(__file__).parents[0]
+        sys.path.insert(0, str(p))
+
+        from configparserenhanced import ConfigParserEnhanced
+        from determinesystem import DetermineSystem
+        from keywordparser import FormattedMsg
+        from setenvironment import SetEnvironment
+
+    except ImportError:  # Perhaps LoadEnv was snapshotted and these packages lie up one dir.
+        p = Path(__file__).parents[1]  # One dir up from the path to this file
+        sys.path.insert(0, str(p))
+
+        from configparserenhanced import ConfigParserEnhanced
+        from determinesystem import DetermineSystem
+        from keywordparser import FormattedMsg
+        from setenvironment import SetEnvironment
 
 try:  # CWD is LoadEnv repository root
     from loadenv.EnvKeywordParser import EnvKeywordParser
