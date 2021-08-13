@@ -367,7 +367,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
 
     def assert_file_all_sections_handled(self) -> int:
         """
-        Checks that ALL then options within a file are fully handled.
+        Checks that ALL the options within a file are fully handled.
         This calls ``assert_section_all_options_handled`` on all the sections
         of a .ini file.
         """
