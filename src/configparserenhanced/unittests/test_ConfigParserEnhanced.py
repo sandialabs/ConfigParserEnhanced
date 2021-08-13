@@ -1395,6 +1395,76 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
         return 0
 
+    def test_ConfigParserEnhanced_VALIDATOR_01(self):
+        """
+        Check that section validation operates correctly.
+        """
+        filename_ini = find_config_ini(filename="config_test_configparserenhanced_validation_01.ini")
+        print("\n")
+        print("Load file: {}".format(filename_ini))
+
+        # Test just `SECTION B` which should PASS
+        print("----[ TEST BEGIN ]----------------------------------")
+        section = "SECTION B"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(filename_ini)
+        parser.debug_level = 0
+        parser.exception_control_level = 5
+
+        rval = parser.assert_section_all_options_handled(section)
+        self.assertEqual(0, rval)
+        print("----[ TEST END   ]----------------------------------")
+
+        # Test the whole file. this file should PASS
+        print("----[ TEST BEGIN ]----------------------------------")
+        rval = parser.assert_file_all_sections_handled()
+        self.assertEqual(0, rval)
+        print("----[ TEST END   ]----------------------------------")
+
+        print("OK")
+        return 0
+
+    def test_ConfigParserEnhanced_VALIDATOR_02(self):
+        """
+        Check that section validation operates correctly.
+        """
+        filename_ini = find_config_ini(filename="config_test_configparserenhanced_validation_02.ini")
+        print("\n")
+        print("Load file: {}".format(filename_ini))
+
+        # Test individual section, `SECTION B` which should PASS
+        print("----[ TEST BEGIN ]----------------------------------")
+        section = "SECTION B"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhanced(filename_ini)
+        parser.debug_level = 0
+        parser.exception_control_level = 5
+
+        rval = parser.assert_section_all_options_handled(section)
+        self.assertEqual(0, rval)
+        print("----[ TEST END   ]----------------------------------")
+
+        # Test individual section, `SECTION C` which should FAIL
+        print("----[ TEST BEGIN ]----------------------------------")
+        section = "SECTION C"
+        print("Section  : {}".format(section))
+
+        with self.assertRaises(ValueError):
+            rval = parser.assert_section_all_options_handled(section)
+        print("----[ TEST END   ]----------------------------------")
+
+        # Test whole-file parsing which should FAIL due to sections
+        # C and D.
+        print("----[ TEST BEGIN ]----------------------------------")
+        with self.assertRaises(ValueError):
+            parser.assert_file_all_sections_handled()
+        print("----[ TEST END   ]----------------------------------")
+
+        print("OK")
+        return 0
+
 
 
 # ===========================================================
