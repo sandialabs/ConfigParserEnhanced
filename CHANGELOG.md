@@ -24,7 +24,7 @@ Updates and Changes
 ### Security
 -->
 
-## [0.6.1] - <!-- YYYY-MM-DD or --> [UNRELEASED]
+## [0.7.0] - 2021-08-16
 ### Added
 - `get_known_operations()`
   - Generate a list of _known_ operations based on defined _handlers_.
