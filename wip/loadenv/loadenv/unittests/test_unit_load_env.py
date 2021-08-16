@@ -79,58 +79,6 @@ def test_argv_non_list_raises(data):
     assert "must be instantiated with a list" in exc_msg
 
 
-def test_load_env_imports_env_keyword_parser_from_multiple_cwds():
-    # Remove /path/to/LoadEnv from sys.path
-    sys.path.remove(str(root_dir))
-    sys.modules.pop("load_env")
-
-    # Add this to symlinks so we don't overwrite any `load_env.py` files a user
-    # might have lying around.
-    unique_str = uuid.uuid4().hex[: 8]
-
-    # CWD is LoadEnv/..
-    # -----------------
-    sys.path.append(str(root_dir/".."))
-
-    # symlink LoadEnv/../load_env_{unique_str}.py -> LoadEnv/load_env.py
-    # so the top of the import tree is LoadEnv/..
-    test_file = (root_dir/f"../test_{unique_str}.py").resolve()
-    if test_file.exists():
-        test_file.unlink()
-    with open(test_file, "w") as F:
-        F.write("from LoadEnv import load_env")
-
-    import_module(f"test_{unique_str}")
-    sys.modules.pop(f"test_{unique_str}")
-
-    # Cleanup
-    test_file.unlink()
-    sys.path.remove(str(root_dir/".."))
-    # -----------------
-
-
-    # # CWD is LoadEnv/loadenv
-    # # ----------------------
-    # sys.path.append(str(root_dir/"loadenv"))
-
-    # test_file = (root_dir/f"loadenv/test_{unique_str}.py").resolve()
-    # if test_file.exists():
-    #     test_file.unlink()
-    # with open(test_file, "w") as F:
-    #     F.write("from .. import load_env")
-
-    # import_module(f"test_{unique_str}")
-    # sys.modules.pop(f"test_{unique_str}")
-
-    # # Cleanup
-    # test_file.unlink()
-    # sys.path.remove(str(root_dir/"loadenv"))
-    # # ----------------------
-
-    # Restore /path/to/LoadEnv to sys.path
-    sys.path.append(str(root_dir))
-
-
 ######################
 #  Argument Parsing  #
 ######################
