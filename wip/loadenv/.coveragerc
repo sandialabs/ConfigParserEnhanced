@@ -2,6 +2,7 @@
 omit = */unittests/*
        */deps/*
        */tests/*
+       */__main__.py*
 branch = True
 dynamic_context = test_function
 
