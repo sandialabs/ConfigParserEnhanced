@@ -3,6 +3,7 @@ omit = */unittests/*
        */deps/*
        */tests/*
        */__main__.py*
+       */virtual-env*/*
 branch = True
 dynamic_context = test_function
 
