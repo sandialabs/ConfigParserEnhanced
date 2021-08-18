@@ -4,7 +4,13 @@ import sys
 import textwrap
 
 
-root_dir = Path.cwd() / ".." if (Path.cwd() / "conftest.py").exists() else Path.cwd()
+if (Path.cwd() / "conftest.py").exists():
+    root_dir = (Path.cwd()/"../..").resolve()
+elif (Path.cwd() / "unittests/conftest.py").exists():
+    root_dir = (Path.cwd()/"..").resolve()
+else:
+    root_dir = Path.cwd()
+
 sys.path.append(str(root_dir))
 from loadenv.EnvKeywordParser import EnvKeywordParser
 

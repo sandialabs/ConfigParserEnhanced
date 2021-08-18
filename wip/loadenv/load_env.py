@@ -9,23 +9,36 @@ import sys
 import textwrap
 import uuid
 
-try:  # Packages are snapshotted via install_reqs.sh or these are in Python's site-packages
+# Packages are snapshotted via install_reqs.sh or these are in Python's site-packages
+try:                                                                                # pragma: no cover
     from .configparserenhanced import ConfigParserEnhanced
     from .determinesystem import DetermineSystem
     from .keywordparser import FormattedMsg
     from .setenvironment import SetEnvironment
-except ImportError:  # Perhaps LoadEnv was snapshotted and these packages lie up one dir.
-    p = Path(__file__).parents[1]  # One dir up from the path to this file
-    sys.path.insert(0, str(p))
 
-    from configparserenhanced import ConfigParserEnhanced
-    from determinesystem import DetermineSystem
-    from keywordparser import FormattedMsg
-    from setenvironment import SetEnvironment
+except ImportError:                                                                 # pragma: no cover
+    try:  # Perhaps this file is being imported from another directory
+        p = Path(__file__).parents[0]
+        sys.path.insert(0, str(p))
 
-try:  # CWD is LoadEnv repository root
+        from configparserenhanced import ConfigParserEnhanced
+        from determinesystem import DetermineSystem
+        from keywordparser import FormattedMsg
+        from setenvironment import SetEnvironment
+
+    except ImportError:  # Perhaps LoadEnv was snapshotted and these packages lie up one dir.
+        p = Path(__file__).parents[1]  # One dir up from the path to this file
+        sys.path.insert(0, str(p))
+
+        from configparserenhanced import ConfigParserEnhanced
+        from determinesystem import DetermineSystem
+        from keywordparser import FormattedMsg
+        from setenvironment import SetEnvironment
+
+# CWD is LoadEnv repository root
+try:                                                                                # pragma: no cover
     from loadenv.EnvKeywordParser import EnvKeywordParser
-except ImportError:
+except ImportError:                                                                 # pragma: no cover
     try:  # e.g. LoadEnv repository is snapshotted into the CWD
         from LoadEnv.loadenv.EnvKeywordParser import EnvKeywordParser
     except ImportError:  # CWD is LoadEnv/loadenv
@@ -48,41 +61,39 @@ class LoadEnv(FormattedMsg):
         Raises:
             ValueError: TODO - explain when ValueError can be raised.
         """
-        if self.load_env_config_data is None:
-            self.load_env_config_data = ConfigParserEnhanced(
-                self.load_env_ini_file
-                ).configparserenhanceddata
+        self.load_env_config_data = ConfigParserEnhanced(
+            self.load_env_ini_file
+            ).configparserenhanceddata
 
-            if not self.load_env_config_data.has_section("load-env"):
-                msg = f"'{self.load_env_ini_file}' must contain a 'load-env' section."
-                raise ValueError(self.get_formatted_msg(msg))
+        if not self.load_env_config_data.has_section("load-env"):
+            msg = f"'{self.load_env_ini_file}' must contain a 'load-env' section."
+            raise ValueError(self.get_formatted_msg(msg))
 
-            for key in ["supported-systems", "supported-envs", "environment-specs"]:
-                if not self.load_env_config_data.has_option("load-env", key):
-                    raise ValueError(
-                        self.get_formatted_msg(
-                            f"'{self.load_env_ini_file}' must contain the "
-                            "following in the 'load-env' section:",
-                            extras=f"  {key} : /path/to/{key}.ini",
-                            )
+        for key in ["supported-systems", "supported-envs", "environment-specs"]:
+            if not self.load_env_config_data.has_option("load-env", key):
+                raise ValueError(
+                    self.get_formatted_msg(
+                        f"'{self.load_env_ini_file}' must contain the "
+                        "following in the 'load-env' section:",
+                        extras=f"  {key} : /path/to/{key}.ini",
                         )
+                    )
 
-                value = self.load_env_config_data["load-env"][key]
+            value = self.load_env_config_data["load-env"][key]
 
-                if value == "" or value is None:
-                    raise ValueError(
-                        self.get_formatted_msg(
-                            f"The path specified for '{key}' in "
-                            f"'{self.load_env_ini_file}' must be non-empty, e.g.:",
-                            extras=f"  {key} : /path/to/{key}.ini",
-                            )
+            if value == "" or value is None:
+                raise ValueError(
+                    self.get_formatted_msg(
+                        f"The path specified for '{key}' in "
+                        f"'{self.load_env_ini_file}' must be non-empty, e.g.:",
+                        extras=f"  {key} : /path/to/{key}.ini",
                         )
-                else:
-                    if not Path(value).is_absolute():
-                        self.load_env_config_data["load-env"][key] = str(
-                            self.load_env_ini_file.parent / value
-                            )
-        return
+                    )
+            else:
+                if not Path(value).is_absolute():
+                    self.load_env_config_data["load-env"][key] = str(
+                        self.load_env_ini_file.parent / value
+                        )
 
 
     def parse_supported_systems_file(self):
@@ -90,11 +101,9 @@ class LoadEnv(FormattedMsg):
         Parse the ``supported-systems.ini`` file and store the corresponding
         ``configparserenhanceddata`` object as :attr:`supported_systems_data`.
         """
-        if self.supported_systems_data is None:
-            self.supported_systems_data = ConfigParserEnhanced(
-                self.args.supported_systems_file
-                ).configparserenhanceddata
-        return
+        self.supported_systems_data = ConfigParserEnhanced(
+            self.args.supported_systems_file
+            ).configparserenhanceddata
 
 
     def __init__(
@@ -110,7 +119,7 @@ class LoadEnv(FormattedMsg):
             raise TypeError("LoadEnv must be instantiated with a list of command line arguments.")
 
         self.argv = argv
-        self.load_env_ini_file = load_env_ini_file
+        self.load_env_ini_file = Path(load_env_ini_file)
         self.load_env_config_data = None
         self.parse_top_level_config_file()
         self.supported_systems_data = None
@@ -159,11 +168,9 @@ class LoadEnv(FormattedMsg):
         :attr:`build_name`, :attr:`system_name`, and ``supported-envs.ini``.
         Save the resulting object as :attr:`env_keyword_parser`.
         """
-        if self.env_keyword_parser is None:
-            self.env_keyword_parser = EnvKeywordParser(
-                self.args.build_name, self.system_name, self.args.supported_envs_file
-                )
-        return
+        self.env_keyword_parser = EnvKeywordParser(
+            self.args.build_name, self.system_name, self.args.supported_envs_file
+            )
 
 
     def list_envs(self):
@@ -180,7 +187,6 @@ class LoadEnv(FormattedMsg):
         print(self.env_keyword_parser.get_msg_showing_supported_environments(
                 "Please select one of the following.", kind="INFO"))
         sys.exit()
-        return
 
 
     @property
@@ -203,9 +209,7 @@ class LoadEnv(FormattedMsg):
         ``environment-specs.ini``.  Save the resulting object as
         :attr:`set_environment`.
         """
-        if self.set_environment is None:
-            self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
-        return
+        self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
 
 
     def apply_env(self):

@@ -1,22 +1,30 @@
 from configparserenhanced import ConfigParserEnhanced
+import getpass
+from importlib import import_module
 from pathlib import Path
 import pytest
 import sys
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import patch, Mock
+import uuid
 
 
-root_dir = Path.cwd() / ".." if (Path.cwd() / "conftest.py").exists() else Path.cwd()
+if (Path.cwd() / "conftest.py").exists():
+    root_dir = (Path.cwd()/"../..").resolve()
+elif (Path.cwd() / "unittests/conftest.py").exists():
+    root_dir = (Path.cwd()/"..").resolve()
+else:
+    root_dir = Path.cwd()
 
 sys.path.append(str(root_dir))
 from load_env import LoadEnv
-
+import load_env
 
 
 @pytest.mark.parametrize("system_name", ["machine-type-1", "test-system"])
 def test_list_envs(system_name, capsys):
-    le = LoadEnv(
-        [
+    with pytest.raises(SystemExit) as excinfo:
+        load_env.main([
             "--supported-systems",
             "test_supported_systems.ini",
             "--supported-envs",
@@ -24,10 +32,7 @@ def test_list_envs(system_name, capsys):
             "--force",
             "--list-envs",
             system_name,
-            ]
-        )
-    with pytest.raises(SystemExit) as excinfo:
-        le.list_envs()
+        ])
     exc_msg, stderr = capsys.readouterr();
     if system_name == "machine-type-1":
         for line in [
@@ -49,6 +54,22 @@ def test_list_envs(system_name, capsys):
             assert line in exc_msg
 
 
+@patch("socket.gethostname")
+@patch("load_env.SetEnvironment")
+def test_ci_mode_flag_creates_ci_mode_file(mock_set_environment, mock_gethostname):
+    # ci_mode file should exist in /tmp/{user}/.ci_mode
+    mock_gethostname.return_value = "stria"
+    mock_se = Mock()
+    mock_se.apply.return_value = 0
+    mock_set_environment.return_value = mock_se
+
+    load_env.main(["arm", "--output", "test_out.sh", "--ci-mode"])
+
+    ci_mode_file = Path(f"/tmp/{getpass.getuser()}/.ci_mode")
+    assert ci_mode_file.exists()
+    ci_mode_file.unlink()  # Cleanup
+    assert not ci_mode_file.exists()
+
 
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
@@ -58,13 +79,9 @@ def test_argv_non_list_raises(data):
     assert "must be instantiated with a list" in exc_msg
 
 
-
 ######################
 #  Argument Parsing  #
 ######################
-
-
-
 @pytest.mark.parametrize(
     "data",
     [
@@ -126,7 +143,9 @@ def test_argument_parser_functions_correctly(data):
         )
 
 
-
+#################
+#  load_env.ini #
+#################
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
     le = LoadEnv(["build_name"])
     assert (
@@ -143,7 +162,6 @@ def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
             le.load_env_config_data["load-env"]["environment-specs"]
             ).resolve()
         )
-
 
 
 @pytest.mark.parametrize(
@@ -204,3 +222,40 @@ def test_invalid_load_env_file_raises(data):
 
     with pytest.raises(ValueError, match=data["err_msg"]):
         LoadEnv(["build_name"], load_env_ini_file=filename)
+
+
+@pytest.mark.parametrize("already_resolved", [True, False])
+def test_relative_path_resolves_to_absolute_path(already_resolved):
+    supported_systems = Path('test_supported_systems.ini')
+    supported_envs = Path('test_supported_envs.ini')
+    environment_specs = Path('test_environment_specs.ini')
+
+    if already_resolved:
+        supported_systems = supported_systems.resolve()
+        supported_envs = supported_envs.resolve()
+        environment_specs = environment_specs.resolve()
+
+    load_env_ini = (
+        "[load-env]\n"
+        f"supported-systems : {supported_systems}\n"
+        f"supported-envs : {supported_envs}\n"
+        f"environment-specs : {environment_specs}\n"
+    )
+    filename = "test_load_env.ini"
+    with open(filename, "w") as f:
+        f.write(load_env_ini)
+
+    le = LoadEnv(["build_name"], load_env_ini_file=filename)
+
+    if already_resolved:
+        assert le.args.supported_systems_file == supported_systems
+        assert le.args.supported_envs_file == supported_envs
+        assert le.args.environment_specs_file == environment_specs
+    else:
+        assert le.args.supported_systems_file != supported_systems
+        assert le.args.supported_envs_file != supported_envs
+        assert le.args.environment_specs_file != environment_specs
+
+    assert "/" in str(le.args.supported_systems_file)
+    assert "/" in str(le.args.supported_envs_file)
+    assert "/" in str(le.args.environment_specs_file)
