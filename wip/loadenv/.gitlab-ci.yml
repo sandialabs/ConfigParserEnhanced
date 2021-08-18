@@ -72,9 +72,10 @@ publish coverage:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - python3 -m pytest --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
+    - ls -ltrhF
     - rm -rf /home/josbrau/html_files/LoadEnv/coverage
     - mkdir -p /home/josbrau/html_files/LoadEnv/coverage
-    - mv htmlcov/* /home/josbrau/html_files/LoadEnv/coverage/
+    - mv tests/htmlcov/* /home/josbrau/html_files/LoadEnv/coverage/
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 publish docs:
