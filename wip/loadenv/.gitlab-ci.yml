@@ -55,7 +55,7 @@ pytest:
   script:
     #- python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
     - python3 -m pytest -rs -vv --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
-  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+  coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
 sphinx:
   stage: test
@@ -76,7 +76,7 @@ publish coverage:
     - rm -rf /home/josbrau/html_files/LoadEnv/coverage
     - mkdir -p /home/josbrau/html_files/LoadEnv/coverage
     - mv tests/htmlcov/* /home/josbrau/html_files/LoadEnv/coverage/
-  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+  coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
 publish docs:
   stage: deploy
