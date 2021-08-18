@@ -4,6 +4,7 @@ omit = */unittests/*
        */tests/*
        */__main__.py*
        */virtual-env*/*
+       */get_pytest_cmd.py
 branch = True
 dynamic_context = test_function
 
