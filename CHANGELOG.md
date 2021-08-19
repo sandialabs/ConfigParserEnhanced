@@ -24,6 +24,17 @@ Updates and Changes
 ### Security
 -->
 
+## [0.7.1] - [UNRELEASED]
+### Added
+### Changed
+- Added some docstring updates.
+### Deprecated
+### Removed
+### Fixed
+### Internal
+### Security
+
+
 ## [0.7.0] - 2021-08-16
 ### Added
 - `get_known_operations()`

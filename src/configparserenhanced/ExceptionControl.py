@@ -73,9 +73,17 @@ class ExceptionControl(object):
        CRITICAL, SERIOUS and MINOR events will raise their associated
        exception.
        Lower severity events will print out a warning message.
+       This is the DEFAULT value.
     5. **Always Raise:**
        All events trigger their associated exception, even WARNING and SILENT
        events.
+
+    The default behavior is to set ``exception_control_level`` to 4 which will raise
+    **CRITICAL**, **SERIOUS**, and **MINOR** events' associated exceptions and will
+    issue a warning for **MINOR** and **WARNING** events. Note that **CATASTROPHIC**
+    events *can not* be suppressed. Also that any *event* that issues only a warning
+    can be shortened via the ``exception_control_compact_warnings`` flag or silenced
+    by setting the ``exception_control_silent_warnings`` flag.
     """
 
     @property
