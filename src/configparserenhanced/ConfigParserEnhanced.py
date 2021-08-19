@@ -45,7 +45,7 @@ Todo:
     - Jason M. Gates <jmgate@sandia.gov>
     - Josh Braun <josbrau@sandia.gov>
 
-:Version: 0.7.0
+:Version: 0.7.1
 
 """
 from __future__ import print_function
@@ -370,6 +370,20 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         Checks that ALL the options within a file are fully handled.
         This calls ``assert_section_all_options_handled`` on all the sections
         of a .ini file.
+
+        Returns:
+            int: 0 indicates a successful parse with no errors. Otherwise if problems
+                 are detected then the return code will be nonzero.
+                 Note the return value only occurs if ``exception_control_level`` is
+                 2 or lower (See **Raises** notes on this method for more details).
+
+        Raises:
+            ValueError: A ``ValueError`` is raised if there are any *unhandled options*
+                        detected in the file(s) loaded in *any* section. The error can
+                        be suppressed by setting ``exception_control_level`` to suppress
+                        ``SERIOUS`` errors (2 or lower).
+                        If the exception is suppressed then this method will return a
+                        nonzero integer.
         """
         output = 0
 
@@ -417,9 +431,12 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                  are.
 
         Raises:
-            ValueError: A ValueError is raised if the current settings for
-                        ``exception_control_level`` is set to raise errors
-                        for **SERIOUS** events.
+            ValueError: A ``ValueError`` is raised if there are any *unhandled options*
+                        detected in the file(s) loaded in *any* section. The error can
+                        be suppressed by setting ``exception_control_level`` to suppress
+                        ``SERIOUS`` errors (2 or lower).
+                        If the exception is suppressed then this method will return a
+                        nonzero integer.
         """
         output = 0
         section_data = self.configparserenhanceddata.get(section_name)
