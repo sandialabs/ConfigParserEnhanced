@@ -1,4 +1,3 @@
-from configparserenhanced import ConfigParserEnhanced
 import getpass
 from pathlib import Path
 import pytest
@@ -11,6 +10,7 @@ root_dir = (Path.cwd()/".."
             else Path.cwd())
 
 sys.path.append(str(root_dir))
+from configparserenhanced import ConfigParserEnhanced
 from gen_config import GenConfig
 import gen_config
 
@@ -382,9 +382,13 @@ def test_multiple_invalid_config_specs_sections_are_shown_in_one_err_msg():
 ])
 def test_invalid_operations_raises(data):
     valid_section_name = "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
-    bad_config_specs = f"[{valid_section_name}]\n"
+    bad_config_specs = ("[machine-type-5]\n"
+                        "opt-set-cmake-var CMake_Var STRING : ''\n\n"
+                        f"[{valid_section_name}]\n")
     for operation in data["operations"]:
-        bad_config_specs += f"{operation} other info: here\n"
+        bad_config_specs += ("use machine-type-5\n"
+                             if operation == "use"
+                             else f"{operation} params for op: here\n")
 
     test_ini_filename = "test_config_specs_invalid_operations.ini"
     with open(test_ini_filename, "w") as F:
@@ -402,11 +406,7 @@ def test_invalid_operations_raises(data):
 
 
     if data["should_raise"]:
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError):
             gc.validate_config_specs_ini()
-
-        exc_msg = excinfo.value.args[0]
-        for invalid_op in data["invalid"]:
-            assert f"- {invalid_op}" in exc_msg
     else:
         gc.validate_config_specs_ini()
