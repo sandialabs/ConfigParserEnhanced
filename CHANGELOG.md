@@ -24,7 +24,7 @@ Updates and Changes
 ### Security
 -->
 
-## [0.7.1] - 2021-08-19
+## [0.7.1] - [UNRELEASED]
 ### Added
 ### Changed
 - Added some docstring updates.
