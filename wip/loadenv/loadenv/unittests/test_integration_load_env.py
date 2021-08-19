@@ -286,9 +286,13 @@ def test_main_with_unsuccessful_apply(mock_set_environment, mock_gethostname):
 ])
 def test_invalid_operations_raises(data):
     valid_section_name = "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp"
-    bad_environment_specs = f"[{valid_section_name}]\n"
+    bad_environment_specs = ("[ATS1]\n"
+                             "module-load cmake: 3.18.0\n\n"
+                             f"[{valid_section_name}]\n")
     for operation in data["operations"]:
-        bad_environment_specs += f"{operation} other info: here\n"
+        bad_environment_specs += ("use ATS1\n"
+                                  if operation == "use"
+                                  else f"{operation} params for op: here\n")
 
     test_ini_filename = "test_environment_specs_invalid_operations.ini"
     with open(test_ini_filename, "w") as F:
@@ -303,11 +307,7 @@ def test_invalid_operations_raises(data):
 
 
     if data["should_raise"]:
-        with pytest.raises(ValueError) as excinfo:
-            le.validate_environment_specs_ini_operations()
-
-        exc_msg = excinfo.value.args[0]
-        for invalid_op in data["invalid"]:
-            assert f"- {invalid_op}" in exc_msg
+        with pytest.raises(ValueError):
+            le.load_set_environment()
     else:
-        le.validate_environment_specs_ini_operations()
+        le.load_set_environment()

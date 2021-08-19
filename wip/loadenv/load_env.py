@@ -209,7 +209,11 @@ class LoadEnv(FormattedMsg):
         ``environment-specs.ini``.  Save the resulting object as
         :attr:`set_environment`.
         """
-        self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
+        if self.set_environment is None:
+            self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
+
+        # Make sure all operations specified in environment-specs.ini are valid
+        self.set_environment.assert_file_all_sections_handled()
 
 
     def apply_env(self):
@@ -282,50 +286,6 @@ class LoadEnv(FormattedMsg):
                 ).resolve()
 
         return self._tmp_load_matching_env_file
-
-
-    def validate_environment_specs_ini_operations(self):
-        """
-        Checks to make sure all operations defined within
-        ``environment-specs.ini`` are valid and supported by
-        :class:`SetEnvironment`.
-        """
-        if self.set_environment is None:
-            self.load_set_environment()
-
-        # Get the operations present in config-specs.ini
-        # i.e. opt-set-cmake-var
-        config_data = self.set_environment.configparserdata
-        operations = []
-        for section in config_data.sections():
-            operations += [_.split(" ")[0] for _ in config_data[section].keys()]
-        unique_operations = set(operations)
-
-        # Make sure SetProgramOptionsCMake has handlers for all of these
-        invalid_operations = []
-        for operation in unique_operations:
-            try:
-                assert (f"_handler_{operation.replace('-', '_')}" in
-                        dir(self.set_environment))
-            except AssertionError:
-                invalid_operations.append(operation)
-
-        if len(invalid_operations) > 0:
-            valid_operations = [_.replace("_handler_", "")
-                                for _ in dir(self.set_environment)
-                                if _.startswith("_handler_")]
-            valid_operations = [_.replace("_", "-") for _ in valid_operations]
-
-            msg = ("The following invalid operations were found in\n" +
-                   str(self.args.environment_specs_file) + ":")
-            extras = "\nPlease use one of the following valid operations instead:\n"
-            for operation in valid_operations:
-                extras += f"  - {operation}\n"
-            extras += ("\nFor more information about these operations, please see:\n"
-                       f"{str(Path(__file__).parent/'examples/environment-specs.ini')}")
-
-            raise ValueError(self.get_msg_for_list(msg, invalid_operations,
-                                                   extras=extras))
 
 
     @property
@@ -518,7 +478,6 @@ def main(argv):
     DOCSTRING
     """
     le = LoadEnv(argv)
-    le.validate_environment_specs_ini_operations()
     if le.args.list_envs:
         le.list_envs()
     le.apply_env()
