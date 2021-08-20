@@ -213,6 +213,9 @@ class LoadEnv(FormattedMsg):
             self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
 
         # Make sure all operations specified in environment-specs.ini are valid
+        # Note: If `set_environment.exception_control_level` is
+        #       2 or less then `ValueError` will not be raised but
+        #       rather `set_environment` will return a nonzero value.
         self.set_environment.assert_file_all_sections_handled()
 
 
