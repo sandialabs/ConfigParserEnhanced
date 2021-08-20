@@ -240,7 +240,10 @@ def test_existing_load_matching_env_file_overwritten(mock_gethostname):
 @patch("load_env.SetEnvironment")
 def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
     mock_gethostname.return_value = "stria"
-    mock_se = Mock()
+    # 'unsafe=True' allows methods to be called on the mock object that start
+    # with 'assert'. For SetEnvironment, this includes
+    # 'assert_file_all_sections_handled'.
+    mock_se = Mock(unsafe=True)
     mock_se.apply.return_value = 0
     mock_set_environment.return_value = mock_se
 
@@ -251,7 +254,7 @@ def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
 @patch("load_env.SetEnvironment")
 def test_main_with_unsuccessful_apply(mock_set_environment, mock_gethostname):
     mock_gethostname.return_value = "stria"
-    mock_se = Mock()
+    mock_se = Mock(unsafe=True)
     mock_se.apply.return_value = 1
     mock_set_environment.return_value = mock_se
 
