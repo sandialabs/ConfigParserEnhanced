@@ -322,6 +322,18 @@ class GenConfig(FormattedMsg):
 
     def validate_config_specs_ini(self):
         """
+        Runs validation methods to ensure ``config-specs.ini`` has properly
+        formatted section names and properly handled operations. For more
+        information on these, see
+        :func:`validate_config_specs_ini_section_names` and
+        :func:`validate_config_specs_ini_operations`.
+        """
+        self.validate_config_specs_ini_section_names()
+        self.validate_config_specs_ini_operations()
+        self.has_been_validated = True
+
+    def validate_config_specs_ini_section_names(self):
+        """
         Validates each section in ``config-specs.ini`` to ensure the format is
         correct.
 
@@ -411,7 +423,22 @@ class GenConfig(FormattedMsg):
         self.load_env.build_name = self.args.build_name
         self.load_env.args.force = self.args.force
         self.config_keyword_parser.build_name = self.args.build_name
-        self.has_been_validated = True
+
+    def validate_config_specs_ini_operations(self):
+        """
+        Uses the :class:`ConfigParserEnhanced` method
+        :func:`assert_file_all_sections_handled` to make sure all operations
+        within the ``config-specs.ini`` file have corresponding handlers to be
+        processed with :class:`SetProgramOptionsCMake`.
+        """
+        if self.set_program_options is None:
+            self.load_set_program_options()
+
+        # Raise an exception if the .ini file has any unhandled entries
+        # Note: If `set_program_options.exception_control_level` is 
+        #       2 or less then `ValueError` will not be raised but 
+        #       rather `set_program_options` will return a nonzero value.
+        self.set_program_options.assert_file_all_sections_handled()
 
     def load_config_keyword_parser(self):
         """
@@ -435,6 +462,7 @@ class GenConfig(FormattedMsg):
             self.set_program_options = SetProgramOptionsCMake(
                 filename=self.args.config_specs_file
             )
+            self.set_program_options.exception_control_level = 5
 
     def load_load_env(self):
         """
@@ -515,8 +543,7 @@ class GenConfig(FormattedMsg):
                     extras=f"  {key} : /path/to/{key}.ini"
                 ))
             else:
-                if not Path(self._gen_config_config_data[section][key]).exists() and \
-                   not Path(value).is_absolute():
+                if not Path(value).is_absolute():
                     self._gen_config_config_data[section][key] = str(
                         self.gen_config_ini_file.parent / value
                     )
@@ -526,7 +553,7 @@ class GenConfig(FormattedMsg):
                     f"The file specified for '{key}' in "
                     f"'{str(self.gen_config_ini_file)}' does not exist:",
                     extras=f"  {key} : "
-                    f"{self._gen_config_config_data[section][key]}"
+                    f"{self._gen_config_config_data[section][key]}.ini"
                 ))
 
     @property
@@ -690,6 +717,7 @@ def main(argv):
     DOCSTRING
     """
     gc = GenConfig(argv)
+    gc.validate_config_specs_ini()
     if gc.args.list_config_flags:
         gc.list_config_flags()
     elif gc.args.list_configs:
