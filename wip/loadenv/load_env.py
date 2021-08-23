@@ -209,15 +209,7 @@ class LoadEnv(FormattedMsg):
         ``environment-specs.ini``.  Save the resulting object as
         :attr:`set_environment`.
         """
-        if self.set_environment is None:
-            self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
-
-        # Make sure all operations specified in environment-specs.ini are valid
-        # Note: If `set_environment.exception_control_level` is
-        #       2 or less then `ValueError` will not be raised but
-        #       rather `set_environment` will return a nonzero value.
-        self.set_environment.exception_control_level = 5
-        self.set_environment.assert_file_all_sections_handled()
+        self.set_environment = SetEnvironment(filename=self.args.environment_specs_file)
 
 
     def apply_env(self):

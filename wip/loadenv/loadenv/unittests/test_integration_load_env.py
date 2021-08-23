@@ -240,10 +240,7 @@ def test_existing_load_matching_env_file_overwritten(mock_gethostname):
 @patch("load_env.SetEnvironment")
 def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
     mock_gethostname.return_value = "stria"
-    # 'unsafe=True' allows methods to be called on the mock object that start
-    # with 'assert'. For SetEnvironment, this includes
-    # 'assert_file_all_sections_handled'.
-    mock_se = Mock(unsafe=True)
+    mock_se = Mock()
     mock_se.apply.return_value = 0
     mock_set_environment.return_value = mock_se
 
@@ -254,63 +251,10 @@ def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
 @patch("load_env.SetEnvironment")
 def test_main_with_unsuccessful_apply(mock_set_environment, mock_gethostname):
     mock_gethostname.return_value = "stria"
-    mock_se = Mock(unsafe=True)
+    mock_se = Mock()
     mock_se.apply.return_value = 1
     mock_set_environment.return_value = mock_se
 
     expected_exc_msg = "Something unexpected went wrong in applying the environment."
     with pytest.raises(RuntimeError, match=expected_exc_msg):
         load_env.main(["arm", "--output", "test_out.sh"])
-
-
-# Operation Validation
-# ====================
-@pytest.mark.parametrize("data", [
-    {
-        "operations": ["use"],
-        "invalid": [],
-        "should_raise": False
-    },
-    {
-        "operations": ["use", "invalid-operation"],
-        "invalid": ["invalid-operation"],
-        "should_raise": True
-    },
-    {
-        "operations": ["invalid-operation", "invalid-operation-2"],
-        "invalid": ["invalid-operation", "invalid-operation-2"],
-        "should_raise": True
-    },
-    {
-        "operations": ["use", "invalidOperationNoDashes"],
-        "invalid": ["invalidOperationNoDashes"],
-        "should_raise": True
-    },
-])
-def test_invalid_operations_raises(data):
-    valid_section_name = "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp"
-    bad_environment_specs = ("[ATS1]\n"
-                             "module-load cmake: 3.18.0\n\n"
-                             f"[{valid_section_name}]\n")
-    for operation in data["operations"]:
-        bad_environment_specs += ("use ATS1\n"
-                                  if operation == "use"
-                                  else f"{operation} params for op: here\n")
-
-    test_ini_filename = "test_environment_specs_invalid_operations.ini"
-    with open(test_ini_filename, "w") as F:
-        F.write(bad_environment_specs)
-
-    le = LoadEnv([
-        "--supported-envs", "test-supported-envs.ini",
-        "--environment-specs", test_ini_filename,
-        "--force",
-        "machine-type-1_intel"
-    ])
-
-
-    if data["should_raise"]:
-        with pytest.raises(ValueError):
-            le.load_set_environment()
-    else:
-        le.load_set_environment()

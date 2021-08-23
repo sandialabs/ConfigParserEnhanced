@@ -1,3 +1,4 @@
+from configparserenhanced import ConfigParserEnhanced
 import getpass
 from importlib import import_module
 from pathlib import Path
@@ -16,7 +17,6 @@ else:
     root_dir = Path.cwd()
 
 sys.path.append(str(root_dir))
-from configparserenhanced import ConfigParserEnhanced
 from load_env import LoadEnv
 import load_env
 
@@ -59,10 +59,7 @@ def test_list_envs(system_name, capsys):
 def test_ci_mode_flag_creates_ci_mode_file(mock_set_environment, mock_gethostname):
     # ci_mode file should exist in /tmp/{user}/.ci_mode
     mock_gethostname.return_value = "stria"
-    # 'unsafe=True' allows methods to be called on the mock object that start
-    # with 'assert'. For SetEnvironment, this includes
-    # 'assert_file_all_sections_handled'.
-    mock_se = Mock(unsafe=True)
+    mock_se = Mock()
     mock_se.apply.return_value = 0
     mock_set_environment.return_value = mock_se
 
