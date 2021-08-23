@@ -216,6 +216,7 @@ class LoadEnv(FormattedMsg):
         # Note: If `set_environment.exception_control_level` is
         #       2 or less then `ValueError` will not be raised but
         #       rather `set_environment` will return a nonzero value.
+        self.set_environment.exception_control_level = 5
         self.set_environment.assert_file_all_sections_handled()
 
 
