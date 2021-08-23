@@ -57,6 +57,11 @@ if [[ $# -eq 0 || "$@" == *"--help"* ]]; then
     cleanup_gc; return 1
 fi
 
+if [[ $# -eq 0 || "$@" == *"--list-configs"* ]]; then
+    python3 -E -s ${script_dir}/gen_config.py --list-configs
+    cleanup_gc; return 1
+fi
+
 
 
 ####### BEGIN configuration #######
