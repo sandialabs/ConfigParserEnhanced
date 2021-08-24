@@ -444,13 +444,13 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         if len(section_data):
             message = f"Unhandled option found in section `{section_name}`"
             message += " or one of its dependent sections.\n"
-            message += "The following key(s) does not match any known operation handlers:\n"
+            message += "The following entries are unhandled:\n"
             for k, v in section_data.items():
-                message += f"- `{k}`\n"
+                message += f"|- '{k}'\n"
             if do_raise:
                 message += self.get_known_operations_message()
                 self.exception_control_event("SERIOUS", ValueError, message.strip())
-            output = message
+            output = message.rstrip()
         return output
 
     def get_known_operations_message(self):
@@ -462,8 +462,8 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         """
         message = "Valid operations are:\n"
         for op in self.get_known_operations():
-            message += f"- `{op}`\n"
-        return message
+            message += f"|- '{op}'\n"
+        return message.rstrip()
 
     def get_known_operations(self):
         """
