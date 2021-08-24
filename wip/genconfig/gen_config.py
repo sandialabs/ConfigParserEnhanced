@@ -435,8 +435,8 @@ class GenConfig(FormattedMsg):
             self.load_set_program_options()
 
         # Raise an exception if the .ini file has any unhandled entries
-        # Note: If `set_program_options.exception_control_level` is 
-        #       2 or less then `ValueError` will not be raised but 
+        # Note: If `set_program_options.exception_control_level` is
+        #       2 or less then `ValueError` will not be raised but
         #       rather `set_program_options` will return a nonzero value.
         self.set_program_options.assert_file_all_sections_handled()
 
@@ -543,7 +543,7 @@ class GenConfig(FormattedMsg):
                     extras=f"  {key} : /path/to/{key}.ini"
                 ))
             else:
-                if not Path(value).is_absolute():
+                if not Path(self._gen_config_config_data[section][key]).exists() and not Path(value).is_absolute():
                     self._gen_config_config_data[section][key] = str(
                         self.gen_config_ini_file.parent / value
                     )
@@ -553,7 +553,7 @@ class GenConfig(FormattedMsg):
                     f"The file specified for '{key}' in "
                     f"'{str(self.gen_config_ini_file)}' does not exist:",
                     extras=f"  {key} : "
-                    f"{self._gen_config_config_data[section][key]}.ini"
+                    f"{self._gen_config_config_data[section][key]}"
                 ))
 
     @property
