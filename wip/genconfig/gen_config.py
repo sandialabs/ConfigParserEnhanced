@@ -2,20 +2,32 @@
 
 # All imports must be base python or trilinos-consolidation modules only.
 import argparse
-from configparserenhanced import ConfigParserEnhanced
 from contextlib import redirect_stdout
 import getpass
 import io
-from keywordparser import FormattedMsg
-from LoadEnv.load_env import LoadEnv
 import os
 from pathlib import Path
-from setprogramoptions import SetProgramOptionsCMake
-from src.config_keyword_parser import ConfigKeywordParser
 import sys
 import textwrap
 from typing import List
 import uuid
+
+try:
+    from configparserenhanced import ConfigParserEnhanced
+    from keywordparser import FormattedMsg
+    from LoadEnv.load_env import LoadEnv
+    from setprogramoptions import SetProgramOptionsCMake
+    from src.config_keyword_parser import ConfigKeywordParser
+except ImportError:
+    cwd = Path.cwd()
+    gen_config_dir = Path(__file__).parent
+    raise ImportError(
+        "Unable to import Python module dependencies. To fix this, please run:\n\n" +
+        (f"    $ cd {gen_config_dir}\n" if cwd != gen_config_dir else "") +
+        "    $ ./install_reqs\n" +
+        ("    $ cd -\n\n" if cwd != gen_config_dir else "\n") +
+        "and try again."
+    )
 
 
 class GenConfig(FormattedMsg):
@@ -614,13 +626,16 @@ class GenConfig(FormattedMsg):
             NOTE:  In each of the following examples, GenConfig first runs
                    LoadEnv to load the correct environment.
 
-            Run CMake Using Configure Flags from GenConfig::
+            Run CMake Using Configure Flags from GenConfig:
 
                 source /path/to/gen-config.sh \\
                     <build-name> \\
                     /path/to/src
 
-            Save CMake Fragment File to Use with CMake::
+                NOTE:  /path/to/src must always be specified as the last command
+                       line argument UNLESS the --cmake-fragment flag is used.
+
+            Save CMake Fragment File to Use with CMake:
 
                 source /path/to/gen-config.sh \\
                     --cmake-fragment foo.cmake \\
@@ -669,7 +684,9 @@ class GenConfig(FormattedMsg):
                             default=None, type=lambda p: Path(p).resolve(),
                             help="Based on the command line arguments passed to "
                             "GenConfig, write the corresponding command line "
-                            "arguments for LoadEnv to a specified file.")
+                            "arguments for LoadEnv to a specified file. This "
+                            "is a helper flag to be used by gen-config.sh, not "
+                            "intended to be used by the user.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"
