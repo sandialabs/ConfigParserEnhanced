@@ -435,8 +435,8 @@ class GenConfig(FormattedMsg):
             self.load_set_program_options()
 
         # Raise an exception if the .ini file has any unhandled entries
-        # Note: If `set_program_options.exception_control_level` is 
-        #       2 or less then `ValueError` will not be raised but 
+        # Note: If `set_program_options.exception_control_level` is
+        #       2 or less then `ValueError` will not be raised but
         #       rather `set_program_options` will return a nonzero value.
         self.set_program_options.assert_file_all_sections_handled()
 
@@ -640,7 +640,7 @@ class GenConfig(FormattedMsg):
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to generate the"
                             " configuration flags.")
-        parser.add_argument("-l", "--list-configs", action="store_true",
+        parser.add_argument("--list-configs", action="store_true",
                             default=False, help="List the available "
                             "configurations for this system.")
         parser.add_argument("--list-config-flags", action="store_true",

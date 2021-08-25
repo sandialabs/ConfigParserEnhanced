@@ -52,12 +52,12 @@ trap "cleanup_gc; return 1" SIGHUP SIGINT SIGTERM
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # If no command line args were provided, show the --help
-if [[ $# -eq 0 || "$@" == *"--help"* ]]; then
+if [[ $# -eq 0 || "$@" == *"--help"* || "$@" == "-h" || "$@" == *" -h" ]]; then
     python3 -E -s ${script_dir}/gen_config.py --help
     cleanup_gc; return 1
 fi
 
-if [[ $# -eq 0 || "$@" == *"--list-configs"* ]]; then
+if [[ "$@" == *"--list-configs"* ]]; then
     python3 -E -s ${script_dir}/gen_config.py --list-configs
     cleanup_gc; return 1
 fi
