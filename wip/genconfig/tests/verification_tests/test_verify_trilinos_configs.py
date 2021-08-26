@@ -87,7 +87,7 @@ class Test_verify_configs(unittest.TestCase):
               'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_pr': [],
-              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_pr': [],
+              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-c_pr': [],
              }
 
         self.stdoutRedirect = mock.patch('sys.stdout', new_callable=StringIO)
@@ -102,12 +102,12 @@ class Test_verify_configs(unittest.TestCase):
                         "--environment-specs", "test-trilinos-environment-specs.ini"]
 
         # get the set of configurations
-        gc = GenConfig(argv=self.gc_argv)
-        gc.load_load_env()
-        sys_name = gc.load_env.system_name
+        self.gc = GenConfig(argv=self.gc_argv)
+        self.gc.load_load_env()
+        sys_name = self.gc.load_env.system_name
 
         config_specs = ConfigParserEnhanced(
-            gc.args.config_specs_file
+            self.gc.args.config_specs_file
         ).configparserenhanceddata
         self.complete_configs = [_ for _ in config_specs.sections()
                                  if _.startswith(sys_name)]
@@ -121,8 +121,16 @@ class Test_verify_configs(unittest.TestCase):
         '''This just guards against someone adding a configuration
            without adding it to this testing'''
         # assert that the key for each one is in the class map
-        for cfg in self.complete_configs:
-            self.assertTrue(cfg in self.config_verification_map.keys())
+        for ini_file_cfg in self.complete_configs:
+            self.assertTrue(ini_file_cfg in self.config_verification_map.keys(),
+                            msg="{ini_file_cfg_str} from {ini_file_str} not in self.config_verification_map.keys()".\
+                            format(ini_file_cfg_str=ini_file_cfg, ini_file_str=self.gc.args.config_specs_file))
+
+        for ver_test_cfg in self.config_verification_map.keys():
+            self.assertTrue(ver_test_cfg in self.complete_configs,
+                            msg="{ver_test_cfg_str} from self.config_verification_map.keys() not in {ini_file_str}".\
+                            format(ver_test_cfg_str=ver_test_cfg, ini_file_str=self.gc.args.config_specs_file))
+
 
     def test_rhel7_sems_gnu_7_2_0_anaconda3_serial_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_no_mpi_no_pt_no_rdc_pr_framework(self):
         '''Check that the job setup for our python testing matches
