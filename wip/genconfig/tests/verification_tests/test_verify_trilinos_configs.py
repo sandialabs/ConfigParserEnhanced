@@ -9,6 +9,7 @@ except ImportError:  # pragma nocover
 import re
 import sys
 import subprocess
+import pytest
 
 try:
     from cStringIO import StringIO
@@ -20,7 +21,7 @@ from gen_config import GenConfig
 from configparserenhanced import ConfigParserEnhanced
 
 
-class Test_verify_configs(unittest.TestCase):
+class Test_verify_rhel7_configs(unittest.TestCase):
     '''Class to iterate through all configs and verify that the loaded
        environment and cmake configure is what we expect'''
 
@@ -87,7 +88,7 @@ class Test_verify_configs(unittest.TestCase):
               'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_pr': [],
-              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-c_pr': [],
+              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_pr': [],
              }
 
         self.stdoutRedirect = mock.patch('sys.stdout', new_callable=StringIO)
@@ -103,14 +104,12 @@ class Test_verify_configs(unittest.TestCase):
 
         # get the set of configurations
         self.gc = GenConfig(argv=self.gc_argv)
-        self.gc.load_load_env()
-        sys_name = self.gc.load_env.system_name
 
         config_specs = ConfigParserEnhanced(
             self.gc.args.config_specs_file
         ).configparserenhanceddata
         self.complete_configs = [_ for _ in config_specs.sections()
-                                 if _.startswith(sys_name)]
+                                 if _.startswith('rhel7')]
 
     def tearDown(self):
         '''close-out after each test'''
@@ -155,11 +154,18 @@ class Test_verify_configs(unittest.TestCase):
         tmp_gc_argv.append(cfg)
         gc = GenConfig(argv=tmp_gc_argv)
         gc.load_load_env()
-        tr_env = gc.load_env
-        tr_env.load_set_environment()
-        tr_env.apply_env()
-        for tst_list in self.config_verification_map[cfg]:
-            tst_list[0](gc, *tst_list[1:])
+        try:
+            sys_name = gc.load_env.system_name
+            tr_env = gc.load_env
+            tr_env.load_set_environment()
+            tr_env.apply_env()
+            for tst_list in self.config_verification_map[cfg]:
+                tst_list[0](gc, *tst_list[1:])
+        except SystemExit as systemExit:
+            pytest.skip("Wrong system: cannot run \"test_{config}\" on \"{hostname}\"".format(config=cfg,
+                                                                                              hostname=subprocess.getoutput(
+                                                                                                  "hostname")))
+
 
     def assert_python_version(self, gc, major, minor, micro, newer_ok=False):
         '''run python --version and confirm it matches the input values'''
