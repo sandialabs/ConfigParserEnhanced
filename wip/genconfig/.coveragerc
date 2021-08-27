@@ -10,7 +10,7 @@ dynamic_context = test_function
 
 [report]
 skip_covered = False
-fail_under = 97
+fail_under = 99
 show_missing = True
 
 [html]
