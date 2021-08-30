@@ -12,6 +12,7 @@ def use_tmpdir(monkeypatch, request, tmpdir):
     these tests.
     """
 
+    # Test ini files
     shutil.copyfile(Path.cwd()/("tests/supporting_files/"
                                 "test-config-specs.ini"),
                     tmpdir.join("test-config-specs.ini"))
@@ -27,4 +28,23 @@ def use_tmpdir(monkeypatch, request, tmpdir):
     shutil.copyfile(Path.cwd()/("tests/supporting_files/"
                                 "test-environment-specs.ini"),
                     tmpdir.join("test-environment-specs.ini"))
+    
+    # Trilinos ini files
+    shutil.copyfile(Path.cwd() / ("examples/trilinos/"
+                                  "config-specs.ini"),
+                    tmpdir.join("test-trilinos-config-specs.ini"))
+    shutil.copyfile(Path.cwd() / ("examples/trilinos/"
+                                  "supported-config-flags.ini"),
+                    tmpdir.join("test-trilinos-supported-config-flags.ini"))
+    shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/trilinos/"
+                                  "supported-systems.ini"),
+                    tmpdir.join("test-trilinos-supported-systems.ini"))
+    shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/trilinos/"
+                                  "supported-envs.ini"),
+                    tmpdir.join("test-trilinos-supported-envs.ini"))
+    shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/trilinos/"
+                                  "environment-specs.ini"),
+                    tmpdir.join("test-trilinos-environment-specs.ini"))
+    
+    # TODO: ATDM ini files
     monkeypatch.chdir(tmpdir)
