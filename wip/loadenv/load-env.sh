@@ -32,11 +32,10 @@ fi
 ################################################################################
 function cleanup()
 {
-    [ -f /tmp/$USER/.load_matching_env_loc ] && rm -f /tmp/$USER/.load_matching_env_loc 2>/dev/null
-    [ -f /tmp/$USER/.ci_mode ] && rm -f /tmp/$USER/.ci_mode 2>/dev/null
+    [ ! -z ${load_matching_env_loc} ] && rm -f ${load_matching_env_loc} 2>/dev/null
     [ ! -z ${env_file} ] && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
 
-    unset python_too_old script_dir ci_mode cleanup env_file
+    unset python_too_old script_dir ci_mode cleanup env_file load_matching_env_loc
     trap -  SIGHUP SIGINT SIGTERM
     return 0
 }
@@ -75,15 +74,16 @@ fi
 
 # Pass the input on to LoadEnv.py to do the real work, which is outputting
 # a correct load_matching_env.sh to be sourced. The path to this file is
-# output to /tmp/$USER/.load_matching_env_loc
-python3 -E -s ${script_dir}/load_env.py $@
+# output to .load_matching_env_loc
+load_matching_env_loc=.load_matching_env_loc.$RANDOM
+python3 -E -s ${script_dir}/load_env.py --load-matching-env-location $load_matching_env_loc $@
 if [[ $? -ne 0 ]]; then
     cleanup; return $?
 fi
 
 # Check for Continuous Integration mode.
 ci_mode=0
-if [ -f /tmp/$USER/.ci_mode ]; then
+if [[ "$@" == *"--ci-mode"* ]]; then
     ci_mode=1
     echo "+==============================================================================+"
     echo "|   WARNING:  ci mode is enabled."
@@ -92,8 +92,8 @@ if [ -f /tmp/$USER/.ci_mode ]; then
 fi
 
 # Source the generated script to pull the environment into the current shell.
-if [ -f /tmp/$USER/.load_matching_env_loc ]; then
-    env_file=$(cat /tmp/$USER/.load_matching_env_loc)
+if [ -f ${load_matching_env_loc} ]; then
+    env_file=$(cat ${load_matching_env_loc})
     env_file_rc=${env_file::-2}rc  # Remove .sh ending and replace with .rc
 
     # If load-env.sh is being called via gen-config.sh (from the GenConfig repository), then

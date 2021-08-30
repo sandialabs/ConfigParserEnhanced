@@ -54,26 +54,6 @@ def test_list_envs(system_name, capsys):
             assert line in exc_msg
 
 
-@patch("socket.gethostname")
-@patch("load_env.SetEnvironment")
-def test_ci_mode_flag_creates_ci_mode_file(mock_set_environment, mock_gethostname):
-    # ci_mode file should exist in /tmp/{user}/.ci_mode
-    mock_gethostname.return_value = "stria"
-    # 'unsafe=True' allows methods to be called on the mock object that start
-    # with 'assert'. For SetEnvironment, this includes
-    # 'assert_file_all_sections_handled'.
-    mock_se = Mock(unsafe=True)
-    mock_se.apply.return_value = 0
-    mock_set_environment.return_value = mock_se
-
-    load_env.main(["arm", "--output", "test_out.sh", "--ci-mode"])
-
-    ci_mode_file = Path(f"/tmp/{getpass.getuser()}/.ci_mode")
-    assert ci_mode_file.exists()
-    ci_mode_file.unlink()  # Cleanup
-    assert not ci_mode_file.exists()
-
-
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
     with pytest.raises(TypeError) as excinfo:
