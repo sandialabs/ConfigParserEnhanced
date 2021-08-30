@@ -652,6 +652,7 @@ class GenConfig(FormattedMsg):
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
+        #################### User-facing arguments ####################
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to generate the"
                             " configuration flags.")
@@ -680,13 +681,6 @@ class GenConfig(FormattedMsg):
             default=False,
             help="Causes gen-config.sh to modify your current shell rather "
                  "than putting you in a interactive subshell.")
-        parser.add_argument("--save-load-env-args", action="store",
-                            default=None, type=lambda p: Path(p).resolve(),
-                            help="Based on the command line arguments passed to "
-                            "GenConfig, write the corresponding command line "
-                            "arguments for LoadEnv to a specified file. This "
-                            "is a helper flag to be used by gen-config.sh, not "
-                            "intended to be used by the user.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"
@@ -726,6 +720,15 @@ class GenConfig(FormattedMsg):
                                   "Overmachine-name-1s loading the file specified in "
                                   "``gen-config.ini``.")
 
+        ########## Suppressed arguments intended for gen-config.sh ##########
+        parser.add_argument("--output-load-env-args-only", action="store_true",
+                            default=False, help=argparse.SUPPRESS)
+                            # help="Based on the command line arguments passed to "
+                            # "GenConfig, write the corresponding command line "
+                            # "arguments for LoadEnv to stdout. This "
+                            # "is a helper flag to be used by gen-config.sh, not "
+                            # "intended to be used by the user.")
+
         return parser
 
 
@@ -734,15 +737,18 @@ def main(argv):
     DOCSTRING
     """
     gc = GenConfig(argv)
+
+    # To support gen-config.sh, we must conditionally output the load-env.sh args
+    # and exit early
+    if gc.args.output_load_env_args_only:
+        print(" ".join(gc.load_env_args))
+        sys.exit(0)
+
     gc.validate_config_specs_ini()
     if gc.args.list_config_flags:
         gc.list_config_flags()
     if gc.args.list_configs:
         gc.list_configs()
-    if gc.args.save_load_env_args is not None:
-        gc.args.save_load_env_args.parent.mkdir(parents=True, exist_ok=True)
-        with open(gc.args.save_load_env_args, "w") as F:
-            F.write(" ".join(gc.load_env_args))
 
     # Handle generation of configure output
     if gc.args.cmake_fragment is not None:
