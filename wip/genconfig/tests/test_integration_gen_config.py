@@ -77,7 +77,9 @@ def test_complete_config_generated_correctly(data):
     },
 ])
 def test_bash_cmake_flags_generated_correctly(data):
+    user = getpass.getuser()
     gen_config.main([
+        "--bash-cmake-args-location", f"/tmp/{user}/.bash_cmake_args",
         "--config-specs", "test-config-specs.ini",
         "--supported-config-flags", "test-supported-config-flags.ini",
         "--supported-systems", "test-supported-systems.ini",
@@ -87,18 +89,14 @@ def test_bash_cmake_flags_generated_correctly(data):
         data["build_name"]
     ])
 
-    user = getpass.getuser()
-    loc_file = Path(f"/tmp/{user}/.bash_cmake_args_loc")
+    loc_file = Path(f"/tmp/{user}/.bash_cmake_args")
     assert loc_file.exists()
     with open(loc_file, "r") as F:
-        bash_cmake_args_loc = Path(F.read())
-    with open(bash_cmake_args_loc, "r") as F:
         bash_cmake_args = F.read()
 
     assert bash_cmake_args == data["expected_args_str"]
 
     loc_file.unlink()
-    bash_cmake_args_loc.unlink()
 
 
 @pytest.mark.parametrize("data", [

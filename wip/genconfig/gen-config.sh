@@ -34,10 +34,10 @@ fi
 ################################################################################
 function cleanup_gc()
 {
-    [ -f /tmp/$USER/.bash_cmake_args_loc ] && rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
+    [ -f ${bash_cmake_args_loc} ] && rm -f ${bash_cmake_args_loc} 2>/dev/null
 
     unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
-    unset path_to_src cmake_args_file load_env_args
+    unset path_to_src cmake_args_file load_env_args bash_cmake_args_loc
     trap -  SIGHUP SIGINT SIGTERM
     return 0
 }
@@ -99,7 +99,8 @@ fi
 
 
 ### Generate the configuration ###
-python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args; ret=$?
+bash_cmake_args_loc=.bash_cmake_args.$RANDOM
+python3 -E -s ${script_dir}/gen_config.py --bash-cmake-args-location ${bash_cmake_args_loc} $gen_config_py_call_args; ret=$?
 if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $ret
 fi
@@ -108,8 +109,7 @@ fi
 
 ### Run LoadEnv and CMake ###
 # Export these for load-env.sh
-export cmake_args_file=$([ -f /tmp/$USER/.bash_cmake_args_loc ] && cat /tmp/$USER/.bash_cmake_args_loc)
-rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
+export cmake_args=$([ -f ${bash_cmake_args_loc} ] && cat ${bash_cmake_args_loc} | envsubst)
 export path_to_src
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
@@ -120,12 +120,11 @@ function gen_config_helper()
     echo "                      B E G I N  C O N F I G U R A T I O N"
     echo "********************************************************************************"
 
-    if [[ -f $cmake_args_file && $path_to_src != "" ]]; then
+    if [[ $path_to_src != "" ]]; then
         sleep 2s
 
         echo
         echo "*** Running CMake Command: ***"
-        cmake_args="$(cat $cmake_args_file | envsubst)"
 
         # Print cmake call
         echo -e "cmake $cmake_args \\\n    $path_to_src" | sed 's/;/\\;/g' | tee ./do-configure.sh
@@ -134,15 +133,15 @@ function gen_config_helper()
         sleep 2s
 
         # Execute cmake call
-	source ./do-configure.sh
+        source ./do-configure.sh
     else
         echo; echo
-		echo "Please run:"
-		echo
-		echo "  $ cmake -C /path/to/fragment.cmake /path/to/src"
-		echo
+        echo "Please run:"
+        echo
+        echo "  $ cmake -C /path/to/fragment.cmake /path/to/src"
+        echo
         echo "where \"/path/to/fragment.cmake\" is replaced with your generated cmake fragment file"
-		echo "and \"/path/to/src\" is replaced with your build source."
+        echo "and \"/path/to/src\" is replaced with your build source."
         echo
     fi
 }

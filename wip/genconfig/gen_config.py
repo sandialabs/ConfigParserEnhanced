@@ -729,6 +729,13 @@ class GenConfig(FormattedMsg):
                             # "is a helper flag to be used by gen-config.sh, not "
                             # "intended to be used by the user.")
 
+        parser.add_argument("--bash-cmake-args-location",
+                            action="store",
+                            default=None,
+                            type=lambda p: Path(p).resolve(),
+                            help=argparse.SUPPRESS)
+                            # help="Path to load-matching-env file in /tmp/$USER/")
+
         return parser
 
 
@@ -769,16 +776,9 @@ def main(argv):
         user = getpass.getuser()
         Path(f"/tmp/{user}").mkdir(parents=True, exist_ok=True)
 
-        unique_str = uuid.uuid4().hex[: 8]
-        bash_cmake_args_file_loc = Path(
-            f"/tmp/{user}/bash_cmake_args_from_gen_config_{unique_str}"
-        ).resolve()
-        with open(bash_cmake_args_file_loc, "w") as F:
-            F.write(gc.generated_config_flags_str)
-
-        # Location to the unique file ^^. Used in gen-config.sh.
-        with open(f"/tmp/{user}/.bash_cmake_args_loc", "w") as F:
-            F.write(str(bash_cmake_args_file_loc))
+        if gc.args.bash_cmake_args_location is not None:
+            with open(gc.args.bash_cmake_args_location, "w") as F:
+                F.write(gc.generated_config_flags_str)
 
 
 if __name__ == "__main__":
