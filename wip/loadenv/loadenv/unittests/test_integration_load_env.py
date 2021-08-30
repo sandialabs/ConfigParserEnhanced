@@ -310,7 +310,7 @@ def test_invalid_operations_raises(data):
 
 
     if data["should_raise"]:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) and pytest.raises(SystemExit):
             le.load_set_environment()
     else:
         le.load_set_environment()
