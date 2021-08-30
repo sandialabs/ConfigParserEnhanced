@@ -737,13 +737,15 @@ def main(argv):
     gc.validate_config_specs_ini()
     if gc.args.list_config_flags:
         gc.list_config_flags()
-    elif gc.args.list_configs:
+    if gc.args.list_configs:
         gc.list_configs()
-    elif gc.args.save_load_env_args is not None:
+    if gc.args.save_load_env_args is not None:
         gc.args.save_load_env_args.parent.mkdir(parents=True, exist_ok=True)
         with open(gc.args.save_load_env_args, "w") as F:
             F.write(" ".join(gc.load_env_args))
-    elif gc.args.cmake_fragment is not None:
+
+    # Handle generation of configure output
+    if gc.args.cmake_fragment is not None:
         gc.write_cmake_fragment()
     else:  # Output bash cmake args to be used by gen-config.sh...
         #
