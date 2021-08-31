@@ -19,9 +19,7 @@ Please adhere to PEP8 style guidelines unless called out in this document.
 
 ### Auto-formatting
 We can also use the [YAPF][2] tool to perform auto-formatting.
-The .style.yapf file provides a formatting scheme that is also good. Using this
-breaks (2) above, it will only add 1 line between method definitions so this should
-be adjusted manually.
+The [.style.yapf](.style.yapf) file provides the rules for the formatting scheme we use.
 
 Versioning
 ----------
