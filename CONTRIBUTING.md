@@ -20,6 +20,7 @@ Please adhere to PEP8 style guidelines unless called out in this document.
 ### Auto-formatting
 We can also use the [YAPF][2] tool to perform auto-formatting.
 The [.style.yapf](.style.yapf) file provides the rules for the formatting scheme we use.
+YAPF doesn't fully let us get (1) and (2) above done but the ruleset is in a good place.
 
 Versioning
 ----------
