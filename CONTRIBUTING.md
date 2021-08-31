@@ -7,20 +7,23 @@ before making a change.
 
 Code Style
 ----------
-Please adhere to PEP8 style guidelines unless called out in this document.
-1. Add 3 lines of whitespace between classes and free functions.
-2. Prefer 2 lines of whitespace between methods within classes.
-3. Prefer all methods in classes should have an explicit `return` statement.
-4. All `pytest` tests shoud `return 0` if the test is successful.
-5. Conform to Google-style docstrings except for where it might break Sphinx
+For manual formatting, please adhere to the following guidelines.
+1. Use a style conformant to PEP8 with the following exceptions.
+2. Add 3 lines of whitespace between classes and free functions.
+3. Prefer 2 lines of whitespace between methods within classes.
+4. Prefer all methods in classes should have an explicit `return` statement.
+5. All `pytest` tests shoud `return 0` if the test is successful.
+6. Conform to Google-style docstrings except for where it might break Sphinx
    formatting.
-6. Lines should not exceed 120 columns except in cases where it reduces the
-   readability of the code.
+7. PEP8 line length limitations are a bit too tight and can cause code to be
+   harder to read than it should be due to unnecessary breaks. Given the prevalance
+   of wide-format displays it's reasonable to extend this lenghth. Lines should not 
+   exceed 120 columns except in cases where it really is needed for readability.
 
-### Auto-formatting
-We can also use the [YAPF][2] tool to perform auto-formatting.
+### Automatic formatting
+We also use the [YAPF][2] tool to perform auto-formatting.
 The [.style.yapf](.style.yapf) file provides the rules for the formatting scheme we use.
-YAPF doesn't fully let us get (1) and (2) above done but the ruleset is in a good place.
+This formatter will override some of the settings listed above and is preferred.
 
 Versioning
 ----------
