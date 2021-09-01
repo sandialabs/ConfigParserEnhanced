@@ -155,7 +155,6 @@ class Test_verify_rhel7_configs(unittest.TestCase):
         gc = GenConfig(argv=tmp_gc_argv)
         gc.load_load_env()
         try:
-            sys_name = gc.load_env.system_name
             tr_env = gc.load_env
             tr_env.load_set_environment()
             tr_env.apply_env()
