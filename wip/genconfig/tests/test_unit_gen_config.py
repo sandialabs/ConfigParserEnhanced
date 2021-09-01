@@ -11,22 +11,6 @@ from gen_config import GenConfig
 
 
 
-def test_list_config_flags():
-    le = GenConfig([
-        "--supported-config-flags", "test-supported-config-flags.ini",
-        "--list-config-flags",
-    ])
-    with pytest.raises(SystemExit) as excinfo:
-        le.list_config_flags()
-    exc_msg = excinfo.value.args[0]
-    for line in ["Supported Flags Are:",
-                 "use-mpi",
-                 "mpi (default)",
-                 "no-mpi",
-                 "node-type",
-                 "serial (default)",
-                 "openmp"]:
-        assert line in exc_msg
 
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):

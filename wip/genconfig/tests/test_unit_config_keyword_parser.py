@@ -92,6 +92,14 @@ def test_selected_options_str_generated_consistently(data):
     ckp = ConfigKeywordParser(data["build_name"],
                               "test-supported-config-flags.ini")
     assert ckp.selected_options_str == data["expected_selected_options_str"]
+    # For the sake of branch coverage of an if statement in
+    # the property selected_options_str, run this again...
+    #
+    #   # Will evaluate to False the second time through
+    #   if not hasattr(self, "_selected_options_str"):
+    #       # Do things here
+    #
+    assert ckp.selected_options_str == data["expected_selected_options_str"]
 
 
 ####################

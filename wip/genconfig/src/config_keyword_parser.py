@@ -92,11 +92,11 @@ class ConfigKeywordParser(KeywordParser):
         :func:`parse_selected_options`.
         """
         if not hasattr(self, "_selected_options"):
-            self.parse_selected_options()
+            self.__parse_selected_options()
 
         return self._selected_options
 
-    def parse_selected_options(self):
+    def __parse_selected_options(self):
         """
         Parses the :attr:`build_name` into a dictionary containing the
         supported flags as keys and the corresponding selected options as
@@ -121,34 +121,33 @@ class ConfigKeywordParser(KeywordParser):
             dict:  A `dict` containing key/value pairs of flags and selected
             options, as found in the :attr:`build_name`.
         """
-        if not hasattr(self, "_selected_options"):
-            self.assert_options_are_unique_across_all_flags()
+        self.assert_options_are_unique_across_all_flags()
 
-            build_name_options = self.build_name.split(self.delimiter)
-            selected_options = {}
+        build_name_options = self.build_name.split(self.delimiter)
+        selected_options = {}
 
-            for flag_name in self.flag_names:
-                options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
-                options_in_build_name = [_ for _ in options
-                                         if _ in build_name_options]
+        for flag_name in self.flag_names:
+            options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
+            options_in_build_name = [_ for _ in options
+                                     if _ in build_name_options]
 
-                if (flag_type == "SELECT_ONE"
-                        and len(options_in_build_name) > 1):
-                    raise ValueError(self.get_msg_for_list(
-                        "Multiple options found in build name for SELECT_ONE "
-                        f"flag '{flag_name}':",
-                        options_in_build_name
-                    ))
-                elif (flag_type == "SELECT_MANY"
-                        and len(options_in_build_name) > 1):
-                    selected_options[flag_name] = options_in_build_name
-                elif len(options_in_build_name) == 0:
-                    # Select default option if none in build name
-                    selected_options[flag_name] = options[0]
-                else:  # len(options_in_build_name) == 1 case
-                    selected_options[flag_name] = options_in_build_name[0]
+            if (flag_type == "SELECT_ONE"
+                    and len(options_in_build_name) > 1):
+                raise ValueError(self.get_msg_for_list(
+                    "Multiple options found in build name for SELECT_ONE "
+                    f"flag '{flag_name}':",
+                    options_in_build_name
+                ))
+            elif (flag_type == "SELECT_MANY"
+                    and len(options_in_build_name) > 1):
+                selected_options[flag_name] = options_in_build_name
+            elif len(options_in_build_name) == 0:
+                # Select default option if none in build name
+                selected_options[flag_name] = options[0]
+            else:  # len(options_in_build_name) == 1 case
+                selected_options[flag_name] = options_in_build_name[0]
 
-            self._selected_options = selected_options
+        self._selected_options = selected_options
 
     def get_options_and_flag_type_for_flag(self, flag_name):
         """

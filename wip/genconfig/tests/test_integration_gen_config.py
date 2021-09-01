@@ -18,25 +18,82 @@ import gen_config
 ###############################################################################
 ########################     Functionality     ################################
 ###############################################################################
-@pytest.mark.parametrize("sys_name", ["machine-type-5", "machine-type-4"])
-def test_list_configs_shows_correct_sections(sys_name, capsys):
-    config_specs = ConfigParserEnhanced("test-config-specs.ini").configparserenhanceddata
-    expected_configs = [_ for _ in config_specs.sections() if _.startswith(sys_name)]
-
-    with pytest.raises(SystemExit) as excinfo:
+def test_list_config_flags():
+    # Just make sure the exception is raised with a small message match.
+    # Checking that the correct config flags are displayed is tested in
+    # test_unit_config_keyword_parser.
+    with pytest.raises(SystemExit, match="See .* for details"):
         gen_config.main([
             "--config-specs", "test-config-specs.ini",
             "--supported-config-flags", "test-supported-config-flags.ini",
             "--supported-systems", "test-supported-systems.ini",
             "--supported-envs", "test-supported-envs.ini",
             "--environment-specs", "test-environment-specs.ini",
-            "--list-configs",
-            "--force", sys_name
+            "--list-config-flags",
+            "--force", "machine-type-5"
         ])
+
+
+# Primarily to check a branch coverage
+@pytest.mark.parametrize("test_from_main", [True, False])
+@pytest.mark.parametrize("sys_name", ["machine-type-5", "machine-type-4"])
+def test_list_configs_shows_correct_sections(sys_name, test_from_main, capsys):
+    config_specs = ConfigParserEnhanced("test-config-specs.ini").configparserenhanceddata
+    expected_configs = [_ for _ in config_specs.sections() if _.startswith(sys_name)]
+    argv = [
+        "--config-specs", "test-config-specs.ini",
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--list-configs",
+        "--force", sys_name
+    ]
+
+    with pytest.raises(SystemExit):
+        if test_from_main:
+            gen_config.main(argv)
+        else:
+            gc = GenConfig(argv)
+            gc.list_configs()
+
     exc_msg, stderr = capsys.readouterr();
 
     for config in expected_configs:
         assert f"- {config}" in exc_msg
+
+
+@pytest.mark.parametrize("extra_args", [
+    ["--list-configs"],
+    ["--list-config-flags"],
+    ["--cmake-fragment", "foo.cmake"],
+    ["--cmake-fragment", "foo.cmake", "--list-configs"],
+    ["--cmake-fragment", "foo.cmake", "--list-configs", "--list-config-flags"],
+])
+def test_save_load_env_args_saves_correctly(extra_args):
+    load_env_args_output_file = "load_env_args.out"
+    argv = [
+        "--config-specs", "test-config-specs.ini",
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--save-load-env-args", load_env_args_output_file,
+    ]
+    argv += extra_args
+    argv += ["--force", "machine-type-5_intel-hsw"]
+
+    expected_load_env_args = [
+        "--supported-systems", str(Path('test-supported-systems.ini').resolve()),
+        "--supported-envs", str(Path('test-supported-envs.ini').resolve()),
+        "--environment-specs", str(Path('test-environment-specs.ini').resolve()),
+        "--force", "machine-type-5_intel-hsw"
+    ]
+    expected_args_str = " ".join(expected_load_env_args)
+
+    gen_config.main(argv)
+    with open(load_env_args_output_file, "r") as F:
+        assert F.read() == expected_args_str
 
 
 @pytest.mark.parametrize("data", [
@@ -57,7 +114,14 @@ def test_complete_config_generated_correctly(data):
     ])
 
     assert gc.complete_config == data["expected_complete_config"]
-
+    # For the sake of branch coverage of an if statement in
+    # the property complete_config, run this again...
+    #
+    #   # Will evaluate to False the second time through
+    #   if not hasattr(self, "_complete_config"):
+    #       # Do things here
+    #
+    assert gc.complete_config == data["expected_complete_config"]
 
 @pytest.mark.parametrize("data", [
     {
@@ -407,6 +471,14 @@ def test_invalid_operations_raises(data):
 
     if data["should_raise"]:
         with pytest.raises(ValueError):
-            gc.validate_config_specs_ini()
+            gc.validate_config_specs_ini_operations()
     else:
+        gc.validate_config_specs_ini()
+        # For the sake of branch coverage of an if statement in
+        # validate_config_specs_ini, run this again...
+        #
+        #   # Will evaluate to False the second time through
+        #   if self.set_program_options is None:
+        #       self.load_set_program_options()
+        #
         gc.validate_config_specs_ini()
