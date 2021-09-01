@@ -18,10 +18,10 @@ try:
     from LoadEnv.load_env import LoadEnv
     from setprogramoptions import SetProgramOptionsCMake
     from src.config_keyword_parser import ConfigKeywordParser
-except ImportError:
-    cwd = Path.cwd()
-    gen_config_dir = Path(__file__).parent
-    raise ImportError(
+except ImportError:                         # pragma: no cover
+    cwd = Path.cwd()                        # pragma: no cover
+    gen_config_dir = Path(__file__).parent  # pragma: no cover
+    raise ImportError(                      # pragma: no cover
         "Unable to import Python module dependencies. To fix this, please run:\n\n" +
         (f"    $ cd {gen_config_dir}\n" if cwd != gen_config_dir else "") +
         "    $ ./install_reqs\n" +
@@ -779,5 +779,5 @@ def main(argv):
             F.write(str(bash_cmake_args_file_loc))
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__ == "__main__":  # pragma: no cover
+    main(sys.argv[1:])      # pragma: no cover
