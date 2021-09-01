@@ -225,9 +225,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                 gc.complete_config, "cmake_fragment"
             )
         for opt in cmake_options_list:
-            if check_string in opt:
-                self.assertTrue(False)
-        self.assertTrue(True)
+            self.assertTrue(check_string not in opt)
 
     def assert_gcc_version(self, gc, major, minor, micro):
         '''Run gcc --version and check for exact match only'''
@@ -291,14 +289,15 @@ class Test_verify_rhel7_configs(unittest.TestCase):
             self.assert_package_config_contains(gc,
                                                 'set(TPL_ENABLE_CUSPARSE OFF CACHE BOOL \"from .ini configuration\")')
         else:
-            self.assertTrue(False)
+            self.assertTrue(False, msg="Unsupported NodeType: {nodetype_str} passed into assert_kokkos_nodetype".\
+                            format(nodetype_str=NodeType))
 
-    def assert_build_type(self, gc, build_type):
+    def assert_build_type(self, gc, BuildType):
         '''allowable types are
            release
            release-debug
            debug'''
-        if 'release-debug' == build_type:
+        if 'release-debug' == BuildType:
             self.assert_package_config_contains(gc,
                                                 'set(CMAKE_BUILD_TYPE RELEASE CACHE STRING \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
@@ -307,7 +306,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                                                 'set(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
-        elif 'debug' == build_type:
+        elif 'debug' == BuildType:
             self.assert_package_config_contains(gc,
                                                 'set(CMAKE_BUILD_TYPE DEBUG CACHE STRING \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
@@ -317,7 +316,8 @@ class Test_verify_rhel7_configs(unittest.TestCase):
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
         else:
-            self.assertTrue(False)
+            self.assertTrue(False, msg="Unsupported BuildType: {buildtype_str} passed into assert_build_type". \
+                            format(buildtype_str=BuildType))
 
     def assert_kokkos_arch(self, gc, kokkos_arch):
         '''Allowable types are not listed as other than no-kokkos-arch
