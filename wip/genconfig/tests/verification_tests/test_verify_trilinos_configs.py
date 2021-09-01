@@ -236,12 +236,12 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                         minor == int(m.group(2)) and
                         micro == int(m.group(3)))
 
-    def assert_kokkos_nodetype(self, gc, NodeType):
+    def assert_kokkos_nodetype(self, gc, node_type):
         '''Verify that the given nodetype is specified
            serial
            cuda
            openmp'''
-        if ('serial' is NodeType):
+        if ('serial' is node_type):
             self.assert_package_config_contains(gc,
                                                 'set(Trilinos_ENABLE_OpenMP OFF CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
@@ -264,7 +264,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                                                 'set(TPL_ENABLE_CUDA OFF CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(TPL_ENABLE_CUSPARSE OFF CACHE BOOL \"from .ini configuration\")')
-        elif ('openmp' is NodeType):
+        elif ('openmp' is node_type):
             self.assert_package_config_contains(gc,
                                                 'set(Trilinos_ENABLE_OpenMP ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
@@ -288,15 +288,15 @@ class Test_verify_rhel7_configs(unittest.TestCase):
             self.assert_package_config_contains(gc,
                                                 'set(TPL_ENABLE_CUSPARSE OFF CACHE BOOL \"from .ini configuration\")')
         else:
-            self.assertTrue(False, msg="Unsupported NodeType: {nodetype_str} passed into assert_kokkos_nodetype".\
-                            format(nodetype_str=NodeType))
+            self.assertTrue(False, msg="Unsupported node_type: {nodetype_str} passed into assert_kokkos_nodetype".\
+                            format(nodetype_str=node_type))
 
-    def assert_build_type(self, gc, BuildType):
+    def assert_build_type(self, gc, build_type):
         '''allowable types are
            release
            release-debug
            debug'''
-        if 'release-debug' == BuildType:
+        if 'release-debug' == build_type:
             self.assert_package_config_contains(gc,
                                                 'set(CMAKE_BUILD_TYPE RELEASE CACHE STRING \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
@@ -305,7 +305,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                                                 'set(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
-        elif 'debug' == BuildType:
+        elif 'debug' == build_type:
             self.assert_package_config_contains(gc,
                                                 'set(CMAKE_BUILD_TYPE DEBUG CACHE STRING \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
@@ -315,8 +315,8 @@ class Test_verify_rhel7_configs(unittest.TestCase):
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
         else:
-            self.assertTrue(False, msg="Unsupported BuildType: {buildtype_str} passed into assert_build_type". \
-                            format(buildtype_str=BuildType))
+            self.assertTrue(False, msg="Unsupported build_type: {buildtype_str} passed into assert_build_type". \
+                            format(buildtype_str=build_type))
 
     def assert_kokkos_arch(self, gc, kokkos_arch):
         '''Allowable types are not listed as other than no-kokkos-arch
