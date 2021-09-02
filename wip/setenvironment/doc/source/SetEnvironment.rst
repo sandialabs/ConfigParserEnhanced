@@ -72,16 +72,18 @@ since this fully removes all preceeding occurrences of operations that involve
 ++++++++++++++++++++++++++++
 **Usage**: ``envvar-remove-path-entry <envvar_name>: <path>``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+Removes a ``<path>`` entry from an environment variable named ``<envvar_name>``
+that contains a PATH. This operation differs from `envvar-remove-substr` in that
+it is for PATH type entries that store a *list* of paths. It should not remove
+*partial* matches to a path entry.
 
 
 ``envvar-remove-substr``
 ++++++++++++++++++++++++
 **Usage**: ``envvar-remove-substr <envvar_name>: <substr>``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+Removes a ``<substr>`` from an existing environment variable named
+``<envvar_name>``.
 
 
 ``envvar-set``
