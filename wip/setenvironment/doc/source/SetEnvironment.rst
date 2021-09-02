@@ -41,7 +41,7 @@ an empty string.
 
 This will attempt to locate an *executable* in the current ``PATH`` and
 if it's found the path to it will be stored in the environment variable
-``envvar_name``.
+``envvar_name``. This operation is equivalent to the following in bash:
 
 .. code-block:: bash
   :linenos:
