@@ -30,16 +30,23 @@ be created.
 +++++++++++++++++++++++++++
 **Usage**: ``envvar-assert-not-empty <envvar_name>: <optional_error_message>``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+This will check an environment variable and will raise an error if
+the environment variable specified does not exist or exists but is
+an empty string.
 
 
 ``envvar-find-in-path``
 +++++++++++++++++++++++
 **Usage**: ``envvar-find-in-path <envvar_name>: <executable_name>``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+This will attempt to locate an *executable* in the current ``PATH`` and
+if it's found the path to it will be stored in the environment variable
+``envvar_name``.
+
+.. code-block:: bash
+  :linenos:
+
+  export envvar=$(which envvar_name)
 
 
 ``envvar-prepend``
@@ -55,8 +62,10 @@ be created.
 +++++++++++++++++
 **Usage**: ``envvar-remove <envvar_name>``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+This command is used to *remove all occurrences* of some environment variable
+named ``envvar_name`` from the actions list. Note: this is different from ``envvar-unset``
+since this fully removes all preceeding occurrences of operations that involve
+``envvar_name`` as though they were not even in the ``.ini`` file.
 
 
 ``envvar-remove-path-entry``
@@ -118,23 +127,36 @@ Variant 1
 ~~~~~~~~~
 **Usage**: ``module-load <module_name>``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+Loads an environment module without a version specified, i.e., this loads the *default*
+module version. This is equivalent to the following in bash:
+
+.. code-block:: bash
+  :linenos:
+
+  module load <module_name>
 
 Variant 2
 ~~~~~~~~~
 **Usage**: ``module-load <module_name>: <module_ver>``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+Loads an environment module with a version specified. This is equivalent to the following in bash:
+
+.. code-block:: bash
+  :linenos:
+
+  module load <module_name>/<module_ver>
 
 
 ``module-purge``
 ++++++++++++++++
 **Usage**: ``module-purge``
 
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+Executes a ``module purge`` operation, which *unloads* all currently loaded modules.
+
+.. code-block:: bash
+  :linenos:
+
+  module purge
 
 
 ``module-remove``
