@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "setenvironment"
-version = "0.6.0"
+version = "0.6.1"
 description = "Environment configuration helper."
 authors = [
     "William McLendon <wcmclen@sandia.gov>"

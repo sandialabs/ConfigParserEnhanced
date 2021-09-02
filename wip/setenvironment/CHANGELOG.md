@@ -10,12 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Added
 #### Changed
 #### Deprecated
+#### Documentation
+#### Fixed
+#### Internal
+#### Removed
+#### Security
+#### Todo (for Unreleased)
+-->
+
+## [0.6.1] - [Unreleased]
+#### Added
+#### Changed
+#### Deprecated
+#### Documentation
+- Updated documentation. Replacing lorem-ipsum text with descriptive text
+  for `SetEnvironment` operations.
 #### Removed
 #### Fixed
+- The `exec-makedoc` script was outdated. Fixed it to work with the updated directory
+  layout that puts code under `src`.
 #### Security
 #### Internal
 #### Todo (for Unreleased)
--->
 
 ## [0.6.0] - 2021-07-13
 #### Added
@@ -30,7 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored the directory structure to put the example
   into an `examples` directory and to move the source code itself
   into `src/setenvironment`.
-#### Todo (for Unreleased)
 
 
 ## [0.5.0] 2021-05-18
@@ -97,7 +112,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Only `handler_initialize` and `handler_finalize` remain in the public
   API since `ConfigParserEnhanced` has them there and they're designed
   to be overridden.
-#### Todo (for Unreleased)
 
 
 
@@ -145,9 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `write_actions_to_file()` to take a required `sections` parameter to specify which
     section should be worked on.
 
-
 #### Security
-#### Todo (for Unreleased)
 
 
 

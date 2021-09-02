@@ -15,7 +15,8 @@
 from pathlib import Path
 import os
 import sys
-sys.path.append(str(Path.cwd().parent.parent.resolve()))
+# sys.path.append(str(Path.cwd().parent.parent.resolve()))
+sys.path.append(str(Path.cwd().parent.parent.resolve().joinpath(Path("src"))))
 
 
 # -- Project information -----------------------------------------------------

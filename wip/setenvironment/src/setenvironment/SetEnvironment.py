@@ -12,7 +12,7 @@ Todo:
     - Evan Harvey <eharvey@sandia.gov>
     - Joshua Braun <josbrau@sandia.gov>
 
-:Version: 0.6.0
+:Version: 0.6.1
 """
 from __future__ import print_function
 

@@ -19,62 +19,96 @@ This class implements the following new *operations* for .ini file processing:
 
 ``envvar-append``
 +++++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``envvar-append <envvar_name> : <envvar_val>``
+
+Appends ``envvar_val`` to an existing environment variable named ``envvar_name`` using
+the delimiter defined by ``os.pathsep``. If ``envvar_name`` does not exist then it will
+be created.
 
 
 ``envvar-assert-not-empty``
 +++++++++++++++++++++++++++
+**Usage**: ``envvar-assert-not-empty <envvar_name>: <optional_error_message>``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 
 ``envvar-find-in-path``
 +++++++++++++++++++++++
+**Usage**: ``envvar-find-in-path <envvar_name>: <executable_name>``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 
 ``envvar-prepend``
 ++++++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``envvar-prepend <envvar_name> : <envvar_val>``
+
+Prepends ``envvar_val`` to an existing environment variable named ``envvar_name`` using
+the delimiter defined by ``os.pathsep``. If ``envvar_name`` does not exist then it will
+be created.
 
 
 ``envvar-remove``
 +++++++++++++++++
+**Usage**: ``envvar-remove <envvar_name>``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 
 ``envvar-remove-path-entry``
 ++++++++++++++++++++++++++++
+**Usage**: ``envvar-remove-path-entry <envvar_name>: <path>``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 
 ``envvar-remove-substr``
 ++++++++++++++++++++++++
+**Usage**: ``envvar-remove-substr <envvar_name>: <substr>``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 
 ``envvar-set``
 ++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``envvar-set <envvar_name> : <envvar_val>``
+
+Sets an environment variable. This is the equivalent of the bash
+command: ``export envvar_name=envvar_val``.
+If ``envvar_name`` already exists then it will be overwritten.
 
 
 ``envvar-set-if-empty``
 +++++++++++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``envvar-set-if-empty <envvar_name> : <envvar_val>``
+
+Sets an environment variable only if it does not exist or is empty. This is the
+equivalent of the following bash code:
+
+.. code-block:: bash
+  :linenos:
+
+  if [[ -z "${ENVVAR_NAME}" ]]; then
+      export ${ENVVAR_NAME}="${ENVVAR_VALUE}"
+  fi
 
 
 ``envvar-unset``
 ++++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``envvar-unset <envvar_name>``
+
+Removes an existing envvar. This is the equivalent to the following bash command:
+
+.. code-block:: bash
+  :linenos:
+
+   unset ${ENVVAR_NAME}
 
 
 ``module-load``
@@ -82,43 +116,79 @@ f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 Variant 1
 ~~~~~~~~~
+**Usage**: ``module-load <module_name>``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 Variant 2
 ~~~~~~~~~
+**Usage**: ``module-load <module_name>: <module_ver>``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 
 ``module-purge``
 ++++++++++++++++
+**Usage**: ``module-purge``
+
 TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
 f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
 
 
 ``module-remove``
 +++++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``module-remove <module name>``
+
+This command is different from ``module-unload`` in that it will scan the **current**
+action-list for any occurrences of ``<module_name>`` (i.e., any ``module-load``, ``module-swap``,
+or ``module unload`` type commands) and will **remove** that command from the action list.
+
+Unlike ``module-unload`` which would unload a module that was loaded, ``module-remove`` will
+effectively **erase** that module from the list of actions.
 
 
 ``module-swap``
 +++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``module-swap <module_old> : <module_new>/<version>``
+
+This operation will execute a *swap* command to replace ``module_old`` with ``module_new``.
+The ``version`` argument is only necessary if a *default* version is not available and/or
+you wish to be explicit about the version to load or you're loading a non-default version.
+This command is equivalent to the following bash command:
+
+.. code-block:: bash
+  :linenos:
+
+  module swap <module old> <module_new>/<version>
 
 
 ``module-unload``
 +++++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``module-unload <module_name>``
+
+Executes the ``module unload`` command to invoke an unload of a module that has already been loaded.
+Note that this is different from ``module-remove``. This is equivalent to the following command in
+bash:
+
+.. code-block:: bash
+  :linenos:
+
+  module unload <module_name>
 
 
 ``module-use``
 ++++++++++++++
-TODO: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. S'uhn llll 'bthnk throd czhro, y-gof'nn
-f'chtenff wgah'n ch' stell'bsna f'lw'nafh sll'ha y-orr'e ilyaa.
+**Usage**: ``module-use <path_to_modules>``
+
+Appends a new path to the **environment modules** application's search space.
+This is the equivalent of the bash command:
+
+.. code-block:: bash
+  :linenos:
+
+  module use <path_to_modules>
 
 
 
