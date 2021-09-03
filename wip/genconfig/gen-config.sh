@@ -54,8 +54,8 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 # If no command line args were provided, show the --help
 if [[ $# -eq 0 || "$@" == *"--help"* || "$@" == "-h" || "$@" == *" -h" ]]; then
-    python3 -E -s ${script_dir}/gen_config.py --help
-    cleanup_gc; return 1
+    python3 -E -s ${script_dir}/gen_config.py --help; ret=$?
+    cleanup_gc; return $?
 fi
 
 if [[ "$@" == *"--list-configs"* ]]; then
