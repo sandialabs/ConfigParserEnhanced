@@ -260,12 +260,11 @@ class GenConfig(FormattedMsg):
         # it's just a safety check.
         if self.config_keyword_parser is None:               # pragma: no cover
             self.load_config_keyword_parser()
-        sys.exit(
-            self.config_keyword_parser.get_msg_showing_supported_flags(
-                "Please select options from the following.",
-                kind="INFO"
-            )
-        )
+
+        print(self.config_keyword_parser.get_msg_showing_supported_flags(
+            "Please select options from the following.",
+            kind="INFO"))
+        sys.exit(0)
 
     def list_configs(self):
         """
@@ -306,7 +305,7 @@ class GenConfig(FormattedMsg):
             "Please select one of the following complete configurations from\n"
             f"{str(self.args.config_specs_file)}\n\n", complete_configs,
             kind="INFO", extras="\n"))
-        sys.exit(1)
+        sys.exit(0)
 
     @property
     def complete_config(self):
@@ -785,6 +784,7 @@ def main(argv):
         if gc.args.bash_cmake_args_location is not None:
             with open(gc.args.bash_cmake_args_location, "w") as F:
                 F.write(gc.generated_config_flags_str)
+
 
 
 if __name__ == "__main__":  # pragma: no cover
