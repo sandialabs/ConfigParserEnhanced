@@ -18,11 +18,11 @@ import gen_config
 ###############################################################################
 ########################     Functionality     ################################
 ###############################################################################
-def test_list_config_flags():
+def test_list_config_flags(capsys):
     # Just make sure the exception is raised with a small message match.
     # Checking that the correct config flags are displayed is tested in
     # test_unit_config_keyword_parser.
-    with pytest.raises(SystemExit, match="See .* for details"):
+    with pytest.raises(SystemExit) as SE:
         gen_config.main([
             "--config-specs", "test-config-specs.ini",
             "--supported-config-flags", "test-supported-config-flags.ini",
@@ -32,6 +32,10 @@ def test_list_config_flags():
             "--list-config-flags",
             "--force", "machine-type-5"
         ])
+
+    exc_msg, stderr = capsys.readouterr();
+
+    assert str(SE.value) == str(0)
 
 
 # Primarily to check a branch coverage

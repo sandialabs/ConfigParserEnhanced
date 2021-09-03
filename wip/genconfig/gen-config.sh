@@ -58,7 +58,7 @@ if [[ $# -eq 0 || "$@" == *"--help"* || "$@" == "-h" || "$@" == *" -h" ]]; then
     cleanup_gc; return $?
 fi
 
-if [[ "$@" == *"--list-configs"* ]]; then
+if [[ "$@" == *"--list-configs"* || "$@" == *"--list-config-flags"* ]]; then
     python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
     cleanup_gc; return $?
 fi

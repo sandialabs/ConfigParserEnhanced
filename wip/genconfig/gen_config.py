@@ -260,12 +260,11 @@ class GenConfig(FormattedMsg):
         # it's just a safety check.
         if self.config_keyword_parser is None:               # pragma: no cover
             self.load_config_keyword_parser()
-        sys.exit(
-            self.config_keyword_parser.get_msg_showing_supported_flags(
-                "Please select options from the following.",
-                kind="INFO"
-            )
-        )
+
+        print(self.config_keyword_parser.get_msg_showing_supported_flags(
+            "Please select options from the following.",
+            kind="INFO"))
+        sys.exit(0)
 
     def list_configs(self):
         """
