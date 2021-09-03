@@ -29,7 +29,7 @@ pytest:
   stage: test
   timeout: 20m
   script:
-    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report term --cov-config=.coveragerc
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 sphinx:
@@ -47,10 +47,10 @@ publish coverage:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     # - find . -name '__pycache__' -exec rm -rf {} \;          > /dev/null 2>&1
-    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/GenConfig/coverage
     - mkdir -p /home/josbrau/html_files/GenConfig/coverage
-    - mv htmlcov/* /home/josbrau/html_files/GenConfig/coverage/
+    - mv tests/htmlcov/* /home/josbrau/html_files/GenConfig/coverage/
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 publish docs:
