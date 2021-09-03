@@ -78,8 +78,8 @@ fi
 # a correct load_matching_env.sh to be sourced. The path to this file is
 # output to .load_matching_env_loc
 load_matching_env_loc=.load_matching_env_loc.$RANDOM
-python3 -E -s ${script_dir}/load_env.py --load-matching-env-location $load_matching_env_loc $@
-if [[ $? -ne 0 ]]; then
+python3 -E -s ${script_dir}/load_env.py --load-matching-env-location $load_matching_env_loc $@; ret=$?
+if [[ $ret -ne 0 ]]; then
     cleanup; return $?
 fi
 
