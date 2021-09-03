@@ -29,7 +29,10 @@ base_python_test:
     - source ./base_python_test/bin/activate
     - source gen-config.sh --help
     - source gen-config.sh --list-configs --force rhel7      --config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini
-    - source gen-config.sh --ci-mode      --force rhel7-cuda --config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini
+    - rm -rf tmp/; true
+    - mkdir tmp; true
+    - cd tmp; true
+    - source ../gen-config.sh --ci-mode      --force rhel7_cuda --config-specs ../tests/supporting_files/test-config-specs.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs.ini --cmake-fragment tmp.cmake ../
     - deactivate
 
 pytest:

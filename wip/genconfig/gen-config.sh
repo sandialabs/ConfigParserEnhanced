@@ -39,7 +39,7 @@ function cleanup_gc()
     [ -f /tmp/$USER/.load_env_args ] && rm -f /tmp/$USER/.load_env_args 2>/dev/null
 
     unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
-    unset path_to_src load_env_call_args cmake_args_file ret
+    unset path_to_src load_env_args cmake_args_file ret have_cmake_fragment
     trap -  SIGHUP SIGINT SIGTERM
     return $ret_val
 }
@@ -85,7 +85,7 @@ if [ -d ${@: -1} ]; then
     gen_config_py_call_args=${@: 1:$(expr $# - 1)}  # All but last arg (/path/to/src)
     path_to_src=${@: -1}  # Last arg
 else
-    if [[ $@ != *"--cmake-fragment"* ]]; then
+    if [[ "$@" != *"--cmake-fragment"* ]]; then
         echo "+==============================================================================+"
         echo "|   ERROR:  A valid path to source was not specified as the last positional"
         echo "|           argument. Please correct this like:"
@@ -117,6 +117,9 @@ fi
 ### Run LoadEnv and CMake ###
 # Export these for load-env.sh
 export cmake_args=$([ -f ${bash_cmake_args_loc} ] && cat ${bash_cmake_args_loc} | envsubst)
+if [[ "$gen_config_py_call_args" == *"--cmake-fragment"* ]]; then
+    export have_cmake_fragment="true"
+fi
 export path_to_src
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
@@ -127,7 +130,7 @@ function gen_config_helper()
     echo "                      B E G I N  C O N F I G U R A T I O N"
     echo "********************************************************************************"
 
-    if [[ $path_to_src != "" ]]; then
+    if [[ -z $have_cmake_fragment ]]; then
         sleep 2s
 
         echo
@@ -155,12 +158,13 @@ function gen_config_helper()
 declare -x -f gen_config_helper
 
 load_env_args=$(python3 -E -s ${script_dir}/gen_config.py --output-load-env-args-only $gen_config_py_call_args); ret=$?
+echo "load_env_args=$load_env_args"
 if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $?
 fi
 
 # Actually run LoadEnv:
-source ${script_dir}/LoadEnv/load-env.sh ${load_env_call_args}; ret=$?
+source ${script_dir}/LoadEnv/load-env.sh ${load_env_args}; ret=$?
 ### ========================== ###
 
 ####### END configuration #######
