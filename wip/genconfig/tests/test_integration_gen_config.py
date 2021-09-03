@@ -70,7 +70,7 @@ def test_list_configs_shows_correct_sections(sys_name, test_from_main, capsys):
     ["--cmake-fragment", "foo.cmake", "--list-configs"],
     ["--cmake-fragment", "foo.cmake", "--list-configs", "--list-config-flags"],
 ])
-def test_save_load_env_args_saves_correctly(extra_args):
+def test_output_load_env_args_only_correctly(extra_args):
     load_env_args_output_file = "load_env_args.out"
     argv = [
         "--config-specs", "test-config-specs.ini",
@@ -78,7 +78,7 @@ def test_save_load_env_args_saves_correctly(extra_args):
         "--supported-systems", "test-supported-systems.ini",
         "--supported-envs", "test-supported-envs.ini",
         "--environment-specs", "test-environment-specs.ini",
-        "--save-load-env-args", load_env_args_output_file,
+        "--output-load-env-args-only",
     ]
     argv += extra_args
     argv += ["--force", "machine-type-5_intel-hsw"]
@@ -91,9 +91,9 @@ def test_save_load_env_args_saves_correctly(extra_args):
     ]
     expected_args_str = " ".join(expected_load_env_args)
 
-    gen_config.main(argv)
-    with open(load_env_args_output_file, "r") as F:
-        assert F.read() == expected_args_str
+    with pytest.raises(SystemExit):
+        gc_args_str = gen_config.main(argv)
+        assert gc_args_str == expected_args_str
 
 
 @pytest.mark.parametrize("data", [
@@ -141,7 +141,9 @@ def test_complete_config_generated_correctly(data):
     },
 ])
 def test_bash_cmake_flags_generated_correctly(data):
+    user = getpass.getuser()
     gen_config.main([
+        "--bash-cmake-args-location", f"/tmp/{user}/.bash_cmake_args",
         "--config-specs", "test-config-specs.ini",
         "--supported-config-flags", "test-supported-config-flags.ini",
         "--supported-systems", "test-supported-systems.ini",
@@ -151,18 +153,14 @@ def test_bash_cmake_flags_generated_correctly(data):
         data["build_name"]
     ])
 
-    user = getpass.getuser()
-    loc_file = Path(f"/tmp/{user}/.bash_cmake_args_loc")
+    loc_file = Path(f"/tmp/{user}/.bash_cmake_args")
     assert loc_file.exists()
     with open(loc_file, "r") as F:
-        bash_cmake_args_loc = Path(F.read())
-    with open(bash_cmake_args_loc, "r") as F:
         bash_cmake_args = F.read()
 
     assert bash_cmake_args == data["expected_args_str"]
 
     loc_file.unlink()
-    bash_cmake_args_loc.unlink()
 
 
 @pytest.mark.parametrize("data", [

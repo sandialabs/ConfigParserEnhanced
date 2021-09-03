@@ -658,6 +658,7 @@ class GenConfig(FormattedMsg):
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
+        #################### User-facing arguments ####################
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to generate the"
                             " configuration flags.")
@@ -686,13 +687,6 @@ class GenConfig(FormattedMsg):
             default=False,
             help="Causes gen-config.sh to modify your current shell rather "
                  "than putting you in a interactive subshell.")
-        parser.add_argument("--save-load-env-args", action="store",
-                            default=None, type=lambda p: Path(p).resolve(),
-                            help="Based on the command line arguments passed to "
-                            "GenConfig, write the corresponding command line "
-                            "arguments for LoadEnv to a specified file. This "
-                            "is a helper flag to be used by gen-config.sh, not "
-                            "intended to be used by the user.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"
@@ -732,6 +726,22 @@ class GenConfig(FormattedMsg):
                                   "Overmachine-name-1s loading the file specified in "
                                   "``gen-config.ini``.")
 
+        ########## Suppressed arguments intended for gen-config.sh ##########
+        parser.add_argument("--output-load-env-args-only", action="store_true",
+                            default=False, help=argparse.SUPPRESS)
+                            # help="Based on the command line arguments passed to "
+                            # "GenConfig, write the corresponding command line "
+                            # "arguments for LoadEnv to stdout. This "
+                            # "is a helper flag to be used by gen-config.sh, not "
+                            # "intended to be used by the user.")
+
+        parser.add_argument("--bash-cmake-args-location",
+                            action="store",
+                            default=None,
+                            type=lambda p: Path(p).resolve(),
+                            help=argparse.SUPPRESS)
+                            # help="Path to load-matching-env file in /tmp/$USER/")
+
         return parser
 
 
@@ -740,16 +750,21 @@ def main(argv):
     DOCSTRING
     """
     gc = GenConfig(argv)
+
+    # To support gen-config.sh, we must conditionally output the load-env.sh args
+    # and exit early
+    if gc.args.output_load_env_args_only:
+        print(" ".join(gc.load_env_args))
+        sys.exit(0)
+
     gc.validate_config_specs_ini()
-    if gc.args.save_load_env_args is not None:
-        gc.args.save_load_env_args.parent.mkdir(parents=True, exist_ok=True)
-        with open(gc.args.save_load_env_args, "w") as F:
-            F.write(" ".join(gc.load_env_args))
-    elif gc.args.list_config_flags:
+    if gc.args.list_config_flags:
         gc.list_config_flags()
-    elif gc.args.list_configs:
+    if gc.args.list_configs:
         gc.list_configs()
-    elif gc.args.cmake_fragment is not None:
+
+    # Handle generation of configure output
+    if gc.args.cmake_fragment is not None:
         gc.write_cmake_fragment()
     else:  # Output bash cmake args to be used by gen-config.sh...
         #
@@ -767,16 +782,9 @@ def main(argv):
         user = getpass.getuser()
         Path(f"/tmp/{user}").mkdir(parents=True, exist_ok=True)
 
-        unique_str = uuid.uuid4().hex[: 8]
-        bash_cmake_args_file_loc = Path(
-            f"/tmp/{user}/bash_cmake_args_from_gen_config_{unique_str}"
-        ).resolve()
-        with open(bash_cmake_args_file_loc, "w") as F:
-            F.write(gc.generated_config_flags_str)
-
-        # Location to the unique file ^^. Used in gen-config.sh.
-        with open(f"/tmp/{user}/.bash_cmake_args_loc", "w") as F:
-            F.write(str(bash_cmake_args_file_loc))
+        if gc.args.bash_cmake_args_location is not None:
+            with open(gc.args.bash_cmake_args_location, "w") as F:
+                F.write(gc.generated_config_flags_str)
 
 
 if __name__ == "__main__":  # pragma: no cover
