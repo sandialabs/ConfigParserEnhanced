@@ -28,9 +28,18 @@ Updates and Changes
 ### Added
 ### Changed
 - Added some docstring updates.
+- Changed the _require set before use_ restriction on `parse_section_last_result`
+  that uses `TypedProperty` since this seemed to trigger an error in the insection
+  part of `get_known_operations()`. I'm not sure why inspection would do that at this
+  time and it'll need a bit of investigation. Probably we need to implement a proper
+  `getter` in TypedProperty and apply those checks there.
 ### Deprecated
 ### Removed
 ### Fixed
+- Added the list of file(s) that are loaded to the error message in the validator
+  functions: `assert_file_all_sections_handled`, `assert_section_all_options_handled`
+- Fixed a bug in the list comprehension in `get_known_operations()` and added a test
+  to make sure it's doing the right thing.
 ### Internal
 ### Security
 

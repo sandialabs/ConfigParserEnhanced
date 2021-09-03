@@ -128,7 +128,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     # -----------------------
 
     parse_section_last_result = typed_property(
-        "parse_section_last_result", (dict), default=None, req_assign_before_use=True, internal_type=dict
+        "parse_section_last_result", (dict), default=None, internal_type=dict
     )
 
     default_section_name = typed_property("default_section_name", str, default="DEFAULT")
@@ -335,9 +335,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     #   P U B L I C   A P I   M E T H O D S
     # ---------------------------------------
 
-    def write(
-        self, file_object, space_around_delimiters=True, section=None, use_base_class_parser=True
-    ) -> int:
+    def write(self, file_object, space_around_delimiters=True, section=None, use_base_class_parser=True) -> int:
         """File writer utility for ConfigParserEnhanced objects.
 
         Writes the output of :py:meth:`unroll_to_str` to a file.
@@ -395,7 +393,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 output = 1
 
         if output != 0:
+            tmp_fileslist = [ str(x) for x in self.inifilepath ]
             message = self.get_known_operations_message()
+            message += "\nThis configuration was loaded from the file(s):\n|- "
+            message += "\n|- ".join(tmp_fileslist)
             self.debug_message(0, message)
             self.exception_control_event("SERIOUS", ValueError, message.strip())
 
@@ -442,13 +443,16 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         section_data = self.configparserenhanceddata.get(section_name)
 
         if len(section_data):
-            message = f"Unhandled option found in section `{section_name}`"
+            message  = f"Unhandled option found in section `{section_name}`"
             message += " or one of its dependent sections.\n"
             message += "The following entries are unhandled:\n"
             for k, v in section_data.items():
                 message += f"|- '{k}'\n"
             if do_raise:
+                tmp_fileslist = [ str(x) for x in self.inifilepath ]
                 message += self.get_known_operations_message()
+                message += "\nThis configuration was loaded from the file(s):\n|- "
+                message += "\n|- ".join(tmp_fileslist)
                 self.exception_control_event("SERIOUS", ValueError, message.strip())
             output = message.rstrip()
         return output
@@ -491,13 +495,23 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         # - "handler_finalize"
         re_handler_init_final = re.compile(r"^_?handler_((finalize)|(initialize))$")
 
+        # Regex that is used in the list comprehension below to strip the handler
+        # prefix out of the name when we attempt to generate the operation names.
+        # - Matches "_handler_" and "handler_"
+        re_strip_handler_prefix = re.compile(r"^_?handler_")
+
         # This list comprehension scans through the defined methods and will
         # pull out every method that starts with "_handler" or "handler"
         # and then strips the optional leading "_" off, then strips the
         # leading "handler_" component off and finally replaces "_" with "-"
         # in the handler name to generate the operation name.
+        # wcmclen - 2021-09-03 - The TypedProperty entry for `parse_Section_last_result`
+        #           was triggering the exception that required assignment before use
+        #           in the `getmembers` call here. I removed that condition on the property
+        #           but it might be worth figuring out why the inspection triggered it.
+        #           Perhaps `TypedProperty` needs a proper _getter_ implemented?
         output = [
-            x[0].lstrip("_").lstrip("handler_").replace("_", "-")
+            re_strip_handler_prefix.sub("", x[0]).replace("_", "-")
             for x in inspect.getmembers(self, predicate=inspect.ismethod)
             if re_handler_name.search(x[0]) and not re_handler_init_final.search(x[0])
         ]
