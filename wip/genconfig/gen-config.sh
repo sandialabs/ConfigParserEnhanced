@@ -34,12 +34,14 @@ fi
 ################################################################################
 function cleanup_gc()
 {
-    [ -f ${bash_cmake_args_loc} ] && rm -f ${bash_cmake_args_loc} 2>/dev/null
+    local ret_val=$ret
+    [ -f /tmp/$USER/.bash_cmake_args_loc ] && rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
+    [ -f /tmp/$USER/.load_env_args ] && rm -f /tmp/$USER/.load_env_args 2>/dev/null
 
     unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
-    unset path_to_src cmake_args_file load_env_args bash_cmake_args_loc
+    unset path_to_src load_env_call_args cmake_args_file ret
     trap -  SIGHUP SIGINT SIGTERM
-    return 0
+    return $ret_val
 }
 trap "cleanup_gc; return 1" SIGHUP SIGINT SIGTERM
 ####### END helper functions #######
@@ -102,7 +104,7 @@ fi
 bash_cmake_args_loc=.bash_cmake_args.$RANDOM
 python3 -E -s ${script_dir}/gen_config.py --bash-cmake-args-location ${bash_cmake_args_loc} $gen_config_py_call_args; ret=$?
 if [[ $ret -ne 0 ]]; then
-    cleanup_gc; return $ret
+    cleanup_gc; return $?
 fi
 ### ========================== ###
 
@@ -149,12 +151,13 @@ declare -x -f gen_config_helper
 
 load_env_args=$(python3 -E -s ${script_dir}/gen_config.py --output-load-env-args-only $gen_config_py_call_args); ret=$?
 if [[ $ret -ne 0 ]]; then
-    cleanup_gc; return $ret
+    cleanup_gc; return $?
 fi
 
-source ${script_dir}/LoadEnv/load-env.sh ${load_env_args}
+# Actually run LoadEnv:
+source ${script_dir}/LoadEnv/load-env.sh ${load_env_call_args}; ret=$?
 ### ========================== ###
 
 ####### END configuration #######
 
-cleanup_gc
+cleanup_gc; return $?
