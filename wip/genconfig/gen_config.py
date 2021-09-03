@@ -662,7 +662,7 @@ class GenConfig(FormattedMsg):
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to generate the"
                             " configuration flags.")
-        parser.add_argument("-l", "--list-configs", action="store_true",
+        parser.add_argument("--list-configs", action="store_true",
                             default=False, help="List the available "
                             "configurations for this system.")
         parser.add_argument("--list-config-flags", action="store_true",
