@@ -6,10 +6,6 @@ before_script:
   # display centos version
   - cat /etc/issue
 
-  # Pull required packages
-  # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
-  #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
-  - python3 -m pip install --user -U py pytest pytest-cov
   - mkdir deps; cd deps
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git
@@ -25,9 +21,42 @@ before_script:
   - ln -s deps/LoadEnv .
   - ln -s deps/SetProgramOptions/src/setprogramoptions .
 
+base_python_test:
+  stage: test
+  timeout: 30s
+  script:
+    - python3 -m venv ./base_python_test
+    - source ./base_python_test/bin/activate
+    - source gen-config.sh --help
+    - source gen-config.sh --list-configs --force rhel7      --config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini
+    - source gen-config.sh --ci-mode      --force rhel7-cuda --config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini
+    - deactivate
+
 pytest:
   stage: test
   timeout: 20m
+  before_script:
+    # Pull required packages
+    # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
+    #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
+    - python3 -m pip install --user -U py pytest pytest-cov
+    # display centos version
+    - cat /etc/issue
+
+    - mkdir deps; cd deps
+    - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git
+    - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git
+    - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git
+    - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
+    - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/LoadEnv.git LoadEnv
+    - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetProgramOptions.git
+    - cd ..
+    - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
+    - ln -s deps/SetEnvironment/src/setenvironment/ .
+    - ln -s deps/DetermineSystem/determinesystem/ .
+    - ln -s deps/KeywordParser/keywordparser/ .
+    - ln -s deps/LoadEnv .
+    - ln -s deps/SetProgramOptions/src/setprogramoptions .
   script:
     - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report term --cov-config=.coveragerc
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
