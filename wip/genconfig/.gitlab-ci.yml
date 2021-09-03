@@ -50,7 +50,7 @@ publish coverage:
     - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
     - rm -rf /home/josbrau/html_files/GenConfig/coverage
     - mkdir -p /home/josbrau/html_files/GenConfig/coverage
-    - mv htmlcov/* /home/josbrau/html_files/GenConfig/coverage/
+    - mv tests/htmlcov/* /home/josbrau/html_files/GenConfig/coverage/
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 publish docs:
