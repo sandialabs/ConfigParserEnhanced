@@ -59,7 +59,11 @@ if [[ $# -eq 0 || "$@" == *"--help"* || "$@" == "-h" || "$@" == *" -h" ]]; then
 fi
 
 if [[ "$@" == *"--list-configs"* || "$@" == *"--list-config-flags"* ]]; then
-    python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
+    if [ -d ${@: -1} ]; then
+	python3 -E -s ${script_dir}/gen_config.py ${@: 1:$(expr $# - 1)}; ret=$?
+    else
+	python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
+    fi
     cleanup_gc; return $?
 fi
 
