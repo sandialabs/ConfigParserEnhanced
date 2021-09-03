@@ -32,12 +32,14 @@ fi
 ################################################################################
 function cleanup()
 {
-    [ ! -z ${load_matching_env_loc} ] && rm -f ${load_matching_env_loc} 2>/dev/null
+    local ret_val=$ret
+    [ -f /tmp/$USER/.load_matching_env_loc ] && rm -f /tmp/$USER/.load_matching_env_loc 2>/dev/null
+    [ -f /tmp/$USER/.ci_mode ] && rm -f /tmp/$USER/.ci_mode 2>/dev/null
     [ ! -z ${env_file} ] && rm -f ${env_file} 2>/dev/null; rm -f ${env_file::-2}rc 2>/dev/null
 
-    unset python_too_old script_dir ci_mode cleanup env_file load_matching_env_loc
+    unset python_too_old script_dir ci_mode cleanup env_file ret
     trap -  SIGHUP SIGINT SIGTERM
-    return 0
+    return $ret_val
 }
 trap "cleanup; return 1" SIGHUP SIGINT SIGTERM
 
@@ -76,8 +78,8 @@ fi
 # a correct load_matching_env.sh to be sourced. The path to this file is
 # output to .load_matching_env_loc
 load_matching_env_loc=.load_matching_env_loc.$RANDOM
-python3 -E -s ${script_dir}/load_env.py --load-matching-env-location $load_matching_env_loc $@
-if [[ $? -ne 0 ]]; then
+python3 -E -s ${script_dir}/load_env.py --load-matching-env-location $load_matching_env_loc $@; ret=$?
+if [[ $ret -ne 0 ]]; then
     cleanup; return $?
 fi
 
