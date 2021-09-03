@@ -101,7 +101,8 @@ fi
 
 
 ### Generate the configuration ###
-python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args; ret=$?
+bash_cmake_args_loc=.bash_cmake_args.$RANDOM
+python3 -E -s ${script_dir}/gen_config.py --bash-cmake-args-location ${bash_cmake_args_loc} $gen_config_py_call_args; ret=$?
 if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $?
 fi
@@ -110,8 +111,7 @@ fi
 
 ### Run LoadEnv and CMake ###
 # Export these for load-env.sh
-export cmake_args_file=$([ -f /tmp/$USER/.bash_cmake_args_loc ] && cat /tmp/$USER/.bash_cmake_args_loc)
-rm -f /tmp/$USER/.bash_cmake_args_loc 2>/dev/null
+export cmake_args=$([ -f ${bash_cmake_args_loc} ] && cat ${bash_cmake_args_loc} | envsubst)
 export path_to_src
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
@@ -122,12 +122,11 @@ function gen_config_helper()
     echo "                      B E G I N  C O N F I G U R A T I O N"
     echo "********************************************************************************"
 
-    if [[ -f $cmake_args_file && $path_to_src != "" ]]; then
+    if [[ $path_to_src != "" ]]; then
         sleep 2s
 
         echo
         echo "*** Running CMake Command: ***"
-        cmake_args="$(cat $cmake_args_file | envsubst)"
 
         # Print cmake call
         echo -e "cmake $cmake_args \\\n    $path_to_src" | sed 's/;/\\;/g' | tee ./do-configure.sh
@@ -136,26 +135,24 @@ function gen_config_helper()
         sleep 2s
 
         # Execute cmake call
-	source ./do-configure.sh
+        source ./do-configure.sh
     else
         echo; echo
-		echo "Please run:"
-		echo
-		echo "  $ cmake -C /path/to/fragment.cmake /path/to/src"
-		echo
+        echo "Please run:"
+        echo
+        echo "  $ cmake -C /path/to/fragment.cmake /path/to/src"
+        echo
         echo "where \"/path/to/fragment.cmake\" is replaced with your generated cmake fragment file"
-		echo "and \"/path/to/src\" is replaced with your build source."
+        echo "and \"/path/to/src\" is replaced with your build source."
         echo
     fi
 }
 declare -x -f gen_config_helper
 
-# Get proper call args to pass to LoadEnv, which ARE NOT the same as those we pass to GenConfig.
-python3 -E -s ${script_dir}/gen_config.py $gen_config_py_call_args --save-load-env-args /tmp/$USER/.load_env_args; ret=$?
+load_env_args=$(python3 -E -s ${script_dir}/gen_config.py --output-load-env-args-only $gen_config_py_call_args); ret=$?
 if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $?
 fi
-load_env_call_args=$(cat /tmp/$USER/.load_env_args)
 
 # Actually run LoadEnv:
 source ${script_dir}/LoadEnv/load-env.sh ${load_env_call_args}; ret=$?

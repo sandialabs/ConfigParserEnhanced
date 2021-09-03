@@ -18,10 +18,10 @@ try:
     from LoadEnv.load_env import LoadEnv
     from setprogramoptions import SetProgramOptionsCMake
     from src.config_keyword_parser import ConfigKeywordParser
-except ImportError:
-    cwd = Path.cwd()
-    gen_config_dir = Path(__file__).parent
-    raise ImportError(
+except ImportError:                         # pragma: no cover
+    cwd = Path.cwd()                        # pragma: no cover
+    gen_config_dir = Path(__file__).parent  # pragma: no cover
+    raise ImportError(                      # pragma: no cover
         "Unable to import Python module dependencies. To fix this, please run:\n\n" +
         (f"    $ cd {gen_config_dir}\n" if cwd != gen_config_dir else "") +
         "    $ ./install_reqs\n" +
@@ -150,9 +150,12 @@ class GenConfig(FormattedMsg):
                   -DTeuchosCore_show_stack_DISABLE:BOOL=ON
         """
         if not hasattr(self, "_generated_config_flags_str"):
-            if self.set_program_options is None:
+            # These should be set already via validate_config_specs_ini,
+            # which comes before this in main(). Don't include in branch
+            # coverage, as it's just a safety check.
+            if self.set_program_options is None:             # pragma: no cover
                 self.load_set_program_options()
-            if not self.has_been_validated:
+            if not self.has_been_validated:                  # pragma: no cover
                 self.validate_config_specs_ini()
 
             options_list = self.set_program_options.gen_option_list(
@@ -171,9 +174,12 @@ class GenConfig(FormattedMsg):
             Path:  The path to the CMake fragment file.
         """
         if not hasattr(self, "_cmake_fragment_file"):
-            if self.set_program_options is None:
+            # These should be set already via validate_config_specs_ini,
+            # which comes before this in main(). Don't include in branch
+            # coverage, as it's just a safety check.
+            if self.set_program_options is None:             # pragma: no cover
                 self.load_set_program_options()
-            if not self.has_been_validated:
+            if not self.has_been_validated:                  # pragma: no cover
                 self.validate_config_specs_ini()
 
             cmake_options_list = self.set_program_options.gen_option_list(
@@ -249,7 +255,10 @@ class GenConfig(FormattedMsg):
             SystemExit:  With the message displaying the available config flags
                 from which to choose.
         """
-        if self.config_keyword_parser is None:
+        # This should be defined already via validate_config_specs_ini, which
+        # comes before this in main(). Don't include in branch coverage, as
+        # it's just a safety check.
+        if self.config_keyword_parser is None:               # pragma: no cover
             self.load_config_keyword_parser()
         sys.exit(
             self.config_keyword_parser.get_msg_showing_supported_flags(
@@ -398,7 +407,10 @@ class GenConfig(FormattedMsg):
             ckp.build_name = section_name
             try:
                 selected_options_str = ckp.selected_options_str
-            except ValueError as e:
+            except ValueError as e:                                     # pragma: no cover
+                # Don't require coverage of this, as this block of code only
+                # exists to give context to any potential ValueErrors in
+                # ConfigKeywordParser.
                 raise ValueError(self.get_formatted_msg(
                     "When validating sections in\n"
                     f"`{self.args.config_specs_file.name}`,\n"
@@ -458,11 +470,10 @@ class GenConfig(FormattedMsg):
         :attr:`build_name` and ``supported-config-flags.ini``.
         Save the resulting object to ``self.config_keyword_parser``.
         """
-        if self.config_keyword_parser is None:
-            self.config_keyword_parser = ConfigKeywordParser(
-                self.args.build_name,
-                self.args.supported_config_flags_file,
-            )
+        self.config_keyword_parser = ConfigKeywordParser(
+            self.args.build_name,
+            self.args.supported_config_flags_file,
+        )
 
     def load_set_program_options(self):
         """
@@ -470,19 +481,17 @@ class GenConfig(FormattedMsg):
         ``config-specs.ini``.  Save the resulting object to
         ``self.set_program_options``.
         """
-        if self.set_program_options is None:
-            self.set_program_options = SetProgramOptionsCMake(
-                filename=self.args.config_specs_file
-            )
-            self.set_program_options.exception_control_level = 5
+        self.set_program_options = SetProgramOptionsCMake(
+            filename=self.args.config_specs_file
+        )
+        self.set_program_options.exception_control_level = 5
 
     def load_load_env(self):
         """
         Instantiate a :class:`LoadEnv` object with this object's configuration
         files. Save the resulting object to ``self.load_env``.
         """
-        if self.load_env is None:
-            self.load_env = LoadEnv(argv=self.load_env_args)
+        self.load_env = LoadEnv(argv=self.load_env_args)
 
     @property
     def load_env_args(self):
@@ -511,10 +520,10 @@ class GenConfig(FormattedMsg):
                 self.gen_config_ini_file
             ).configparserenhanceddata
 
-        self.validate_gen_config_config_data()
+        self.__validate_gen_config_config_data()
         return self._gen_config_config_data
 
-    def validate_gen_config_config_data(self):
+    def __validate_gen_config_config_data(self):
         """
         Reads ``gen-config.ini`` and runs some validation:
 
@@ -522,9 +531,6 @@ class GenConfig(FormattedMsg):
             * Ensure each section has key-value pairs for the required files.
             * Ensure the specified files exist.
         """
-        if self._gen_config_config_data is None:
-            return
-
         for section in ["gen-config", "load-env"]:
             if not self._gen_config_config_data.has_section(section):
                 raise ValueError(self.get_formatted_msg(
@@ -652,6 +658,7 @@ class GenConfig(FormattedMsg):
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
+        #################### User-facing arguments ####################
         parser.add_argument("build_name", nargs="?", default="", help="The "
                             "keyword string for which you wish to generate the"
                             " configuration flags.")
@@ -680,13 +687,6 @@ class GenConfig(FormattedMsg):
             default=False,
             help="Causes gen-config.sh to modify your current shell rather "
                  "than putting you in a interactive subshell.")
-        parser.add_argument("--save-load-env-args", action="store",
-                            default=None, type=lambda p: Path(p).resolve(),
-                            help="Based on the command line arguments passed to "
-                            "GenConfig, write the corresponding command line "
-                            "arguments for LoadEnv to a specified file. This "
-                            "is a helper flag to be used by gen-config.sh, not "
-                            "intended to be used by the user.")
 
         config_files = parser.add_argument_group(
             "configuration file overmachine-name-1s"
@@ -726,6 +726,22 @@ class GenConfig(FormattedMsg):
                                   "Overmachine-name-1s loading the file specified in "
                                   "``gen-config.ini``.")
 
+        ########## Suppressed arguments intended for gen-config.sh ##########
+        parser.add_argument("--output-load-env-args-only", action="store_true",
+                            default=False, help=argparse.SUPPRESS)
+                            # help="Based on the command line arguments passed to "
+                            # "GenConfig, write the corresponding command line "
+                            # "arguments for LoadEnv to stdout. This "
+                            # "is a helper flag to be used by gen-config.sh, not "
+                            # "intended to be used by the user.")
+
+        parser.add_argument("--bash-cmake-args-location",
+                            action="store",
+                            default=None,
+                            type=lambda p: Path(p).resolve(),
+                            help=argparse.SUPPRESS)
+                            # help="Path to load-matching-env file in /tmp/$USER/")
+
         return parser
 
 
@@ -734,16 +750,21 @@ def main(argv):
     DOCSTRING
     """
     gc = GenConfig(argv)
+
+    # To support gen-config.sh, we must conditionally output the load-env.sh args
+    # and exit early
+    if gc.args.output_load_env_args_only:
+        print(" ".join(gc.load_env_args))
+        sys.exit(0)
+
     gc.validate_config_specs_ini()
     if gc.args.list_config_flags:
         gc.list_config_flags()
-    elif gc.args.list_configs:
+    if gc.args.list_configs:
         gc.list_configs()
-    elif gc.args.save_load_env_args is not None:
-        gc.args.save_load_env_args.parent.mkdir(parents=True, exist_ok=True)
-        with open(gc.args.save_load_env_args, "w") as F:
-            F.write(" ".join(gc.load_env_args))
-    elif gc.args.cmake_fragment is not None:
+
+    # Handle generation of configure output
+    if gc.args.cmake_fragment is not None:
         gc.write_cmake_fragment()
     else:  # Output bash cmake args to be used by gen-config.sh...
         #
@@ -761,17 +782,10 @@ def main(argv):
         user = getpass.getuser()
         Path(f"/tmp/{user}").mkdir(parents=True, exist_ok=True)
 
-        unique_str = uuid.uuid4().hex[: 8]
-        bash_cmake_args_file_loc = Path(
-            f"/tmp/{user}/bash_cmake_args_from_gen_config_{unique_str}"
-        ).resolve()
-        with open(bash_cmake_args_file_loc, "w") as F:
-            F.write(gc.generated_config_flags_str)
-
-        # Location to the unique file ^^. Used in gen-config.sh.
-        with open(f"/tmp/{user}/.bash_cmake_args_loc", "w") as F:
-            F.write(str(bash_cmake_args_file_loc))
+        if gc.args.bash_cmake_args_location is not None:
+            with open(gc.args.bash_cmake_args_location, "w") as F:
+                F.write(gc.generated_config_flags_str)
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__ == "__main__":  # pragma: no cover
+    main(sys.argv[1:])      # pragma: no cover
