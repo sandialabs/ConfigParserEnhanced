@@ -56,7 +56,7 @@ def test_list_envs(system_name, capsys):
 
 @patch("socket.gethostname")
 @patch("load_env.SetEnvironment")
-def test_ci_mode_flag_creates_ci_mode_file(mock_set_environment, mock_gethostname):
+def test_load_matching_env_location_flag_creates_load_matching_env_location_file(mock_set_environment, mock_gethostname):
     # ci_mode file should exist in /tmp/{user}/.ci_mode
     mock_gethostname.return_value = "stria"
     # 'unsafe=True' allows methods to be called on the mock object that start
@@ -66,12 +66,12 @@ def test_ci_mode_flag_creates_ci_mode_file(mock_set_environment, mock_gethostnam
     mock_se.apply.return_value = 0
     mock_set_environment.return_value = mock_se
 
-    load_env.main(["arm", "--output", "test_out.sh", "--ci-mode"])
+    load_env.main(["arm", "--output", "test_out.sh", "--load-matching-env-location", ".load_matching_env_loc.test"])
 
-    ci_mode_file = Path(f"/tmp/{getpass.getuser()}/.ci_mode")
-    assert ci_mode_file.exists()
-    ci_mode_file.unlink()  # Cleanup
-    assert not ci_mode_file.exists()
+    file = Path(f".load_matching_env_loc.test")
+    assert file.exists()
+    file.unlink()  # Cleanup
+    assert not file.exists()
 
 
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])

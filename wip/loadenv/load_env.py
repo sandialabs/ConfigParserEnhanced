@@ -381,6 +381,7 @@ class LoadEnv(FormattedMsg):
             )
         examples = "[ Examples ]".center(79, "-") + "\n\n" + examples
 
+        ############ User-facing arguments for load_env.py ############
         parser = argparse.ArgumentParser(
             description=description,
             epilog=examples,
@@ -394,15 +395,6 @@ class LoadEnv(FormattedMsg):
             default="",
             help="The "
             "keyword string for which you wish to load the environment.",
-            )
-
-        parser.add_argument(
-            "--ci-mode",
-            action="store_true",
-            default=False,
-            help="Causes load-env.sh to source the environment to "
-            "your current shell rather than putting you in an "
-            "interactive subshell with the loaded environment.",
             )
 
         parser.add_argument(
@@ -472,6 +464,25 @@ class LoadEnv(FormattedMsg):
             "``load-env.ini``.",
             )
 
+        ############ User-facing arguments for load-env.sh (not affect on load_env.py) ############
+        parser.add_argument(
+            "--ci-mode",
+            dest="do_not_use_this_ci_mode_argument_in_load_env_python_code",
+            action="store_false",
+            default=False,
+            help="Causes load-env.sh to source the environment to "
+            "your current shell rather than putting you in an "
+            "interactive subshell with the loaded environment.",
+            )
+
+        ########## Suppressed arguments intended for load-env.sh ##########
+        parser.add_argument("--load-matching-env-location",
+                            action="store",
+                            default=None,
+                            type=lambda p: Path(p).resolve(),
+                            help=argparse.SUPPRESS)
+                            # help="Path to load-matching-env file in /tmp/$USER/")
+
         return parser
 
 
@@ -493,13 +504,9 @@ def main(argv):
     print(f"Environment '{le.parsed_env_name}' validated.")
     le.write_load_matching_env()
 
-    user = getpass.getuser()
-    with open(f"/tmp/{user}/.load_matching_env_loc", "w") as F:
-        F.write(str(le.tmp_load_matching_env_file))
-
-    if le.args.ci_mode:
-        Path(f"/tmp/{user}/.ci_mode").touch()
-
+    if le.args.load_matching_env_location is not None:
+        with open(f"{le.args.load_matching_env_location}", "w") as F:
+            F.write(str(le.tmp_load_matching_env_file))
 
 
 if __name__ == "__main__":
