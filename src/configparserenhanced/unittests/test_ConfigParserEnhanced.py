@@ -1465,6 +1465,43 @@ class ConfigParserEnhancedTest(TestCase):
         print("OK")
         return 0
 
+    def test_ConfigParserEnhanced_get_known_operations(self):
+        """
+        Check that section validation operates correctly.
+        """
+        class ConfigParserEnhancedTest(ConfigParserEnhanced):
+
+            @ConfigParserEnhanced.operation_handler
+            def _handler_handlebars_are_cool(
+                self, section_name, handler_parameters, processed_sections=None
+            ) -> int:
+                print("Handlebars are cool!")
+                return 0
+
+
+        filename_ini = find_config_ini(filename="config_test_configparserenhanced_validation_02.ini")
+        print("\n")
+        print("Load file: {}".format(filename_ini))
+
+        # Test individual section, `SECTION B` which should PASS
+        print("----[ TEST BEGIN A ]----------------------------------")
+        section = "SECTION B"
+        print("Section  : {}".format(section))
+
+        parser = ConfigParserEnhancedTest(filename_ini)
+        parser.debug_level = 0
+        parser.exception_control_level = 5
+
+        known_operations = parser.get_known_operations()
+
+        #self.assertIn("handlebars-are-cool", known_operations)
+        #self.assertIn("use", known_operations)
+        print("----[ TEST END A  ]----------------------------------")
+
+        print("OK")
+        return 0
+
+
 
 
 # ===========================================================
