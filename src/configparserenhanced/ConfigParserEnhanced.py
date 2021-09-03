@@ -335,9 +335,7 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
     #   P U B L I C   A P I   M E T H O D S
     # ---------------------------------------
 
-    def write(
-        self, file_object, space_around_delimiters=True, section=None, use_base_class_parser=True
-    ) -> int:
+    def write(self, file_object, space_around_delimiters=True, section=None, use_base_class_parser=True) -> int:
         """File writer utility for ConfigParserEnhanced objects.
 
         Writes the output of :py:meth:`unroll_to_str` to a file.
@@ -395,7 +393,10 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
                 output = 1
 
         if output != 0:
+            tmp_fileslist = [ str(x) for x in self.inifilepath ]
             message = self.get_known_operations_message()
+            message += "\nThis configuration was loaded from the file(s):\n|- "
+            message += "\n|- ".join(tmp_fileslist)
             self.debug_message(0, message)
             self.exception_control_event("SERIOUS", ValueError, message.strip())
 
@@ -442,13 +443,16 @@ class ConfigParserEnhanced(Debuggable, ExceptionControl):
         section_data = self.configparserenhanceddata.get(section_name)
 
         if len(section_data):
-            message = f"Unhandled option found in section `{section_name}`"
+            message  = f"Unhandled option found in section `{section_name}`"
             message += " or one of its dependent sections.\n"
             message += "The following entries are unhandled:\n"
             for k, v in section_data.items():
                 message += f"|- '{k}'\n"
             if do_raise:
+                tmp_fileslist = [ str(x) for x in self.inifilepath ]
                 message += self.get_known_operations_message()
+                message += "\nThis configuration was loaded from the file(s):\n|- "
+                message += "\n|- ".join(tmp_fileslist)
                 self.exception_control_event("SERIOUS", ValueError, message.strip())
             output = message.rstrip()
         return output

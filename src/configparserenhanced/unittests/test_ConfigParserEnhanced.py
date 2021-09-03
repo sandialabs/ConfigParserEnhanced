@@ -1434,7 +1434,7 @@ class ConfigParserEnhancedTest(TestCase):
         print("Load file: {}".format(filename_ini))
 
         # Test individual section, `SECTION B` which should PASS
-        print("----[ TEST BEGIN ]----------------------------------")
+        print("----[ TEST BEGIN A ]----------------------------------")
         section = "SECTION B"
         print("Section  : {}".format(section))
 
@@ -1444,23 +1444,23 @@ class ConfigParserEnhancedTest(TestCase):
 
         rval = parser.assert_section_all_options_handled(section)
         self.assertEqual(0, rval)
-        print("----[ TEST END   ]----------------------------------")
+        print("----[ TEST END A  ]----------------------------------")
 
         # Test individual section, `SECTION C` which should FAIL
-        print("----[ TEST BEGIN ]----------------------------------")
+        print("----[ TEST BEGIN B ]----------------------------------")
         section = "SECTION C"
         print("Section  : {}".format(section))
 
         with self.assertRaises(ValueError):
             rval = parser.assert_section_all_options_handled(section)
-        print("----[ TEST END   ]----------------------------------")
+        print("----[ TEST END B   ]----------------------------------")
 
         # Test whole-file parsing which should FAIL due to sections
         # C and D.
-        print("----[ TEST BEGIN ]----------------------------------")
+        print("----[ TEST BEGIN C ]----------------------------------")
         with self.assertRaises(ValueError):
             parser.assert_file_all_sections_handled()
-        print("----[ TEST END   ]----------------------------------")
+        print("----[ TEST END C   ]----------------------------------")
 
         print("OK")
         return 0
