@@ -43,6 +43,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_use_pt, False],
                [self.assert_use_rdc, False],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_TrilinosFrameworkTests ON CACHE BOOL \"from .ini configuration\")'],
+               # TODO: [self.assert_common_mpi_disables],
               ],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-package-enables':
@@ -56,7 +57,15 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_use_mpi, False],
                [self.assert_use_pt, False],
                [self.assert_use_rdc, False],
-              # TODO: Add assert_package_config_contains asserts
+               [self.assert_package_config_contains,
+               'set(Trilinos_ENABLE_Fortran OFF CACHE BOOL "from .ini configuration")'],
+               [self.assert_package_config_contains,
+                'set(Trilinos_ENABLE_COMPLEX_DOUBLE ON CACHE BOOL "from .ini configuration")'],
+               [self.assert_package_config_contains,
+                'set(CMAKE_CXX_FLAGS "-Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-nonnull-compare -Wno-address -Wno-inline -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-label -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE String "from .ini configuration")'],
+               [self.assert_package_config_contains,
+                'set(TPL_ENABLE_ParMETIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               # TODO: [self.assert_common_mpi_disables],
               ],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
