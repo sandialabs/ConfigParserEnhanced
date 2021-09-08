@@ -88,7 +88,34 @@ class Test_verify_rhel7_configs(unittest.TestCase):
               'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_pr': [],
-              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_pr': [],
+              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-package-enables':
+              [[self.assert_intel_version, 19, 0, 5],
+               [self.assert_mpich_version, 3, 2],
+               [self.assert_kokkos_nodetype, "serial"],
+               [self.assert_build_type, "release-debug"],
+               [self.assert_rhel7_sems_lib_type, "static"],
+               [self.assert_kokkos_arch, "no-kokkos-arch"],
+               [self.assert_use_asan, False],
+               [self.assert_use_fpic, True],
+               [self.assert_use_mpi, True],
+               [self.assert_use_pt, False],
+               [self.assert_use_complex, False],
+               [self.assert_use_rdc, False],
+               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2 OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Core OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Sphynx OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-Wall -Warray-bounds -Wchar-subscripts -Wcomment -Wenum-compare -Wformat -Wuninitialized -Wmaybe-uninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-but-set-variable -Wunused-variable -Wwrite-strings" CACHE STRING "from .ini configuration")'],
+               [self.assert_rhel7_test_disables_intel],
+               [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_EWeights_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_OneProc_EWeights_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_OneProc_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_OneProc_VWeights_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_VWeights_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan2_pamgenMeshAdapterTest_scotch_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_contains, 'set(Zoltan2_scotch_example_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
+              ],
              }
 
         self.stdoutRedirect = mock.patch('sys.stdout', new_callable=StringIO)
@@ -146,6 +173,11 @@ class Test_verify_rhel7_configs(unittest.TestCase):
            PR testing'''
         self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables')
 
+    def test_rhel7_sems_intel_19_0_5_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
+        '''Check that the intel 19.0.5 job is set up without enabled packages for
+           PR testing'''
+        self.check_one_config('rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-package-enables')
+
     def check_one_config(self,
                          cfg):
         '''Load the given test config and iterate through the checks'''
@@ -164,6 +196,140 @@ class Test_verify_rhel7_configs(unittest.TestCase):
             pytest.skip("Wrong system: cannot run \"test_{config}\" on \"{hostname}\"".format(config=cfg,
                                                                                               hostname=subprocess.getoutput(
                                                                                                   "hostname")))
+
+
+    def assert_rhel7_sems_lib_type(self, gc, lib_type):
+        '''This just asserts LIB-TYPE|STATIC then the hdf libraries to shared libraries'''
+        self.assert_lib_type(gc, lib_type)
+        self.assert_package_config_contains(
+            gc, 'set(TPL_HDF5_LIBRARIES $ENV{SEMS_HDF5_LIBRARY_PATH}/libhdf5_hl.so;$ENV{SEMS_HDF5_LIBRARY_PATH}/libhdf5.so;$ENV{SEMS_ZLIB_LIBRARY_PATH}/libz.so;-ldl CACHE STRING "from .ini configuration")')
+
+    def assert_lib_type(self, gc, lib_type):
+        '''set default libraries for code and tpls to srchives'''
+        self.assert_package_config_contains(
+            gc, 'set(BUILD_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(TPL_FIND_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(TPL_Boost_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(TPL_BoostLib_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+
+    def assert_rhel7_test_disables_intel(self, gc):
+        '''stock test disables used in both intel 17 and 19
+          insert TDM rant here'''
+        self.assert_package_config_contains(
+            gc, 'set(Piro_AnalysisDriver_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(Piro_AnalysisDriverTpetra_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_adapters_epetra_test_sol_EpetraSROMSampleGenerator_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_adapters_minitensor_test_function_test_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_adapters_minitensor_test_sol_test_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_adapters_teuchos_test_sol_solSROMGenerator_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_burgers-control_example_01_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_diode-circuit_example_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_parabolic-control_example_01_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_parabolic-control_example_02_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_parabolic-control_example_03_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_parabolic-control_example_04_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_parabolic-control_example_05_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_0ld_adv-diff-react_example_02_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_0ld_poisson_example_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_0ld_stoch-adv-diff_example_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_adv-diff-react_example_02_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_navier-stokes_example_02_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_nonlinear-elliptic_example_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_nonlinear-elliptic_example_02_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_obstacle_example_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_PDE-OPT_topo-opt_poisson_example_01_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_poisson-control_example_01_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_poisson-control_example_02_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_poisson-inversion_example_02_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_tensor-opt_example_01_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_NonlinearProblemTest_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_algorithm_OptimizationSolverStatusTestInput_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_elementwise_BoundConstraint_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_function_BinaryConstraintCheck_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_function_ExplicitLinearConstraintCheck_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_AugmentedLagrangianStep_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_BoxConstrained_LineSearch_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_BoxConstrained_LM_TrustRegion_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_BoxConstrained_PrimalDualActiveSet_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_BoxConstrained_TrustRegion_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_CubicTest_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_fletcher_ALLPROBLEMS_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_fletcher_BOUNDFLETCHER_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_FletcherStep_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_interiorpoint_PrimalDualNewtonKrylov_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_InteriorPointStep_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_LineSearch_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_MoreauYosidaPenaltyStep_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_test_step_TrustRegion_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_tutorial_BoundAndInequality_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(MueLu_UnitTestsEpetra_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(MueLu_UnitTestsEpetra_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(MueLu_UnitTestsTpetra_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(ROL_example_poisson-inversion_example_01_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(Amesos2_SolverFactory_UnitTests_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(Amesos2_SuperLU_DIST_Solver_Test_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(Stratimikos_test_single_amesos2_tpetra_solver_driver_SuperLU_DIST_MPI_1_DISABLE ON CACHE BOOL "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(Intrepid2_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror" CACHE STRING "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(Pike_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror" CACHE STRING "from .ini configuration")')
+        self.assert_package_config_contains(
+            gc, 'set(Tempus_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror" CACHE STRING "from .ini configuration")')
 
 
     def assert_python_version(self, gc, major, minor, micro, newer_ok=False):
@@ -192,6 +358,15 @@ class Test_verify_rhel7_configs(unittest.TestCase):
         self.assertTrue(major == int(m.group(1)) and
                         minor == int(m.group(2)) and
                         patch == int(m.group(3)))
+
+    def assert_mpich_version(self, gc, major, minor):
+        '''Check that major, minor, patch matche the parsed output of mpirun --version'''
+        version_string = subprocess.check_output('mpirun --version',
+                                          stderr=subprocess.STDOUT,
+                                          shell=True)
+        m = re.search(b'HYDRA build details:\n    Version:                                 (\\d).(\\d)', version_string)
+        self.assertTrue(major == int(m.group(1)) and
+                        minor == int(m.group(2)))
 
     def assert_package_config_contains(self, gc, check_string):
         '''Check that the  given string is in the set-cmake-var listing'''
@@ -232,6 +407,16 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                                           stderr=subprocess.STDOUT,
                                           shell=True)
         m = re.search(b"g\\+\\+ \\(GCC\\) ([0-9]).([0-9]).([0-9]{0,1}).*", version)
+        self.assertTrue(major == int(m.group(1)) and
+                        minor == int(m.group(2)) and
+                        micro == int(m.group(3)))
+
+    def assert_intel_version(self, gc, major, minor, micro):
+        '''Run icpc --version and check for exact match only'''
+        version = subprocess.check_output('icpc --version',
+                                          stderr=subprocess.STDOUT,
+                                          shell=True)
+        m = re.search(b"icpc \\(ICC\\) ([0-9]{1,2}).([0-9]).([0-9]{0,1}).*", version)
         self.assertTrue(major == int(m.group(1)) and
                         minor == int(m.group(2)) and
                         micro == int(m.group(3)))
