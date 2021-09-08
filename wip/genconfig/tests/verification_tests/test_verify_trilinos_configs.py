@@ -56,6 +56,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_use_mpi, False],
                [self.assert_use_pt, False],
                [self.assert_use_rdc, False],
+              # TODO: Add assert_package_config_contains asserts
               ],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
