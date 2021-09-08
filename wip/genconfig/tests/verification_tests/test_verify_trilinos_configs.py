@@ -34,7 +34,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_python_version, 3, 7, 3],
                [self.assert_kokkos_nodetype, "serial"],
                [self.assert_build_type, "debug"],
-               #[self.assert_lib_type, "shared"],
+               # [self.assert_lib_type, "shared"],
                [self.assert_kokkos_arch, "no-kokkos-arch"],
                [self.assert_use_asan, False],
                [self.assert_use_complex, False],
@@ -45,7 +45,19 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_TrilinosFrameworkTests ON CACHE BOOL \"from .ini configuration\")'],
               ],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
-              'rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_pr-serial': [],
+              'rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-package-enables':
+              [[self.assert_gcc_version, 7, 2, 0],
+               [self.assert_kokkos_nodetype, "serial"],
+               [self.assert_build_type, "release-debug"],
+               [self.assert_kokkos_arch, "no-kokkos-arch"],
+               [self.assert_use_asan, False],
+               [self.assert_use_complex, False],
+               [self.assert_use_fpic, False],
+               [self.assert_use_mpi, False],
+               [self.assert_use_pt, False],
+               [self.assert_use_rdc, False],
+              # TODO: Add assert_package_config_contains asserts
+              ],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
               [[self.assert_gcc_version, 7, 2, 0],
@@ -167,6 +179,10 @@ class Test_verify_rhel7_configs(unittest.TestCase):
         '''Check that the gnu 7.2 job is set up without enabled packages for
            PR testing'''
         self.check_one_config('rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables')
+
+    def test_rhel7_sems_gnu_7_2_0_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_no_mpi_no_pt_no_rdc_no_package_enables(self):
+        '''Check that the 7.2.0 serial job is set up and without package enables'''
+        self.check_one_config('rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-package-enables')
 
     def test_rhel7_sems_gnu_8_3_0_openmpi_1_10_1_openmp_release_debug_static_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
         '''Check that the gnu 8.3 job is set up without enabled packages for
