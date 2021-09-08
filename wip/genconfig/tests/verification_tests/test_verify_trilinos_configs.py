@@ -138,6 +138,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_use_pt, False],
                [self.assert_use_complex, False],
                [self.assert_use_rdc, False],
+               [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2 OFF CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Core OFF CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Sphynx OFF CACHE BOOL "from .ini configuration" FORCE)'],
