@@ -128,6 +128,23 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_package_config_contains, 'set(Zoltan2_pamgenMeshAdapterTest_scotch_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Zoltan2_scotch_example_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
               ],
+             'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-package-enables':
+             [[self.assert_intel_version, 17, 0, 1],
+              [self.assert_mpich_version, 3, 2],
+              [self.assert_kokkos_nodetype, "serial"],
+              [self.assert_build_type, "release-debug"],
+              [self.assert_rhel7_sems_lib_type, "static"],
+              [self.assert_kokkos_arch, "no-kokkos-arch"],
+              [self.assert_use_asan, False],
+              [self.assert_use_complex, False],
+              [self.assert_use_fpic, True],
+              [self.assert_use_mpi, True],
+              [self.assert_use_pt, False],
+              [self.assert_use_rdc, False],
+              [self.assert_package_config_contains,
+               'set(CMAKE_CXX_FLAGS "-Wall -Warray-bounds -Wchar-subscripts -Wcomment -Wenum-compare -Wformat -Wuninitialized -Wmaybe-uninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-but-set-variable -Wunused-variable -Wwrite-strings" CACHE STRING "from .ini configuration")'],
+              [self.assert_rhel7_test_disables_intel],
+              ],
              }
 
         self.stdoutRedirect = mock.patch('sys.stdout', new_callable=StringIO)
@@ -193,6 +210,11 @@ class Test_verify_rhel7_configs(unittest.TestCase):
         '''Check that the intel 19.0.5 job is set up without enabled packages for
            PR testing'''
         self.check_one_config('rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-package-enables')
+        
+    def test_rhel7_sems_intel_17_0_1_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
+        '''Check that the intel 19.0.5 job is set up without enabled packages for
+           PR testing'''
+        self.check_one_config('rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-package-enables')
 
     def check_one_config(self,
                          cfg):
