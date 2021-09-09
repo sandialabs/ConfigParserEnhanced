@@ -58,12 +58,9 @@ if [[ $# -eq 0 || "$@" == *"--help"* || "$@" == "-h" || "$@" == *" -h" ]]; then
     cleanup_gc; return $?
 fi
 
+# Terminate early for list options
 if [[ "$@" == *"--list-configs"* || "$@" == *"--list-config-flags"* ]]; then
-    if [ -d ${@: -1} ]; then
-	python3 -E -s ${script_dir}/gen_config.py ${@: 1:$(expr $# - 1)}; ret=$?
-    else
-	python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
-    fi
+    python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
     cleanup_gc; return $?
 fi
 
@@ -134,7 +131,7 @@ function gen_config_helper()
     echo "                      B E G I N  C O N F I G U R A T I O N"
     echo "********************************************************************************"
 
-    if [[ -z $have_cmake_fragment ]]; then
+    if [[ $have_cmake_fragment != "true" ]]; then
         sleep 2s
 
         echo
