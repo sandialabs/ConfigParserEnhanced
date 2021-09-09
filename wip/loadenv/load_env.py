@@ -217,12 +217,7 @@ class LoadEnv(FormattedMsg):
         #       2 or less then `ValueError` will not be raised but
         #       rather `set_environment` will return a nonzero value.
         self.set_environment.exception_control_level = 5
-        try:
-            ret = self.set_environment.assert_file_all_sections_handled()
-            # if self.set_environment.exception_control_level <= 2 and ret != 0:
-            #   raise Exception
-        except Exception as exception:
-            sys.exit(1)
+        self.set_environment.assert_file_all_sections_handled()
 
 
     def apply_env(self):
