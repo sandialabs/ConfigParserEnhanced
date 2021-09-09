@@ -120,7 +120,7 @@ fi
 
 ### Run LoadEnv and CMake ###
 # Export these for load-env.sh
-export cmake_args=$([ -f ${bash_cmake_args_loc} ] && cat ${bash_cmake_args_loc} | envsubst)
+export cmake_args=$([ -f ${bash_cmake_args_loc} ] && cat ${bash_cmake_args_loc} )
 if [[ "$gen_config_py_call_args" == *"--cmake-fragment"* ]]; then
     export have_cmake_fragment="true"
 fi
@@ -140,8 +140,9 @@ function gen_config_helper()
         echo
         echo "*** Running CMake Command: ***"
 
-        # Print cmake call
-        echo -e "cmake $cmake_args \\\n    $path_to_src" | sed 's/;/\\;/g' | tee ./do-configure.sh
+        # Print cmake call - use single quotes to defer variable expansion until environment
+        #                            is loaded in load-env.sh
+        echo -e 'cmake $cmake_args \\\n    $path_to_src' | envsubst | sed 's/;/\\;/g' | tee ./do-configure.sh
         echo
 
         sleep 2s
