@@ -58,9 +58,13 @@ if [[ $# -eq 0 || "$@" == *"--help"* || "$@" == "-h" || "$@" == *" -h" ]]; then
     cleanup_gc; return $?
 fi
 
-# Terminate early for list options
+# Terminate early for list options, bypass positional arg error without
+# enforcing users to supply path_to_src when listing options
 if [[ "$@" == *"--list-configs"* || "$@" == *"--list-config-flags"* ]]; then
-    python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
+    if [ -d ${@: -1} ]; then
+      python3 -E -s ${script_dir}/gen_config.py ${@: 1:$(expr $# - 1)}; ret=$?
+    else
+      python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
     cleanup_gc; return $?
 fi
 
