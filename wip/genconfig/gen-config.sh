@@ -62,9 +62,9 @@ fi
 # enforcing users to supply path_to_src when listing options
 if [[ "$@" == *"--list-configs"* || "$@" == *"--list-config-flags"* ]]; then
     if [ -d ${@: -1} ]; then
-      python3 -E -s ${script_dir}/gen_config.py ${@: 1:$(expr $# - 1)}; ret=$?
+        python3 -E -s ${script_dir}/gen_config.py ${@: 1:$(expr $# - 1)}; ret=$?
     else
-      python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
+        python3 -E -s ${script_dir}/gen_config.py $@; ret=$?
     cleanup_gc; return $?
 fi
 
