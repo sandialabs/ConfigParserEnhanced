@@ -535,8 +535,10 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                                                 'set(CMAKE_BUILD_TYPE RELEASE CACHE STRING \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(Trilinos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
-            self.assert_package_config_contains(gc,
+            self.assert_package_config_does_not_contain(gc,
                                                 'set(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK OFF CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
         elif 'debug' == build_type:
@@ -544,8 +546,10 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                                                 'set(CMAKE_BUILD_TYPE DEBUG CACHE STRING \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(Trilinos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
-            self.assert_package_config_contains(gc,
+            self.assert_package_config_does_not_contain(gc,
                                                 'set(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK OFF CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_DEBUG ON CACHE BOOL \"from .ini configuration\")')
         else:
