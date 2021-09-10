@@ -1,5 +1,7 @@
 [run]
-omit = */unittests/*
+omit =
+    */unittests/*
+    */venv*
 branch = True
 dynamic_context = test_function
 
