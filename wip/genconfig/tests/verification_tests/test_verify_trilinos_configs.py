@@ -131,7 +131,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_mpich_version, 3, 2],
                [self.assert_kokkos_nodetype, "serial"],
                [self.assert_build_type, "release-debug"],
-               [self.assert_rhel7_sems_lib_type, "static"],
+               [self.assert_rhel7_sems_lib_type, "shared"],
                [self.assert_kokkos_arch, "no-kokkos-arch"],
                [self.assert_use_asan, False],
                [self.assert_use_fpic, True],
@@ -141,9 +141,9 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_use_rdc, False],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_SuperLU ON CACHE BOOL "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
-               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2 OFF CACHE BOOL "from .ini configuration" FORCE)'],
-               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Core OFF CACHE BOOL "from .ini configuration" FORCE)'],
-               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Sphynx OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_does_not_contain, 'set(Trilinos_ENABLE_Zoltan2 OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_does_not_contain, 'set(Trilinos_ENABLE_Zoltan2Core OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_does_not_contain, 'set(Trilinos_ENABLE_Zoltan2Sphynx OFF CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Zoltan_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-Wall -Warray-bounds -Wchar-subscripts -Wcomment -Wenum-compare -Wformat -Wuninitialized -Wmaybe-uninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-but-set-variable -Wunused-variable -Wwrite-strings" CACHE STRING "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(MPI_BASE_DIR $ENV{SEMS_MPI_ROOT} CACHE PATH "from .ini configuration")'],
@@ -256,14 +256,24 @@ class Test_verify_rhel7_configs(unittest.TestCase):
 
     def assert_lib_type(self, gc, lib_type):
         '''set default libraries for code and tpls to srchives'''
-        self.assert_package_config_contains(
-            gc, 'set(BUILD_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
-        self.assert_package_config_contains(
-            gc, 'set(TPL_FIND_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
-        self.assert_package_config_contains(
-            gc, 'set(TPL_Boost_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
-        self.assert_package_config_contains(
-            gc, 'set(TPL_BoostLib_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+        if 'static' == lib_type:
+            self.assert_package_config_contains(
+                gc, 'set(BUILD_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_FIND_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_Boost_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_BoostLib_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+        elif 'shared' == lib_type:
+            self.assert_package_config_contains(
+                gc, 'set(BUILD_SHARED_LIBS ON CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_FIND_SHARED_LIBS ON CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_Boost_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.so;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.so CACHE STRING "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_BoostLib_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.so;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.so CACHE STRING "from .ini configuration")')
 
     def assert_rhel7_test_disables_intel(self, gc):
         '''stock test disables used in both intel 17 and 19
@@ -449,7 +459,9 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                 gc.complete_config, "cmake_fragment"
             )
         for opt in cmake_options_list:
-            self.assertTrue(check_string not in opt)
+            self.assertTrue(check_string not in opt,
+                            msg="The check_string ({check_str})  was found in the list of cmake options".\
+                            format(check_str=check_string))
 
     def assert_gcc_version(self, gc, major, minor, micro):
         '''Run gcc --version and check for exact match only'''
