@@ -483,7 +483,7 @@ class GenConfig(FormattedMsg):
         self.set_program_options = SetProgramOptionsCMake(
             filename=self.args.config_specs_file
         )
-        self.set_program_options.exception_control_level = 5
+        self.set_program_options.exception_control_level = 4
 
     def load_load_env(self):
         """
