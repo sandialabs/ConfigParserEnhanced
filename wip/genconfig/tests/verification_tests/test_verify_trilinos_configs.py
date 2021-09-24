@@ -126,7 +126,22 @@ class Test_verify_rhel7_configs(unittest.TestCase):
               ],
               'rhel7_sems-clang-7.0.1-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
               'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
-              'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
+              'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
+                  [[self.assert_clang_version, 10, 0, 0],
+                   [self.assert_openmpi_version, 1, 10, 1],
+                   [self.assert_kokkos_nodetype, "serial"],
+                   [self.assert_build_type, "release-debug"],
+                   [self.assert_rhel7_sems_lib_type, "shared"],
+                   [self.assert_kokkos_arch, "no-kokkos-arch"],
+                   [self.assert_use_asan, False],
+                   [self.assert_use_complex, False],
+                   [self.assert_use_fpic, False],
+                   [self.assert_use_mpi, True],
+                   [self.assert_use_pt, False],
+                   [self.assert_use_rdc, False],
+                   [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
+                   [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
+                  ],
              'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-package-enables':
                  [[self.assert_intel_version, 17, 0, 1],
                   [self.assert_mpich_version, 3, 2],
@@ -150,7 +165,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_mpich_version, 3, 2],
                [self.assert_kokkos_nodetype, "serial"],
                [self.assert_build_type, "release-debug"],
-               [self.assert_rhel7_sems_lib_type, "static"],
+               [self.assert_rhel7_sems_lib_type, "shared"],
                [self.assert_kokkos_arch, "no-kokkos-arch"],
                [self.assert_use_asan, False],
                [self.assert_use_fpic, True],
@@ -160,11 +175,11 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_use_rdc, False],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_SuperLU ON CACHE BOOL "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
-               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2 OFF CACHE BOOL "from .ini configuration" FORCE)'],
-               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Core OFF CACHE BOOL "from .ini configuration" FORCE)'],
-               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Zoltan2Sphynx OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_does_not_contain, 'set(Trilinos_ENABLE_Zoltan2 OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_does_not_contain, 'set(Trilinos_ENABLE_Zoltan2Core OFF CACHE BOOL "from .ini configuration" FORCE)'],
+               [self.assert_package_config_does_not_contain, 'set(Trilinos_ENABLE_Zoltan2Sphynx OFF CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Zoltan_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
-               [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-Wall -Warray-bounds -Wchar-subscripts -Wcomment -Wenum-compare -Wformat -Wuninitialized -Wmaybe-uninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-but-set-variable -Wunused-variable -Wwrite-strings" CACHE STRING "from .ini configuration")'],
+               [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-fPIC -Wall -Warray-bounds -Wchar-subscripts -Wcomment -Wenum-compare -Wformat -Wuninitialized -Wmaybe-uninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-but-set-variable -Wunused-variable -Wwrite-strings" CACHE STRING "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(MPI_BASE_DIR $ENV{SEMS_MPI_ROOT} CACHE PATH "from .ini configuration")'],
                [self.assert_rhel7_test_disables_intel],
                [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_EWeights_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
@@ -237,6 +252,11 @@ class Test_verify_rhel7_configs(unittest.TestCase):
            PR testing'''
         self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables')
 
+    def test_rhel7_sems_clang_10_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
+        '''Check that the clang 10.0.0 job is set up without enabled packages for
+           PR testing'''
+        self.check_one_config('rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables')
+
     def test_rhel7_sems_intel_19_0_5_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
         '''Check that the intel 19.0.5 job is set up without enabled packages for
            PR testing'''
@@ -274,15 +294,25 @@ class Test_verify_rhel7_configs(unittest.TestCase):
             gc, 'set(TPL_HDF5_LIBRARIES $ENV{SEMS_HDF5_LIBRARY_PATH}/libhdf5_hl.so;$ENV{SEMS_HDF5_LIBRARY_PATH}/libhdf5.so;$ENV{SEMS_ZLIB_LIBRARY_PATH}/libz.so;-ldl CACHE STRING "from .ini configuration")')
 
     def assert_lib_type(self, gc, lib_type):
-        '''set default libraries for code and tpls to archives'''
-        self.assert_package_config_contains(
-            gc, 'set(BUILD_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
-        self.assert_package_config_contains(
-            gc, 'set(TPL_FIND_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
-        self.assert_package_config_contains(
-            gc, 'set(TPL_Boost_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
-        self.assert_package_config_contains(
-            gc, 'set(TPL_BoostLib_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+        '''set default libraries for code and tpls to srchives'''
+        if 'static' == lib_type:
+            self.assert_package_config_contains(
+                gc, 'set(BUILD_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_FIND_SHARED_LIBS OFF CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_Boost_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_BoostLib_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.a;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.a CACHE STRING "from .ini configuration")')
+        elif 'shared' == lib_type:
+            self.assert_package_config_contains(
+                gc, 'set(BUILD_SHARED_LIBS ON CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_FIND_SHARED_LIBS ON CACHE BOOL "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_Boost_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.so;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.so CACHE STRING "from .ini configuration")')
+            self.assert_package_config_contains(
+                gc, 'set(TPL_BoostLib_LIBRARIES $ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_program_options.so;$ENV{SEMS_BOOST_LIBRARY_PATH}/libboost_system.so CACHE STRING "from .ini configuration")')
 
     def assert_rhel7_test_disables_intel(self, gc):
         '''stock test disables used in both intel 17 and 19
@@ -468,7 +498,19 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                 gc.complete_config, "cmake_fragment"
             )
         for opt in cmake_options_list:
-            self.assertTrue(check_string not in opt)
+            self.assertTrue(check_string not in opt,
+                            msg="The check_string ({check_str})  was found in the list of cmake options".\
+                            format(check_str=check_string))
+
+    def assert_clang_version(self, gc, major, minor, micro):
+        '''Run clang --version and check for exact match only'''
+        version = subprocess.check_output('clang --version',
+                                          stderr=subprocess.STDOUT,
+                                          shell=True)
+        m = re.search(b"clang version ([0-9]{1,2}).([0-9]).([0-9]{0,1}).*", version)
+        self.assertTrue(major == int(m.group(1)) and
+                        minor == int(m.group(2)) and
+                        micro == int(m.group(3)))
 
     def assert_gcc_version(self, gc, major, minor, micro):
         '''Run gcc --version and check for exact match only'''
