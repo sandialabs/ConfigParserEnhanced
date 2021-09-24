@@ -39,7 +39,7 @@ function cleanup_gc()
     [ -f /tmp/$USER/.load_env_args ] && rm -f /tmp/$USER/.load_env_args 2>/dev/null
 
     unset python_too_old script_dir cleanup_gc gen_config_py_call_args gen_config_helper
-    unset path_to_src load_env_args cmake_args_file ret have_cmake_fragment
+    unset gc_random config_prefix path_to_src load_env_args cmake_args_file ret have_cmake_fragment
     trap -  SIGHUP SIGINT SIGTERM
     return $ret_val
 }
@@ -110,7 +110,8 @@ fi
 
 
 ### Generate the configuration ###
-bash_cmake_args_loc=.bash_cmake_args.$RANDOM
+gc_random=$RANDOM
+bash_cmake_args_loc=.bash_cmake_args.$gc_random
 python3 -E -s ${script_dir}/gen_config.py --bash-cmake-args-location ${bash_cmake_args_loc} $gen_config_py_call_args; ret=$?
 if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $?
@@ -125,6 +126,7 @@ if [[ "$gen_config_py_call_args" == *"--cmake-fragment"* ]]; then
     export have_cmake_fragment="true"
 fi
 export path_to_src
+export config_prefix=.do-configure.$gc_random
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
 # when --ci-mode is enabled, or from within the sub-shell created by load-env.sh.
@@ -142,13 +144,13 @@ function gen_config_helper()
 
         # Print cmake call - use single quotes to defer variable expansion until environment
         #                            is loaded in load-env.sh
-        echo -e 'cmake $cmake_args \\\n    $path_to_src' | envsubst | sed 's/;/\\;/g' | tee ./do-configure.sh
+        echo -e 'cmake $cmake_args \\\n    $path_to_src 2>&1 | tee ./${config_prefix}.log' | envsubst | sed 's/;/\\;/g' | tee ./${config_prefix}.sh
         echo
 
         sleep 2s
 
         # Execute cmake call
-        source ./do-configure.sh
+        source ./${config_prefix}.sh
     else
         echo; echo
         echo "Please run:"
