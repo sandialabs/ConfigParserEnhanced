@@ -197,6 +197,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-fPIC -Wall -Warray-bounds -Wchar-subscripts -Wcomment -Wenum-compare -Wformat -Wuninitialized -Wmaybe-uninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-but-set-variable -Wunused-variable -Wwrite-strings" CACHE STRING "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(MPI_BASE_DIR $ENV{SEMS_MPI_ROOT} CACHE PATH "from .ini configuration")'],
                [self.assert_rhel7_test_disables_intel],
+               [self.assert_package_config_contains, 'set(Phalanx_dynamic_data_layout_MPI_1_DISABLE ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_EWeights_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_contains, 'set(Zoltan2_Partitioning1_OneProc_EWeights_MPI_4_DISABLE ON CACHE BOOL "from .ini configuration" FORCE)'],
