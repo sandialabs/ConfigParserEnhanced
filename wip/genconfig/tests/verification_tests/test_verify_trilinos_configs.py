@@ -45,7 +45,26 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_TrilinosFrameworkTests ON CACHE BOOL \"from .ini configuration\")'],
                # TODO: [self.assert_common_mpi_disables],
               ],
-              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
+              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
+              [
+               [self.assert_gcc_version, 7, 2, 0],
+               [self.assert_python_version, 3,7,3],
+               [self.assert_openmpi_version, 1, 10, 1],
+               [self.assert_kokkos_nodetype, "serial"],
+               [self.assert_build_type, "debug"],
+               [self.assert_lib_type, "shared"],
+               [self.assert_kokkos_arch, "no-kokkos-arch"],
+               [self.assert_use_asan, False],
+               [self.assert_use_complex, False],
+               [self.assert_use_fpic, False],
+               [self.assert_use_mpi, True],
+               [self.assert_use_pt, False],
+               [self.assert_use_rdc, False],
+               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Fortran OFF CACHE BOOL "from .ini configuration")'],
+               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_COMPLEX_DOUBLE ON CACHE BOOL "from .ini configuration")'],
+               [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-nonnull-compare -Wno-address -Wno-inline -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-label -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE STRING "from .ini configuration")'],
+               [self.assert_package_config_contains, 'set(TPL_ENABLE_ParMETIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+              ],
               'rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-package-enables':
               [[self.assert_gcc_version, 7, 2, 0],
                [self.assert_kokkos_nodetype, "serial"],
@@ -105,7 +124,22 @@ class Test_verify_rhel7_configs(unittest.TestCase):
                [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-fno-strict-aliasing -Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-parentheses -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-class-memaccess -Wno-inline -Wno-nonnull-compare -Wno-address -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE STRING "from .ini configuration")'],
               ],
-              'rhel7_sems-clang-7.0.1-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
+              'rhel7_sems-clang-7.0.1-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
+                  [[self.assert_clang_version, 7, 0, 1],
+                   [self.assert_openmpi_version, 1, 10, 1],
+                   [self.assert_kokkos_nodetype, "serial"],
+                   [self.assert_build_type, "release-debug"],
+                   [self.assert_rhel7_sems_lib_type, "shared"],
+                   [self.assert_kokkos_arch, "no-kokkos-arch"],
+                   [self.assert_use_asan, False],
+                   [self.assert_use_complex, False],
+                   [self.assert_use_fpic, False],
+                   [self.assert_use_mpi, True],
+                   [self.assert_use_pt, False],
+                   [self.assert_use_rdc, False],
+                   [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
+                   [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
+                  ],
               'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
                   [
                    [self.assert_clang_version, 9, 0, 0],
@@ -258,7 +292,7 @@ class Test_verify_rhel7_configs(unittest.TestCase):
         '''Check that the intel 19.0.5 job is set up without enabled packages for
            PR testing'''
         self.check_one_config('rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-package-enables')
-        
+
     def test_rhel7_sems_intel_17_0_1_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
         '''Check that the intel 19.0.5 job is set up without enabled packages for
            PR testing'''
