@@ -782,12 +782,12 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
         self.stdoutRedirect.stop()
         # self.stderrRedirect.stop()
 
-    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_no-package-enables(self):
+    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_no_package_enables(self):
         '''Check that the job setup for our python testing matches
            expectations'''
         self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_no-package-enables')
 
-    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_rdc_no-package-enables(self):
+    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_rdc_no_package_enables(self):
         '''Check that the job setup for our python testing matches
            expectations'''
         self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_no-package-enables')
