@@ -125,7 +125,7 @@ export cmake_args=$([ -f ${bash_cmake_args_loc} ] && cat ${bash_cmake_args_loc} 
 if [[ "$gen_config_py_call_args" == *"--cmake-fragment"* ]]; then
     export have_cmake_fragment="true"
 fi
-export path_to_src
+export path_to_src=$(realpath ${path_to_src})
 export config_prefix=.do-configure.$gc_random
 
 # This function gets called from WITHIN load-env.sh, either in the current shell
@@ -165,7 +165,6 @@ function gen_config_helper()
 declare -x -f gen_config_helper
 
 load_env_args=$(python3 -E -s ${script_dir}/gen_config.py --output-load-env-args-only $gen_config_py_call_args); ret=$?
-echo "load_env_args=$load_env_args"
 if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $?
 fi
