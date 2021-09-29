@@ -527,6 +527,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                [self.assert_use_pt, False],
                [self.assert_use_complex, False],
                [self.assert_use_rdc, False],
+               [self.assert_package_config_contains, 'set(Phalanx_dynamic_data_layout_MPI_1_DISABLE ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_SuperLU ON CACHE BOOL "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
                [self.assert_package_config_does_not_contain, 'set(Trilinos_ENABLE_Zoltan2 OFF CACHE BOOL "from .ini configuration" FORCE)'],
@@ -591,7 +592,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
         '''Check that the gnu 8.3 job is set up without enabled packages for
            PR testing'''
         self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables')
-        
+
     def rhel7_sems_clang_9_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
         '''Check that the clang 10.0.0 job is set up without enabled packages for
            PR testing'''
