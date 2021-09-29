@@ -463,7 +463,23 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                    [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                    [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                   ],
-              'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_pr': [],
+                'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
+                  [
+                   [self.assert_clang_version, 9, 0, 0],
+                   [self.assert_openmpi_version, 1, 10, 1],
+                   [self.assert_kokkos_nodetype, "serial"],
+                   [self.assert_build_type, "release-debug"],
+                   [self.assert_rhel7_sems_lib_type, "shared"],
+                   [self.assert_kokkos_arch, "no-kokkos-arch"],
+                   [self.assert_use_asan, False],
+                   [self.assert_use_complex, False],
+                   [self.assert_use_fpic, False],
+                   [self.assert_use_mpi, True],
+                   [self.assert_use_pt, False],
+                   [self.assert_use_rdc, False],
+                   [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
+                   [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
+                  ],
               'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables':
                   [[self.assert_clang_version, 10, 0, 0],
                    [self.assert_openmpi_version, 1, 10, 1],
@@ -575,6 +591,11 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
         '''Check that the gnu 8.3 job is set up without enabled packages for
            PR testing'''
         self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables')
+        
+    def rhel7_sems_clang_9_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
+        '''Check that the clang 10.0.0 job is set up without enabled packages for
+           PR testing'''
+        self.check_one_config('rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables')
 
     def test_rhel7_sems_clang_10_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_package_enables(self):
         '''Check that the clang 10.0.0 job is set up without enabled packages for
