@@ -165,7 +165,6 @@ function gen_config_helper()
 declare -x -f gen_config_helper
 
 load_env_args=$(python3 -E -s ${script_dir}/gen_config.py --output-load-env-args-only $gen_config_py_call_args); ret=$?
-echo "load_env_args=$load_env_args"
 if [[ $ret -ne 0 ]]; then
     cleanup_gc; return $?
 fi
