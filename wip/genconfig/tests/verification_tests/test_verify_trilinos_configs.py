@@ -745,7 +745,7 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
     def setUp(self):
         '''Comman data structures for all tests - done on a per-test basis'''
         self.config_verification_map = \
-             {'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_all':
+             {'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_no-package-enables':
               [
                [self.assert_gcc_version, 8, 3, 1],
                [self.assert_kokkos_nodetype, "cuda"],
@@ -759,6 +759,22 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
                [self.assert_use_mpi, True],
                [self.assert_use_pt, True],
                [self.assert_use_rdc, False],
+               [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL \"from .ini configuration\" FORCE)'],
+              ],
+              'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_no-package-enables':
+              [
+               [self.assert_gcc_version, 8, 3, 1],
+               [self.assert_kokkos_nodetype, "cuda"],
+               #TODO: [self.assert_build_type, "release"],
+               [self.assert_lib_type, "static"],
+               [self.assert_kokkos_arch, "VOLTA70"],
+               [self.assert_kokkos_arch, "POWER9"],
+               [self.assert_use_asan, False],
+               [self.assert_use_complex, False],
+               [self.assert_use_fpic, False],
+               [self.assert_use_mpi, True],
+               [self.assert_use_pt, True],
+               [self.assert_use_rdc, True],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL \"from .ini configuration\" FORCE)'],
               ],
              }
@@ -788,10 +804,15 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
         self.stdoutRedirect.stop()
         # self.stderrRedirect.stop()
 
-    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_all(self):
+    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_no_package_enables(self):
         '''Check that the job setup for our python testing matches
            expectations'''
-        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_all')
+        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_no-package-enables')
+
+    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_rdc_no_package_enables(self):
+        '''Check that the job setup for our python testing matches
+           expectations'''
+        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_no-package-enables')
 
 if __name__ == '__main__':
     unittest.main()  # pragma nocover
