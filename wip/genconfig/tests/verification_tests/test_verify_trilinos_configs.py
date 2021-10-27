@@ -163,7 +163,7 @@ class common_verify_helpers():
         version = subprocess.check_output('nvcc --version',
                                           stderr=subprocess.STDOUT,
                                           shell=True)
-        m = re.search(b"release.*V([0-9]{1,2}).([0-9]).([0-9]{0,2}).*", version)
+        m = re.search(b"release.*V([0-9]{1,2}).([0-9]).([0-9]{1,3}).*", version)
         self.assertTrue(major == int(m.group(1)) and
                         minor == int(m.group(2)) and
                         micro == int(m.group(3)))
@@ -359,16 +359,16 @@ class common_verify_helpers():
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_CUDA_UVM ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
-                                                'set(TpetraCore_ENABLE_CUDA_UVM  ON CACHE BOOL \"from .ini configuration\")')
+                                                'set(TpetraCore_ENABLE_CUDA_UVM ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
-                                                'set(KokkosKernels_INST_MEMSPACE_CUDAUVMSPACE  ON CACHE BOOL \"from .ini configuration\")')
+                                                'set(KokkosKernels_INST_MEMSPACE_CUDAUVMSPACE ON CACHE BOOL \"from .ini configuration\")')
         else:
             self.assert_package_config_contains(gc,
-                                                'set(Kokkos_ENABLE_CUDA_UVM OFF CACHE BOOL \"from .ini configuration\")')
+                                                'set(Kokkos_ENABLE_CUDA_UVM OFF CACHE BOOL \"from .ini configuration\" FORCE)')
             self.assert_package_config_contains(gc,
-                                                'set(TpetraCore_ENABLE_CUDA_UVM OFF CACHE BOOL \"from .ini configuration\")')
+                                                'set(TpetraCore_ENABLE_CUDA_UVM ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
-                                                'set(KokkosKernels_INST_MEMSPACE_CUDAUVMSPACE OFF CACHE BOOL \"from .ini configuration\")')
+                                                'set(KokkosKernels_INST_MEMSPACE_CUDAUVMSPACE ON CACHE BOOL \"from .ini configuration\")')
 
 
 class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
@@ -523,7 +523,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                    [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                    [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                   ],
-             'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_no-uvm_no-package-enables':
+             'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables':
                  [[self.assert_cuda_version, 10, 1, 105],
                   [self.assert_gcc_version, 7, 2, 0],
                   [self.assert_kokkos_nodetype, "cuda"],
@@ -532,15 +532,15 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_kokkos_arch, "VOLTA70"],
                   [self.assert_kokkos_arch, "POWER9"],
                   [self.assert_use_asan, False],
-                  [self.assert_use_complex, False],
-                  [self.assert_use_fpic, False],
+                  [self.assert_use_complex, True],
+                  [self.assert_use_fpic, True],
                   [self.assert_use_mpi, True],
                   [self.assert_use_pt, True],
                   [self.assert_use_rdc, False],
                   [self.assert_use_uvm, False],
                   [self.assert_rhel7_test_disables_cuda],
                  ],
-             'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_uvm_no-package-enables':
+             'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables':
                  [[self.assert_cuda_version, 10, 1, 105],
                   [self.assert_gcc_version, 7, 2, 0],
                   [self.assert_kokkos_nodetype, "cuda"],
@@ -549,8 +549,8 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_kokkos_arch, "VOLTA70"],
                   [self.assert_kokkos_arch, "POWER9"],
                   [self.assert_use_asan, False],
-                  [self.assert_use_complex, False],
-                  [self.assert_use_fpic, False],
+                  [self.assert_use_complex, True],
+                  [self.assert_use_fpic, True],
                   [self.assert_use_mpi, True],
                   [self.assert_use_pt, True],
                   [self.assert_use_rdc, False],
@@ -659,15 +659,15 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
            PR testing'''
         self.check_one_config('rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
 
-    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=off job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables')
 
-    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
+    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=on job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_uvm_no-package-enables')
+        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables')
 
     def test_rhel7_sems_clang_10_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
         '''Check that the clang 10.0.0 job is set up without enabled packages for
@@ -871,7 +871,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
         # Disable a couple of unit tests in test KokkosCore_UnitTest_Cuda_MPI_1 that
         # are randomly failing in PR test iterations (#6799)
         self.assert_package_config_contains(
-            gc, 'set(KokkosCore_UnitTest_Cuda_MPI_1_EXTRA_ARGS "--gtest_filter=-cuda.debug_pin_um_to_host:cuda.debug_serial_execution" CACHE STRING "from .ini configuration")')
+            gc, 'set(KokkosCore_UnitTest_Cuda_MPI_1_EXTRA_ARGS --gtest_filter=-cuda.debug_pin_um_to_host:cuda.debug_serial_execution CACHE STRING "from .ini configuration")')
 
         # Disable a few failing tests for initial release of Cuda 10.1.105 PR build
         self.assert_package_config_contains(
