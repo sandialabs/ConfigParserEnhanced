@@ -370,14 +370,14 @@ def run_common_config_specs_validation_test(test_ini_filename, section_names, sh
 
 def run_common_supported_systems_validation_test(test_config_specs_file: str, test_supported_systems_file: str,
                                                  section_names, should_raise: bool):
-    section_name = "rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none"
     gc = GenConfig([
         "--config-specs", test_config_specs_file,
         "--supported-config-flags", "test-supported-config-flags.ini",
         "--supported-systems", test_supported_systems_file,
         "--supported-envs", "test-supported-envs.ini",
         "--environment-specs", "test-environment-specs.ini",
-        section_name
+        "--force",
+        "rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none"
     ])
 
 
