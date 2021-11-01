@@ -24,8 +24,12 @@ Updates and Changes
 ### Security
 -->
 
-## [0.7.1] - [UNRELEASED]
+## [0.8.0] - 2021-11-01
 ### Added
+- OSS License approval
+  - Using 3-Clause BSD license.
+  - Added LICENSE.md
+  - Added License headers to source files.
 ### Changed
 - Added some docstring updates.
 - Changed the _require set before use_ restriction on `parse_section_last_result`
