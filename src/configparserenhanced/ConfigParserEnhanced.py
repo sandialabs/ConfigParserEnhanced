@@ -85,7 +85,7 @@ Todo:
     - Jason M. Gates <jmgate@sandia.gov>
     - Josh Braun <josbrau@sandia.gov>
 
-:Version: 0.7.1
+:Version: 0.8.0
 
 """
 from __future__ import print_function

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "configparserenhanced"
-version = "0.7.1"
-license = ""
+version = "0.8.0"
+license = "LICENSE.md"
 readme = "README.md"
 keywords = []
 repository = "https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced"
