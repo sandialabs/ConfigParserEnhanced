@@ -396,8 +396,10 @@ class GenConfig(FormattedMsg):
         config_specs = ConfigParserEnhanced(
             self.args.config_specs_file
         ).configparserenhanceddata
+        supported_systems = [x for x in le.supported_systems_data]
 
         invalid_sections = []
+        sections_with_invalid_systems = []
         for section_name in config_specs.keys():
             if section_name.upper() == section_name:
                 continue  # This is just a supporting section
@@ -416,6 +418,11 @@ class GenConfig(FormattedMsg):
                     "the following error was encountered:\n"
                     f"{str(e)}"
                 ))
+
+            system_name = section_name.split("_")[0]
+            if system_name not in supported_systems:
+                sections_with_invalid_systems.append(section_name)
+                continue
 
             # Silences the LoadEnv diagnostic messages for all the section name
             # matching (i.e. "Matched environment name ...")
@@ -441,6 +448,20 @@ class GenConfig(FormattedMsg):
             raise ValueError(self.get_formatted_msg(
                 err_msg, extras=("Please correct these sections in "
                                  f"'{self.args.config_specs_file.name}'.")
+            ))
+
+        if len(sections_with_invalid_systems) > 0:
+            err_msg = (
+                "The following section(s) in your config-specs.ini file\n"
+                "do not match any systems listed in\n"
+                f"'{le.args.supported_systems_file.name}':\n\n"
+            )
+            for section_name in sections_with_invalid_systems:
+                err_msg += f"-  {section_name}\n"
+
+            raise ValueError(self.get_formatted_msg(
+                err_msg, extras=("Please update "
+                                 f"'{le.args.supported_systems_file.name}'.")
             ))
 
         self.load_env.build_name = self.args.build_name

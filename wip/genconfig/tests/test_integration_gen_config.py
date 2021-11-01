@@ -324,9 +324,7 @@ def get_expected_supported_systems_exc_msg(section_names, test_supported_systems
         f"""
         |   ERROR:  The following section(s) in your config-specs.ini file
         |           do not match any systems listed in
-        |           'test-supported-systems.ini':
-        |
-        |           -  {{section_names}}
+        |           '{test_supported_systems_filename}':
         |
         """
     ).strip()
