@@ -16,6 +16,15 @@ def use_tmpdir(monkeypatch, request, tmpdir):
     shutil.copyfile(Path.cwd()/("tests/supporting_files/"
                                 "test-config-specs.ini"),
                     tmpdir.join("test-config-specs.ini"))
+    shutil.copyfile(Path.cwd() / ("tests/supporting_files/"
+                                  "test-config-specs-1-new-system-1-section.ini"),
+                    tmpdir.join("test-config-specs-1-new-system-1-section.ini"))
+    shutil.copyfile(Path.cwd() / ("tests/supporting_files/"
+                                  "test-config-specs-1-new-system-2-section.ini"),
+                    tmpdir.join("test-config-specs-1-new-system-2-section.ini"))
+    shutil.copyfile(Path.cwd() / ("tests/supporting_files/"
+                                  "test-config-specs-2-new-system-3-section.ini"),
+                    tmpdir.join("test-config-specs-2-new-system-3-section.ini"))
     shutil.copyfile(Path.cwd()/("tests/supporting_files/"
                                 "test-supported-config-flags.ini"),
                     tmpdir.join("test-supported-config-flags.ini"))

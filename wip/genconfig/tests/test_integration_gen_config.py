@@ -254,10 +254,40 @@ def test_existing_cmake_fragment_file_asks_user_for_overwrite(mock_input, data):
 ###############################################################################
 ##########################     Validation     #################################
 ###############################################################################
+# config_specs.ini and supported-systems.ini integration
+# =======================
+@pytest.mark.parametrize("data", [
+    {"config_specs_filename": "test-config-specs.ini", 
+     "supported_systems_filename": "test-supported-systems.ini", 
+     "section_names": [], 
+     "raises": False},
+    
+    {"config_specs_filename": "test-config-specs-1-new-system-1-section.ini", 
+     "supported_systems_filename": "test-supported-systems.ini", 
+     "section_names": "dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none", 
+     "raises": True},
+    
+    {"config_specs_filename": "test-config-specs-1-new-system-2-section.ini", 
+     "supported_systems_filename": "test-supported-systems.ini",
+     "section_names": ["dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none",
+                     "dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_empire"], 
+     "raises": True},
+    
+    {"config_specs_filename": "test-config-specs-2-new-system-3-section.ini", 
+     "supported_systems_filename": "test-supported-systems.ini",
+     "section_names": ["dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none",
+             "dne9_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none",
+             "dne9_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_empire"], 
+     "raises": True}
+])
+def test_supported_systems_missing_system_raises(data):
+
+    run_common_supported_systems_validation_test(data["config_specs_filename"], data["supported_systems_filename"],
+                                                 data["section_names"], data["raises"])
 
 # Section Name Validation
 # =======================
-def get_expected_exc_msg(section_names, test_ini_filename):
+def get_expected_config_specs_exc_msg(section_names, test_ini_filename):
     formatted_section_name = "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
     msg_expected = textwrap.dedent(
         f"""
@@ -289,8 +319,33 @@ def get_expected_exc_msg(section_names, test_ini_filename):
 
     return msg_expected
 
+def get_expected_supported_systems_exc_msg(section_names, test_supported_systems_filename):
+    msg_expected = textwrap.dedent(
+        f"""
+        |   ERROR:  The following section(s) in your config-specs.ini file
+        |           do not match any systems listed in
+        |           '{test_supported_systems_filename}':
+        |
+        """
+    ).strip()
+    msg_expected += "\n"
 
-def run_common_validation_test(test_ini_filename, section_names, should_raise):
+    if type(section_names) == list:
+        for section_name in section_names:
+            msg_expected += (
+                f"|           -  {section_name}\n"
+            )
+    else:
+        msg_expected += (
+            f"|           -  {section_names}\n"
+        )
+
+    msg_expected += f"|   Please update '{test_supported_systems_filename}'."
+
+    return msg_expected
+
+
+def run_common_config_specs_validation_test(test_ini_filename, section_names, should_raise):
     gc = GenConfig([
         "--config-specs", test_ini_filename,
         "--supported-config-flags", "test-supported-config-flags.ini",
@@ -307,7 +362,29 @@ def run_common_validation_test(test_ini_filename, section_names, should_raise):
             gc.validate_config_specs_ini()
 
         exc_msg = excinfo.value.args[0]
-        msg_expected = get_expected_exc_msg(section_names, test_ini_filename)
+        msg_expected = get_expected_config_specs_exc_msg(section_names, test_ini_filename)
+        assert msg_expected in exc_msg
+
+
+def run_common_supported_systems_validation_test(test_config_specs_file: str, test_supported_systems_file: str,
+                                                 section_names, should_raise: bool):
+    gc = GenConfig([
+        "--config-specs", test_config_specs_file,
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", test_supported_systems_file,
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--force",
+        "rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none"
+    ])
+
+
+    if should_raise:
+        with pytest.raises(ValueError) as excinfo:
+            gc.validate_config_specs_ini()
+
+        exc_msg = excinfo.value.args[0]
+        msg_expected = get_expected_supported_systems_exc_msg(section_names, test_supported_systems_file)
         assert msg_expected in exc_msg
 
 
@@ -337,7 +414,7 @@ def test_section_without_options_specified_for_all_flags_raises(data):
     with open(test_ini_filename, "w") as F:
         F.write(bad_config_specs)
 
-    run_common_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
+    run_common_config_specs_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
 
 
 @pytest.mark.parametrize("data", [
@@ -366,7 +443,7 @@ def test_section_with_incorrect_flag_order_raises(data):
     with open(test_ini_filename, "w") as F:
         F.write(bad_config_specs)
 
-    run_common_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
+    run_common_config_specs_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
 
 
 @pytest.mark.parametrize("data", [
@@ -399,7 +476,7 @@ def test_items_in_config_specs_sections_that_arent_options_raises(data):
     with open(test_ini_filename, "w") as F:
         F.write(bad_config_specs)
 
-    run_common_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
+    run_common_config_specs_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
 
 
 def test_multiple_invalid_config_specs_sections_are_shown_in_one_err_msg():
@@ -420,7 +497,7 @@ def test_multiple_invalid_config_specs_sections_are_shown_in_one_err_msg():
         F.write(bad_config_specs)
 
     should_raise = True
-    run_common_validation_test(test_ini_filename, bad_section_names, should_raise)
+    run_common_config_specs_validation_test(test_ini_filename, bad_section_names, should_raise)
 
 # Operation Validation
 # ====================
