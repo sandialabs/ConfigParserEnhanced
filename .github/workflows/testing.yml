@@ -1,0 +1,99 @@
+name: ConfigParserEnhanced Testing
+on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  cache-name: venv-cache
+  venv-name: venv-python
+
+jobs:
+  install_requirements:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.venv-name }}
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name }}-${{ github.sha }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: source
+
+      - name: Build VirtualEnv
+        run: |
+          # cd ${{ github.workspace }}
+          #echo "cache name : ${{ env.cache-name }}"
+          #echo "github.head_ref: '${{ github.head_ref }}'"
+          #echo "github.sha     : '${{ github.sha }}'"
+          #pwd
+          #ls -ltrhF
+          python3 --version > version.txt
+          cat version.txt
+          python3 -m venv ${{ env.venv-name }}
+          source ${{ env.venv-name }}/bin/activate
+          cd source
+          python3 -m pip install wheel -r requirements.txt -r requirements-test.txt -r doc/requirements.txt
+          ls -ltrhF
+
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [install_requirements]
+    steps:
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.venv-name }}
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name }}-${{ github.sha }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: source
+
+      - name: Execute
+        run: |
+          # cd ${{ github.workspace }}
+          #pwd
+          #ls -ltrhF
+          source ${{ env.venv-name }}/bin/activate
+          python3 -m pytest --version
+          python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc --cov-report=html:${{ github.workspace }}/htmlcov
+          ls -ltrhF ${{ github.workspace }}/htmlcov
+
+
+#      - name: Cache
+#        uses: actions/cache@v2
+#        env:
+#          cache-name: cache-venv
+#        with:
+#          key: v1-deps-${{ hashFiles('**/package-lock.json') }}
+#          restore-keys: v1-deps-
+
+
+#          - run: echo "::group::My Title"
+#          - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+#          - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+#          - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+#          - run: echo "::endgroup::"
+#          - name: Check out repository code
+#            uses: actions/checkout@v2
+#          - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+#          - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+#          - name: List files in the repository
+#            run: |
+#              ls ${{ github.workspace }}
+#          - run: echo "🍏 This job's status is ${{ job.status }}."
+
+
+
