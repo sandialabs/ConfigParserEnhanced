@@ -74,6 +74,13 @@ jobs:
           python3 -m pytest --version
           python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc --cov-report=html:${{ github.workspace }}/htmlcov
           ls -ltrhF ${{ github.workspace }}/htmlcov
+      
+      - name: Save Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: htmlcov
+          retention-days: 5
 
 
 #      - name: Cache
