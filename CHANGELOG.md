@@ -30,6 +30,7 @@ Updates and Changes
   - Using 3-Clause BSD license.
   - Added LICENSE.md
   - Added License headers to source files.
+- Github Actions Script (initial testing)
 ### Changed
 - Added some docstring updates.
 - Changed the _require set before use_ restriction on `parse_section_last_result`
