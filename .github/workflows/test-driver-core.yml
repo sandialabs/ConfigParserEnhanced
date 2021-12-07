@@ -67,20 +67,26 @@ jobs:
 
       - name: Execute
         run: |
-          # cd ${{ github.workspace }}
-          #pwd
-          #ls -ltrhF
           source ${{ env.venv-name }}/bin/activate
           python3 -m pytest --version
           python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc --cov-report=html:${{ github.workspace }}/htmlcov
           ls -ltrhF ${{ github.workspace }}/htmlcov
-      
+
       - name: Save Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: coverage
           path: htmlcov
           retention-days: 5
+
+
+
+
+
+
+
+
+
 
 
 #      - name: Cache
@@ -90,21 +96,6 @@ jobs:
 #        with:
 #          key: v1-deps-${{ hashFiles('**/package-lock.json') }}
 #          restore-keys: v1-deps-
-
-
-#          - run: echo "::group::My Title"
-#          - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-#          - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-#          - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-#          - run: echo "::endgroup::"
-#          - name: Check out repository code
-#            uses: actions/checkout@v2
-#          - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-#          - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-#          - name: List files in the repository
-#            run: |
-#              ls ${{ github.workspace }}
-#          - run: echo "🍏 This job's status is ${{ job.status }}."
 
 
 
