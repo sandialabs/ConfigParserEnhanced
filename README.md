@@ -7,6 +7,8 @@
 
 <!-- Github Badges -->
 [![ConfigParserEnhanced Testing](https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/testing.yml/badge.svg)](https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/testing.yml)
+[![Documentation Status](https://readthedocs.org/projects/configparserenhanced/badge/?version=latest)](https://configparserenhanced.readthedocs.io/en/latest/?badge=latest)
+
 
 
 ConfigParserEnhanced
