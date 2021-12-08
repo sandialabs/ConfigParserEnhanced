@@ -82,8 +82,6 @@ Todo:
 
 :Authors:
     - William C. McLendon III <wcmclen@sandia.gov>
-    - Jason M. Gates <jmgate@sandia.gov>
-    - Josh Braun <josbrau@sandia.gov>
 
 :Version: 0.8.0
 

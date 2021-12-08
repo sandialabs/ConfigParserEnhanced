@@ -2,15 +2,20 @@
 ConfigParserEnhanced Class Reference
 ====================================
 
-The :class:`~configparserenhanced.ConfigParserEnhanced` provides extended functionality for the :class:`ConfigParser`
-module. This class attempts to satisfy the following goals:
+ConfigParserEnhanced provides extended functionality for the
+`ConfigParser <https://docs.python.org/3/library/configparser.html>`_ module.
+This class attempts to satisfy the following goals:
 
-1. Provide a framework to embed extended 'parsing' into ``Config.ini`` style files.
+1. Provide an extended "parsing" capability in ``.ini`` style files by allowing
+   the construction of *handlers* that can be triggered by specially formatted
+   *options* to provide enhanced parsing capabilities for ``.ini`` files.
 2. Enable chaining of ``[SECTIONS]`` within a single ``.ini`` file
    using the parsing capability noted in (1).
-3. Provide an *extensible* capability. We intend :class:`~configparserenhanced.ConfigParserEnhanced` to be
-   used as a base class for other tools so that subclasses can add additional
-   handlers for new 'operations' which can be used by the parser.
+3. Provide an *extensible* capability.
+   We intend :class:`~configparserenhanced.ConfigParserEnhanced` to be
+   used as a base class for other tools so that subclasses can add
+   additional handlers for new 'operations' which can be used by the
+   parser.
 
 .. note:: :class:`ConfigParser` SECTION entries are stored as a ``dict``.
 
@@ -29,8 +34,8 @@ module. This class attempts to satisfy the following goals:
 Normalization of Fields
 =======================
 
-Internally, the parser will apply a normalization transform to the **operation** and the
-**parameter** fields.
+Internally, the parser will apply a normalization transform to the
+**operation** and the **parameter** fields.
 
 The following operations are applied to the **operation** field:
 
@@ -41,11 +46,11 @@ The following operations are applied to the **operation** field:
 Extending through Inheritance
 =============================
 
-One example of how we might extend :class:`configparserenhanced.ConfigParserEnhanced` to add an
-operation that might prepend to an environment variable could be
-the following. Say we wish to prepend to the ``PATH`` environment variable by adding a new
-*operation* called ``envvar-prepend`` that might be invoked in this
-``.ini`` snippet:
+One example of how we might extend :class:`configparserenhanced.ConfigParserEnhanced`
+to add an operation that might prepend to an environment variable could be
+the following. Say we wish to prepend to the ``PATH`` environment variable
+by adding a new *operation* called ``envvar-prepend`` that might be invoked
+in this ``.ini`` snippet:
 
 .. code-block:: ini
     :linenos:
