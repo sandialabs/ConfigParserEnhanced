@@ -1,0 +1,111 @@
+#!/usr/bin/env groovy
+@Library('SPiFI') _
+
+properties([
+    parameters([
+        string(defaultValue: "git@github.com:trilinos/Trilinos.git",
+               description: 'Which trilinos source repo to use?',
+               name: 'P_TRILINOS_SOURCE_REPO'),
+        string(defaultValue: 'trilinos-consolidation-release-candidate',
+               description: 'Which trilinos source branch to use?',
+               name: 'P_TRILINOS_SOURCE_BRANCH'),
+        string(defaultValue: 'trilinos-consolidation-release-candidate',
+               description: 'Which trilinos source sha to use?',
+               name: 'P_TRILINOS_SOURCE_SHA'),
+        string(defaultValue: "git@github.com:trilinos/Trilinos.git",
+               description: 'Which trilinos target repo to use?',
+               name: 'P_TRILINOS_TARGET_REPO'),
+        string(defaultValue: "develop",
+               description: 'Which trilinos target sha to use?',
+               name: 'P_TRILINOS_TARGET_SHA'),
+        string(defaultValue: "consolidation-release-candidate-testing",
+               description: 'Which trilinos pull request number to use?',
+               name: 'P_PULLREQUESTNUM'),
+        string(defaultValue: 'Release Testing',
+               description: 'Which cdash build group should be posted to?',
+               name: 'P_CDASH_GROUP'),
+        string(defaultValue: 'trilinos-cdash.sandia.gov',
+               description: 'Which cdash site should be posted to?',
+               name: 'P_CDASH_SITE'),
+        booleanParam(defaultValue: true, description: 'Run with FORCE_CLEAN?', name: 'P_FORCE_CLEAN'),
+        string(defaultValue: 'git@internal.gitlab.server:trilinos-devops-consolidation/code/GenConfig.git',
+                description: 'Which gen-config repo should be used?',
+                name: 'P_GENCONFIG_REPO'),
+        string(defaultValue: 'release-candidate',
+                description: 'Which branch for gen-config and its dependencies should be used?',
+                name: 'P_RELEASE_CANDIDATE_BRANCH'),
+    ]),
+    //TODO, uncomment this: pipelineTriggers([pollSCM('@hourly')])
+])
+
+String scmPollBranch = "${params.P_RELEASE_CANDIDATE_BRANCH}"
+String scmPollRepo = "${params.P_GENCONFIG_REPO}"
+String mailList = "wg-trilinos-framework@sandia.gov"
+
+node {
+    checkout([
+        $class: 'GitSCM', 
+        branches: [[name: '*/'+scmPollBranch]], 
+        doGenerateSubmoduleConfigurations: false, 
+        extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'GenConfig']],
+        userRemoteConfigs: [[
+            credentialsId: 'trilinos-ssh',
+            url: scmPollRepo
+        ]]
+    ])
+
+    String autotester_configs_branch = "master"
+    String autotester_configs_repo   = "https://cee-trilinos:$CEE_TRILINOS_TOKEN@cee-gitlab.sandia.gov/trilinos-project/autotester_configs.git"
+    checkout([
+            $class: 'GitSCM', 
+            branches: [[name: '*/'+autotester_configs_branch]],
+            doGenerateSubmoduleConfigurations: false, 
+            extensions: [],
+            submoduleCfg: [], 
+            userRemoteConfigs: [[url: autotester_configs_repo]]
+        ])
+
+    stage('Creating sub-jobs') {
+        def launcher = new gov.sandia.sems.spifi.JobLauncher(env: this)
+
+        String cfgFile = "trilinos_mastermergeautotester.cfg"
+
+        def jobs_from_autotester_config = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile, returnStdout: true).toString().trim().split('\n')
+
+        for (String job_from_autotester_config : jobs_from_autotester_config) {
+            launcher.appendJob(label: scmPollBranch, job_name: job_from_autotester_config,
+                                parameters: [
+                                    (string(name:"TRILINOS_SOURCE_BRANCH", value: "${params.P_TRILINOS_SOURCE_BRANCH}")),
+                                    (string(name:"TRILINOS_SOURCE_REPO", value: "${params.P_TRILINOS_SOURCE_REPO}")),
+                                    (string(name:"TRILINOS_SOURCE_SHA", value: "${params.P_TRILINOS_SOURCE_SHA}")),
+                                    (string(name:"TRILINOS_TARGET_REPO", value: "${params.P_TRILINOS_TARGET_REPO}")),
+                                    (string(name:"TRILINOS_TARGET_SHA", value: "${params.P_TRILINOS_TARGET_SHA}")),
+                                    (string(name:"PULLREQUESTNUM", value: "${params.P_PULLREQUESTNUM}")),
+                                    (string(name:"PULLREQUEST_CDASH_TRACK", value: "${params.P_CDASH_GROUP}")),
+                                    booleanParam(name:"FORCE_CLEAN", value: "${params.P_FORCE_CLEAN}"),
+                                    (string(name:"TRILINOS_CTEST_DROP_SITE", value: "${params.P_CDASH_SITE}")),
+                                ]
+                            )
+
+            launcher.printJobList()
+        }
+        
+        def results_arg = launcher.launchInParallel()
+
+        def summary = launcher.getLastResultSummary()
+        def results_util = new gov.sandia.sems.spifi.ResultsUtility(env: this)
+
+        def results = results_util.genResultDetails(results: results_arg, format: "ASCII")
+        //def summary_table = results_util.genResultSummaryTable(format: "ASCII", summary: summary)
+
+        if(summary.NUMJOBS != summary.NUMSUCCESS) {
+            currentBuild.result = 'FAILURE'
+        }
+
+        mail to: mailList,
+            subject: "Pipeline " + currentBuild.currentResult + ": " + currentBuild.fullDisplayName,
+            body: results +
+                    "\n\nFor more details, see:" +
+                    "\n\n\t- ${env.BUILD_URL}"
+    }
+}
