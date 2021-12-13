@@ -24,17 +24,43 @@ before_script:
 base_python_test:
   stage: test
   timeout: 30s
+  variables:
+    VALID_GC_INI_FILES: '--config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini'
   script:
+    # Base python setup
     - python3 -m venv ./base_python_test
     - source ./base_python_test/bin/activate
+
+    # Test help options
     - source gen-config.sh --help
-    - source gen-config.sh --list-configs --force rhel7      --config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini
-    - source gen-config.sh --list-config-flags --force rhel7      --config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini
+    - source gen-config.sh -h
+    - source gen-config.sh --list-configs -h
+
+    # Test list options WITHOUT path to src
+    - source gen-config.sh --list-configs --force rhel7      $VALID_GC_INI_FILES
+    - source gen-config.sh --list-config-flags --force rhel7 $VALID_GC_INI_FILES
+
+    # Setup for testing CMake fragment generation
     - rm -rf tmp/; true
     - mkdir tmp; true
     - cd tmp; true
-    - source ../gen-config.sh --ci-mode      --force rhel7_cuda --config-specs ../tests/supporting_files/test-config-specs.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs.ini --cmake-fragment tmp.cmake ../
+
+    # Test help options WITH path to src
+    - source ../gen-config.sh --help ../
+    - source ../gen-config.sh -h ../
+    - source ../gen-config.sh --list-configs -h ../
+
+    # Test list options WITH path to src
+    - source ../gen-config.sh --list-configs --force rhel7      --config-specs ../tests/supporting_files/test-config-specs.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs.ini ../
+    - source ../gen-config.sh --list-config-flags --force rhel7 --config-specs ../tests/supporting_files/test-config-specs.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs.ini ../
+
+    # Test CMake fragment generations
+    - bash -c 'source ../gen-config.sh --ci-mode      --force rhel7_cuda --config-specs ../tests/supporting_files/test-config-specs.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs.ini --cmake-fragment tmp.cmake ../; ret=$?; if [[ $ret -eq 0 && -f ./tmp.cmake ]]; then exit 0; else exit 1; fi'
+
+    # Test --yes options and invalid environment specs ini file
     - bash -c 'source ../gen-config.sh --yes --ci-mode --config-specs ../tests/supporting_files/test-config-specs.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs-invalid.ini --cmake-fragment tmp.cmake --force rhel7_invalid ../; ret=$?; if [[ $ret -ne 0 ]]; then exit 0; else exit 1; fi'
+
+    # Test -y option and invalid config specs ini file
     - bash -c 'source ../gen-config.sh -y --ci-mode --config-specs ../tests/supporting_files/test-config-specs-invalid2.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs.ini --cmake-fragment tmp.cmake --force rhel7_invalid2 ../; ret=$?; if [[ $ret -ne 0 ]]; then exit 0; else exit 1; fi'
     - deactivate
 
