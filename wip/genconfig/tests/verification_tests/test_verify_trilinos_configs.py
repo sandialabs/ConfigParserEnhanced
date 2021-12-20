@@ -553,6 +553,49 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
+                 'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables':
+                     [[self.assert_cuda_version, 10, 1, 105],
+                      [self.assert_gcc_version, 7, 2, 0],
+                      [self.assert_kokkos_nodetype, "cuda"],
+                      # TODO: [self.assert_build_type, "release"],
+                      [self.assert_lib_type, "static"],
+                      [self.assert_kokkos_arch, "VOLTA70"],
+                      [self.assert_kokkos_arch, "POWER9"],
+                      [self.assert_use_asan, False],
+                      [self.assert_use_complex, True],
+                      [self.assert_use_fpic, True],
+                      [self.assert_use_mpi, True],
+                      [self.assert_use_pt, True],
+                      [self.assert_use_rdc, False],
+                      [self.assert_use_uvm, False],
+                      [self.assert_rhel7_test_disables_cuda],
+                      [self.assert_package_config_contains,
+                       'set(Trilinos_ENABLE_Kokkos ON CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_Pthread OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_BinUtils OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_METIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_ParMETIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_Zlib OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_SuperLU OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_SuperLUDist OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_HWLOC OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      ],
              'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-atdm':
                  [[self.assert_cuda_version, 10, 1, 105],
                   [self.assert_gcc_version, 7, 2, 0],
@@ -583,6 +626,49 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
+                 'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables':
+                     [[self.assert_cuda_version, 10, 1, 105],
+                      [self.assert_gcc_version, 7, 2, 0],
+                      [self.assert_kokkos_nodetype, "cuda"],
+                      # TODO: [self.assert_build_type, "release"],
+                      [self.assert_lib_type, "static"],
+                      [self.assert_kokkos_arch, "VOLTA70"],
+                      [self.assert_kokkos_arch, "POWER9"],
+                      [self.assert_use_asan, False],
+                      [self.assert_use_complex, True],
+                      [self.assert_use_fpic, True],
+                      [self.assert_use_mpi, True],
+                      [self.assert_use_pt, True],
+                      [self.assert_use_rdc, False],
+                      [self.assert_use_uvm, True],
+                      [self.assert_rhel7_test_disables_cuda],
+                      [self.assert_package_config_contains,
+                       'set(Trilinos_ENABLE_Kokkos ON CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_Pthread OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_BinUtils OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_METIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_ParMETIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_Zlib OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_SuperLU OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_SuperLUDist OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_HWLOC OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      [self.assert_package_config_contains,
+                       'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
+                      ],
              'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
                  [[self.assert_intel_version, 17, 0, 1],
                   [self.assert_mpich_version, 3, 2],
@@ -688,9 +774,19 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
     def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_pr_framework_atdm(self):
         '''Check that the cuda 10.1.105 uvm=off job is set up without enabled packages for
            PR testing'''
+        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_pr-framework-atdm')
+
+    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_no_package_enables(self):
+        '''Check that the cuda 10.1.105 uvm=off job is set up without enabled packages for
+           PR testing'''
         self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables')
 
     def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_pr_framework_atdm(self):
+        '''Check that the cuda 10.1.105 uvm=on job is set up without enabled packages for
+           PR testing'''
+        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-ardm')
+
+    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=on job is set up without enabled packages for
            PR testing'''
         self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables')
