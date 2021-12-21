@@ -1,12 +1,5 @@
-ConfigParserEnhanced
-====================
-Copyright 2021 National Technology & Engineering Solutions of Sandia,
-LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS,
-the U.S. Government retains certain rights in this software.
+BSD 3-Clause BSD License
 
-
-License ([3-Clause BSD][1])
-----------------------
 Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 certain rights in this software.
@@ -35,10 +28,3 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-Author
-------
-William C. McLendon III (wcmclen@sandia.gov)
-
-[1]: https://opensource.org/licenses/BSD-3-Clause
