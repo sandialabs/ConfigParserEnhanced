@@ -65,14 +65,37 @@ jobs:
         with:
           path: source
 
-      - name: Execute
+      - name: Execute Unit Tests
         run: |
           source ${{ env.venv-name }}/bin/activate
+          echo "VIRTUAL_ENV = ${VIRTUAL_ENV}"
+          cd source
           python3 -m pytest --version
           python3 -m pytest --cov=configparserenhanced --cov-report=term --cov-report=html --cov-config=.coveragerc --cov-report=html:${{ github.workspace }}/htmlcov
           ls -ltrhF ${{ github.workspace }}/htmlcov
 
-      - name: Save Artifacts
+      - name: Test Installation
+        run: |
+            source ${{ env.venv-name }}/bin/activate
+            echo "VIRTUAL_ENV = ${VIRTUAL_ENV}"
+            cd source
+            python3 -m pip install .
+
+      - name: Test Examples
+        run: |
+            source ${{ env.venv-name }}/bin/activate
+            echo "VIRTUAL_ENV = ${VIRTUAL_ENV}"
+            cd source/examples
+            python3 ./ConfigParserEnhanced-example-01.py
+
+      - name: Test Uninstaller
+        run: |
+            source ${{ env.venv-name }}/bin/activate
+            echo "VIRTUAL_ENV = ${VIRTUAL_ENV}"
+            cd source
+            python3 -m pip uninstall -y ConfigParserEnhanced
+
+      - name: Save Coverage Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: coverage
