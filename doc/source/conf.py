@@ -22,7 +22,7 @@ sys.path.append(str(Path.cwd().parent.parent.resolve().joinpath(Path("src"))))
 # -- Project information -----------------------------------------------------
 
 project = 'ConfigParserEnhanced'
-copyright = '2021, William McLendon'
+copyright = '2021, Sandia National Laboratories'
 author = 'William McLendon'
 
 # -- General configuration ---------------------------------------------------
