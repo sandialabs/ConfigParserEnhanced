@@ -15,6 +15,7 @@ Welcome to ConfigParserEnhanced's documentation!
    ExceptionControl
    HandlerParameters
    TypedProperty
+   License <License>
 
 
 
