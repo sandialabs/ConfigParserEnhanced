@@ -523,7 +523,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                    [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                    [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                   ],
-             'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_pr-framework-atdm':
+             'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_pr-framework-atdm':
                  [[self.assert_cuda_version, 10, 1, 105],
                   [self.assert_gcc_version, 7, 2, 0],
                   [self.assert_kokkos_nodetype, "cuda"],
@@ -553,7 +553,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
-                 'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables':
+                 'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables':
                      [[self.assert_cuda_version, 10, 1, 105],
                       [self.assert_gcc_version, 7, 2, 0],
                       [self.assert_kokkos_nodetype, "cuda"],
@@ -596,7 +596,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                       [self.assert_package_config_contains,
                        'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                       ],
-             'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-atdm':
+             'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-atdm':
                  [[self.assert_cuda_version, 10, 1, 105],
                   [self.assert_gcc_version, 7, 2, 0],
                   [self.assert_kokkos_nodetype, "cuda"],
@@ -626,7 +626,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
-                 'rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables':
+                 'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables':
                      [[self.assert_cuda_version, 10, 1, 105],
                       [self.assert_gcc_version, 7, 2, 0],
                       [self.assert_kokkos_nodetype, "cuda"],
@@ -771,25 +771,25 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
            PR testing'''
         self.check_one_config('rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
 
-    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_pr_framework_atdm(self):
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_pr_framework_atdm(self):
+        '''Check that the cuda 10.1.105 uvm=off job is set up with certain
+        enabled packages for PR testing'''
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_pr-framework-atdm')
+
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=off job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_pr-framework-atdm')
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables')
 
-    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_no_package_enables(self):
-        '''Check that the cuda 10.1.105 uvm=off job is set up without enabled packages for
-           PR testing'''
-        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables')
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_pr_framework_atdm(self):
+        '''Check that the cuda 10.1.105 uvm=on job is set up with certain
+        enabled packages for PR testing'''
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-ardm')
 
-    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_pr_framework_atdm(self):
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=on job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-ardm')
-
-    def test_rhel7_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
-        '''Check that the cuda 10.1.105 uvm=on job is set up without enabled packages for
-           PR testing'''
-        self.check_one_config('rhel7_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables')
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables')
 
     def test_rhel7_sems_clang_10_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
         '''Check that the clang 10.0.0 job is set up without enabled packages for
