@@ -784,7 +784,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
     def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_pr_framework_atdm(self):
         '''Check that the cuda 10.1.105 uvm=on job is set up with certain
         enabled packages for PR testing'''
-        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-ardm')
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-atdm')
 
     def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=on job is set up without enabled packages for
