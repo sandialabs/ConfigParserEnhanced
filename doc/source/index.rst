@@ -30,7 +30,7 @@ The ConfigParserEnhanced (CPE) package provides extended handling of ``.ini`` fi
 beyond what `ConfigParser <https://docs.python.org/3/library/configparser.html>`_ provides
 by adding an active syntax to embed operations with options.
 
-A _standard_ ``.ini`` file is generally formatted like this:
+For example, a *standard* ``.ini`` file is generally formatted like this:
 
 .. code-block:: ini
     :linenos:
@@ -65,7 +65,7 @@ option to that handler for processing. Options that do not map to a handler will
 treated as a standard "key:value" pair.
 
 Internally, these handlers methods defined according to a naming convention like
-``handler_operation()``.
+``handler_<operation>()``.
 
 CPE only provides one pre-defined operation: ``use`` which is formatted as ``use TARGET:``
 where *param1* is the TARGET (there is no value field for this one).  The TARGET paramter

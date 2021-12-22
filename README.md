@@ -1,10 +1,3 @@
-<!-- Gitlab Badges -->
-<!--
-[![pipeline status](https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced/badges/master/pipeline.svg)](https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced/-/commits/master)
-[![coverage report](https://gitlab-ex.sandia.gov/trilinos-devops-consolidation/code/ConfigParserEnhanced/badges/master/coverage.svg)](http://10.202.35.89:8080/ConfigParserEnhanced/coverage/index.html)
-[![Generic badge](https://img.shields.io/badge/docs-latest-green.svg)](http://10.202.35.89:8080/ConfigParserEnhanced/doc/index.html)
--->
-
 <!-- Github Badges -->
 [![ConfigParserEnhanced Testing](https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/test-driver-core.yml/badge.svg)](https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/test-driver-core.yml)
 [![Documentation Status](https://readthedocs.org/projects/configparserenhanced/badge/?version=latest)](https://configparserenhanced.readthedocs.io/en/latest/?badge=latest)
@@ -14,60 +7,85 @@
 ConfigParserEnhanced
 ====================
 
-`ConfigParserEnhanced` (CPE) provides extended functionality for the `ConfigParser` module. This class attempts to satisfy the following goals:
+The ConfigParserEnhanced (CPE) package provides extended
+handling of .ini files beyond what [ConfigParser][1] provides
+by adding an active syntax to embed operations with options.
 
-1. Provide a framework to embed extended ‘parsing’ into `Config.ini` style files with customizable
-   _handlers_ that allow 'commands' to be embedded into the key-value structure of typical `.ini`
-   file options.
-2. Enable chaining of `[SECTIONS]` within a single `.ini` file, which uses the parsing capability noted in (1).
-3. Provide an extensible capability. We intend CPE to be used as a base class for other
-   tools so that subclasses can add additional handlers for new ‘operations’ which can be used by the parser.
-
-Configuration `.ini` File Enhancements
-======================================
-CPE allows `.ini` files to be augmented to embed commands into the `key: value`
-structure of options within a section.
-
-_Normal_ `.ini` files might have a structure that looks like this:
+For example, a *standard* `.ini` file is generally formatted like this:
 
 ```ini
-[SECTION NAME]
-key1: value1
-key2: value2
-key4: value3
+[Section 1]
+Foo: Bar
+Baz: Bif
+
+[Section 2]
+Foo: Bar2
+Bif: Baz
 ```
 
-CPE augments this by allowing the **keys** to be used to embed _operations_.
-To enable this, CPE attempts to split a key into three pieces, an _operation_, a _parameter_, and
-an optional _uniqueifier_ string.  An option can have an operation extracted as
-`<operation> <parameter> [uniquestr]: value` for example:
+These files are used to organize sets of key - value pairs called
+“options” within groups called “sections”. In the example above
+there are two sections, “Section 1” and “Section 2”. Each of them
+contains two options where Section 1 has the keys ‘Foo’ and ‘Baz’
+which are assigned the values ‘Bar’ and ‘Bif’, respectively. For
+more details on .ini files please see the documentation for
+ConfigParser.
+
+Internally, these handlers methods defined according to a naming
+convention like `handler_<operation>()`.
+
+CPE only provides one pre-defined operation: use which is formatted as
+`use TARGET:` where *param1* is the TARGET (there is no value field for this
+one). The TARGET paramter takes the *name of a target section* that will be
+loaded in at this point. This works in the same way a `#include` would
+work in C++ and serves to insert the contents or processing of the
+target section into this location.
+
+The `use` operation is useful for .ini files for complex systems by allowing
+developers to create a common section and then have specializations where
+they can customize options for a given project. For example:
 
 ```ini
-[SECTION NAME]
-operation1 parameter1: value1
-operation2 parameter2 A: value2
-operation2 parameter2 B: value2
-key1: value1
-key2: value2
-key3: value3
+[COMMON]
+Key C1: Value C1
+Key C2: Value C2
+Key C3: Value C3
+
+[Data 1]
+Key D1: Value D1
+use COMMON
+Key D2: Value D2
 ```
 
-> **Note:** The `[uniquestr]` is optional and we can use it to prevent certain duplicate key errors from the
-> underlying `ConfigParser` which requires that each section must have no duplicate 'key' fields.
+In this example, processing section `Data 1` via CPE will result in
+the following options: `Key D1: Value D1`, `Key C1: Value C1`,
+`Key C2: Value C2`, `Key C2: Value C2`, `Key D2: Value D2`.
 
-When the CPE parser successfully identifies a potential _operation_, it will attempt to find a _handler_
-method named as `_handler_<operation>()` or `handler_<operation>()`, and if one exists then it will execute
-that handler with the detected parameter (if any) and value (if any) from that entry.
+An alternative way of looking at this is it’s like having a .ini file that
+is effectively the following where the `use` operations are replaced with the
+results of a Depth-First expansion of the linked sections:
 
-New handlers can be added by creating a subclass of CPE and then adding the new handlers to the subclass.
+```ini
+[COMMON]
+Key C1: Value C1
+Key C2: Value C2
+Key C3: Value C3
 
-Operations
-==========
-The CPE base class provides the following handlers by default.
+[Data 1]
+Key D1: Value D1
+Key C1: Value C1
+Key C2: Value C2
+Key C3: Value C3
+Key D2: Value D2
+```
 
-`use`
-----
-The `use` handler is used in the following manner:
+Examples
+--------
+Here we show some example usages of ConfigParserEnhanced.
+Additional examples can be found in the [`examples/`](examples) directory
+of the repository.
+
+### Example 1
 
 ```ini
 [SECTION-A]
@@ -88,6 +106,7 @@ entries in `[SECTION-B]`.  In this example the following code could be used to p
 result:
 
 ```python
+>>> from configparserenhanced import ConfigParserEnhanced
 >>> cpe = ConfigParserEnhanced(filename='config.ini')
 >>> cpe.configparserenhanceddata['SECTION-B']
 {
@@ -102,6 +121,5 @@ Updates
 =======
 See the [CHANGELOG](CHANGELOG.md) for information on changes.
 
-Links
-=====
 
+[1]: https://docs.python.org/3/library/configparser.html
