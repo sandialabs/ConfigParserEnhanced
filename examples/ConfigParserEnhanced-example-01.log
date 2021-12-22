@@ -1,0 +1,22 @@
+Using filename: `example-01.ini`
+
+Section data for `SECTION-B`:
+{'key A1': 'value A1', 'key A2': 'value A2', 'key A3': 'value A3', 'key B1': 'value B1'}
+
+Section List:
+- SECTION-A
+- SECTION-B
+
+Section Details:
+[SECTION-B]
+key A1 : value A1
+key A2 : value A2
+key A3 : value A3
+key B1 : value B1
+
+[SECTION-A]
+key A1 : value A1
+key A2 : value A2
+key A3 : value A3
+
+Done.

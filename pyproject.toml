@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "configparserenhanced"
-version = "0.8.0a0"
+version = "0.8.0"
 license = "LICENSE.md"
 readme = "README.md"
 keywords = []
@@ -8,6 +8,7 @@ repository = "https://github.com/sandialabs/ConfigParserEnhanced"
 description = "A tool that extends configparser to enable enhanced processing of .ini files."
 documentation = "https://configparserenhanced.readthedocs.io/en/latest/"
 authors = [
+    "Sandia National Laboratories <wg-ConfigParserEnhanced@sandia.gov>",
     "William McLendon <wcmclen@sandia.gov>",
 ]
 classifiers = [
@@ -20,7 +21,7 @@ classifiers = [
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3 :: Only',
-    'License :: OSI Approved :: BSD License'
+    'License :: OSI Approved :: BSD License',
 ]
 packages = [
     { include = 'configparserenhanced', from = 'src' },

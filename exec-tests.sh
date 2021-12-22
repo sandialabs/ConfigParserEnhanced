@@ -43,13 +43,16 @@ if [ $err != 0 ]; then
     exit $err
 fi
 
-# Check the example(s)
+# Check installation
+pwd
+execute_command_checked "python3 -m pip install ${opt_venv} . >& _test-install.log"
+
+# Run the Example(s)
 execute_command_checked "pushd examples"
 execute_command_checked "python3 ConfigParserEnhanced-example-01.py >& _test-example-01.log"
 execute_command_checked "popd"
 
-# Check installation works
-execute_command_checked "python3 -m pip install ${opt_venv} . >& _test-install.log"
+# Check uninstaller
 execute_command_checked "python3 -m pip uninstall -y configparserenhanced >& _test-uninstall.log"
 
 

@@ -104,6 +104,4 @@ See the [CHANGELOG](CHANGELOG.md) for information on changes.
 
 Links
 =====
-Additional documentation can be found [here][1].
 
-[1]: http://10.202.35.89:8080/ConfigParserEnhanced/doc/index.html
