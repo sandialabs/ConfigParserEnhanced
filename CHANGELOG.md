@@ -24,6 +24,11 @@ Updates and Changes
 ### Security
 -->
 
+## [0.8.1] - 2021-12-20
+### Changed
+- Updating documentation to a standard that's good for distribution on
+  PyPi, Github, and Read The Docs.
+
 ## [0.8.0] - 2021-11-01
 ### Added
 - OSS License approval
