@@ -56,24 +56,24 @@ the following syntax:
 
 .. code-block:: ini
 
-    command param1 param2 ... 'param with spaces' ... paramN : value
+    operation param1 param2 ... 'param with spaces' ... paramN : value
 
 The entries on an option in the *key* portion are space-separated generally and the
-*first* entry can be considered the *command*. CPE will attempt to map the detected
-*command* to a handler method and if a matching one is found then it will send the
+*first* entry can be considered the *operation*. CPE will attempt to map the detected
+*operation* to a handler method and if a matching one is found then it will send the
 option to that handler for processing. Options that do not map to a handler will be
 treated as a standard "key:value" pair.
 
 Internally, these handlers methods defined according to a naming convention like
-``handler_command()``.
+``handler_operation()``.
 
-CPE only provides one pre-defined command: ``use`` which is formatted as ``use TARGET:``
+CPE only provides one pre-defined operation: ``use`` which is formatted as ``use TARGET:``
 where *param1* is the TARGET (there is no value field for this one).  The TARGET paramter
 takes the *name of a target section* that will be loaded in at this point. This works
 in the same way a ``#include`` would work in C++ and serves to **insert** the contents or
 processing of the target section into this location.
 
-The **use** command is useful for .ini files for complex systems by allowing developers to
+The **use** operation is useful for .ini files for complex systems by allowing developers to
 create a *common* section and then have *specializations* where they can customize options
 for a given project. For example:
 
@@ -95,7 +95,7 @@ In this example, processing section ``Data 1`` via CPE will result in the follow
 ``Key D2: Value D2``.
 
 An alternative way of looking at this is it's like having a .ini file
-that is *effectively* the following where the ``use`` commands are replaced with the
+that is *effectively* the following where the ``use`` operations are replaced with the
 results of a Depth-First expansion of the linked sections:
 
 .. code-block:: ini
