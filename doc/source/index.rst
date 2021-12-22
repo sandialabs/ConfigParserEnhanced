@@ -28,7 +28,7 @@ Overview
 
 The ConfigParserEnhanced (CPE) package provides extended handling of ``.ini`` files
 beyond what `ConfigParser <https://docs.python.org/3/library/configparser.html>`_ provides
-by adding an active syntax to options within sections.
+by adding an active syntax to embed operations with options.
 
 A _standard_ ``.ini`` file is generally formatted like this:
 
