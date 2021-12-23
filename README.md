@@ -119,7 +119,8 @@ result:
 
 Updates
 =======
-See the [CHANGELOG](CHANGELOG.md) for information on changes.
+See the [CHANGELOG][2] for information on changes.
 
 
 [1]: https://docs.python.org/3/library/configparser.html
+[2]: https://github.com/sandialabs/ConfigParserEnhanced/blob/master/CHANGELOG.md

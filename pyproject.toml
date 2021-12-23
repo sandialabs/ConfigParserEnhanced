@@ -1,19 +1,29 @@
 [tool.poetry]
 name = "configparserenhanced"
-version = "0.8.1"
+description = "A tool that extends configparser to enable enhanced processing of .ini files."
+version = "0.8.1.1a1"
 license = "LICENSE"
 readme = "README.md"
-keywords = []
+keywords = [
+    "Utility",
+    "Bash",
+    "Configuration",
+    "ConfigParserEnhanced",
+    "ConfigParser"
+]
 repository = "https://github.com/sandialabs/ConfigParserEnhanced"
-description = "A tool that extends configparser to enable enhanced processing of .ini files."
 documentation = "https://configparserenhanced.readthedocs.io/en/latest/"
 authors = [
-    "Sandia National Laboratories <wg-ConfigParserEnhanced@sandia.gov>",
     "William McLendon <wcmclen@sandia.gov>",
+]
+maintainers = [
+    "Sandia National Laboratories <wg-ConfigParserEnhanced@sandia.gov>",
 ]
 classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
+    'Intended Audience :: System Administrators',
+    'Intended Audience :: Other Audience',
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
@@ -26,18 +36,16 @@ classifiers = [
 packages = [
     { include = 'configparserenhanced', from = 'src' },
 ]
-# include = [ "CHANGELOG.md" ]
+include = [ "CHANGELOG.md" ]
 
 
 [tool.poetry.urls]
-# CI = "https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/test-driver-core.yml?query=branch%3Av0.8.0"
-CI = "https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/test-driver-core.yml"
+CI     = "https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/test-driver-core.yml"
 Issues = "https://github.com/sandialabs/ConfigParserEnhanced/issues"
 
 
 [tool.poetry.dependencies]
 python = "^3.6"
-# configparser = "^5.0"
 
 
 [tool.poetry.dev-dependencies]
