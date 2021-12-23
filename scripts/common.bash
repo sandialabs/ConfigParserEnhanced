@@ -244,6 +244,56 @@ function execute_command_checked()
 }
 
 
+# Custom `select` implementation that allows *empty* input.
+# Pass the choices as individual arguments.
+# Output is the chosen item, or "", if the user just pressed ENTER.
+# Example:
+#    choice=$(select_with_default 'one' 'two' 'three')
+# Attribution: This is copied with minor modifications from here:
+#     https://stackoverflow.com/a/42790579/2059999
+#
+# If SELECTION_OVERRIDE is set then we use that value, otherwise we
+# query the user.
+#
+select_with_default() {
+
+    local item i=0 numItems=$#
+
+    if [ ! -z ${SELECTION_OVERRIDE} ]; then
+        printf %s "${SELECTION_OVERRIDE}"
+        return
+    fi
+
+    if [[ "${numItems}" == "1" ]]; then
+        printf %s "${1}"
+        return
+    fi
+
+    # Print numbered menu items, based on the arguments passed.
+    for item; do         # Short for: for item in "$@"; do
+        printf '%s\n' "$((++i))) $item"
+    done >&2 # Print to stderr, as `select` does.
+
+    # Prompt the user for the index of the desired item.
+    while :; do
+        printf %s "${PS3-#? }" >&2 # Print the prompt string to stderr, as `select` does.
+        read -r index
+        # Make sure that the input is either empty or that a valid index was entered.
+        [[ -z $index ]] && break  # empty input
+        (( index >= 1 && index <= numItems )) 2>/dev/null || { echo "Invalid selection. Please try again." >&2; continue; }
+        break
+    done
+
+    if [ -z $index ]; then
+        index=1
+    fi
+    #echo -e ">>> index '${index}'" >&2
+    #echo -e ">>> opt1 '${1}'" >&2
+    #echo -e ">>> opt2 '${1}'" >&2
+
+    # Output the selected item, if any.
+    [[ -n $index ]] && printf %s "${@: index:1}"
+}
 
 
 
