@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "configparserenhanced"
 version = "0.8.1"
-license = "LICENSE.md"
+license = "LICENSE"
 readme = "README.md"
 keywords = []
 repository = "https://github.com/sandialabs/ConfigParserEnhanced"
