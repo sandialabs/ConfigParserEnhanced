@@ -8,6 +8,7 @@ from __future__ import print_function # python 2 -> 3 compatiblity
 from configparserenhanced import ConfigParserEnhanced
 
 
+
 def test_configparserEnhanced(filename="config.ini"):
     print(f"Using filename: `{filename}`\n")
 
@@ -36,7 +37,7 @@ def test_configparserEnhanced(filename="config.ini"):
     print("Section Details:")
     for section_name, options in parser.configparserenhanceddata.items():
         print(f"[{section_name}]")
-        for key,value in options.items():
+        for key, value in options.items():
             print(f"{key} : {value}")
         print("")
 
@@ -44,6 +45,7 @@ def test_configparserEnhanced(filename="config.ini"):
     with open("_example-01-parsed.ini", "w") as ofp:
         parser.write(ofp)
     return 0
+
 
 
 if __name__ == "__main__":

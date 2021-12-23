@@ -1553,6 +1553,7 @@ class ConfigParserEnhancedTest(TestCase):
         """
         Check that section validation operates correctly.
         """
+
         class ConfigParserEnhancedTest(ConfigParserEnhanced):
 
             @ConfigParserEnhanced.operation_handler
@@ -1561,7 +1562,6 @@ class ConfigParserEnhancedTest(TestCase):
             ) -> int:
                 print("Handlebars are cool!")
                 return 0
-
 
         filename_ini = find_config_ini(filename="config_test_configparserenhanced_validation_02.ini")
         print("\n")
@@ -1584,7 +1584,6 @@ class ConfigParserEnhancedTest(TestCase):
 
         print("OK")
         return 0
-
 
 
 

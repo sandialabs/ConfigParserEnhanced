@@ -4,7 +4,7 @@
 source scripts/common.bash
 
 printf "${yellow}"
-print_banner "Reformatting - Started"
+print_banner "Auto Formatting - Started"
 printf "${normal}\n"
 
 exclude_dirs=(
@@ -21,9 +21,9 @@ for exc in ${exclude_dirs[*]}; do
     exclude_opts+=("${exc}")
 done
 
-execute_command "yapf -vv -i -p -r ${exclude_opts[*]} ."
+execute_command_checked "yapf -vv -i -p -r ${exclude_opts[*]} ."
 
 printf "${yellow}"
-print_banner "Reformatting - Done"
+print_banner "Auto Formatting - Done"
 printf "${normal}\n"
 
