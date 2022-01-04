@@ -16,6 +16,16 @@ try:
 except ImportError:
     from io import StringIO
 
+# Insert GenConfig directory into path
+from pathlib import Path
+if (Path.cwd()/"conftest.py").exists():
+    root_dir = Path.cwd()/".."
+elif (Path.cwd()/"test_verify_trilinos_configs.py").exists():
+    root_dir = Path.cwd()/"../.."
+else:
+    root_dir = Path.cwd()
+
+sys.path.append(str(root_dir))
 from gen_config import GenConfig
 
 from configparserenhanced import ConfigParserEnhanced
@@ -244,7 +254,6 @@ class common_verify_helpers():
             self.assert_package_config_contains(gc, 'set(Kokkos_ENABLE_OPENMP OFF CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc, 'set(Phalanx_KOKKOS_DEVICE_TYPE CUDA CACHE STRING \"from .ini configuration\")')
             self.assert_package_config_contains(gc, 'set(Tpetra_INST_SERIAL ON CACHE BOOL \"from .ini configuration\")')
-            self.assert_package_config_contains(gc, 'set(Kokkos_ENABLE_CUDA_UVM ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc, 'set(Kokkos_ENABLE_CUDA ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc, 'set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc, 'set(Tpetra_INST_CUDA ON CACHE BOOL \"from .ini configuration\")')
@@ -359,14 +368,10 @@ class common_verify_helpers():
             self.assert_package_config_contains(gc,
                                                 'set(Kokkos_ENABLE_CUDA_UVM ON CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
-                                                'set(TpetraCore_ENABLE_CUDA_UVM ON CACHE BOOL \"from .ini configuration\")')
-            self.assert_package_config_contains(gc,
                                                 'set(KokkosKernels_INST_MEMSPACE_CUDAUVMSPACE ON CACHE BOOL \"from .ini configuration\")')
         else:
             self.assert_package_config_contains(gc,
-                                                'set(Kokkos_ENABLE_CUDA_UVM OFF CACHE BOOL \"from .ini configuration\" FORCE)')
-            self.assert_package_config_contains(gc,
-                                                'set(TpetraCore_ENABLE_CUDA_UVM ON CACHE BOOL \"from .ini configuration\")')
+                                                'set(Kokkos_ENABLE_CUDA_UVM OFF CACHE BOOL \"from .ini configuration\")')
             self.assert_package_config_contains(gc,
                                                 'set(KokkosKernels_INST_MEMSPACE_CUDAUVMSPACE ON CACHE BOOL \"from .ini configuration\")')
 
@@ -875,7 +880,6 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_HWLOC OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
-                  [self.assert_package_config_contains, 'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
                  'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables':
@@ -917,8 +921,6 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                       [self.assert_package_config_contains,
                        'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
                       [self.assert_package_config_contains,
-                       'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
-                      [self.assert_package_config_contains,
                        'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                       ],
              'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-atdm':
@@ -948,7 +950,6 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_HWLOC OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
-                  [self.assert_package_config_contains, 'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
                  'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables':
@@ -989,8 +990,6 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                        'set(TPL_ENABLE_HWLOC OFF CACHE BOOL "from .ini configuration" FORCE)'],
                       [self.assert_package_config_contains,
                        'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
-                      [self.assert_package_config_contains,
-                       'set(Trilinos_ENABLE_SEACASSlice OFF CACHE BOOL "from .ini configuration" FORCE)'],
                       [self.assert_package_config_contains,
                        'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                       ],
