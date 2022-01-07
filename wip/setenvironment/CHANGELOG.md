@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Todo (for Unreleased)
 -->
 
-## [0.6.1] - [Unreleased]
+## [0.7.0]
 #### Added
 #### Changed
 #### Deprecated
@@ -31,7 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   layout that puts code under `src`.
 #### Security
 #### Internal
-#### Todo (for Unreleased)
+- Preparation for OSS submission
+- Reconfigure dependencies to use the new locations for `ConfigParserEnhanced` and
+  `SetProgramOptions`
 
 ## [0.6.0] - 2021-07-13
 #### Added

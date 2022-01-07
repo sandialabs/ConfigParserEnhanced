@@ -1,23 +1,38 @@
 [tool.poetry]
 name = "setenvironment"
-version = "0.6.1"
-description = "Environment configuration helper."
+version = "0.7.0"
+description = "Environment and Modules configuration file reader using ConfigParserEnhanced"
 authors = [
     "William McLendon <wcmclen@sandia.gov>"
 ]
 readme = "README.md"
+
 documentation = "http://10.202.35.89:8080/SetEnvironment/doc/index.html"
 repository = "https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment"
+
+# Use these after OSS licensing is set up and we deploy
+# homepage      = ""
+# documentation = ""
+# repository    = "https://github.com/sandialabs/SetEnvironment"
+
 classifiers = [
-    'Development Status :: 3 - Alpha',
-    'Intended Audience :: DevOps',
+    'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
-    'Programming Language :: Python :: 3',
+    'Intended Audience :: System Administrators',
+    'Intended Audience :: Other Audience',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3 :: Only',
 ]
+
 packages = [
     { include = 'setenvironment', from = 'src' }
 ]
+
 include = [ "CHANGELOG.md" ]
 
 
@@ -35,6 +50,8 @@ Sphinx = "^3.5.1"
 sphinx-argparse = "^0.2.5"
 sphinx-rtd-theme = "^0.5.1"
 
+[tool.pycodestyle]
+statistics = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
