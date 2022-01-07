@@ -79,6 +79,10 @@ Key C3: Value C3
 Key D2: Value D2
 ```
 
+Linked Projects
+---------------
+- [SetProgramOptions][3] - depends on ConfigParserEnhanced [RTD][4], [GitHub][5]
+
 Examples
 --------
 Here we show some example usages of ConfigParserEnhanced.
@@ -124,3 +128,6 @@ See the [CHANGELOG][2] for information on changes.
 
 [1]: https://docs.python.org/3/library/configparser.html
 [2]: https://github.com/sandialabs/ConfigParserEnhanced/blob/master/CHANGELOG.md
+[3]: https://pypi.org/project/setprogramoptions/
+[4]: https://setprogramoptions.readthedocs.io/en/latest
+[5]: https://github.com/sandialabs/SetProgramOptions

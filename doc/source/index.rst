@@ -120,7 +120,7 @@ These examples can be found in the ``examples/`` directory
 of the repository.
 
 Example 1
-----------
+---------
 
 example-01.ini
 ++++++++++++++

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "configparserenhanced"
 description = "A tool that extends configparser to enable enhanced processing of .ini files."
-version = "0.8.1.1"
+version = "0.8.1.2"
 license = "LICENSE"
 readme = "README.md"
 keywords = [

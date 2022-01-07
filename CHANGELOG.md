@@ -24,6 +24,11 @@ Updates and Changes
 ### Security
 -->
 
+## [0.8.1.2] - 2022-01-07
+### Changed
+- Documentation cleanup.
+
+
 ## [0.8.1.1] - 2021-12-23
 ### Changed
 - Minor documentation cleanup for distribution.
