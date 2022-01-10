@@ -14,7 +14,7 @@ class ConfigKeywordParser(KeywordParser):
         # supported-config-flags.ini
         #
         # For full documentation on formatting, see
-        # GenConfig/examples/supported-config-flags.ini
+        # GenConfig/ini_files/supported-config-flags.ini
         #
 
         [configure-flags]

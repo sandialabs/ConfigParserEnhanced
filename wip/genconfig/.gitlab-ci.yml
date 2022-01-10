@@ -12,6 +12,7 @@ before_script:
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/LoadEnv.git LoadEnv
+  - cd LoadEnv; git checkout -f TRILFRAME-227; cd - # TODO: Remove this before merging
   - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetProgramOptions.git
   - cd ..
   - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
@@ -81,6 +82,7 @@ pytest:
     - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git
     - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
     - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/LoadEnv.git LoadEnv
+    - cd LoadEnv; git checkout -f TRILFRAME-227; cd - # TODO: Remove this before merging
     - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetProgramOptions.git
     - cd ..
     - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .

@@ -39,27 +39,27 @@ def use_tmpdir(monkeypatch, request, tmpdir):
                     tmpdir.join("test-environment-specs.ini"))
 
     # Trilinos ini files
-    shutil.copyfile(Path.cwd() / ("examples/trilinos/"
+    shutil.copyfile(Path.cwd() / ("ini_files/trilinos/"
                                   "config-specs.ini"),
                     tmpdir.join("test-trilinos-config-specs.ini"))
-    shutil.copyfile(Path.cwd() / ("examples/trilinos/"
+    shutil.copyfile(Path.cwd() / ("ini_files/trilinos/"
                                   "supported-config-flags.ini"),
                     tmpdir.join("test-trilinos-supported-config-flags.ini"))
-    shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/trilinos/"
+    shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/trilinos/"
                                   "supported-envs.ini"),
                     tmpdir.join("test-trilinos-supported-envs.ini"))
-    if Path.is_dir(Path("deps/LoadEnv/examples/srn-ini-files")):
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/srn-ini-files/trilinos/framework/"
+    if Path.is_dir(Path("deps/LoadEnv/ini_files/srn-ini-files")):
+        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/srn-ini-files/trilinos/framework/"
                                       "supported-systems.ini"),
                         tmpdir.join("test-trilinos-supported-systems.ini"))
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/srn-ini-files/trilinos/framework/"
+        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/srn-ini-files/trilinos/framework/"
                                       "environment-specs.ini"),
                         tmpdir.join("test-trilinos-environment-specs.ini"))
     else:
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/trilinos/"
+        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/trilinos/"
                                       "supported-systems.ini"),
                         tmpdir.join("test-trilinos-supported-systems.ini"))
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/examples/trilinos/"
+        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/trilinos/"
                                       "environment-specs.ini"),
                         tmpdir.join("test-trilinos-environment-specs.ini"))
 
