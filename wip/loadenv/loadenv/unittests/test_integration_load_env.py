@@ -43,7 +43,7 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     ###########################################################################
     mock_gethostname.return_value = inputs["hostname"]
 
-    le = LoadEnv(argv=[inputs["build_name"]])
+    le = LoadEnv(argv=[inputs["build_name"]], load_env_ini_file="test_load_env.ini")
     assert le.parsed_env_name == inputs["expected_env"]
 
 
@@ -209,7 +209,7 @@ def test_load_matching_env_is_set_correctly_and_directories_are_created(mock_get
 
     mock_gethostname.return_value = "stria"
     argv = ["arm"] if output is None else ["arm", "--output", output]
-    le = LoadEnv(argv=argv)
+    le = LoadEnv(argv=argv, load_env_ini_file="test_load_env.ini")
     load_matching_env = le.write_load_matching_env()
 
     expected_file = (le.tmp_load_matching_env_file if output is None else Path(output)).resolve()
@@ -225,7 +225,7 @@ def test_existing_load_matching_env_file_overwritten(mock_gethostname):
         F.write(initial_contents)
 
     mock_gethostname.return_value = "stria"
-    le = LoadEnv(argv=["arm", "--output", output_file])
+    le = LoadEnv(argv=["arm", "--output", output_file], load_env_ini_file="test_load_env.ini")
 
     load_matching_env = le.write_load_matching_env()
     with open(le.tmp_load_matching_env_file, "r") as F:
@@ -297,12 +297,12 @@ def test_invalid_operations_raises(data):
                                   if operation == "use"
                                   else f"{operation} params for op: here\n")
 
-    test_ini_filename = "test_environment_specs_invalid_operations.ini"
+    test_ini_filename = "test_generated_environment_specs_invalid_operations.ini"
     with open(test_ini_filename, "w") as F:
         F.write(bad_environment_specs)
 
     le = LoadEnv([
-        "--supported-envs", "test-supported-envs.ini",
+        "--supported-envs", "test_supported_envs.ini",
         "--environment-specs", test_ini_filename,
         "--force",
         "machine-type-1_intel"

@@ -35,4 +35,9 @@ def use_tmpdir(monkeypatch, request, tmpdir):
         tmpdir.join("test_environment_specs.ini")
     )
 
+    shutil.copyfile(
+        root_dir / ("loadenv/unittests/supporting_files/test_load_env.ini"),
+        tmpdir.join("test_load_env.ini")
+    )
+
     monkeypatch.chdir(tmpdir)

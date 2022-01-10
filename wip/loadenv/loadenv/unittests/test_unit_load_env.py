@@ -77,7 +77,7 @@ def test_load_matching_env_location_flag_creates_load_matching_env_location_file
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
     with pytest.raises(TypeError) as excinfo:
-        LoadEnv(data)
+        LoadEnv(data, load_env_ini_file="test_load_env.ini")
     exc_msg = excinfo.value.args[0]
     assert "must be instantiated with a list" in exc_msg
 
@@ -124,7 +124,7 @@ def test_argv_non_list_raises(data):
         ],
     )
 def test_argument_parser_functions_correctly(data):
-    le = LoadEnv(data["argv"])
+    le = LoadEnv(data["argv"], load_env_ini_file="test_load_env.ini")
     assert le.args.build_name == data["build_name_expected"]
     assert (
         le.args.supported_systems_file == Path(
@@ -150,7 +150,7 @@ def test_argument_parser_functions_correctly(data):
 #  load_env.ini #
 #################
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
-    le = LoadEnv(["build_name"])
+    le = LoadEnv(["build_name"], load_env_ini_file="test_load_env.ini")
     assert (
         le.args.supported_systems_file == Path(
             le.load_env_config_data["load-env"]["supported-systems"]
@@ -244,7 +244,7 @@ def test_relative_path_resolves_to_absolute_path(already_resolved):
         f"supported-envs : {supported_envs}\n"
         f"environment-specs : {environment_specs}\n"
     )
-    filename = "test_load_env.ini"
+    filename = "test_generated_load_env.ini"
     with open(filename, "w") as f:
         f.write(load_env_ini)
 
