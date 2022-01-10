@@ -71,7 +71,7 @@ Using system 'machine-type-1' based on matching hostname 'mutrino'.
 |         - intel-knl
 |         - intel-knl-openmp
 |
-|   See `examples/atdm/supported-envs.ini` for details on the available environments.
+|   See `ini_files/supported-envs.ini` for details on the available environments.
 |
 |   To force-load an environment see the guidance in the `--help` output.
 |
