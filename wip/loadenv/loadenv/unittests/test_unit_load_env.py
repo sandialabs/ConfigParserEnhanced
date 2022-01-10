@@ -66,7 +66,15 @@ def test_load_matching_env_location_flag_creates_load_matching_env_location_file
     mock_se.apply.return_value = 0
     mock_set_environment.return_value = mock_se
 
-    load_env.main(["arm", "--output", "test_out.sh", "--load-matching-env-location", ".load_matching_env_loc.test"])
+
+    load_env.main([
+        "--supported-systems", "test_supported_systems.ini",
+        "--supported-envs", "test_supported_envs.ini",
+        "--environment-specs", "test_environment_specs.ini",
+        "arm",
+        "--output", "test_out.sh",
+        "--load-matching-env-location", ".load_matching_env_loc.test"
+    ])
 
     file = Path(f".load_matching_env_loc.test")
     assert file.exists()

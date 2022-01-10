@@ -247,7 +247,13 @@ def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
     mock_se.apply.return_value = 0
     mock_set_environment.return_value = mock_se
 
-    load_env.main(["arm", "--output", "test_out.sh"])
+    load_env.main([
+        "--supported-systems", "test_supported_systems.ini",
+        "--supported-envs", "test_supported_envs.ini",
+        "--environment-specs", "test_environment_specs.ini",
+        "arm",
+        "--output", "test_out.sh"
+    ])
 
 
 @patch("socket.gethostname")
@@ -260,7 +266,13 @@ def test_main_with_unsuccessful_apply(mock_set_environment, mock_gethostname):
 
     expected_exc_msg = "Something unexpected went wrong in applying the environment."
     with pytest.raises(RuntimeError, match=expected_exc_msg):
-        load_env.main(["arm", "--output", "test_out.sh"])
+        load_env.main([
+            "--supported-systems", "test_supported_systems.ini",
+            "--supported-envs", "test_supported_envs.ini",
+            "--environment-specs", "test_environment_specs.ini",
+            "arm",
+            "--output", "test_out.sh"
+        ])
 
 
 # Operation Validation
