@@ -1,17 +1,7 @@
 #!/bin/bash
 
-#path_cur="/scratch/eharvey/TRILINOS-CONSOLIDATION.base/Trilinos/build-gcc8.3.0"
-#path_pr="/scratch/trilinos/jenkins/ascic141/workspace/trilinos-folder/Trilinos_pullrequest_gcc_8.3.0/pull_request_test"
-
-#path_cur="/scratch/trilinos/jenkins/ascic142/workspace/trilinos-folder/Trilinos_pullrequest_rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_trilinos-pr/pull_request_test"
-#path_cur="/scratch/eharvey/TRILINOS-CONSOLIDATION.base/Trilinos/build"
-#path_pr="/scratch/trilinos/jenkins/ascic143/workspace/trilinos-folder/Trilinos_pullrequest_gcc_7.2.0_serial/pull_request_test"
-
-#path_cur="/scratch/eharvey/TRILINOS-CONSOLIDATION.base/Trilinos/build"
-#path_pr="/scratch/trilinos/jenkins/ascic166/workspace/trilinos-folder/Trilinos_pullrequest_clang_10.0.0/pull_request_test"
-
-path_cur="/scratch/eharvey/TRILINOS-CONSOLIDATION.base/Trilinos/build"
-path_pr="/scratch/trilinos/jenkins/ascic158/workspace/trilinos-folder/Trilinos_pullrequest_intel_17.0.1/pull_request_test"
+path_cur=""
+path_pr=""
 
 if [[ ! "$@" == *"--include-cmake-var-type"* ]]; then
     echo "WARNING: Ignoring cmake variable types; to include, run this script with --include-cmake-var-type"
