@@ -31,7 +31,7 @@ import load_env
         {
             "build_name": "arm",
             "hostname": "machine-type-4_host",
-            "expected_env": "machine-type-4_arm-20.1-openmpi-4.0.5-openmp",
+            "expected_env": "machine-type-4_arm-20.0-openmpi-4.0.2-openmp",
             },
         ],
     )
