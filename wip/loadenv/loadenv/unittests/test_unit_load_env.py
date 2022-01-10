@@ -58,7 +58,7 @@ def test_list_envs(system_name, capsys):
 @patch("load_env.SetEnvironment")
 def test_load_matching_env_location_flag_creates_load_matching_env_location_file(mock_set_environment, mock_gethostname):
     # ci_mode file should exist in /tmp/{user}/.ci_mode
-    mock_gethostname.return_value = "stria"
+    mock_gethostname.return_value = "machine-type-4_host"
     # 'unsafe=True' allows methods to be called on the mock object that start
     # with 'assert'. For SetEnvironment, this includes
     # 'assert_file_all_sections_handled'.
@@ -66,7 +66,15 @@ def test_load_matching_env_location_flag_creates_load_matching_env_location_file
     mock_se.apply.return_value = 0
     mock_set_environment.return_value = mock_se
 
-    load_env.main(["arm", "--output", "test_out.sh", "--load-matching-env-location", ".load_matching_env_loc.test"])
+
+    load_env.main([
+        "--supported-systems", "test_supported_systems.ini",
+        "--supported-envs", "test_supported_envs.ini",
+        "--environment-specs", "test_environment_specs.ini",
+        "arm",
+        "--output", "test_out.sh",
+        "--load-matching-env-location", ".load_matching_env_loc.test"
+    ])
 
     file = Path(f".load_matching_env_loc.test")
     assert file.exists()
@@ -77,7 +85,7 @@ def test_load_matching_env_location_flag_creates_load_matching_env_location_file
 @pytest.mark.parametrize("data", ["string", ("tu", "ple"), None])
 def test_argv_non_list_raises(data):
     with pytest.raises(TypeError) as excinfo:
-        LoadEnv(data)
+        LoadEnv(data, load_env_ini_file="test_load_env.ini")
     exc_msg = excinfo.value.args[0]
     assert "must be instantiated with a list" in exc_msg
 
@@ -124,7 +132,7 @@ def test_argv_non_list_raises(data):
         ],
     )
 def test_argument_parser_functions_correctly(data):
-    le = LoadEnv(data["argv"])
+    le = LoadEnv(data["argv"], load_env_ini_file="test_load_env.ini")
     assert le.args.build_name == data["build_name_expected"]
     assert (
         le.args.supported_systems_file == Path(
@@ -150,7 +158,7 @@ def test_argument_parser_functions_correctly(data):
 #  load_env.ini #
 #################
 def test_load_env_ini_file_used_if_nothing_else_explicitly_specified():
-    le = LoadEnv(["build_name"])
+    le = LoadEnv(["build_name"], load_env_ini_file="test_load_env.ini")
     assert (
         le.args.supported_systems_file == Path(
             le.load_env_config_data["load-env"]["supported-systems"]
@@ -244,7 +252,7 @@ def test_relative_path_resolves_to_absolute_path(already_resolved):
         f"supported-envs : {supported_envs}\n"
         f"environment-specs : {environment_specs}\n"
     )
-    filename = "test_load_env.ini"
+    filename = "test_generated_load_env.ini"
     with open(filename, "w") as f:
         f.write(load_env_ini)
 

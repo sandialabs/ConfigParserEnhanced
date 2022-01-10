@@ -18,7 +18,7 @@ class EnvKeywordParser(KeywordParser):
         intel-19.0.4-mpich-7.7.6:   # Environment name 2
             intel-19
 
-        [mutrino]
+        [machine-type-1_host]
         use machine-type-1  # As if contents of machine-type-1 are copy-pasted here
 
         [sys-3]

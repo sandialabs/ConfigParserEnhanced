@@ -25,9 +25,9 @@ environments.
    ```
 
 3. Get a Python 3.6+ in your path, the following have been verified to work:
-   *  ASCIC/Chama/Eclipse/Stria:  `module load sparc-tools/python/3.7.9`
-   *  Mutrino:  `module load cray-python/3.8.2.1`
-   *  Vortex:  `module load anaconda3/4.8.2-python-3.7.6`
+   *  cee/machine-type-5/machine-type-3/machine-type-4:  `module load sparc-tools/python/3.7.9`
+   *  machine-type-1:  `module load cray-python/3.8.2.1`
+   *  machine-type-2:  `module load anaconda3/4.8.2-python-3.7.6`
 
 4. Install the requirements:
    ```bash
@@ -54,7 +54,7 @@ environments.
 To view available options, you can run:
 ```
 $ source load-env.sh --list-envs
-Using system 'machine-type-1' based on matching hostname 'mutrino'.
+Using system 'machine-type-1' based on matching hostname 'machine-type-1_host'.
 
 +==============================================================================+
 |   INFO:  Please select one of the following.
@@ -71,7 +71,7 @@ Using system 'machine-type-1' based on matching hostname 'mutrino'.
 |         - intel-knl
 |         - intel-knl-openmp
 |
-|   See `examples/atdm/supported-envs.ini` for details on the available environments.
+|   See `ini_files/supported-envs.ini` for details on the available environments.
 |
 |   To force-load an environment see the guidance in the `--help` output.
 |
