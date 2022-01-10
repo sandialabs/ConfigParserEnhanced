@@ -58,7 +58,7 @@ def test_list_envs(system_name, capsys):
 @patch("load_env.SetEnvironment")
 def test_load_matching_env_location_flag_creates_load_matching_env_location_file(mock_set_environment, mock_gethostname):
     # ci_mode file should exist in /tmp/{user}/.ci_mode
-    mock_gethostname.return_value = "stria"
+    mock_gethostname.return_value = "machine-type-4_host"
     # 'unsafe=True' allows methods to be called on the mock object that start
     # with 'assert'. For SetEnvironment, this includes
     # 'assert_file_all_sections_handled'.

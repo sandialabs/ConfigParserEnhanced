@@ -25,12 +25,12 @@ import load_env
     [
         {
             "build_name": "intel-hsw",
-            "hostname": "mutrino",
+            "hostname": "machine-type-1_host",
             "expected_env": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp",
             },
         {
             "build_name": "arm",
-            "hostname": "stria",
+            "hostname": "machine-type-4_host",
             "expected_env": "machine-type-4_arm-20.1-openmpi-4.0.5-openmp",
             },
         ],
@@ -53,13 +53,13 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
     [
         {
             "build_name": "intel-knl",
-            "hostname": "mutrino",
+            "hostname": "machine-type-1_host",
             "expected_env_name": "machine-type-1_intel-19.0.4-mpich-7.7.15-knl-openmp",
             "expected_sys_name": "machine-type-1",
             },
         {
             "build_name": "arm-serial",
-            "hostname": "stria",
+            "hostname": "machine-type-4_host",
             "expected_env_name": "machine-type-4_arm-20.0-openmpi-4.0.2-serial",
             "expected_sys_name": "machine-type-4",
             },
@@ -69,7 +69,7 @@ def test_ekp_matches_correct_env_name(mock_gethostname, inputs):
 def test_loadenv_obj_can_be_reused_for_multiple_build_names(mock_gethostname, inputs_2):
     inputs_1 = {
         "build_name": "intel-hsw",
-        "hostname": "mutrino",
+        "hostname": "machine-type-1_host",
         "expected_env_name": "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp",
         "expected_sys_name": "machine-type-1",
         }
@@ -111,7 +111,7 @@ def test_loadenv_obj_can_be_reused_for_multiple_build_names(mock_gethostname, in
             "build_name":
                 "intel-hsw",
             "hostname":
-                "mutrino",
+                "machine-type-1_host",
             "expected_env":
                 "machine-type-1_intel-19.0.4-mpich-7.7.15-hsw-openmp",
             "expected_cmds":
@@ -136,7 +136,7 @@ def test_loadenv_obj_can_be_reused_for_multiple_build_names(mock_gethostname, in
             "build_name":
                 "arm",
             "hostname":
-                "stria",
+                "machine-type-4_host",
             "expected_env":
                 "machine-type-4_arm-20.0-openmpi-4.0.2-openmp",
             "expected_cmds":
@@ -207,7 +207,7 @@ def test_load_matching_env_is_set_correctly_and_directories_are_created(mock_get
     if output is not None:
         assert Path(output).exists() is False
 
-    mock_gethostname.return_value = "stria"
+    mock_gethostname.return_value = "machine-type-4_host"
     argv = ["arm"] if output is None else ["arm", "--output", output]
     le = LoadEnv(argv=argv, load_env_ini_file="test_load_env.ini")
     load_matching_env = le.write_load_matching_env()
@@ -224,7 +224,7 @@ def test_existing_load_matching_env_file_overwritten(mock_gethostname):
     with open(output_file, "w") as F:
         F.write(initial_contents)
 
-    mock_gethostname.return_value = "stria"
+    mock_gethostname.return_value = "machine-type-4_host"
     le = LoadEnv(argv=["arm", "--output", output_file], load_env_ini_file="test_load_env.ini")
 
     load_matching_env = le.write_load_matching_env()
@@ -239,7 +239,7 @@ def test_existing_load_matching_env_file_overwritten(mock_gethostname):
 @patch("socket.gethostname")
 @patch("load_env.SetEnvironment")
 def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
-    mock_gethostname.return_value = "stria"
+    mock_gethostname.return_value = "machine-type-4_host"
     # 'unsafe=True' allows methods to be called on the mock object that start
     # with 'assert'. For SetEnvironment, this includes
     # 'assert_file_all_sections_handled'.
@@ -253,7 +253,7 @@ def test_main_with_successful_apply(mock_set_environment, mock_gethostname):
 @patch("socket.gethostname")
 @patch("load_env.SetEnvironment")
 def test_main_with_unsuccessful_apply(mock_set_environment, mock_gethostname):
-    mock_gethostname.return_value = "stria"
+    mock_gethostname.return_value = "machine-type-4_host"
     mock_se = Mock(unsafe=True)
     mock_se.apply.return_value = 1
     mock_set_environment.return_value = mock_se
