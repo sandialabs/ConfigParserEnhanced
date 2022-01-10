@@ -47,7 +47,7 @@ class GenConfig(FormattedMsg):
         # supported-config-flags.ini
         #
         # For full documentation on formatting, see
-        # GenConfig/examples/supported-config-flags.ini
+        # GenConfig/ini_files/supported-config-flags.ini
         #
 
         [configure-flags]
@@ -76,7 +76,7 @@ class GenConfig(FormattedMsg):
         # config-specs.ini
         #
         # For full documentation on formatting, see
-        # GenConfig/examples/config-specs.ini
+        # GenConfig/ini_files/config-specs.ini
         #
 
         # Supporting sections are all-caps
@@ -248,7 +248,7 @@ class GenConfig(FormattedMsg):
             |         - SKX
             |         ...
             |
-            |   See /path/to/GenConfig/examples/supported-config-flags.ini for details.
+            |   See /path/to/GenConfig/ini_files/supported-config-flags.ini for details.
             +==============================================================================+
 
         Raises:
@@ -276,7 +276,7 @@ class GenConfig(FormattedMsg):
 
             +==============================================================================+
             |   INFO:  Please select one of the following complete configurations from
-            |           /path/to/GenConfig/examples/config-specs.ini
+            |           /path/to/GenConfig/ini_files/config-specs.ini
             |
             |     - rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_shared_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
             |     - rhel7_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_release_static_Volta70_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-package-enables
