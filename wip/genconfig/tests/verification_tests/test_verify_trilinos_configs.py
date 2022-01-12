@@ -375,6 +375,83 @@ class common_verify_helpers():
             self.assert_package_config_contains(gc,
                                                 'set(KokkosKernels_INST_MEMSPACE_CUDAUVMSPACE ON CACHE BOOL \"from .ini configuration\")')
 
+    def assert_use_deprecated(self, gc, use_deprecated):
+        '''Use of deprecated code'''
+        if use_deprecated:
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(KOKKOS_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Tpetra_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Belos_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Epetra_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Ifpack2_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Ifpack2_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(MueLu_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Panzer_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Phalanx_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(RTop_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(STK_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Teuchos_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Thyra_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Claps_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(GlobiPack_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(OptiPack_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Trios_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_does_not_contain(gc,
+                                                        'set(Xpetra_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\" FORCE)')
+        else:
+            self.assert_package_config_contains(gc,
+                                                'set(KOKKOS_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Tpetra_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Belos_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Epetra_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Ifpack2_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Ifpack2_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(MueLu_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Panzer_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Phalanx_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(RTop_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(STK_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Teuchos_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Thyra_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Claps_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(GlobiPack_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(OptiPack_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Trios_HIDE_DEPRECATED_CODE ON CACHE BOOL \"from .ini configuration\")')
+            self.assert_package_config_contains(gc,
+                                                'set(Xpetra_ENABLE_DEPRECATED_CODE OFF CACHE BOOL \"from .ini configuration\" FORCE)')
+
 
 class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
     '''Class to iterate through all configs and verify that the loaded
@@ -383,7 +460,7 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
     def setUp(self):
         '''Comman data structures for all tests - done on a per-test basis'''
         self.config_verification_map = \
-             {'rhel7_sems-gnu-7.2.0-anaconda3-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_pr-framework':
+             {'rhel7_sems-gnu-7.2.0-anaconda3-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-on_pr-framework':
               [
                [self.assert_gcc_version, 7, 2, 0],
                [self.assert_python_version, 3, 7, 3],
@@ -397,10 +474,12 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                [self.assert_use_mpi, False],
                [self.assert_use_pt, False],
                [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_TrilinosFrameworkTests ON CACHE BOOL \"from .ini configuration\")'],
                # TODO: [self.assert_common_mpi_disables],
               ],
-              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
               [
                [self.assert_gcc_version, 7, 2, 0],
                [self.assert_python_version, 3,7,3],
@@ -415,12 +494,14 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                [self.assert_use_mpi, True],
                [self.assert_use_pt, False],
                [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Fortran OFF CACHE BOOL "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_COMPLEX_DOUBLE ON CACHE BOOL "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-nonnull-compare -Wno-address -Wno-inline -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-label -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE STRING "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_ParMETIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
               ],
-              'rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+              'rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
               [[self.assert_gcc_version, 7, 2, 0],
                [self.assert_kokkos_nodetype, "serial"],
                [self.assert_build_type, "release-debug"],
@@ -431,6 +512,8 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                [self.assert_use_mpi, False],
                [self.assert_use_pt, False],
                [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains,
                'set(Trilinos_ENABLE_Fortran OFF CACHE BOOL "from .ini configuration")'],
                [self.assert_package_config_contains,
@@ -441,8 +524,8 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                 'set(TPL_ENABLE_ParMETIS OFF CACHE BOOL "from .ini configuration" FORCE)'],
                # TODO: [self.assert_common_mpi_disables],
               ],
-              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_pr': [],
-              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_pr': [],
+              'rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
               [[self.assert_gcc_version, 7, 2, 0],
                [self.assert_openmpi_version, 1, 10, 1],
                [self.assert_kokkos_nodetype, "serial"],
@@ -454,14 +537,15 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                [self.assert_use_pt, False],
                [self.assert_use_complex, False],
                [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(Tpetra_INST_SERIAL ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_COMPLEX_DOUBLE ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-nonnull-compare -Wno-address -Wno-inline -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE STRING "from .ini configuration")'],
               ],
-              'rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_pr': [],
-              'rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+              'rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_pr':
               [[self.assert_gcc_version, 8, 3, 0],
                [self.assert_openmpi_version, 1, 10, 1],
                [self.assert_kokkos_nodetype, "openmp"],
@@ -473,13 +557,57 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                [self.assert_use_pt, False],
                [self.assert_use_complex, False],
                [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, True],
+               [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(Tpetra_INST_SERIAL ON CACHE BOOL \"from .ini configuration\" FORCE)'],
+               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_COMPLEX_DOUBLE ON CACHE BOOL \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-fno-strict-aliasing -Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-parentheses -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-class-memaccess -Wno-inline -Wno-nonnull-compare -Wno-address -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE STRING "from .ini configuration")'],
+              ],
+              'rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-off_pr':
+              [[self.assert_gcc_version, 8, 3, 0],
+               [self.assert_openmpi_version, 1, 10, 1],
+               [self.assert_kokkos_nodetype, "openmp"],
+               [self.assert_build_type, "release-debug"],
+               [self.assert_kokkos_arch, "no-kokkos-arch"],
+               [self.assert_use_asan, False],
+               [self.assert_use_fpic, False],
+               [self.assert_use_mpi, True],
+               [self.assert_use_pt, False],
+               [self.assert_use_complex, False],
+               [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, False],
+               [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(Tpetra_INST_SERIAL ON CACHE BOOL \"from .ini configuration\" FORCE)'],
+               [self.assert_package_config_contains, 'set(Trilinos_ENABLE_COMPLEX_DOUBLE ON CACHE BOOL \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
+               [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-fno-strict-aliasing -Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-parentheses -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-class-memaccess -Wno-inline -Wno-nonnull-compare -Wno-address -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE STRING "from .ini configuration")'],
+              ],
+              'rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
+              [[self.assert_gcc_version, 8, 3, 0],
+               [self.assert_openmpi_version, 1, 10, 1],
+               [self.assert_kokkos_nodetype, "openmp"],
+               [self.assert_build_type, "release-debug"],
+               [self.assert_kokkos_arch, "no-kokkos-arch"],
+               [self.assert_use_asan, False],
+               [self.assert_use_fpic, False],
+               [self.assert_use_mpi, True],
+               [self.assert_use_pt, False],
+               [self.assert_use_complex, False],
+               [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(Trilinos_ENABLE_COMPLEX_DOUBLE ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(CMAKE_CXX_FLAGS "-fno-strict-aliasing -Wall -Wno-clobbered -Wno-vla -Wno-pragmas -Wno-unknown-pragmas -Wno-parentheses -Wno-unused-local-typedefs -Wno-literal-suffix -Wno-deprecated-declarations -Wno-misleading-indentation -Wno-int-in-bool-context -Wno-maybe-uninitialized -Wno-class-memaccess -Wno-inline -Wno-nonnull-compare -Wno-address -Werror -DTRILINOS_HIDE_DEPRECATED_HEADER_WARNINGS" CACHE STRING "from .ini configuration")'],
               ],
-              'rhel7_sems-clang-7.0.1-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+              'rhel7_sems-clang-7.0.1-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
                   [[self.assert_clang_version, 7, 0, 1],
                    [self.assert_openmpi_version, 1, 10, 1],
                    [self.assert_kokkos_nodetype, "serial"],
@@ -492,10 +620,12 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                    [self.assert_use_mpi, True],
                    [self.assert_use_pt, False],
                    [self.assert_use_rdc, False],
+                   [self.assert_use_uvm, False],
+                   [self.assert_use_deprecated, True],
                    [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                    [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                   ],
-                'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+                'rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
                   [
                    [self.assert_clang_version, 9, 0, 0],
                    [self.assert_openmpi_version, 1, 10, 1],
@@ -509,10 +639,12 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                    [self.assert_use_mpi, True],
                    [self.assert_use_pt, False],
                    [self.assert_use_rdc, False],
+                   [self.assert_use_uvm, False],
+                   [self.assert_use_deprecated, True],
                    [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                    [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                   ],
-              'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+              'rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
                   [[self.assert_clang_version, 10, 0, 0],
                    [self.assert_openmpi_version, 1, 10, 1],
                    [self.assert_kokkos_nodetype, "serial"],
@@ -525,10 +657,12 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                    [self.assert_use_mpi, True],
                    [self.assert_use_pt, False],
                    [self.assert_use_rdc, False],
+                   [self.assert_use_uvm, False],
+                   [self.assert_use_deprecated, True],
                    [self.assert_package_config_contains, 'set(MPI_EXEC_PRE_NUMPROCS_FLAGS --bind-to;none CACHE STRING \"from .ini configuration\")'],
                    [self.assert_package_config_contains, 'set(Teko_DISABLE_LSCSTABALIZED_TPETRA_ALPAH_INV_D ON CACHE BOOL \"from .ini configuration\")'],
                   ],
-             'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+             'rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
                  [[self.assert_intel_version, 17, 0, 1],
                   [self.assert_mpich_version, 3, 2],
                   [self.assert_kokkos_nodetype, "serial"],
@@ -541,12 +675,14 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_use_mpi, True],
                   [self.assert_use_pt, False],
                   [self.assert_use_rdc, False],
+                  [self.assert_use_uvm, False],
+                  [self.assert_use_deprecated, True],
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_SuperLU OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains,
                    'set(CMAKE_CXX_FLAGS "-Wall -Warray-bounds -Wchar-subscripts -Wcomment -Wenum-compare -Wformat -Wuninitialized -Wmaybe-uninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wpointer-sign -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-but-set-variable -Wunused-variable -Wwrite-strings" CACHE STRING "from .ini configuration")'],
                   [self.assert_rhel7_test_disables_intel],
                   ],
-              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables':
+              'rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
               [[self.assert_intel_version, 19, 0, 5],
                [self.assert_mpich_version, 3, 2],
                [self.assert_kokkos_nodetype, "serial"],
@@ -559,6 +695,8 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
                [self.assert_use_pt, False],
                [self.assert_use_complex, False],
                [self.assert_use_rdc, False],
+               [self.assert_use_uvm, False],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(Phalanx_dynamic_data_layout_MPI_1_DISABLE ON CACHE BOOL \"from .ini configuration\")'],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_SuperLU ON CACHE BOOL "from .ini configuration")'],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL "from .ini configuration" FORCE)'],
@@ -606,44 +744,54 @@ class Test_verify_rhel7_configs(unittest.TestCase, common_verify_helpers):
         # self.stderrRedirect.stop()
 
 
-    def test_rhel7_sems_gnu_7_2_0_anaconda3_serial_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_no_mpi_no_pt_no_rdc_no_uvm_pr_framework(self):
+    def test_rhel7_sems_gnu_7_2_0_anaconda3_serial_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_no_mpi_no_pt_no_rdc_no_uvm_deprecated_on_pr_framework(self):
         '''Check that the job setup for our python testing matches
            expectations'''
-        self.check_one_config('rhel7_sems-gnu-7.2.0-anaconda3-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_pr-framework')
+        self.check_one_config('rhel7_sems-gnu-7.2.0-anaconda3-serial_debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-on_pr-framework')
 
-    def test_rhel7_sems_gnu_7_2_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_sems_gnu_7_2_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the gnu 7.2 job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_sems-gnu-7.2.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
-    def test_rhel7_sems_gnu_7_2_0_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_no_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_sems_gnu_7_2_0_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_no_mpi_no_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the 7.2.0 serial job is set up and without package enables'''
-        self.check_one_config('rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
-    def test_rhel7_sems_gnu_8_3_0_openmpi_1_10_1_openmp_release_debug_static_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_sems_gnu_8_3_0_openmpi_1_10_1_openmp_release_debug_static_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_on_pr(self):
+        '''Check that the gnu 8.3 job is set up with enabled packages for
+           PR testing'''
+        self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_pr')
+
+    def test_rhel7_sems_gnu_8_3_0_openmpi_1_10_1_openmp_release_debug_static_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_off_pr(self):
+        '''Check that the gnu 8.3 job is set up with enabled packages for
+           PR testing and deprecated code OFF'''
+        self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-off_pr')
+
+    def test_rhel7_sems_gnu_8_3_0_openmpi_1_10_1_openmp_release_debug_static_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the gnu 8.3 job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_sems-gnu-8.3.0-openmpi-1.10.1-openmp_release-debug_static_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
-    def test_rhel7_sems_clang_9_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_sems_clang_9_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the clang 10.0.0 job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_sems-clang-9.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
-    def test_rhel7_sems_clang_10_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_sems_clang_10_0_0_openmpi_1_10_1_serial_release_debug_shared_no_kokkos_arch_no_asan_no_complex_no_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the clang 10.0.0 job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
-    def test_rhel7_sems_intel_19_0_5_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_sems_intel_19_0_5_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the intel 19.0.5 job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_sems-intel-19.0.5-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
-    def test_rhel7_sems_intel_17_0_1_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_rhel7_sems_intel_17_0_1_mpich_3_2_serial_release_debug_static_no_kokkos_arch_no_asan_no_complex_fpic_mpi_no_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the intel 19.0.5 job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('rhel7_sems-intel-17.0.1-mpich-3.2-serial_release-debug_static_no-kokkos-arch_no-asan_no-complex_fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
 
     def assert_rhel7_sems_lib_type(self, gc, lib_type):
@@ -776,7 +924,7 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
     def setUp(self):
         '''Comman data structures for all tests - done on a per-test basis'''
         self.config_verification_map = \
-             {'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_uvm_no-package-enables':
+             {'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_uvm_deprecated-on_no-package-enables':
               [
                [self.assert_gcc_version, 8, 3, 1],
                [self.assert_kokkos_nodetype, "cuda"],
@@ -790,9 +938,11 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
                [self.assert_use_mpi, True],
                [self.assert_use_pt, True],
                [self.assert_use_rdc, False],
+               [self.assert_use_uvm, True],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL \"from .ini configuration\" FORCE)'],
               ],
-              'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_no-package-enables':
+              'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_deprecated-on_no-package-enables':
               [
                [self.assert_gcc_version, 8, 3, 1],
                [self.assert_kokkos_nodetype, "cuda"],
@@ -806,6 +956,8 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
                [self.assert_use_mpi, True],
                [self.assert_use_pt, True],
                [self.assert_use_rdc, True],
+               [self.assert_use_uvm, True],
+               [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL \"from .ini configuration\" FORCE)'],
               ],
              }
@@ -835,15 +987,15 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
         self.stdoutRedirect.stop()
         # self.stderrRedirect.stop()
 
-    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
+    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_no_rdc_uvm_deprecated_on_no_package_enables(self):
         '''Check that the job setup for our python testing matches
            expectations'''
-        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_uvm_no-package-enables')
+        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_no-rdc_uvm_deprecated-on_no-package-enables')
 
-    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_rdc_uvm_no_package_enables(self):
+    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_rdc_uvm_deprecated_on_no_package_enables(self):
         '''Check that the job setup for our python testing matches
            expectations'''
-        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_no-package-enables')
+        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_deprecated-on_no-package-enables')
 
 
 class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
@@ -853,7 +1005,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
     def setUp(self):
         '''Comman data structures for all tests - done on a per-test basis'''
         self.config_verification_map = \
-             {'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_pr-framework-atdm':
+             {'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_deprecated-on_pr-framework-atdm':
                  [[self.assert_cuda_version, 10, 1, 105],
                   [self.assert_gcc_version, 7, 2, 0],
                   [self.assert_kokkos_nodetype, "cuda"],
@@ -868,6 +1020,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_use_pt, True],
                   [self.assert_use_rdc, False],
                   [self.assert_use_uvm, False],
+                  [self.assert_use_deprecated, True],
                   [self.assert_weaver_test_disables_cuda],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Kokkos ON CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_Pthread OFF CACHE BOOL "from .ini configuration" FORCE)'],
@@ -882,7 +1035,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
-                 'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables':
+                 'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_deprecated-on_no-package-enables':
                      [[self.assert_cuda_version, 10, 1, 105],
                       [self.assert_gcc_version, 7, 2, 0],
                       [self.assert_kokkos_nodetype, "cuda"],
@@ -897,6 +1050,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                       [self.assert_use_pt, True],
                       [self.assert_use_rdc, False],
                       [self.assert_use_uvm, False],
+                      [self.assert_use_deprecated, True],
                       [self.assert_weaver_test_disables_cuda],
                       [self.assert_package_config_contains,
                        'set(Trilinos_ENABLE_Kokkos ON CACHE BOOL "from .ini configuration" FORCE)'],
@@ -923,7 +1077,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                       [self.assert_package_config_contains,
                        'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                       ],
-             'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-atdm':
+             'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_deprecated-on_pr-framework-atdm':
                  [[self.assert_cuda_version, 10, 1, 105],
                   [self.assert_gcc_version, 7, 2, 0],
                   [self.assert_kokkos_nodetype, "cuda"],
@@ -938,6 +1092,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_use_pt, True],
                   [self.assert_use_rdc, False],
                   [self.assert_use_uvm, True],
+                  [self.assert_use_deprecated, True],
                   [self.assert_weaver_test_disables_cuda],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Kokkos ON CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_Pthread OFF CACHE BOOL "from .ini configuration" FORCE)'],
@@ -952,7 +1107,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                   [self.assert_package_config_contains, 'set(TPL_ENABLE_CGNS OFF CACHE BOOL "from .ini configuration" FORCE)'],
                   [self.assert_package_config_contains, 'set(Trilinos_ENABLE_Stokhos OFF CACHE BOOL "from .ini configuration" FORCE)'],
                  ],
-                 'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables':
+                 'weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_deprecated-on_no-package-enables':
                      [[self.assert_cuda_version, 10, 1, 105],
                       [self.assert_gcc_version, 7, 2, 0],
                       [self.assert_kokkos_nodetype, "cuda"],
@@ -967,6 +1122,7 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
                       [self.assert_use_pt, True],
                       [self.assert_use_rdc, False],
                       [self.assert_use_uvm, True],
+                      [self.assert_use_deprecated, True],
                       [self.assert_weaver_test_disables_cuda],
                       [self.assert_package_config_contains,
                        'set(Trilinos_ENABLE_Kokkos ON CACHE BOOL "from .ini configuration" FORCE)'],
@@ -1020,25 +1176,25 @@ class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
         self.stdoutRedirect.stop()
         # self.stderrRedirect.stop()
 
-    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_pr_framework_atdm(self):
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_deprecated_on_pr_framework_atdm(self):
         '''Check that the cuda 10.1.105 uvm=off job is set up with certain
         enabled packages for PR testing'''
-        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_pr-framework-atdm')
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_deprecated-on_pr-framework-atdm')
 
-    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_no_package_enables(self):
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_no_uvm_deprecated_on_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=off job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_no-package-enables')
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_no-uvm_deprecated-on_no-package-enables')
 
-    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_pr_framework_atdm(self):
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_deprecated_on_pr_framework_atdm(self):
         '''Check that the cuda 10.1.105 uvm=on job is set up with certain
         enabled packages for PR testing'''
-        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_pr-framework-atdm')
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_deprecated-on_pr-framework-atdm')
 
-    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_no_package_enables(self):
+    def test_weaver_cuda_10_1_105_gnu_7_2_0_spmpi_rolling_release_static_Volta70_Power9_no_asan_complex_fpic_mpi_pt_no_rdc_uvm_deprecated_on_no_package_enables(self):
         '''Check that the cuda 10.1.105 uvm=on job is set up without enabled packages for
            PR testing'''
-        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_no-package-enables')
+        self.check_one_config('weaver_cuda-10.1.105-gnu-7.2.0-spmpi-rolling_release_static_Volta70_Power9_no-asan_complex_fpic_mpi_pt_no-rdc_uvm_deprecated-on_no-package-enables')
 
     def assert_weaver_test_disables_cuda(self, gc):
         '''stock test disables used in both cuda 10.1.105 builds'''
