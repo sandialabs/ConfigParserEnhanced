@@ -25,6 +25,8 @@ function do_check() {
       printf $(echo $kwl | sed 's/|/\\n\\t/g')
       printf "\n\nFound in:\n\t"
       printf $(cat found_in_files.txt | tr '\n' '|' | sed 's/|/\\n\\t/g')
+      git grep -E $kwl > $base/$(basename $PWD)_details.txt
+      printf "\n\n\t--> See \"$(basename $PWD)_details.txt\" for details.\n\n"
     fi
   else
     tput setaf 2 && echo "PASS: Nothing sensitive found in $PWD" && tput sgr0
