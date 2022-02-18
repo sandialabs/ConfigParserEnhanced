@@ -154,12 +154,12 @@ def test_unsupported_versions_are_rejected(inputs):
             "unsupported_component": "openmp",
             },
         {
-            "system_name": "ride",
+            "system_name": "test-sys-1",
             "build_name": "cuda-serial",
             "unsupported_component": "static",
             },
         {
-            "system_name": "ride",
+            "system_name": "test-sys-1",
             "build_name": "cuda-10-openmp",
             "unsupported_component": "openmp",
             },
@@ -183,7 +183,7 @@ def test_unsupported_node_types_are_rejected(inputs):
         assert "- intel-knl-openmp\n" in exc_msg
         assert "- intel-knl\n" in exc_msg
         assert "- default-env-knl\n" in exc_msg
-    elif inputs["system_name"] == "ride":
+    elif inputs["system_name"] == "test-sys-1":
         assert "cuda-9.2-gnu-7.2.0-openmpi-2.1.2" in exc_msg
         assert "- cuda-9" in exc_msg
         assert "- cuda" in exc_msg
