@@ -213,7 +213,7 @@ except ImportError:          # pragma: cover if not on lmod
                               #       module is a function
                               #       module ()
                               #       {
-                              #           eval `/opt/cray/pe/modules/3.2.11.4/bin/modulecmd bash $*`
+                              #           eval `/path/to/modulecmd bash $*`
                               #       }
 
                 module_func = subprocess.run(
