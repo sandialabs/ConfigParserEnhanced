@@ -11,7 +11,7 @@ kwl=$(cat utils/supporting_files/srn-ini-files/trilinos/sensitive_keywords.txt |
 base=$(pwd)
 
 # Check GenConfig
-check="git grep -q -E \"$kwl\""
+check="git grep -i -q -E \"$kwl\""
 
 function do_check() {
   eval ${check}
@@ -20,12 +20,12 @@ function do_check() {
   if [ $ret -eq 0 ]; then
     tput blink && tput setaf 1 && echo "FAIL: Sensitive keywords found in $PWD" && tput sgr0
     if [ $verbose -eq 1 ]; then
-      git grep -c -E $kwl > found_in_files.txt
+      git grep -i -c -E $kwl > found_in_files.txt
       printf "Sensitive keywords:\n\t"
       printf $(echo $kwl | sed 's/|/\\n\\t/g')
       printf "\n\nFound in:\n\t"
       printf $(cat found_in_files.txt | tr '\n' '|' | sed 's/|/\\n\\t/g')
-      git grep --color=always -E $kwl > $base/$(basename $PWD)_details.txt
+      git grep -i --color=always -E $kwl > $base/$(basename $PWD)_details.txt
       printf "\n\n\t--> See \"$(basename $PWD)_details.txt\" for details.\n\n"
     fi
   else
