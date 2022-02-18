@@ -51,7 +51,7 @@ class mock_run_status_ok(object):
         print(f"mock_run> {cmd}")
         self.stdout = (
             b"module is a function\nmodule () \n{ \n    eval "
-            b"`/path/to/modulecmd bash $*`\n}\n"
+            b"$($(which modulecmd) bash $*)\n}\n"
         )
         self.stderr = stderr
         self.returncode = 0
