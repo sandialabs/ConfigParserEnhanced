@@ -70,7 +70,7 @@ node("trilinos-any") {
 
         String cfgFile = "trilinos_mastermergeautotester.cfg"
 
-        def jobs_from_autotester_config = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile, returnStdout: true).toString().trim().split('\n')
+        def jobs_from_autotester_config = sh(script: "module load apps/anaconda3.7; python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile, returnStdout: true).toString().trim().split('\n')
 
         for (String job_from_autotester_config : jobs_from_autotester_config) {
             launcher.appendJob(label: scmPollBranch, job_name: job_from_autotester_config,
