@@ -49,9 +49,11 @@ class mock_run_status_ok(object):
 
     def __init__(self, cmd, stdout=None, stderr=None, shell=True):
         print(f"mock_run> {cmd}")
+        str="module is a function\nmodule "+os.environ['BASH_FUNC_module%%']
+        bstr=str.encode('utf-8')
         self.stdout = (
-            b"module is a function\nmodule () \n{ \n    eval "
-            b"$($(which modulecmd) bash $*)\n}\n"
+            bstr
+
         )
         self.stderr = stderr
         self.returncode = 0
