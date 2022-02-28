@@ -147,9 +147,9 @@ publish coverage:
     <<: *global_cache
     policy: pull
   script:
-    - rm -rf /home/josbrau/html_files/SetEnvironment/coverage
-    - mkdir -p /home/josbrau/html_files/SetEnvironment/coverage
-    - mv tests/htmlcov/* /home/josbrau/html_files/SetEnvironment/coverage/
+    - rm -rf /home/trilinos/html_files/SetEnvironment/coverage
+    - mkdir -p /home/trilinos/html_files/SetEnvironment/coverage
+    - mv tests/htmlcov/* /home/trilinos/html_files/SetEnvironment/coverage/
 
 
 # Publish documentation (if on main branch)
@@ -164,9 +164,9 @@ publish docs:
   script:
     - cd doc/
     - bash make_html_docs.sh
-    - rm -rf /home/josbrau/html_files/SetEnvironment/doc
-    - mkdir -p /home/josbrau/html_files/SetEnvironment/doc
-    - mv html/* /home/josbrau/html_files/SetEnvironment/doc/
+    - rm -rf /home/trilinos/html_files/SetEnvironment/doc
+    - mkdir -p /home/trilinos/html_files/SetEnvironment/doc
+    - mv html/* /home/trilinos/html_files/SetEnvironment/doc/
 
 
 # Test uninstall from venv works

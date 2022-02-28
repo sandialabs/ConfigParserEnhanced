@@ -6,7 +6,7 @@ authors = [
     "William McLendon <wcmclen@sandia.gov>"
 ]
 readme = "README.md"
-documentation = "http://10.202.35.89:8080/SetEnvironment/doc/index.html"
+documentation = "http://10.202.36.171:8080/SetEnvironment/doc/index.html"
 repository = "https://internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment"
 classifiers = [
     'Development Status :: 3 - Alpha',
@@ -24,7 +24,7 @@ include = [ "CHANGELOG.md" ]
 [tool.poetry.dependencies]
 python = "^3.6"
 configparser = "^5.0.1"
-configparserenhanced = {git = "https://internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git", rev = "master"}
+configparserenhanced = {git = "git@internal.gitlab.server:trilinos-devops-consolidation/code/ConfigParserEnhanced.git", rev = "master"}
 
 
 [tool.poetry.dev-dependencies]
