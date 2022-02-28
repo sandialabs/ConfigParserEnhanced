@@ -73,9 +73,9 @@ publish coverage:
   script:
     - python3 -m pytest --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
     - ls -ltrhF
-    - rm -rf /home/josbrau/html_files/LoadEnv/coverage
-    - mkdir -p /home/josbrau/html_files/LoadEnv/coverage
-    - mv tests/htmlcov/* /home/josbrau/html_files/LoadEnv/coverage/
+    - rm -rf /home/trilinos/html_files/LoadEnv/coverage
+    - mkdir -p /home/trilinos/html_files/LoadEnv/coverage
+    - mv tests/htmlcov/* /home/trilinos/html_files/LoadEnv/coverage/
   coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
 
 publish docs:
@@ -87,6 +87,6 @@ publish docs:
     - cd doc/
     - python3 -m pip install -U -r requirements.txt
     - bash make_html_docs.sh
-    - rm -rf /home/josbrau/html_files/LoadEnv/doc
-    - mkdir -p /home/josbrau/html_files/LoadEnv/doc
-    - mv html/* /home/josbrau/html_files/LoadEnv/doc/
+    - rm -rf /home/trilinos/html_files/LoadEnv/doc
+    - mkdir -p /home/trilinos/html_files/LoadEnv/doc
+    - mv html/* /home/trilinos/html_files/LoadEnv/doc/
