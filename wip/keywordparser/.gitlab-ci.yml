@@ -34,9 +34,9 @@ publish coverage:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - python3 -m pytest --cov=keywordparser --cov-report html --cov-report term
-    - rm -rf /home/josbrau/html_files/KeywordParser/coverage
-    - mkdir -p /home/josbrau/html_files/KeywordParser/coverage
-    - mv htmlcov/* /home/josbrau/html_files/KeywordParser/coverage/
+    - rm -rf /home/trilinos/html_files/KeywordParser/coverage
+    - mkdir -p /home/trilinos/html_files/KeywordParser/coverage
+    - mv htmlcov/* /home/trilinos/html_files/KeywordParser/coverage/
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 publish docs:
@@ -48,6 +48,6 @@ publish docs:
     - cd doc/
     - python3 -m pip install -U -r requirements.txt
     - bash make_html_docs.sh
-    - rm -rf /home/josbrau/html_files/KeywordParser/doc
-    - mkdir -p /home/josbrau/html_files/KeywordParser/doc
-    - mv html/* /home/josbrau/html_files/KeywordParser/doc/
+    - rm -rf /home/trilinos/html_files/KeywordParser/doc
+    - mkdir -p /home/trilinos/html_files/KeywordParser/doc
+    - mv html/* /home/trilinos/html_files/KeywordParser/doc/
