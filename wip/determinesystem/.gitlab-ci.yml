@@ -37,9 +37,9 @@ publish coverage:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
     - python3 -m pytest --cov=determinesystem --cov-report html --cov-report term
-    - rm -rf /home/josbrau/html_files/DetermineSystem/coverage
-    - mkdir -p /home/josbrau/html_files/DetermineSystem/coverage
-    - mv htmlcov/* /home/josbrau/html_files/DetermineSystem/coverage/
+    - rm -rf /home/trilinos/html_files/DetermineSystem/coverage
+    - mkdir -p /home/trilinos/html_files/DetermineSystem/coverage
+    - mv htmlcov/* /home/trilinos/html_files/DetermineSystem/coverage/
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 publish docs:
@@ -51,6 +51,6 @@ publish docs:
     - cd doc/
     - python3 -m pip install -U -r requirements.txt
     - bash make_html_docs.sh
-    - rm -rf /home/josbrau/html_files/DetermineSystem/doc
-    - mkdir -p /home/josbrau/html_files/DetermineSystem/doc
-    - mv html/* /home/josbrau/html_files/DetermineSystem/doc/
+    - rm -rf /home/trilinos/html_files/DetermineSystem/doc
+    - mkdir -p /home/trilinos/html_files/DetermineSystem/doc
+    - mv html/* /home/trilinos/html_files/DetermineSystem/doc/
