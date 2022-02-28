@@ -1,6 +1,6 @@
 [![pipeline status](https://internal.gitlab.server/trilinos-devops-consolidation/code/GenConfig/badges/master/pipeline.svg)](https://internal.gitlab.server/trilinos-devops-consolidation/code/GenConfig/-/commits/master)
-[![coverage report](https://internal.gitlab.server/trilinos-devops-consolidation/code/GenConfig/badges/master/coverage.svg)](http://10.202.35.89:8080/GenConfig/coverage/index.html)
-[![Generic badge](https://img.shields.io/badge/docs-latest-green.svg)](http://10.202.35.89:8080/GenConfig/doc/index.html)
+[![coverage report](https://internal.gitlab.server/trilinos-devops-consolidation/code/GenConfig/badges/master/coverage.svg)](http://10.202.36.171:8080/GenConfig/coverage/index.html)
+[![Generic badge](https://img.shields.io/badge/docs-latest-green.svg)](http://10.202.36.171:8080/GenConfig/doc/index.html)
 
 # GenConfig
 
@@ -124,7 +124,7 @@ You will need to follow the [Getting Started](https://internal.gitlab.server/tri
 instructions up through step 4. before attempting to load the GenConfig module.
 
 ### GenConfig API Documentation
-Please click the 'docs' badge at the top of this file or navigate [here](http://10.202.35.89:8080/GenConfig/doc/index.html)
+Please click the 'docs' badge at the top of this file or navigate [here](http://10.202.36.171:8080/GenConfig/doc/index.html)
  with your browser for the GenConfig API documentation.
 
 > **Note:** when using LoadEnv in your python code, the environment will only

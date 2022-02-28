@@ -109,9 +109,9 @@ publish coverage:
   script:
     # - find . -name '__pycache__' -exec rm -rf {} \;          > /dev/null 2>&1
     - python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
-    - rm -rf /home/josbrau/html_files/GenConfig/coverage
-    - mkdir -p /home/josbrau/html_files/GenConfig/coverage
-    - mv tests/htmlcov/* /home/josbrau/html_files/GenConfig/coverage/
+    - rm -rf /home/trilinos/html_files/GenConfig/coverage
+    - mkdir -p /home/trilinos/html_files/GenConfig/coverage
+    - mv tests/htmlcov/* /home/trilinos/html_files/GenConfig/coverage/
   coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
 
 publish docs:
@@ -123,6 +123,6 @@ publish docs:
     - cd doc/
     - python3 -s -m pip install -U --user -r requirements.txt
     - bash make_html_docs.sh
-    - rm -rf /home/josbrau/html_files/GenConfig/doc
-    - mkdir -p /home/josbrau/html_files/GenConfig/doc
-    - mv html/* /home/josbrau/html_files/GenConfig/doc/
+    - rm -rf /home/trilinos/html_files/GenConfig/doc
+    - mkdir -p /home/trilinos/html_files/GenConfig/doc
+    - mv html/* /home/trilinos/html_files/GenConfig/doc/
