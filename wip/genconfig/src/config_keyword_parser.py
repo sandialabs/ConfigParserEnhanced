@@ -47,9 +47,11 @@ class ConfigKeywordParser(KeywordParser):
             load the supported configuration flags and options from.
     """
 
-    def __init__(self, build_name, supported_config_flags_filename):
+    def __init__(self, build_name, supported_config_flags_filename,
+                 env_name=None):
         self.config_filename = supported_config_flags_filename
         self._build_name = build_name
+        self._env_name = env_name
         self.delimiter = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
@@ -122,6 +124,7 @@ class ConfigKeywordParser(KeywordParser):
             options, as found in the :attr:`build_name`.
         """
         self.assert_options_are_unique_across_all_flags()
+        self.assert_all_build_name_options_are_valid()
 
         build_name_options = self.build_name.split(self.delimiter)
         selected_options = {}
@@ -149,8 +152,36 @@ class ConfigKeywordParser(KeywordParser):
             else:  # len(options_in_build_name) == 1 case
                 selected_options[flag_name] = options_in_build_name[0]
 
+
         self._selected_options = selected_options
         self.print_default_selections_notice(default_selected_options)
+
+    def assert_all_build_name_options_are_valid(self):
+        """
+        Helper method to remove matched option(s) from the a list. The
+        motivation is to "pop" off matched options from the build name options
+        list, and if there are any remaining unmatched options, an exception is
+        thrown.
+
+        Returns:
+            list:  The updated build name options list
+        """
+        build_name_options = self.build_name.split(self.delimiter)
+        valid_options = self.get_options_list_for_all_flags()
+
+        invalid_options = [_ for _ in build_name_options
+                           if _ not in valid_options]
+        if self._env_name is not None:
+            invalid_options = [_ for _ in invalid_options
+                               if _ != self._env_name]
+
+        if len(invalid_options) > 0:
+            err_msg = "The build name contains the following invalid options:"
+            for opt in invalid_options:
+                err_msg += f"\n- {opt}"
+
+            raise ValueError(err_msg)
+
 
     def get_options_and_flag_type_for_flag(self, flag_name):
         """

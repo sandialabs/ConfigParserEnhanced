@@ -490,9 +490,12 @@ class GenConfig(FormattedMsg):
         :attr:`build_name` and ``supported-config-flags.ini``.
         Save the resulting object to ``self.config_keyword_parser``.
         """
+        if self.load_env is None:
+            self.load_load_env()
         self.config_keyword_parser = ConfigKeywordParser(
             self.args.build_name,
             self.args.supported_config_flags_file,
+            env_name=self.load_env.parsed_env_name
         )
 
     def load_set_program_options(self):
