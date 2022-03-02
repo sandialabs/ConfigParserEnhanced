@@ -166,14 +166,16 @@ class ConfigKeywordParser(KeywordParser):
         Returns:
             list:  The updated build name options list
         """
-        build_name_options = self.build_name.split(self.delimiter)
-        valid_options = self.get_options_list_for_all_flags()
+        build_name_without_env_name = (
+            self.build_name
+            if self._env_name is None
+            else self.build_name.replace(f"{self._env_name}_", "")
+        )
+        build_name_options = build_name_without_env_name.split(self.delimiter)
 
+        valid_options = self.get_options_list_for_all_flags()
         invalid_options = [_ for _ in build_name_options
                            if _ not in valid_options]
-        if self._env_name is not None:
-            invalid_options = [_ for _ in invalid_options
-                               if _ != self._env_name]
 
         if len(invalid_options) > 0:
             err_msg = "The build name contains the following invalid options:"
