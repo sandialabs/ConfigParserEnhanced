@@ -125,6 +125,7 @@ class ConfigKeywordParser(KeywordParser):
 
         build_name_options = self.build_name.split(self.delimiter)
         selected_options = {}
+        default_selected_options = {}
 
         for flag_name in self.flag_names:
             options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
@@ -144,10 +145,12 @@ class ConfigKeywordParser(KeywordParser):
             elif len(options_in_build_name) == 0:
                 # Select default option if none in build name
                 selected_options[flag_name] = options[0]
+                default_selected_options[flag_name] = options[0]
             else:  # len(options_in_build_name) == 1 case
                 selected_options[flag_name] = options_in_build_name[0]
 
         self._selected_options = selected_options
+        self.print_default_selections_notice(default_selected_options)
 
     def get_options_and_flag_type_for_flag(self, flag_name):
         """
@@ -229,6 +232,27 @@ class ConfigKeywordParser(KeywordParser):
             self._options_list = options_list
 
         return self._options_list
+
+    def print_default_selections_notice(self, default_selected_options):
+        """
+        Alert the user if some options were selected by default, and if so,
+        outline which flag/option pairs those were. The motivation for this is
+        to avoid silent matching to unintended options if, for example, there
+        were a typo in the build name that caused an option to not be matched
+        to its intended value.
+        """
+        if default_selected_options == {}:
+            return  # Nothing to do
+
+        print("\n" + "="*79 + f"\n{' NOTICE '.center(79)}\n" + "="*79)
+        print("The following options were selected by default:")
+
+        flag_str_len = len(max(default_selected_options.keys(), key=len))
+        for flag, option in default_selected_options.items():
+            flag_str = f"{flag}:"
+            print(f"- {flag_str:{flag_str_len+3}} {option}")
+
+        print("="*79 + "\n")
 
     @property
     def build_name(self):
