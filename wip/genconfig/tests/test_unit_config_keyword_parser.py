@@ -15,7 +15,8 @@ from src.config_keyword_parser import ConfigKeywordParser
 #####################
 @pytest.mark.parametrize("data", [
     {
-        "build_name": "machine-type-5_mpi_serial_empire",
+        "build_name": "machine-type-5_env-name_mpi_serial_empire",
+        "sys_name": "machine-type-5",
         "expected_options": {
             "use-mpi": "mpi",
             "node-type": "serial",
@@ -23,7 +24,8 @@ from src.config_keyword_parser import ConfigKeywordParser
         },
     },
     {
-        "build_name": "machine-type-3_no-mpi_openmp_sparc_empire",
+        "build_name": "machine-type-3_env-name_no-mpi_openmp_sparc_empire",
+        "sys_name": "machine-type-3",
         "expected_options": {
             "use-mpi": "no-mpi",
             "node-type": "openmp",
@@ -31,7 +33,8 @@ from src.config_keyword_parser import ConfigKeywordParser
         },
     },
     {
-        "build_name": "machine-type-3_openmp",
+        "build_name": "machine-type-3_env-name_openmp",
+        "sys_name": "machine-type-3",
         "expected_options": {
             "use-mpi": "mpi",
             "node-type": "openmp",
@@ -40,7 +43,7 @@ from src.config_keyword_parser import ConfigKeywordParser
     },
 ])
 def test_keyword_parser_matches_correctly(data):
-    ckp = ConfigKeywordParser(data["build_name"],
+    ckp = ConfigKeywordParser(data["build_name"], data["sys_name"],
                               "test-supported-config-flags.ini")
     assert ckp.selected_options == data["expected_options"]
 
@@ -70,7 +73,7 @@ def test_parser_uses_correct_defaults():
         "node-type": "serial",
         "package-enables": "none",
     }
-    ckp = ConfigKeywordParser("machine-type-3",
+    ckp = ConfigKeywordParser("machine-type-3", "machine-type-3",
                               "test-supported-config-flags.ini")
     assert ckp.selected_options == expected_options
 
@@ -89,7 +92,7 @@ def test_parser_uses_correct_defaults():
     },
 ])
 def test_selected_options_str_generated_consistently(data):
-    ckp = ConfigKeywordParser(data["build_name"],
+    ckp = ConfigKeywordParser(data["build_name"], "machine-type-5",
                               "test-supported-config-flags.ini")
     assert ckp.selected_options_str == data["expected_selected_options_str"]
     # For the sake of branch coverage of an if statement in
@@ -110,7 +113,7 @@ def test_selected_options_str_generated_consistently(data):
     {"build_name": "machine-type-5_mpi_serial_openmp_empire", "flag": "node-type"},
 ])
 def test_multiple_options_for_select_one_flag_in_build_name_raises(data):
-    ckp = ConfigKeywordParser(data["build_name"],
+    ckp = ConfigKeywordParser(data["build_name"], "machine-type-5",
                               "test-supported-config-flags.ini")
 
     match_str = ("Multiple options found in build name for SELECT_ONE flag "
@@ -147,7 +150,7 @@ def test_flag_without_type_in_config_ini_raises():
         """
     ).strip()
 
-    ckp = ConfigKeywordParser("machine-type-5", bad_ini_filename)
+    ckp = ConfigKeywordParser("machine-type-5", "machine-type-5", bad_ini_filename)
     with pytest.raises(ValueError, match=msg_expected):
         ckp.get_msg_showing_supported_flags("Message here.")
 
@@ -194,9 +197,34 @@ def test_options_are_unique_for_all_flags(multiple):
             """
         ).strip()
     )
-    ckp = ConfigKeywordParser("machine-type-5", bad_ini_filename)
+    ckp = ConfigKeywordParser("machine-type-5", "machine-type-5", bad_ini_filename)
     with pytest.raises(SystemExit):
         ckp.selected_options_str
+
+
+@pytest.mark.parametrize("data", [
+    {
+        "build_name": "rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enable",
+        "invalid_option": "no-package-enable",
+    },
+    {
+        "build_name": "rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated_no-package-enables",
+        "invalid_option": "deprecated",
+    },
+    {
+        "build_name": "rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-of_no-package-enables",
+        "invalid_option": "deprecated-of",
+    },
+])
+def test_invalid_option_in_build_name_raises(data):
+    """
+    Note: These tests derive from unexpected behavior encountered in the wild.
+    Correct behavior is tested for here.
+    """
+    with pytest.raises(ValueError, match=data["invalid_option"]):
+        ckp = ConfigKeywordParser(data["build_name"], "rhel7",
+                                  "test-trilinos-supported-config-flags.ini")
+        ckp.selected_options
 
 
 ##########
@@ -216,7 +244,7 @@ def test_supported_flags_shown_correctly():
     with open(test_ini_filename, "w") as F:
         F.write(test_ini)
 
-    ckp = ConfigKeywordParser("machine-type-5", test_ini_filename)
+    ckp = ConfigKeywordParser("machine-type-5", "machine-type-5", test_ini_filename)
     msg = ckp.get_msg_showing_supported_flags("Message here.")
 
     msg_expected = textwrap.dedent(
@@ -242,7 +270,7 @@ def test_supported_flags_shown_correctly():
 
 def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     data_1 = {
-        "build_name": "machine-type-5",
+        "build_name": "machine-type-5_env-name",
         "expected_selected_options_str": "_mpi_serial_none",
         "expected_selected_options": {
             "use-mpi": "mpi",
@@ -250,14 +278,14 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
             "package-enables": "none",
         },
     }
-    ckp = ConfigKeywordParser(data_1["build_name"],
+    ckp = ConfigKeywordParser(data_1["build_name"], "machine-type-5",
                               "test-supported-config-flags.ini")
     assert ckp.selected_options == data_1["expected_selected_options"]
     assert ckp.selected_options_str == data_1["expected_selected_options_str"]
 
 
     data_2 = {
-        "build_name": "machine-type-5_openmp_muelu_empire_sparc",
+        "build_name": "machine-type-5_env-name_openmp_muelu_empire_sparc",
         "expected_selected_options_str": "_mpi_openmp_empire_sparc_muelu",
         "expected_selected_options": {
             "use-mpi": "mpi",
@@ -266,6 +294,6 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
         },
     }
     # Setting build_name should be enough to clear old properties.
-    ckp.build_name = data_2["build_name"]
+    ckp.set_build_name_system_name(data_2["build_name"], "machine-type-5")
     assert ckp.selected_options == data_2["expected_selected_options"]
     assert ckp.selected_options_str == data_2["expected_selected_options_str"]

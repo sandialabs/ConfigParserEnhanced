@@ -405,17 +405,19 @@ class GenConfig(FormattedMsg):
                 continue  # This is just a supporting section
 
             le.build_name = section_name
-            ckp.build_name = section_name
+
             try:
+                ckp.set_build_name_system_name(section_name, le.system_name)
                 selected_options_str = ckp.selected_options_str
-            except ValueError as e:                                     # pragma: no cover
+            except (ValueError, SystemExit) as e:                                     # pragma: no cover
                 # Don't require coverage of this, as this block of code only
                 # exists to give context to any potential ValueErrors in
                 # ConfigKeywordParser.
                 raise ValueError(self.get_formatted_msg(
                     "When validating sections in\n"
                     f"`{self.args.config_specs_file.name}`,\n"
-                    "the following error was encountered:\n"
+                    "the following error was encountered for the section name\n"
+                    "`{section_name}`:\n"
                     f"{str(e)}"
                 ))
 
@@ -466,7 +468,8 @@ class GenConfig(FormattedMsg):
 
         self.load_env.build_name = self.args.build_name
         self.load_env.args.force = self.args.force
-        self.config_keyword_parser.build_name = self.args.build_name
+        self.config_keyword_parser.set_build_name_system_name(self.args.build_name,
+                                                              self.load_env.system_name)
 
     def validate_config_specs_ini_operations(self):
         """
@@ -492,10 +495,11 @@ class GenConfig(FormattedMsg):
         """
         if self.load_env is None:
             self.load_load_env()
+
         self.config_keyword_parser = ConfigKeywordParser(
             self.args.build_name,
+            self.load_env.system_name,
             self.args.supported_config_flags_file,
-            env_name=self.load_env.parsed_env_name
         )
 
     def load_set_program_options(self):

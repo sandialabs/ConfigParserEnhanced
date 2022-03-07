@@ -1,4 +1,6 @@
+from determinesystem import DetermineSystem
 from keywordparser import KeywordParser
+import re
 import sys
 
 
@@ -47,12 +49,11 @@ class ConfigKeywordParser(KeywordParser):
             load the supported configuration flags and options from.
     """
 
-    def __init__(self, build_name, supported_config_flags_filename,
-                 env_name=None):
+    def __init__(self, build_name, system_name, supported_config_flags_filename):
         self.config_filename = supported_config_flags_filename
         self._build_name = build_name
-        self._env_name = env_name
-        self.delimiter = "_"
+        self._system_name = system_name
+        self.delim = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
 
@@ -105,7 +106,7 @@ class ConfigKeywordParser(KeywordParser):
         values.
         The way this happens is:
 
-            * Split the :attr:`build_name` by the delimiter ``_``.
+            * Split the :attr:`build_name` by the delim ``_``.
             * For each supported flag name in the ``supported-config-flags.ini``:
 
                 * Find the options for this flag that exist in the
@@ -126,7 +127,7 @@ class ConfigKeywordParser(KeywordParser):
         self.assert_options_are_unique_across_all_flags()
         self.assert_all_build_name_options_are_valid()
 
-        build_name_options = self.build_name.split(self.delimiter)
+        build_name_options = self._build_name.split(self.delim)
         selected_options = {}
         default_selected_options = {}
 
@@ -158,29 +159,28 @@ class ConfigKeywordParser(KeywordParser):
 
     def assert_all_build_name_options_are_valid(self):
         """
-        Helper method to remove matched option(s) from the a list. The
-        motivation is to "pop" off matched options from the build name options
-        list, and if there are any remaining unmatched options, an exception is
-        thrown.
-
-        Returns:
-            list:  The updated build name options list
+        Helper method to assert all options in a build name are valid.
         """
-        build_name_without_env_name = (
-            self.build_name
-            if self._env_name is None
-            else self.build_name.replace(f"{self._env_name}_", "")
+        w = r"[a-zA-Z0-9\-\.]"
+        build_name_without_env_name = re.sub(
+            f"^({self._system_name}{self.delim})?{w}*{self.delim}?",
+            "", self._build_name
         )
-        build_name_options = build_name_without_env_name.split(self.delimiter)
+        build_name_options = build_name_without_env_name.split(self.delim)
 
         valid_options = self.get_options_list_for_all_flags()
         invalid_options = [_ for _ in build_name_options
-                           if _ not in valid_options]
+                           if _ not in valid_options and _ != ""]
 
         if len(invalid_options) > 0:
-            err_msg = "The build name contains the following invalid options:"
+            err_msg = ("\n\nThe build name contains the following invalid "
+                       "options:\n")
+
             for opt in invalid_options:
-                err_msg += f"\n- {opt}"
+                err_msg += f"\n  - {opt}"
+
+            err_msg += ("\n\nValid options can be found in "
+                        f"'{self.config_filename}'.")
 
             raise ValueError(err_msg)
 
@@ -287,35 +287,28 @@ class ConfigKeywordParser(KeywordParser):
 
         print("="*79 + "\n")
 
-    @property
-    def build_name(self):
+    def set_build_name_system_name(self, new_build_name, new_system_name):
         """
-        This property provides a convenient way to reset any generated
-        information if one were to change the :attr:`build_name`. This enables
-        the same :class:`ConfigKeywordParser` object to be used to parse
-        multiple build names. For example:
+        This method provides a convenient way to reset any generated
+        information if one were to change the :attr:`build_name` and
+        :attr:`system_name`. This enables the same :class:`ConfigKeywordParser`
+        object to be used to parse multiple build names. For example:
 
         .. code-block:: python
 
-            >>> ckp = ConfigKeywordParser(build_name_1, config_file)
+            >>> ckp = ConfigKeywordParser(build_name_1, sys_name_1, config_file)
             >>> selected_options_1 = ckp.selected_options
-            >>> ckp.build_name = build_name_2  # Resets the `selected_options` property
+            >>> ckp.set_build_name_system_name(build_name_2, sys_name_2)  # Resets the `selected_options` property
             >>> selected_options_2 = ckp.selected_options
-
-        Returns:
-            str:  The build name given in the class initializer.
         """
-        return self._build_name
-
-    @build_name.setter
-    def build_name(self, new_build_name):
-        # Clear any data generated from the old build_name
+        # Clear any data generated from the old build_name / system_name
         if hasattr(self, "_selected_options_str"):
             delattr(self, "_selected_options_str")
         if hasattr(self, "_selected_options"):
             delattr(self, "_selected_options")
 
         self._build_name = new_build_name
+        self._system_name = new_system_name
 
     def get_msg_showing_supported_flags(self, msg, kind="ERROR"):
         """

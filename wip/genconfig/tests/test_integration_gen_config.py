@@ -54,7 +54,7 @@ def test_list_configs_shows_correct_sections(sys_name, test_from_main, capsys):
         "--force", sys_name
     ]
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as excinfo:
         if test_from_main:
             gen_config.main(argv)
         else:
@@ -257,27 +257,27 @@ def test_existing_cmake_fragment_file_asks_user_for_overwrite(mock_input, data):
 # config_specs.ini and supported-systems.ini integration
 # =======================
 @pytest.mark.parametrize("data", [
-    {"config_specs_filename": "test-config-specs.ini", 
-     "supported_systems_filename": "test-supported-systems.ini", 
-     "section_names": [], 
+    {"config_specs_filename": "test-config-specs.ini",
+     "supported_systems_filename": "test-supported-systems.ini",
+     "section_names": [],
      "raises": False},
-    
-    {"config_specs_filename": "test-config-specs-1-new-system-1-section.ini", 
-     "supported_systems_filename": "test-supported-systems.ini", 
-     "section_names": "dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none", 
+
+    {"config_specs_filename": "test-config-specs-1-new-system-1-section.ini",
+     "supported_systems_filename": "test-supported-systems.ini",
+     "section_names": "dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none",
      "raises": True},
-    
-    {"config_specs_filename": "test-config-specs-1-new-system-2-section.ini", 
+
+    {"config_specs_filename": "test-config-specs-1-new-system-2-section.ini",
      "supported_systems_filename": "test-supported-systems.ini",
      "section_names": ["dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none",
-                     "dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_empire"], 
+                     "dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_empire"],
      "raises": True},
-    
-    {"config_specs_filename": "test-config-specs-2-new-system-3-section.ini", 
+
+    {"config_specs_filename": "test-config-specs-2-new-system-3-section.ini",
      "supported_systems_filename": "test-supported-systems.ini",
      "section_names": ["dne8_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none",
              "dne9_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_none",
-             "dne9_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_empire"], 
+             "dne9_cee-cuda-10.1.243-gnu-7.2.0-openmpi-4.0.3_mpi_serial_empire"],
      "raises": True}
 ])
 def test_supported_systems_missing_system_raises(data):
@@ -319,33 +319,9 @@ def get_expected_config_specs_exc_msg(section_names, test_ini_filename):
 
     return msg_expected
 
-def get_expected_supported_systems_exc_msg(section_names, test_supported_systems_filename):
-    msg_expected = textwrap.dedent(
-        f"""
-        |   ERROR:  The following section(s) in your config-specs.ini file
-        |           do not match any systems listed in
-        |           '{test_supported_systems_filename}':
-        |
-        """
-    ).strip()
-    msg_expected += "\n"
 
-    if type(section_names) == list:
-        for section_name in section_names:
-            msg_expected += (
-                f"|           -  {section_name}\n"
-            )
-    else:
-        msg_expected += (
-            f"|           -  {section_names}\n"
-        )
-
-    msg_expected += f"|   Please update '{test_supported_systems_filename}'."
-
-    return msg_expected
-
-
-def run_common_config_specs_validation_test(test_ini_filename, section_names, should_raise):
+def run_common_config_specs_validation_test(test_ini_filename, section_names,
+                                            should_raise, msg=None):
     gc = GenConfig([
         "--config-specs", test_ini_filename,
         "--supported-config-flags", "test-supported-config-flags.ini",
@@ -353,7 +329,7 @@ def run_common_config_specs_validation_test(test_ini_filename, section_names, sh
         "--supported-envs", "test-supported-envs.ini",
         "--environment-specs", "test-environment-specs.ini",
         "--force",
-        "machine-type-5_any_build_name"
+        "machine-type-5_env-name_mpi"
     ])
 
 
@@ -362,7 +338,11 @@ def run_common_config_specs_validation_test(test_ini_filename, section_names, sh
             gc.validate_config_specs_ini()
 
         exc_msg = excinfo.value.args[0]
-        msg_expected = get_expected_config_specs_exc_msg(section_names, test_ini_filename)
+        msg_expected = (
+            msg
+            if msg is not None
+            else get_expected_config_specs_exc_msg(section_names, test_ini_filename)
+        )
         assert msg_expected in exc_msg
 
 
@@ -384,7 +364,7 @@ def run_common_supported_systems_validation_test(test_config_specs_file: str, te
             gc.validate_config_specs_ini()
 
         exc_msg = excinfo.value.args[0]
-        msg_expected = get_expected_supported_systems_exc_msg(section_names, test_supported_systems_file)
+        msg_expected = "Unable to find valid system name"
         assert msg_expected in exc_msg
 
 
@@ -476,14 +456,16 @@ def test_items_in_config_specs_sections_that_arent_options_raises(data):
     with open(test_ini_filename, "w") as F:
         F.write(bad_config_specs)
 
-    run_common_config_specs_validation_test(test_ini_filename, data["section_name"], data["should_raise"])
+    run_common_config_specs_validation_test(
+        test_ini_filename, data["section_name"], data["should_raise"],
+        msg="The build name contains the following invalid options"
+    )
 
 
 def test_multiple_invalid_config_specs_sections_are_shown_in_one_err_msg():
     bad_section_names = [
         "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_serial_sparc",
         "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_sparc_serial",
-        "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc_not-an-option"
     ]
     bad_config_specs = ""
     for sec_name in bad_section_names:
