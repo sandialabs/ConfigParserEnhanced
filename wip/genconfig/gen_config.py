@@ -326,10 +326,10 @@ class GenConfig(FormattedMsg):
             #  full environment name from LoadEnv        config flag options str from ConfigKeywordParser
         """
         if not hasattr(self, "_complete_config"):
-            if self.config_keyword_parser is None:
-                self.load_config_keyword_parser()
             if self.load_env is None:
                 self.load_load_env()
+            if self.config_keyword_parser is None:
+                self.load_config_keyword_parser()
             self._complete_config = (
                 f"{self.load_env.parsed_env_name}"
                 f"{self.config_keyword_parser.selected_options_str}"
@@ -385,10 +385,10 @@ class GenConfig(FormattedMsg):
             # ^_____________________________________________^^____________________________________________________________________________________^
             #           LoadEnv.parsed_env_name               ConfigKeywordParser.selected_options_str
         """
-        if self.config_keyword_parser is None:
-            self.load_config_keyword_parser()
         if self.load_env is None:
             self.load_load_env()
+        if self.config_keyword_parser is None:
+            self.load_config_keyword_parser()
 
         ckp = self.config_keyword_parser
         le = self.load_env
@@ -493,7 +493,7 @@ class GenConfig(FormattedMsg):
         :attr:`build_name` and ``supported-config-flags.ini``.
         Save the resulting object to ``self.config_keyword_parser``.
         """
-        if self.load_env is None:
+        if self.load_env is None:  # pragma: no cover
             self.load_load_env()
 
         self.config_keyword_parser = ConfigKeywordParser(
