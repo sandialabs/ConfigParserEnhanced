@@ -1,4 +1,3 @@
-from determinesystem import DetermineSystem
 from keywordparser import KeywordParser
 import re
 import sys
@@ -106,7 +105,7 @@ class ConfigKeywordParser(KeywordParser):
         values.
         The way this happens is:
 
-            * Split the :attr:`build_name` by the delim ``_``.
+            * Split the :attr:`build_name` by the delimiter ``_``.
             * For each supported flag name in the ``supported-config-flags.ini``:
 
                 * Find the options for this flag that exist in the
@@ -129,7 +128,6 @@ class ConfigKeywordParser(KeywordParser):
 
         build_name_options = self._build_name.split(self.delim)
         selected_options = {}
-        default_selected_options = {}
 
         for flag_name in self.flag_names:
             options, flag_type = self.get_options_and_flag_type_for_flag(flag_name)
@@ -149,21 +147,22 @@ class ConfigKeywordParser(KeywordParser):
             elif len(options_in_build_name) == 0:
                 # Select default option if none in build name
                 selected_options[flag_name] = options[0]
-                default_selected_options[flag_name] = options[0]
             else:  # len(options_in_build_name) == 1 case
                 selected_options[flag_name] = options_in_build_name[0]
 
 
         self._selected_options = selected_options
-        self.print_default_selections_notice(default_selected_options)
 
     def assert_all_build_name_options_are_valid(self):
         """
         Helper method to assert all options in a build name are valid.
         """
-        w = r"[a-zA-Z0-9\-\.]"
+        env_name_regex = r"[a-zA-Z0-9\-\.]"
         build_name_without_env_name = re.sub(
-            f"^({self._system_name}{self.delim})?{w}*{self.delim}?",
+            # env name in build name may or may not contain the system name
+            # - Fully qualified env names from LoadEnv do contain the system
+            #   name.
+            f"^({self._system_name}{self.delim})?{env_name_regex}*{self.delim}?",
             "", self._build_name
         )
         build_name_options = build_name_without_env_name.split(self.delim)
@@ -265,27 +264,6 @@ class ConfigKeywordParser(KeywordParser):
             self._options_list = options_list
 
         return self._options_list
-
-    def print_default_selections_notice(self, default_selected_options):
-        """
-        Alert the user if some options were selected by default, and if so,
-        outline which flag/option pairs those were. The motivation for this is
-        to avoid silent matching to unintended options if, for example, there
-        were a typo in the build name that caused an option to not be matched
-        to its intended value.
-        """
-        if default_selected_options == {}:
-            return  # Nothing to do
-
-        print("\n" + "="*79 + f"\n{' NOTICE '.center(79)}\n" + "="*79)
-        print("The following options were selected by default:")
-
-        flag_str_len = len(max(default_selected_options.keys(), key=len))
-        for flag, option in default_selected_options.items():
-            flag_str = f"{flag}:"
-            print(f"- {flag_str:{flag_str_len+3}} {option}")
-
-        print("="*79 + "\n")
 
     def set_build_name_system_name(self, new_build_name, new_system_name):
         """

@@ -54,7 +54,7 @@ def test_list_configs_shows_correct_sections(sys_name, test_from_main, capsys):
         "--force", sys_name
     ]
 
-    with pytest.raises(SystemExit) as excinfo:
+    with pytest.raises(SystemExit):
         if test_from_main:
             gen_config.main(argv)
         else:
@@ -287,6 +287,32 @@ def test_supported_systems_missing_system_raises(data):
 
 # Section Name Validation
 # =======================
+def run_common_config_specs_validation_test(test_ini_filename, section_names,
+                                            should_raise, msg=None):
+    gc = GenConfig([
+        "--config-specs", test_ini_filename,
+        "--supported-config-flags", "test-supported-config-flags.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--force",
+        "machine-type-5_env-name_mpi"
+    ])
+
+
+    if should_raise:
+        with pytest.raises(ValueError) as excinfo:
+            gc.validate_config_specs_ini()
+
+        exc_msg = excinfo.value.args[0]
+        msg_expected = (
+            msg
+            if msg is not None
+            else get_expected_config_specs_exc_msg(section_names, test_ini_filename)
+        )
+        assert msg_expected in exc_msg
+
+
 def get_expected_config_specs_exc_msg(section_names, test_ini_filename):
     formatted_section_name = "machine-type-5_intel-19.0.4-mpich-7.7.15-hsw-openmp_mpi_serial_sparc"
     msg_expected = textwrap.dedent(
@@ -320,32 +346,6 @@ def get_expected_config_specs_exc_msg(section_names, test_ini_filename):
     return msg_expected
 
 
-def run_common_config_specs_validation_test(test_ini_filename, section_names,
-                                            should_raise, msg=None):
-    gc = GenConfig([
-        "--config-specs", test_ini_filename,
-        "--supported-config-flags", "test-supported-config-flags.ini",
-        "--supported-systems", "test-supported-systems.ini",
-        "--supported-envs", "test-supported-envs.ini",
-        "--environment-specs", "test-environment-specs.ini",
-        "--force",
-        "machine-type-5_env-name_mpi"
-    ])
-
-
-    if should_raise:
-        with pytest.raises(ValueError) as excinfo:
-            gc.validate_config_specs_ini()
-
-        exc_msg = excinfo.value.args[0]
-        msg_expected = (
-            msg
-            if msg is not None
-            else get_expected_config_specs_exc_msg(section_names, test_ini_filename)
-        )
-        assert msg_expected in exc_msg
-
-
 def run_common_supported_systems_validation_test(test_config_specs_file: str, test_supported_systems_file: str,
                                                  section_names, should_raise: bool):
     gc = GenConfig([
@@ -364,8 +364,34 @@ def run_common_supported_systems_validation_test(test_config_specs_file: str, te
             gc.validate_config_specs_ini()
 
         exc_msg = excinfo.value.args[0]
-        msg_expected = "Unable to find valid system name"
+        msg_expected = get_expected_supported_systems_exc_msg(section_names, test_supported_systems_file)
         assert msg_expected in exc_msg
+
+
+def get_expected_supported_systems_exc_msg(section_names, test_supported_systems_filename):
+    msg_expected = textwrap.dedent(
+        f"""
+        |   ERROR:  The following section(s) in your config-specs.ini file
+        |           do not match any systems listed in
+        |           '{test_supported_systems_filename}':
+        |
+        """
+    ).strip()
+    msg_expected += "\n"
+
+    if type(section_names) == list:
+        for section_name in section_names:
+            msg_expected += (
+                f"|           -  {section_name}\n"
+            )
+    else:
+        msg_expected += (
+            f"|           -  {section_names}\n"
+        )
+
+    msg_expected += f"|   Please update '{test_supported_systems_filename}'."
+
+    return msg_expected
 
 
 @pytest.mark.parametrize("data", [

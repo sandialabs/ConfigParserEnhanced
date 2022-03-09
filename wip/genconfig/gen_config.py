@@ -408,8 +408,13 @@ class GenConfig(FormattedMsg):
 
             try:
                 ckp.set_build_name_system_name(section_name, le.system_name)
+            except SystemExit as e:                                     # pragma: no cover
+                sections_with_invalid_systems.append(section_name)
+                continue
+
+            try:
                 selected_options_str = ckp.selected_options_str
-            except (ValueError, SystemExit) as e:                                     # pragma: no cover
+            except ValueError as e:                                     # pragma: no cover
                 # Don't require coverage of this, as this block of code only
                 # exists to give context to any potential ValueErrors in
                 # ConfigKeywordParser.
@@ -420,11 +425,6 @@ class GenConfig(FormattedMsg):
                     "`{section_name}`:\n"
                     f"{str(e)}"
                 ))
-
-            system_name = section_name.split("_")[0]
-            if system_name not in supported_systems:
-                sections_with_invalid_systems.append(section_name)
-                continue
 
             # Silences the LoadEnv diagnostic messages for all the section name
             # matching (i.e. "Matched environment name ...")
