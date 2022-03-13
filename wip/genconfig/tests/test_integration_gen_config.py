@@ -254,6 +254,46 @@ def test_existing_cmake_fragment_file_asks_user_for_overwrite(mock_input, data):
 ###############################################################################
 ##########################     Validation     #################################
 ###############################################################################
+# Build name validity
+@pytest.mark.parametrize("data", [
+    {
+        "build_name": "rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enable",
+        "invalid_options": ["no-package-enable"],
+    },
+    {
+        "build_name": "rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated_no-package-enables",
+        "invalid_options": ["deprecated"],
+    },
+    {
+        "build_name": "rhel7_sems-gnu-7.2.0-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_no-mpi_no-pt_no-rdc_no-uvm_deprecated-of_no-package-enables",
+        "invalid_options": ["deprecated-of"],
+    },
+    {
+        "build_name": "PR-10229-test_rhel7_sems-clang-10.0.0-openmpi-1.10.1-serial_release-debug_shared_no-kokkos-arch_no-asan_no-complex_no-fpic_mpi_no-pt_no-rdc_no-uvm_deprecated-on_no-package-enables-186",
+        "invalid_options": ["PR-10229-test", "no-package-enables-186"],
+    },
+])
+def test_invalid_option_in_build_name_raises(data):
+    """
+    Note: These tests derive from unexpected behavior encountered in the wild.
+    Correct behavior is tested for here.
+    """
+    gc = GenConfig([
+        "--config-specs", "test-config-specs-invalid-option-in-build-name-raises.ini",
+        "--supported-config-flags", "test-supported-config-flags-invalid-option-in-build-name-raises.ini",
+        "--supported-systems", "test-supported-systems.ini",
+        "--supported-envs", "test-supported-envs.ini",
+        "--environment-specs", "test-environment-specs.ini",
+        "--force", data["build_name"]
+    ])
+
+    with pytest.raises(ValueError) as excinfo:
+        gc.complete_config
+
+    exc_msg = excinfo.value.args[0]
+    for opt in data["invalid_options"]:
+        assert f"- {opt}" in exc_msg
+
 # config_specs.ini and supported-systems.ini integration
 # =======================
 @pytest.mark.parametrize("data", [
