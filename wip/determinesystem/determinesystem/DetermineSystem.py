@@ -61,7 +61,9 @@ class DetermineSystem(FormattedMsg):
                 msg = self.get_formatted_msg(textwrap.fill(
                     f"Unable to find valid system name in the build name or "
                     f"for the hostname '{hostname}' in "
-                    f"'{self.supported_systems_file}'.",
+                    f"'{self.supported_systems_file}'. Double-check that any "
+                    "system name in the build name is only surrounded by an "
+                    "underscore '_'.",
                     width=68,
                     break_on_hyphens=False,
                     break_long_words=False
@@ -101,10 +103,8 @@ class DetermineSystem(FormattedMsg):
         Returns:
             str:  The matched system name, or ``None`` if nothing is matched.
         """
-        sys_names = [s for s in self.supported_systems_data.sections()
-                     if s != "DEFAULT"]
         sys_name_from_hostname = None
-        for sys_name in sys_names:
+        for sys_name in self.supported_sys_names:
             # Strip the keys of comments:
             #
             #   Don't match anything following whitespace and a '#'.
@@ -135,11 +135,8 @@ class DetermineSystem(FormattedMsg):
             str:  The matched system name in the build name, if it exists. If
             not, return ``None``.
         """
-        sys_names = [s for s in self.supported_systems_data.sections()
-                     if s != "DEFAULT"]
-
         build_name_options = self.build_name.lower().split("_")
-        sys_names_in_build_name = [_ for _ in sys_names
+        sys_names_in_build_name = [_ for _ in self.supported_sys_names
                                    if _ in build_name_options]
         if len(sys_names_in_build_name) > 1:
             msg = self.get_msg_for_list(
@@ -152,6 +149,15 @@ class DetermineSystem(FormattedMsg):
         else:
             sys_name_from_build_name = sys_names_in_build_name[0]
         return sys_name_from_build_name
+
+    @property
+    def supported_sys_names(self):
+        if hasattr(self, "_sys_names"):
+            return self._supported_sys_names
+
+        self._supported_sys_names = [s for s in self.supported_systems_data.sections()
+                                     if s != "DEFAULT"]
+        return self._supported_sys_names
 
     def parse_supported_systems_file(self):
         """
