@@ -152,7 +152,7 @@ class DetermineSystem(FormattedMsg):
 
     @property
     def supported_sys_names(self):
-        if hasattr(self, "_sys_names"):
+        if hasattr(self, "_supported_sys_names"):
             return self._supported_sys_names
 
         self._supported_sys_names = [s for s in self.supported_systems_data.sections()

@@ -17,6 +17,13 @@ def supported_systems_file():
     return "test_supported_systems.ini"
 
 
+def test_supported_sys_names_property_returns_correctly(supported_systems_file):
+    ds = DetermineSystem("build_name", supported_systems_file)
+    systems_in_test_file = ["machine-type-1", "machine-type-2", "machine-type-3", "rhel7", "machine-type-4"]
+
+    assert set(ds.supported_sys_names) == set(systems_in_test_file)
+
+
 ###############################
 #  System Name Determination  #
 ###############################
