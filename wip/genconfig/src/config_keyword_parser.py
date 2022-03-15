@@ -122,8 +122,8 @@ class ConfigKeywordParser(KeywordParser):
             dict:  A `dict` containing key/value pairs of flags and selected
             options, as found in the :attr:`build_name`.
         """
-        self.assert_options_are_unique_across_all_flags()
-        self.assert_all_build_name_options_are_valid()
+        self.__assert_options_are_unique_across_all_flags()
+        self.__assert_all_build_name_options_are_valid()
 
         build_name_options = self.build_name.split(self.delim)
         selected_options = {}
@@ -152,7 +152,7 @@ class ConfigKeywordParser(KeywordParser):
 
         self._selected_options = selected_options
 
-    def assert_all_build_name_options_are_valid(self):
+    def __assert_all_build_name_options_are_valid(self):
         """
         Helper method to assert all options in a build name are valid.
         """
@@ -202,7 +202,7 @@ class ConfigKeywordParser(KeywordParser):
 
         return options, flag_type
 
-    def assert_options_are_unique_across_all_flags(self):
+    def __assert_options_are_unique_across_all_flags(self):
         """
         Ensures options are unique across all flags. So, an exception would be
         raised for the following ``supported-config-flags.ini``:
@@ -238,7 +238,7 @@ class ConfigKeywordParser(KeywordParser):
         """
         Get an list of all options for all flags in
         ``supported-config-flags.ini``. This is uses to check for uniqueness in
-        :func:`assert_options_are_unique_across_all_flags`.
+        :func:`__assert_options_are_unique_across_all_flags`.
 
         Returns:
             list:  A list containing all options for all flags.
