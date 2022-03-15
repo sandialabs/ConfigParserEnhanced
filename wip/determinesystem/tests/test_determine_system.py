@@ -17,6 +17,13 @@ def supported_systems_file():
     return "test_supported_systems.ini"
 
 
+def test_supported_sys_names_property_returns_correctly(supported_systems_file):
+    ds = DetermineSystem("build_name", supported_systems_file)
+    systems_in_test_file = ["machine-type-1", "machine-type-2", "machine-type-3", "rhel7", "machine-type-4"]
+
+    assert set(ds.supported_sys_names) == set(systems_in_test_file)
+
+
 ###############################
 #  System Name Determination  #
 ###############################
@@ -54,13 +61,27 @@ def test_sys_name_in_build_name_not_matching_hostname_raises(
 
 
 @patch("socket.gethostname")
-def tests_sys_name_in_build_name_overrides_hostname_match_when_forced(
+def test_sys_name_in_build_name_overrides_hostname_match_when_forced(
     mock_gethostname, supported_systems_file
 ):
     mock_gethostname.return_value = "machine-prefix-6"
     ds = DetermineSystem("machine-type-1_build-name", supported_systems_file,
                          force_build_name=True)
     assert ds.system_name == "machine-type-1"
+
+
+@patch("socket.gethostname")
+def test_sys_name_in_build_name_not_bordered_by_underscores_not_recognized(
+    mock_gethostname, supported_systems_file
+):
+    mock_gethostname.return_value = "unsupported_hostname"
+    # Should mention double-checking there's an underscore surrounding the
+    # system name. Without getting too specific, just check for the word
+    # "underscore".
+    msg = "underscore"
+    with pytest.raises(SystemExit, match=msg):
+        ds = DetermineSystem("some-prefix-machine-type-1_build-name", supported_systems_file)
+        ds.system_name
 
 
 @pytest.mark.parametrize("hostname", ["machine-prefix-6", "unsupported_hostname"])
