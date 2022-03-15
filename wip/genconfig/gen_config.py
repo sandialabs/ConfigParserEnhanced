@@ -426,11 +426,6 @@ class GenConfig(FormattedMsg):
                     f"{str(e)}"
                 ))
 
-            system_name = section_name.split("_")[0]
-            if system_name not in supported_systems:
-                sections_with_invalid_systems.append(section_name)
-                continue
-
             # Silences the LoadEnv diagnostic messages for all the section name
             # matching (i.e. "Matched environment name ...")
             with redirect_stdout(io.StringIO()):
