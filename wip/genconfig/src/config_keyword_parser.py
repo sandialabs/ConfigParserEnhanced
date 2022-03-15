@@ -258,7 +258,7 @@ class ConfigKeywordParser(KeywordParser):
     @property
     def build_name(self):
         """
-        This provides provides a convenient way to reset any generated
+        This property provides a convenient way to reset any generated
         information if one were to change the :attr:`build_name`. This enables
         the same :class:`ConfigKeywordParser` object to be used to parse
         multiple build names. For example:
