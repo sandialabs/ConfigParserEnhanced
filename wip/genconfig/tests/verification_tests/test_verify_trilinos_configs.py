@@ -960,7 +960,7 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
                [self.assert_use_deprecated, True],
                [self.assert_package_config_contains, 'set(TPL_ENABLE_Scotch OFF CACHE BOOL \"from .ini configuration\" FORCE)'],
               ],
-              'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_deprecated-on_rdc':
+              'machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_deprecated-on_rdc-minimal':
               [
                [self.assert_gcc_version, 8, 3, 1],
                [self.assert_kokkos_nodetype, "cuda"],
@@ -1015,10 +1015,10 @@ class Test_verify_machine-type-4_configs(unittest.TestCase, common_verify_helper
            expectations'''
         self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_deprecated-on_no-package-enables')
 
-    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_rdc_uvm_deprecated_on_rdc(self):
+    def test_machine-type-4_cuda_10_1_243_gnu_8_3_1_spmpi_rolling_release_static_Volta70_Power9_no_asan_no_complex_no_fpic_mpi_pt_rdc_uvm_deprecated_on_rdc_minimal(self):
         '''Check that the job setup for our python testing matches
            expectations'''
-        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_deprecated-on_rdc')
+        self.check_one_config('machine-type-4_cuda-10.1.243-gnu-8.3.1-spmpi-rolling_release_static_Volta70_Power9_no-asan_no-complex_no-fpic_mpi_pt_rdc_uvm_deprecated-on_rdc-minimal')
 
 class Test_verify_weaver_configs(unittest.TestCase, common_verify_helpers):
     '''Class to iterate through all configs and verify that the loaded
