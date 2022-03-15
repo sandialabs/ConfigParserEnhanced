@@ -140,6 +140,8 @@ class LoadEnv(FormattedMsg):
             delattr(self, "_system_name")
         if hasattr(self, "_parsed_env_name"):
             delattr(self, "_parsed_env_name")
+        if hasattr(self, "_env_stripped_build_name"):
+            delattr(self, "_env_stripped_build_name")
         self.env_keyword_parser = None
 
         self.args.build_name = new_build_name
@@ -273,6 +275,41 @@ class LoadEnv(FormattedMsg):
                 F.write(f"export LOADED_ENV_NAME={self.parsed_env_name}")
 
         return files[-1]
+
+    @property
+    def env_stripped_build_name(self):
+        """
+        This convenience method returns the build name stripped of all
+        components related to the environment. This includes the system name,
+        and any aliases or environment names.
+
+        Returns:
+            str: The build name stripped of environment-related components.
+        """
+        if hasattr(self, "_env_stripped_build_name"):
+            return self._env_stripped_build_name
+
+        if self.env_keyword_parser is None:
+            self.load_env_keyword_parser()
+
+        delim = self.env_keyword_parser.delim
+        build_name_list = self.args.build_name.split(delim)
+
+        env_names = self.env_keyword_parser.env_names
+        l = [_ for _ in build_name_list if _ not in env_names]
+
+        env_name_aliases = self.env_keyword_parser.get_aliases()
+        l = [_ for _ in l if _ not in env_name_aliases]
+
+        ds = DetermineSystem(
+            self.args.build_name,
+            self.args.supported_systems_file,
+            force_build_name=self.args.force
+            )
+        l = [_ for _ in l if _ not in ds.supported_sys_names]
+
+        self._env_stripped_build_name = delim.join(l)
+        return self._env_stripped_build_name
 
 
     @property
