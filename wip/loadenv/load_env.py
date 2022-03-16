@@ -126,6 +126,7 @@ class LoadEnv(FormattedMsg):
         self.parse_supported_systems_file()
         self.env_keyword_parser = None
         self.set_environment = None
+        self.silent = False
 
 
     @property
@@ -158,6 +159,7 @@ class LoadEnv(FormattedMsg):
                 self.args.build_name,
                 self.args.supported_systems_file,
                 force_build_name=self.args.force,
+                silent=self.silent
                 )
             self._system_name = ds.system_name
 
@@ -298,7 +300,7 @@ class LoadEnv(FormattedMsg):
         env_names = self.env_keyword_parser.env_names
         l = [_ for _ in build_name_list if _ not in env_names]
 
-        env_name_aliases = self.env_keyword_parser.get_aliases()
+        env_name_aliases = self.env_keyword_parser.aliases
         l = [_ for _ in l if _ not in env_name_aliases]
 
         ds = DetermineSystem(
