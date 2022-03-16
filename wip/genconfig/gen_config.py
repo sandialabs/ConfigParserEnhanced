@@ -469,8 +469,8 @@ class GenConfig(FormattedMsg):
 
         self.load_env.build_name = self.args.build_name
         self.load_env.args.force = self.args.force
-        le.silent = False
         self.config_keyword_parser.build_name = self.load_env.env_stripped_build_name
+        self.load_env.silent = False
 
     def validate_config_specs_ini_operations(self):
         """
