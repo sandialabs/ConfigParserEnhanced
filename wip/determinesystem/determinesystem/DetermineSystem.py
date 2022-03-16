@@ -24,12 +24,13 @@ class DetermineSystem(FormattedMsg):
     """
 
     def __init__(self, build_name, supported_systems_file,
-                 force_build_name=False):
+                 force_build_name=False, silent=False):
         self.build_name = build_name
         self.supported_systems_file = supported_systems_file
         self.supported_systems_data = None
         self.parse_supported_systems_file()
         self.force_build_name = force_build_name
+        self.silent = silent
 
     @property
     def system_name(self):
@@ -52,7 +53,7 @@ class DetermineSystem(FormattedMsg):
             hostname = socket.gethostname()
             sys_name_from_hostname = self.get_sys_name_from_hostname(hostname)
             self._system_name = sys_name_from_hostname
-            if self._system_name is not None:
+            if self._system_name is not None and not self.silent:
                 print(f"Using system '{self._system_name}' based on matching "
                       f"hostname '{hostname}'.")
             sys_name_from_build_name = self.get_sys_name_from_build_name()
@@ -74,10 +75,12 @@ class DetermineSystem(FormattedMsg):
             # None.
             if sys_name_from_build_name is not None:
                 self._system_name = sys_name_from_build_name
-                print(("Setting" if sys_name_from_hostname is None else
-                       "Overriding") +
-                      f" system to '{self._system_name}' based on "
-                      f"specification in build name '{self.build_name}'.")
+                if not self.silent:
+                    print(("Setting"
+                           if sys_name_from_hostname is None
+                           else "Overriding") +
+                          f" system to '{self._system_name}' based on "
+                          f"specification in build name '{self.build_name}'.")
                 if (sys_name_from_hostname != self._system_name
                     and self.force_build_name is False):
                     msg = self.get_formatted_msg(textwrap.fill(
@@ -152,7 +155,7 @@ class DetermineSystem(FormattedMsg):
 
     @property
     def supported_sys_names(self):
-        if hasattr(self, "_supported_sys_names"):
+        if hasattr(self, "_sys_names"):
             return self._supported_sys_names
 
         self._supported_sys_names = [s for s in self.supported_systems_data.sections()
