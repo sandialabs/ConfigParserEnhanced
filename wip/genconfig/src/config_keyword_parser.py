@@ -1,4 +1,5 @@
 from keywordparser import KeywordParser
+import re
 import sys
 
 
@@ -50,7 +51,7 @@ class ConfigKeywordParser(KeywordParser):
     def __init__(self, build_name, supported_config_flags_filename):
         self.config_filename = supported_config_flags_filename
         self._build_name = build_name
-        self.delimiter = "_"
+        self.delim = "_"
 
         self.flag_names = [_ for _ in self.config["configure-flags"].keys()]
 
@@ -121,9 +122,10 @@ class ConfigKeywordParser(KeywordParser):
             dict:  A `dict` containing key/value pairs of flags and selected
             options, as found in the :attr:`build_name`.
         """
-        self.assert_options_are_unique_across_all_flags()
+        self.__assert_options_are_unique_across_all_flags()
+        self.__assert_all_build_name_options_are_valid()
 
-        build_name_options = self.build_name.split(self.delimiter)
+        build_name_options = self.build_name.split(self.delim)
         selected_options = {}
 
         for flag_name in self.flag_names:
@@ -147,7 +149,30 @@ class ConfigKeywordParser(KeywordParser):
             else:  # len(options_in_build_name) == 1 case
                 selected_options[flag_name] = options_in_build_name[0]
 
+
         self._selected_options = selected_options
+
+    def __assert_all_build_name_options_are_valid(self):
+        """
+        Helper method to assert all options in a build name are valid.
+        """
+        build_name_options = self.build_name.split(self.delim)
+
+        valid_options = self.get_options_list_for_all_flags()
+        invalid_options = [_ for _ in build_name_options
+                           if _ not in valid_options and _ != ""]
+
+        if len(invalid_options) > 0:
+            err_msg = ("\n\nThe build name contains the following invalid "
+                       "options:\n")
+
+            for opt in invalid_options:
+                err_msg += f"\n  - {opt}"
+
+            err_msg += ("\n\nValid options can be found in "
+                        f"'{self.config_filename}'.")
+
+            raise ValueError(err_msg)
 
     def get_options_and_flag_type_for_flag(self, flag_name):
         """
@@ -177,7 +202,7 @@ class ConfigKeywordParser(KeywordParser):
 
         return options, flag_type
 
-    def assert_options_are_unique_across_all_flags(self):
+    def __assert_options_are_unique_across_all_flags(self):
         """
         Ensures options are unique across all flags. So, an exception would be
         raised for the following ``supported-config-flags.ini``:
@@ -213,7 +238,7 @@ class ConfigKeywordParser(KeywordParser):
         """
         Get an list of all options for all flags in
         ``supported-config-flags.ini``. This is uses to check for uniqueness in
-        :func:`assert_options_are_unique_across_all_flags`.
+        :func:`__assert_options_are_unique_across_all_flags`.
 
         Returns:
             list:  A list containing all options for all flags.

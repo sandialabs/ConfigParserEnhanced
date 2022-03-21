@@ -15,7 +15,7 @@ from src.config_keyword_parser import ConfigKeywordParser
 #####################
 @pytest.mark.parametrize("data", [
     {
-        "build_name": "machine-type-5_mpi_serial_empire",
+        "build_name": "mpi_serial_empire",
         "expected_options": {
             "use-mpi": "mpi",
             "node-type": "serial",
@@ -23,7 +23,7 @@ from src.config_keyword_parser import ConfigKeywordParser
         },
     },
     {
-        "build_name": "machine-type-3_no-mpi_openmp_sparc_empire",
+        "build_name": "no-mpi_openmp_sparc_empire",
         "expected_options": {
             "use-mpi": "no-mpi",
             "node-type": "openmp",
@@ -31,7 +31,7 @@ from src.config_keyword_parser import ConfigKeywordParser
         },
     },
     {
-        "build_name": "machine-type-3_openmp",
+        "build_name": "openmp",
         "expected_options": {
             "use-mpi": "mpi",
             "node-type": "openmp",
@@ -40,8 +40,7 @@ from src.config_keyword_parser import ConfigKeywordParser
     },
 ])
 def test_keyword_parser_matches_correctly(data):
-    ckp = ConfigKeywordParser(data["build_name"],
-                              "test-supported-config-flags.ini")
+    ckp = ConfigKeywordParser(data["build_name"], "test-supported-config-flags.ini")
     assert ckp.selected_options == data["expected_options"]
 
 
@@ -70,18 +69,17 @@ def test_parser_uses_correct_defaults():
         "node-type": "serial",
         "package-enables": "none",
     }
-    ckp = ConfigKeywordParser("machine-type-3",
-                              "test-supported-config-flags.ini")
+    ckp = ConfigKeywordParser("", "test-supported-config-flags.ini")
     assert ckp.selected_options == expected_options
 
 
 @pytest.mark.parametrize("data", [
     {
-        "build_name": "machine-type-5",
+        "build_name": "none",
         "expected_selected_options_str": "_mpi_serial_none",
     },
     {
-        "build_name": "machine-type-5_openmp_muelu_sparc_no-mpi",
+        "build_name": "openmp_muelu_sparc_no-mpi",
         "expected_selected_options_str": "_no-mpi_openmp_sparc_muelu",
         # Order here is dependent --------^________________________^
         # on the order within
@@ -89,8 +87,7 @@ def test_parser_uses_correct_defaults():
     },
 ])
 def test_selected_options_str_generated_consistently(data):
-    ckp = ConfigKeywordParser(data["build_name"],
-                              "test-supported-config-flags.ini")
+    ckp = ConfigKeywordParser(data["build_name"], "test-supported-config-flags.ini")
     assert ckp.selected_options_str == data["expected_selected_options_str"]
     # For the sake of branch coverage of an if statement in
     # the property selected_options_str, run this again...
@@ -106,12 +103,11 @@ def test_selected_options_str_generated_consistently(data):
 #  Error Checking  #
 ####################
 @pytest.mark.parametrize("data", [
-    {"build_name": "machine-type-5_mpi_no-mpi_serial_empire", "flag": "use-mpi"},
-    {"build_name": "machine-type-5_mpi_serial_openmp_empire", "flag": "node-type"},
+    {"build_name": "mpi_no-mpi_serial_empire", "flag": "use-mpi"},
+    {"build_name": "mpi_serial_openmp_empire", "flag": "node-type"},
 ])
 def test_multiple_options_for_select_one_flag_in_build_name_raises(data):
-    ckp = ConfigKeywordParser(data["build_name"],
-                              "test-supported-config-flags.ini")
+    ckp = ConfigKeywordParser(data["build_name"], "test-supported-config-flags.ini")
 
     match_str = ("Multiple options found in build name for SELECT_ONE flag "
                  f"'{data['flag']}':")
@@ -147,7 +143,7 @@ def test_flag_without_type_in_config_ini_raises():
         """
     ).strip()
 
-    ckp = ConfigKeywordParser("machine-type-5", bad_ini_filename)
+    ckp = ConfigKeywordParser("serial", bad_ini_filename)
     with pytest.raises(ValueError, match=msg_expected):
         ckp.get_msg_showing_supported_flags("Message here.")
 
@@ -194,7 +190,7 @@ def test_options_are_unique_for_all_flags(multiple):
             """
         ).strip()
     )
-    ckp = ConfigKeywordParser("machine-type-5", bad_ini_filename)
+    ckp = ConfigKeywordParser("empire", bad_ini_filename)
     with pytest.raises(SystemExit):
         ckp.selected_options_str
 
@@ -216,7 +212,7 @@ def test_supported_flags_shown_correctly():
     with open(test_ini_filename, "w") as F:
         F.write(test_ini)
 
-    ckp = ConfigKeywordParser("machine-type-5", test_ini_filename)
+    ckp = ConfigKeywordParser("mpi", test_ini_filename)
     msg = ckp.get_msg_showing_supported_flags("Message here.")
 
     msg_expected = textwrap.dedent(
@@ -242,7 +238,7 @@ def test_supported_flags_shown_correctly():
 
 def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
     data_1 = {
-        "build_name": "machine-type-5",
+        "build_name": "mpi",
         "expected_selected_options_str": "_mpi_serial_none",
         "expected_selected_options": {
             "use-mpi": "mpi",
@@ -250,14 +246,13 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
             "package-enables": "none",
         },
     }
-    ckp = ConfigKeywordParser(data_1["build_name"],
-                              "test-supported-config-flags.ini")
+    ckp = ConfigKeywordParser(data_1["build_name"], "test-supported-config-flags.ini")
     assert ckp.selected_options == data_1["expected_selected_options"]
     assert ckp.selected_options_str == data_1["expected_selected_options_str"]
 
 
     data_2 = {
-        "build_name": "machine-type-5_openmp_muelu_empire_sparc",
+        "build_name": "openmp_muelu_empire_sparc",
         "expected_selected_options_str": "_mpi_openmp_empire_sparc_muelu",
         "expected_selected_options": {
             "use-mpi": "mpi",
@@ -266,6 +261,6 @@ def test_config_keyword_parser_can_be_reused_for_multiple_build_names():
         },
     }
     # Setting build_name should be enough to clear old properties.
-    ckp.build_name = data_2["build_name"]
+    ckp.build_name= data_2["build_name"]
     assert ckp.selected_options == data_2["expected_selected_options"]
     assert ckp.selected_options_str == data_2["expected_selected_options_str"]

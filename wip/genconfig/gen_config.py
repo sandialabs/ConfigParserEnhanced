@@ -326,10 +326,10 @@ class GenConfig(FormattedMsg):
             #  full environment name from LoadEnv        config flag options str from ConfigKeywordParser
         """
         if not hasattr(self, "_complete_config"):
-            if self.config_keyword_parser is None:
-                self.load_config_keyword_parser()
             if self.load_env is None:
                 self.load_load_env()
+            if self.config_keyword_parser is None:
+                self.load_config_keyword_parser()
             self._complete_config = (
                 f"{self.load_env.parsed_env_name}"
                 f"{self.config_keyword_parser.selected_options_str}"
@@ -385,14 +385,15 @@ class GenConfig(FormattedMsg):
             # ^_____________________________________________^^____________________________________________________________________________________^
             #           LoadEnv.parsed_env_name               ConfigKeywordParser.selected_options_str
         """
-        if self.config_keyword_parser is None:
-            self.load_config_keyword_parser()
         if self.load_env is None:
             self.load_load_env()
+        if self.config_keyword_parser is None:
+            self.load_config_keyword_parser()
 
         ckp = self.config_keyword_parser
         le = self.load_env
         le.args.force = True
+        le.silent = True
         config_specs = ConfigParserEnhanced(
             self.args.config_specs_file
         ).configparserenhanceddata
@@ -405,7 +406,13 @@ class GenConfig(FormattedMsg):
                 continue  # This is just a supporting section
 
             le.build_name = section_name
-            ckp.build_name = section_name
+
+            try:
+                ckp.build_name = le.env_stripped_build_name
+            except SystemExit:
+                sections_with_invalid_systems.append(section_name)
+                continue
+
             try:
                 selected_options_str = ckp.selected_options_str
             except ValueError as e:                                     # pragma: no cover
@@ -415,14 +422,10 @@ class GenConfig(FormattedMsg):
                 raise ValueError(self.get_formatted_msg(
                     "When validating sections in\n"
                     f"`{self.args.config_specs_file.name}`,\n"
-                    "the following error was encountered:\n"
+                    "the following error was encountered for the section name\n"
+                    "`{section_name}`:\n"
                     f"{str(e)}"
                 ))
-
-            system_name = section_name.split("_")[0]
-            if system_name not in supported_systems:
-                sections_with_invalid_systems.append(section_name)
-                continue
 
             # Silences the LoadEnv diagnostic messages for all the section name
             # matching (i.e. "Matched environment name ...")
@@ -466,7 +469,8 @@ class GenConfig(FormattedMsg):
 
         self.load_env.build_name = self.args.build_name
         self.load_env.args.force = self.args.force
-        self.config_keyword_parser.build_name = self.args.build_name
+        self.config_keyword_parser.build_name = self.load_env.env_stripped_build_name
+        self.load_env.silent = False
 
     def validate_config_specs_ini_operations(self):
         """
@@ -490,8 +494,11 @@ class GenConfig(FormattedMsg):
         :attr:`build_name` and ``supported-config-flags.ini``.
         Save the resulting object to ``self.config_keyword_parser``.
         """
+        if self.load_env is None:
+            self.load_load_env()
+
         self.config_keyword_parser = ConfigKeywordParser(
-            self.args.build_name,
+            self.load_env.env_stripped_build_name,
             self.args.supported_config_flags_file,
         )
 
