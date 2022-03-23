@@ -412,7 +412,7 @@ class GenConfig(FormattedMsg):
                 # Will not raise if a valid system name is found in the section
                 # name OR if the current hostname matches a system name.
                 ckp.build_name = le.env_stripped_build_name
-            except SystemExit:
+            except SystemExit:  # pragma: no cover
                 invalid_sys_name = True
 
             # This will catch valid hostname but invalid section name
