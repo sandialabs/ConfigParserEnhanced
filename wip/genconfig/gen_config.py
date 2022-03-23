@@ -407,9 +407,21 @@ class GenConfig(FormattedMsg):
 
             le.build_name = section_name
 
+            invalid_sys_name = False
             try:
+                # Will not raise if a valid system name is found in the section
+                # name OR if the current hostname matches a system name.
                 ckp.build_name = le.env_stripped_build_name
             except SystemExit:
+                invalid_sys_name = True
+
+            # This will catch valid hostname but invalid section name
+            system_name = section_name.split("_")[0]
+            invalid_sys_name = (True
+                                if system_name not in supported_systems
+                                else invalid_sys_name)
+
+            if invalid_sys_name:
                 sections_with_invalid_systems.append(section_name)
                 continue
 
