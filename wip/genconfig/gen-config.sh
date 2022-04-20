@@ -146,7 +146,7 @@ function gen_config_helper()
 
         # Print cmake call - use single quotes to defer variable expansion until environment
         #                            is loaded in load-env.sh
-        echo -e 'cmake $cmake_args \\\n    $path_to_src 2>&1 | tee ./${config_prefix}.log' | envsubst | sed 's/;/\\;/g' | tee ./${config_prefix}.sh
+        echo -e 'cmake $cmake_args \\\n    $path_to_src 2>&1 | tee ./${config_prefix}.log' | envsubst | tee ./${config_prefix}.sh
         echo
 
         sleep 2s
