@@ -831,7 +831,7 @@ class SetEnvironmentTest(TestCase):
         section = "CONFIG_A+"
         print("Section  : {}".format(section))
         rval_actual = parser.generate_actions_script(section)
-        self.assertIn("envvar_op set FOO bar", rval_actual)
+        self.assertIn('envvar_op set "FOO" "bar"', rval_actual)
         print("-----[ TEST END ]------------------------------------------")
 
         print("-----[ TEST BEGIN ]----------------------------------------")
@@ -970,12 +970,12 @@ class SetEnvironmentTest(TestCase):
                         # -------------------------------------------------
                         #   S E T E N V I R O N M E N T   C O M M A N D S
                         # -------------------------------------------------
-                        envvar_op set FOO bar
-                        envvar_op append FOO baz
-                        envvar_op prepend FOO foo
-                        envvar_op set BAR foo
-                        envvar_op remove_substr FOO bar
-                        envvar_op unset FOO
+                        envvar_op set "FOO" "bar"
+                        envvar_op append "FOO" "baz"
+                        envvar_op prepend "FOO" "foo"
+                        envvar_op set "BAR" "foo"
+                        envvar_op remove_substr "FOO" "bar"
+                        envvar_op unset "FOO"
                         """
         ).strip()
         rval_actual = parser.generate_actions_script(
@@ -1522,11 +1522,11 @@ class SetEnvironmentTest(TestCase):
         script_bash_actual = parser.generate_actions_script(section, interp='bash')
         print(script_bash_actual)
 
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_01 ""\n', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_02 ""\n', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_03 "ERROR -', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_04 ""\n', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_05 "ERROR -', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_01" ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_02" ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_03" "ERROR -', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_04" ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_05" "ERROR -', script_bash_actual)
 
         options = {
             "prefix": "ane",

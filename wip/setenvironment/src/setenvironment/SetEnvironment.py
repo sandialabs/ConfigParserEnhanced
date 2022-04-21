@@ -1479,7 +1479,7 @@ class SetEnvironment(ConfigParserEnhanced):
             arglist = ['"' + x + '"' for x in arglist]
             output = "envvar_op({})".format(",".join(arglist))
         elif interp == "bash":
-            arglist[2 :] = ['"' + x + '"' if x != "" else x for x in arglist[2 :]]
+            arglist[1 :] = ['"' + x + '"' for x in arglist[1 :]]
             output = "envvar_op {}".format(" ".join(arglist))
         else:
             self.exception_control_event(
