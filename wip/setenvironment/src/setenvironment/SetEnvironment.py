@@ -1479,6 +1479,7 @@ class SetEnvironment(ConfigParserEnhanced):
             arglist = ['"' + x + '"' for x in arglist]
             output = "envvar_op({})".format(",".join(arglist))
         elif interp == "bash":
+            # Surround each ini command argument in double quotes, except for the first ini command argument
             arglist[1 :] = ['"' + x + '"' for x in arglist[1 :]]
             output = "envvar_op {}".format(" ".join(arglist))
         else:
