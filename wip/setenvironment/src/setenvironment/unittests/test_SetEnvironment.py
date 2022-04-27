@@ -1744,7 +1744,7 @@ class SetEnvironmentTest(TestCase):
         }
         filename = self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
         p = subprocess.run(f"source {filename}", shell=True,
-                           stderr=subprocess.PIPE, universal_newlines=True)
+                           stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True)
         self.assertFalse("command not found" in p.stderr)
         self.assertFalse("command not found" in p.stdout)
 
