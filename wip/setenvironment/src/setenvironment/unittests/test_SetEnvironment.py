@@ -9,6 +9,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import os
+import subprocess
 
 
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -831,7 +832,7 @@ class SetEnvironmentTest(TestCase):
         section = "CONFIG_A+"
         print("Section  : {}".format(section))
         rval_actual = parser.generate_actions_script(section)
-        self.assertIn("envvar_op set FOO bar", rval_actual)
+        self.assertIn('envvar_op set "FOO" "bar"', rval_actual)
         print("-----[ TEST END ]------------------------------------------")
 
         print("-----[ TEST BEGIN ]----------------------------------------")
@@ -970,12 +971,12 @@ class SetEnvironmentTest(TestCase):
                         # -------------------------------------------------
                         #   S E T E N V I R O N M E N T   C O M M A N D S
                         # -------------------------------------------------
-                        envvar_op set FOO bar
-                        envvar_op append FOO baz
-                        envvar_op prepend FOO foo
-                        envvar_op set BAR foo
-                        envvar_op remove_substr FOO bar
-                        envvar_op unset FOO
+                        envvar_op set "FOO" "bar"
+                        envvar_op append "FOO" "baz"
+                        envvar_op prepend "FOO" "foo"
+                        envvar_op set "BAR" "foo"
+                        envvar_op remove_substr "FOO" "bar"
+                        envvar_op unset "FOO"
                         """
         ).strip()
         rval_actual = parser.generate_actions_script(
@@ -1522,11 +1523,11 @@ class SetEnvironmentTest(TestCase):
         script_bash_actual = parser.generate_actions_script(section, interp='bash')
         print(script_bash_actual)
 
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_01 ""\n', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_02 ""\n', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_03 "ERROR -', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_04 ""\n', script_bash_actual)
-        self.assertIn('envvar_op assert_not_empty TEST_ENVVAR_VALUE_05 "ERROR -', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_01" ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_02" ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_03" "ERROR -', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_04" ""\n', script_bash_actual)
+        self.assertIn('envvar_op assert_not_empty "TEST_ENVVAR_VALUE_05" "ERROR -', script_bash_actual)
 
         options = {
             "prefix": "ane",
@@ -1725,6 +1726,27 @@ class SetEnvironmentTest(TestCase):
         self.assertFalse(gen_new_ground_truth, "Testing should not also generate new ground truth.")
 
         return
+
+    def test_SetEnvironment_bash_env_val_with_special_chars_not_interpreted(self):
+        """
+        This test is to ensure that values for an envvar_op that have
+        special characters such as ; or * are not interpreted when envvar_op is
+        called. Rather, they should be passed by value to this function.
+        """
+        gen_new_ground_truth = global_gen_new_ground_truth_files
+        options = {
+            "prefix": "special_chars",
+            "section": "BASH_ENV_VAL_WITH_SPECIAL_CHARS_NOT_INTERPRETED",
+            "interpreter": "bash",
+            "header": True,
+            "body": True,
+            "shebang": True
+        }
+        filename = self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
+        p = subprocess.run(f"source {filename}", shell=True,
+                           stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True)
+        self.assertFalse("command not found" in p.stderr)
+        self.assertFalse("command not found" in p.stdout)
 
     def test_SetEnvironment_write_actions_to_file_bad_interp(self):
         """
@@ -2062,7 +2084,7 @@ class SetEnvironmentTest(TestCase):
         self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
 
         print("-----[ TEST END ]------------------------------------------")
-        return
+        return filename_out_test
 
 
 
