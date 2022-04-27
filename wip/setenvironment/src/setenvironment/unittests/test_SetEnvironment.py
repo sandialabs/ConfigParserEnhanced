@@ -1746,6 +1746,7 @@ class SetEnvironmentTest(TestCase):
         p = subprocess.run(f"source {filename}", shell=True,
                            stderr=subprocess.PIPE, universal_newlines=True)
         self.assertFalse("command not found" in p.stderr)
+        self.assertFalse("command not found" in p.stdout)
 
     def test_SetEnvironment_write_actions_to_file_bad_interp(self):
         """
