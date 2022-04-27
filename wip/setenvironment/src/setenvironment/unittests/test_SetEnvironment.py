@@ -9,6 +9,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import os
+import subprocess
 
 
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -1726,6 +1727,26 @@ class SetEnvironmentTest(TestCase):
 
         return
 
+    def test_SetEnvironment_bash_env_val_with_special_chars_not_interpreted(self):
+        """
+        This test is to ensure that values for an envvar_op that have
+        special characters such as ; or * are not interpreted when envvar_op is
+        called. Rather, they should be passed by value to this function.
+        """
+        gen_new_ground_truth = global_gen_new_ground_truth_files
+        options = {
+            "prefix": "special_chars",
+            "section": "BASH_ENV_VAL_WITH_SPECIAL_CHARS_NOT_INTERPRETED",
+            "interpreter": "bash",
+            "header": True,
+            "body": True,
+            "shebang": True
+        }
+        filename = self._helper_write_actions_to_file(options, gen_new_ground_truth=gen_new_ground_truth)
+        p = subprocess.run(f"source {filename}", shell=True,
+                           stderr=subprocess.PIPE, universal_newlines=True)
+        self.assertFalse("command not found" in p.stderr)
+
     def test_SetEnvironment_write_actions_to_file_bad_interp(self):
         """
         """
@@ -2062,7 +2083,7 @@ class SetEnvironmentTest(TestCase):
         self.assertTrue(filecmp.cmp(filename_out_truth, filename_out_test))
 
         print("-----[ TEST END ]------------------------------------------")
-        return
+        return filename_out_test
 
 
 
