@@ -2,9 +2,18 @@
 
 ####### BEGIN runnable checks #######
 # Ensure that this script is sourced.
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]] ; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     echo "This script must be sourced."
     exit 1
+fi
+
+# Ensure that this script is not run in a subshell.
+# This check was added due to bug: TRILFRAME-290.
+if [[ ! "$BASH_SUBSHELL" == "0" ]]; then
+    if [[ -z $GENCONFIG_CI_BYPASS_SUBSHELL_CHECK ]]; then
+	echo "This script cannot be run in a subshell since it modifies your shells environment."
+	exit 1
+    fi
 fi
 
 # Ensure python3 is in PATH and that the version is high enough.

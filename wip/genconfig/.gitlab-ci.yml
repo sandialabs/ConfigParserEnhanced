@@ -26,6 +26,7 @@ base_python_test:
   timeout: 30s
   variables:
     VALID_GC_INI_FILES: '--config-specs tests/supporting_files/test-config-specs.ini --supported-config-flags tests/supporting_files/test-supported-config-flags.ini --supported-systems tests/supporting_files/test-supported-systems.ini --supported-envs tests/supporting_files/test-supported-envs.ini --environment-specs tests/supporting_files/test-environment-specs.ini'
+    GENCONFIG_CI_BYPASS_SUBSHELL_CHECK: 'true'
   script:
     # Base python setup
     - python3 -m venv ./base_python_test
@@ -62,6 +63,9 @@ base_python_test:
 
     # Test -y option and invalid config specs ini file
     - bash -c 'source ../gen-config.sh -y --ci-mode --config-specs ../tests/supporting_files/test-config-specs-invalid2.ini --supported-config-flags ../tests/supporting_files/test-supported-config-flags.ini --supported-systems ../tests/supporting_files/test-supported-systems.ini --supported-envs ../tests/supporting_files/test-supported-envs.ini --environment-specs ../tests/supporting_files/test-environment-specs.ini --cmake-fragment tmp.cmake --force rhel7_invalid2 ../; ret=$?; if [[ $ret -ne 0 ]]; then exit 0; else exit 1; fi'
+
+    # Test early termination in sub-shell (TRILFRAME-290)
+    - bash -c 'unset GENCONFIG_CI_BYPASS_SUBSHELL_CHECK; source ../gen-config.sh --help ../ | tee gen-config.out; ret=$PIPESTATUS; if [[ $ret -ne 0 ]]; then exit 0; else exit 1; fi'
     - deactivate
 
 pytest:
