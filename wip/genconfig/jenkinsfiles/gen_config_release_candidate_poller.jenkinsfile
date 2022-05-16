@@ -57,7 +57,7 @@ node("ascic115-trilinos") {
             $class: 'GitSCM', 
             branches: [[name: '*/'+autotester_configs_branch]],
             doGenerateSubmoduleConfigurations: false, 
-            extensions: [],
+            extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'autotester_configs']],
             submoduleCfg: [], 
             userRemoteConfigs: [[url: autotester_configs_repo]]
         ])
@@ -65,7 +65,7 @@ node("ascic115-trilinos") {
     stage('Creating sub-jobs') {
         def launcher = new gov.sandia.sems.spifi.JobLauncher(env: this)
 
-        String cfgFile = "trilinos_mastermergeautotester.cfg"
+        String cfgFile = "autotester_configs/trilinos_mastermergeautotester.cfg"
         String trilinosSourceSha = sh(script: "git ls-remote $P_TRILINOS_SOURCE_REPO $P_TRILINOS_SOURCE_BRANCH | awk '{print \$1}'",
                                     returnStdout: true).toString().trim()
 
