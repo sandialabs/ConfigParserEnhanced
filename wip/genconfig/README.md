@@ -20,10 +20,7 @@ Copy the public key and add it to https://internal.gitlab.server/-/profile/keys 
 $ git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/GenConfig.git
 ```
 
-3. Get a Python 3.6+ in your path; the following have been verified to work:
-  * ASCIC/Chama/Eclipse/Stria: `module load sparc-tools/python/3.7.9`
-  * Mutrino: `module load cray-python/3.8.2.1`
-  * Vortex: `module load anaconda3/4.3.2-python-3.7.6`
+3. Get Python 3.6+ in your path.
 
 4. Install the requirements:
 ```bash
