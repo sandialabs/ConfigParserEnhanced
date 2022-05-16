@@ -6,16 +6,13 @@ properties([
         string(defaultValue: "git@github.com:trilinos/Trilinos.git",
                description: 'Which trilinos source repo to use?',
                name: 'P_TRILINOS_SOURCE_REPO'),
-        string(defaultValue: 'trilinos-consolidation-release-candidate',
+        string(defaultValue: 'master',
                description: 'Which trilinos source branch to use?',
                name: 'P_TRILINOS_SOURCE_BRANCH'),
-        string(defaultValue: 'trilinos-consolidation-release-candidate',
-               description: 'Which trilinos source sha to use?',
-               name: 'P_TRILINOS_SOURCE_SHA'),
         string(defaultValue: "git@github.com:trilinos/Trilinos.git",
                description: 'Which trilinos target repo to use?',
                name: 'P_TRILINOS_TARGET_REPO'),
-        string(defaultValue: "develop",
+        string(defaultValue: "master",
                description: 'Which trilinos target sha to use?',
                name: 'P_TRILINOS_TARGET_SHA'),
         string(defaultValue: "consolidation-release-candidate-testing",
@@ -69,6 +66,8 @@ node {
         def launcher = new gov.sandia.sems.spifi.JobLauncher(env: this)
 
         String cfgFile = "trilinos_mastermergeautotester.cfg"
+        String trilinosSourceSha = sh(script: "git ls-remote $P_TRILINOS_SOURCE_REPO $P_TRILINOS_SOURCE_BRANCH | awk '{print $1}'",
+                                    returnStdout: true).toString().trim()
 
         def jobs_from_autotester_config = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile, returnStdout: true).toString().trim().split('\n')
 
@@ -77,7 +76,7 @@ node {
                                 parameters: [
                                     (string(name:"TRILINOS_SOURCE_BRANCH", value: "${params.P_TRILINOS_SOURCE_BRANCH}")),
                                     (string(name:"TRILINOS_SOURCE_REPO", value: "${params.P_TRILINOS_SOURCE_REPO}")),
-                                    (string(name:"TRILINOS_SOURCE_SHA", value: "${params.P_TRILINOS_SOURCE_SHA}")),
+                                    (string(name:"TRILINOS_SOURCE_SHA", value: trilinosSourceSha)),
                                     (string(name:"TRILINOS_TARGET_REPO", value: "${params.P_TRILINOS_TARGET_REPO}")),
                                     (string(name:"TRILINOS_TARGET_SHA", value: "${params.P_TRILINOS_TARGET_SHA}")),
                                     (string(name:"PULLREQUESTNUM", value: "${params.P_PULLREQUESTNUM}")),
