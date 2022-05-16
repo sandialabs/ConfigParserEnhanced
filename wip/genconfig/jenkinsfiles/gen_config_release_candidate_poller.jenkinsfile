@@ -35,7 +35,7 @@ properties([
                 description: 'Which branch for gen-config and its dependencies should be used?',
                 name: 'P_RELEASE_CANDIDATE_BRANCH'),
     ]),
-    //TODO, uncomment this: pipelineTriggers([pollSCM('@hourly')])
+    pipelineTriggers([pollSCM('@hourly')])
 ])
 
 String scmPollBranch = "${params.P_RELEASE_CANDIDATE_BRANCH}"
