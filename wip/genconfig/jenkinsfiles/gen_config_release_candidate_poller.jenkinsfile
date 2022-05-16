@@ -39,7 +39,7 @@ String scmPollBranch = "${params.P_RELEASE_CANDIDATE_BRANCH}"
 String scmPollRepo = "${params.P_GENCONFIG_REPO}"
 String mailList = "wg-trilinos-framework@sandia.gov"
 
-node {
+node("ascic115-trilinos") {
     checkout([
         $class: 'GitSCM', 
         branches: [[name: '*/'+scmPollBranch]], 
