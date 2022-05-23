@@ -57,6 +57,7 @@ node("ascic115-trilinos") {
     String autotester_configs_branch = "master"
     String autotester_configs_repo   = "https://cee-trilinos:$CEE_TRILINOS_TOKEN@cee-gitlab.sandia.gov/trilinos-project/autotester_configs.git"
     checkout([
+            poll: false,
             $class: 'GitSCM', 
             branches: [[name: '*/'+autotester_configs_branch]],
             doGenerateSubmoduleConfigurations: false, 
