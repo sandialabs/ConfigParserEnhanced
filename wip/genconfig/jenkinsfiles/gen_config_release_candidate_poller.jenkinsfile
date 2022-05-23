@@ -72,7 +72,9 @@ node("ascic115-trilinos") {
         String trilinosSourceSha = sh(script: "git ls-remote $P_TRILINOS_SOURCE_REPO $P_TRILINOS_SOURCE_BRANCH | awk '{print \$1}'",
                                     returnStdout: true).toString().trim()
 
-        def jobs_from_autotester_config = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile, returnStdout: true).toString().trim().split('\n')
+        def jobs_from_autotester_config = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^job.*', returnStdout: true).toString().trim().split('\n')
+        def genconfig_build_name_param = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^param.*_GENCONFIG_BUILD_NAME', returnStdout: true).toString().trim().split('\n')
+        def trilinos_srn_config_param = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^param.*_TRILINOS_SRN_CONFIG', returnStdout: true).toString().trim().split('\n')
 
         for (String job_from_autotester_config : jobs_from_autotester_config) {
             launcher.appendJob(label: scmPollBranch, job_name: job_from_autotester_config,
@@ -86,6 +88,9 @@ node("ascic115-trilinos") {
                                     (string(name:"PULLREQUEST_CDASH_TRACK", value: "${params.P_CDASH_GROUP}")),
                                     booleanParam(name:"FORCE_CLEAN", value: "${params.P_FORCE_CLEAN}"),
                                     (string(name:"TRILINOS_CTEST_DROP_SITE", value: "${params.P_CDASH_SITE}")),
+                                    (string(name:"GENCONFIG_BUILD_NAME", value: genconfig_build_name_param)),
+                                    (string(name:"TRILINOS_SRN_CONFIG", value: trilinos_srn_config_param)),
+                                    (string(name:"FORCE_CLEAN", value: "true")),
                                 ]
                             )
 
