@@ -3,13 +3,13 @@
 
 properties([
     parameters([
-        string(defaultValue: "git@github.com:trilinos/Trilinos.git",
+        string(defaultValue: "https://github.com/trilinos/Trilinos",
                description: 'Which trilinos source repo to use?',
                name: 'P_TRILINOS_SOURCE_REPO'),
         string(defaultValue: 'master',
                description: 'Which trilinos source branch to use?',
                name: 'P_TRILINOS_SOURCE_BRANCH'),
-        string(defaultValue: "git@github.com:trilinos/Trilinos.git",
+        string(defaultValue: "https://github.com/trilinos/Trilinos",
                description: 'Which trilinos target repo to use?',
                name: 'P_TRILINOS_TARGET_REPO'),
         string(defaultValue: 'master',
