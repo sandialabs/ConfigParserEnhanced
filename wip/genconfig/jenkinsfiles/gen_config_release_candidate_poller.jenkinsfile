@@ -77,6 +77,7 @@ node("ascic115-trilinos") {
         def trilinos_srn_config_param = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^param.*_TRILINOS_SRN_CONFIG', returnStdout: true).toString().trim().split('\n')
 
         jobs_from_autotester_config.eachWithIndex {job_from_autotester_config, i ->
+            println("starting config: " + job_from_autotester_config + ", " + genconfig_build_name_param[i] + ", " + trilinos_srn_config_param[i])
             launcher.appendJob(label: scmPollBranch, job_name: job_from_autotester_config,
                                 parameters: [
                                     (string(name:"TRILINOS_SOURCE_BRANCH", value: "${params.P_TRILINOS_SOURCE_BRANCH}")),
