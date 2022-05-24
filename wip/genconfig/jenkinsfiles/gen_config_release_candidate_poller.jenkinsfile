@@ -6,7 +6,7 @@ properties([
         string(defaultValue: "https://github.com/trilinos/Trilinos",
                description: 'Which trilinos source repo to use?',
                name: 'P_TRILINOS_SOURCE_REPO'),
-        string(defaultValue: 'master',
+        string(defaultValue: 'develop',
                description: 'Which trilinos source branch to use?',
                name: 'P_TRILINOS_SOURCE_BRANCH'),
         string(defaultValue: "https://github.com/trilinos/Trilinos",
