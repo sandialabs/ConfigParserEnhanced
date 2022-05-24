@@ -76,6 +76,7 @@ node("ascic115-trilinos") {
         def jobs_from_autotester_config = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^job.*', returnStdout: true).toString().trim().split('\n')
         def genconfig_build_name_param = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^param.*_GENCONFIG_BUILD_NAME', returnStdout: true).toString().trim().split('\n')
         def trilinos_srn_config_param = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^param.*_TRILINOS_SRN_CONFIG', returnStdout: true).toString().trim().split('\n')
+        def trilinos_node_label_param = sh(script: "python3 GenConfig/jenkinsfiles/utils/parse_job_names.py "+cfgFile+' ^param.*_TRILINOS_NODE_LABEL', returnStdout: true).toString().trim().split('\n')
 
         jobs_from_autotester_config.eachWithIndex {job_from_autotester_config, i ->
             println("starting config: " + job_from_autotester_config + ", " + genconfig_build_name_param[i] + ", " + trilinos_srn_config_param[i])
@@ -93,6 +94,7 @@ node("ascic115-trilinos") {
                                     (string(name:"TRILINOS_CTEST_DROP_SITE", value: "${params.P_CDASH_SITE}")),
                                     (string(name:"GENCONFIG_BUILD_NAME", value: genconfig_build_name_param[i])),
                                     (string(name:"TRILINOS_SRN_CONFIG", value: trilinos_srn_config_param[i])),
+                                    (string(name:"TRILINOS_NODE_LABEL", value: trilinos_node_label_param[i])),
                                     (string(name:"FORCE_CLEAN", value: "true")),
                                 ]
                             )
