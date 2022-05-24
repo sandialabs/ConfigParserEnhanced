@@ -84,7 +84,7 @@ node("ascic115-trilinos") {
                                     (string(name:"TRILINOS_SOURCE_BRANCH", value: "${params.P_TRILINOS_SOURCE_BRANCH}")),
                                     (string(name:"TRILINOS_SOURCE_REPO", value: "${params.P_TRILINOS_SOURCE_REPO}")),
                                     (string(name:"TRILINOS_SOURCE_SHA", value: trilinosSourceSha)),
-                                    (string(name:"TRILINOS_TARGET_BRANCH", value: "${params.P_TRILINOS_TARGET_BRANCH}"))
+                                    (string(name:"TRILINOS_TARGET_BRANCH", value: "${params.P_TRILINOS_TARGET_BRANCH}")),
                                     (string(name:"TRILINOS_TARGET_REPO", value: "${params.P_TRILINOS_TARGET_REPO}")),
                                     (string(name:"TRILINOS_TARGET_SHA", value: "${params.P_TRILINOS_TARGET_SHA}")),
                                     (string(name:"PULLREQUESTNUM", value: "${params.P_PULLREQUESTNUM}")),
