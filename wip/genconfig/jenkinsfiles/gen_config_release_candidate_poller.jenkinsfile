@@ -80,7 +80,7 @@ node("ascic115-trilinos") {
 
         jobs_from_autotester_config.eachWithIndex {job_from_autotester_config, i ->
             println("starting config: " + job_from_autotester_config + ", " + genconfig_build_name_param[i] + ", " + trilinos_srn_config_param[i])
-            launcher.appendJob(label: scmPollBranch, job_name: job_from_autotester_config,
+            launcher.appendJob(label: job_from_autotester_config, job_name: job_from_autotester_config,
                                 parameters: [
                                     (string(name:"TRILINOS_SOURCE_BRANCH", value: "${params.P_TRILINOS_SOURCE_BRANCH}")),
                                     (string(name:"TRILINOS_SOURCE_REPO", value: "${params.P_TRILINOS_SOURCE_REPO}")),
@@ -95,11 +95,9 @@ node("ascic115-trilinos") {
                                     (string(name:"GENCONFIG_BUILD_NAME", value: genconfig_build_name_param[i])),
                                     (string(name:"TRILINOS_SRN_CONFIG", value: trilinos_srn_config_param[i])),
                                     (string(name:"TRILINOS_NODE_LABEL", value: trilinos_node_label_param[i])),
-                                    (string(name:"FORCE_CLEAN", value: "true")),
+                                    (string(name:"FORCE_CLEAN", value: "true"))
                                 ]
                             )
-
-            launcher.printJobList()
         }
         
         def results_arg = launcher.launchInParallel()
