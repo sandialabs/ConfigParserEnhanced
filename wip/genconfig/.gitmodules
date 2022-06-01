@@ -1,0 +1,24 @@
+[submodule "deps/ConfigParserEnhanced"]
+	path = deps/ConfigParserEnhanced
+	url = git@internal.gitlab.server:trilinos-devops-consolidation/code/ConfigParserEnhanced.git
+	branch = master
+[submodule "deps/SetEnvironment"]
+	path = deps/SetEnvironment
+	url = git@internal.gitlab.server:trilinos-devops-consolidation/code/SetEnvironment.git
+	branch = master
+[submodule "deps/DetermineSystem"]
+	path = deps/DetermineSystem
+	url = git@internal.gitlab.server:trilinos-devops-consolidation/code/DetermineSystem.git
+	branch = master
+[submodule "deps/KeywordParser"]
+	path = deps/KeywordParser
+	url = git@internal.gitlab.server:trilinos-devops-consolidation/code/KeywordParser.git
+	branch = master
+[submodule "deps/LoadEnv"]
+	path = deps/LoadEnv
+	url = git@internal.gitlab.server:trilinos-devops-consolidation/code/loadenv.git
+	branch = master
+[submodule "deps/SetProgramOptions"]
+	path = deps/SetProgramOptions
+	url = git@internal.gitlab.server:trilinos-devops-consolidation/code/SetProgramOptions.git
+	branch = master
