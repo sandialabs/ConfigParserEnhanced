@@ -26,12 +26,12 @@ def test_argv_non_list_raises(data):
     {
         "argv": [
             "--supported-config-flags",
-            "non_default/supported-config-flags.ini",
+            "supported-config-flags.ini",
             "build_name"
         ],
         "build_name_expected": "build_name",
         "supported_config_flags_expected":
-        "non_default/supported-config-flags.ini",
+        "supported-config-flags.ini",
         "config_specs_expected": "default",
         "supported_sys_expected": "default",
         "supported_envs_expected": "default",
@@ -39,55 +39,55 @@ def test_argv_non_list_raises(data):
     },
     {
         "argv": [
-            "--config-specs", "non_default/config-specs.ini",
+            "--config-specs", "config-specs.ini",
             "build_name"
         ],
         "build_name_expected": "build_name",
         "supported_config_flags_expected": "default",
-        "config_specs_expected": "non_default/config-specs.ini",
+        "config_specs_expected": "config-specs.ini",
         "supported_sys_expected": "default",
         "supported_envs_expected": "default",
         "environment_specs_expected": "default",
     },
     {
         "argv": [
-            "--supported-systems", "non_default/supported-systems.ini",
+            "--supported-systems", "supported-systems.ini",
             "build_name"
         ],
         "build_name_expected": "build_name",
         "supported_config_flags_expected": "default",
         "config_specs_expected": "default",
-        "supported_sys_expected": "non_default/supported-systems.ini",
+        "supported_sys_expected": "supported-systems.ini",
         "supported_envs_expected": "default",
         "environment_specs_expected": "default",
     },
     {
         "argv": [
-            "--supported-systems", "non_default/supported-systems.ini",
+            "--supported-systems", "supported-systems.ini",
             "build_name"
         ],
         "build_name_expected": "build_name",
         "supported_config_flags_expected": "default",
         "config_specs_expected": "default",
-        "supported_sys_expected": "non_default/supported-systems.ini",
+        "supported_sys_expected": "supported-systems.ini",
         "supported_envs_expected": "default",
         "environment_specs_expected": "default",
     },
     {
         "argv": [
-            "--supported-envs", "non_default/supported-envs.ini",
+            "--supported-envs", "supported-envs.ini",
             "build_name"
         ],
         "build_name_expected": "build_name",
         "supported_config_flags_expected": "default",
         "config_specs_expected": "default",
         "supported_sys_expected": "default",
-        "supported_envs_expected": "non_default/supported-envs.ini",
+        "supported_envs_expected": "supported-envs.ini",
         "environment_specs_expected": "default",
     },
     {
         "argv": [
-            "--environment-specs", "non_default/environment-specs.ini",
+            "--environment-specs", "environment-specs.ini",
             "build_name"
         ],
         "build_name_expected": "build_name",
@@ -95,11 +95,11 @@ def test_argv_non_list_raises(data):
         "config_specs_expected": "default",
         "supported_sys_expected": "default",
         "supported_envs_expected": "default",
-        "environment_specs_expected": "non_default/environment-specs.ini",
+        "environment_specs_expected": "environment-specs.ini",
     },
 ])
 def test_argument_parser_functions_correctly(data):
-    gc = GenConfig(data["argv"])
+    gc = GenConfig(data["argv"], gen_config_ini_file="./gen-config.ini")
     assert gc.args.build_name == data["build_name_expected"]
     assert gc.args.supported_config_flags_file == Path(
         gc.gen_config_config_data["gen-config"]["supported-config-flags"]
@@ -129,7 +129,7 @@ def test_argument_parser_functions_correctly(data):
 
 
 def test_gen_config_ini_file_used_if_nothing_else_explicitly_specified():
-    gc = GenConfig(["build_name"])
+    gc = GenConfig(["build_name"], gen_config_ini_file="./gen-config.ini")
     assert gc.args.supported_config_flags_file == Path(
         gc.gen_config_config_data["gen-config"]["supported-config-flags"]
     ).resolve()
@@ -228,6 +228,7 @@ def test_invalid_gen_config_file_raises(data):
     with pytest.raises(ValueError, match=data["err_msg"]):
         gc = GenConfig(["build_name"], gen_config_ini_file=filename)
         gc.gen_config_config_data
+        gc.args
 
 
 def test_config_file_specified_in_gen_config_ini_does_not_exist_raises():
@@ -253,3 +254,4 @@ def test_config_file_specified_in_gen_config_ini_does_not_exist_raises():
     with pytest.raises(ValueError, match=err_msg):
         gc = GenConfig(["build_name"], gen_config_ini_file=filename)
         gc.gen_config_config_data
+        gc.args
