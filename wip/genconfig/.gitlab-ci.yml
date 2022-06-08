@@ -24,6 +24,7 @@ base_python_test:
     - source gen-config.sh --list-configs -h
 
     # Test list options WITHOUT path to src
+    - ls -lat deps/LoadEnv/ini_files
     - source gen-config.sh --list-configs --force rhel7      $VALID_GC_INI_FILES
     - source gen-config.sh --list-config-flags --force rhel7 $VALID_GC_INI_FILES
 

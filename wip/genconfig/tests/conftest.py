@@ -43,31 +43,26 @@ def use_tmpdir(monkeypatch, request, tmpdir):
     shutil.copyfile(Path.cwd()/("tests/supporting_files/"
                                 "test-environment-specs.ini"),
                     tmpdir.join("test-environment-specs.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/ini_files/"
+                                "config-specs.ini"),
+                    tmpdir.join("config-specs.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/ini_files/"
+                                "supported-config-flags.ini"),
+                    tmpdir.join("supported-config-flags.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/ini_files/"
+                                "supported-systems.ini"),
+                    tmpdir.join("supported-systems.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/ini_files/"
+                                "environment-specs.ini"),
+                    tmpdir.join("environment-specs.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/ini_files/"
+                                "config-specs.ini"),
+                    tmpdir.join("config-specs.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/ini_files/"
+                                "supported-envs.ini"),
+                    tmpdir.join("supported-envs.ini"))
+    shutil.copyfile(Path.cwd()/("tests/supporting_files/"
+                                "gen-config.ini"),
+                    tmpdir.join("gen-config.ini"))
 
-    # Trilinos ini files
-    shutil.copyfile(Path.cwd() / ("ini_files/trilinos/"
-                                  "config-specs.ini"),
-                    tmpdir.join("test-trilinos-config-specs.ini"))
-    shutil.copyfile(Path.cwd() / ("ini_files/trilinos/"
-                                  "supported-config-flags.ini"),
-                    tmpdir.join("test-trilinos-supported-config-flags.ini"))
-    shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/trilinos/"
-                                  "supported-envs.ini"),
-                    tmpdir.join("test-trilinos-supported-envs.ini"))
-    if Path.is_dir(Path("deps/LoadEnv/ini_files/srn-ini-files")):
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/srn-ini-files/trilinos/framework/"
-                                      "supported-systems.ini"),
-                        tmpdir.join("test-trilinos-supported-systems.ini"))
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/srn-ini-files/trilinos/framework/"
-                                      "environment-specs.ini"),
-                        tmpdir.join("test-trilinos-environment-specs.ini"))
-    else:
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/trilinos/"
-                                      "supported-systems.ini"),
-                        tmpdir.join("test-trilinos-supported-systems.ini"))
-        shutil.copyfile(Path.cwd() / ("deps/LoadEnv/ini_files/trilinos/"
-                                      "environment-specs.ini"),
-                        tmpdir.join("test-trilinos-environment-specs.ini"))
-
-    # TODO: ATDM ini files
     monkeypatch.chdir(tmpdir)

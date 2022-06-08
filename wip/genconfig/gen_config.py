@@ -626,8 +626,9 @@ class GenConfig(FormattedMsg):
             gen_config = self.gen_config_config_data["gen-config"]
             if args.supported_config_flags_file is None:
                 args.supported_config_flags_file = Path(
-                     gen_config["supported-config-flags"]
+                    gen_config["supported-config-flags"]
                 ).resolve()
+
             if args.config_specs_file is None:
                 args.config_specs_file = Path(
                     gen_config["config-specs"]
@@ -638,17 +639,19 @@ class GenConfig(FormattedMsg):
                 args.supported_systems_file = Path(
                     load_env["supported-systems"]
                 ).resolve()
+
             if args.supported_envs_file is None:
                 args.supported_envs_file = Path(
                     load_env["supported-envs"]
                 ).resolve()
+
             if args.environment_specs_file is None:
                 args.environment_specs_file = Path(
                     load_env["environment-specs"]
                 ).resolve()
 
             self._args = args
-
+        
         return self._args
 
     def __parser(self):
