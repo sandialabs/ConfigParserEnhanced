@@ -25,7 +25,7 @@ $ git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/GenCon
 4. Install the requirements:
 ```bash
 $ cd GenConfig
-$ ./install-reqs.sh
+$ ./get_dependencies.sh
 ```
 
 5. Use the script:
