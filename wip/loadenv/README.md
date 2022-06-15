@@ -32,7 +32,7 @@ environments.
 4. Install the requirements:
    ```bash
     cd loadenv
-   ./install_reqs.sh
+   ./get_dependencies.sh
    ```
 
 5. Use the script:
