@@ -6,6 +6,8 @@ before_script:
   # display centos version
   - cat /etc/issue
   - ./get_dependencies.sh
+  - cd deps/LoadEnv && ./get_dependencies.sh
+  - cd -
 
 base_python_test:
   stage: test
