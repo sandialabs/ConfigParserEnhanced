@@ -7,12 +7,5 @@ tests/__pycache__/
 poetry.lock
 .DS_Store
 ._.DS_Store
-deps/
 
 venv-*
-
-setenvironment
-configparserenhanced
-determinesystem
-keywordparser
-
