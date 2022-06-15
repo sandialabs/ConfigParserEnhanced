@@ -12,14 +12,16 @@ git clone git@internal.gitlab.server:trilinos-devops-consolidation/code/KeywordP
 cd -
 
 # snapshot dependencies in
-rm setenvironment > /dev/null 2>&1
-rm configparserenhanced > /dev/null 2>&1
-rm determinesystem > /dev/null 2>&1
-rm keywordparser > /dev/null 2>&1
+ln -sf deps/SetEnvironment/src/setenvironment/ .
+ln -sf deps/ConfigParserEnhanced/src/configparserenhanced/ .
+ln -sf deps/DetermineSystem/determinesystem/ .
+ln -sf deps/KeywordParser/keywordparser/ .
 
-ln -s deps/SetEnvironment/src/setenvironment/ .
-ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
-ln -s deps/DetermineSystem/determinesystem/ .
-ln -s deps/KeywordParser/keywordparser/ .
+# Point to some example ini files
+cd ${script_dir}/ini_files
+ln -sf ../examples/atdm/environment-specs.ini
+ln -sf ../examples/atdm/supported-envs.ini
+ln -sf ../examples/atdm/supported-systems.ini
+cd -
 
 popd

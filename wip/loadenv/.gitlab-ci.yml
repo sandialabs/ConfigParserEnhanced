@@ -9,16 +9,7 @@ before_script:
   # Pull required packages
   # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
   #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
-  - mkdir deps; cd deps
-  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git
-  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/SetEnvironment.git
-  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/DetermineSystem.git
-  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
-  - cd ..
-  - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
-  - ln -s deps/SetEnvironment/src/setenvironment/ .
-  - ln -s deps/DetermineSystem/determinesystem/ .
-  - ln -s deps/KeywordParser/keywordparser/ .
+  - ./install_reqs.sh
 
 base_python_test:
   stage: test
