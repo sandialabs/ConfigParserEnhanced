@@ -4,7 +4,7 @@
 # Ensure that this script is sourced.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     echo "This script must be sourced."
-    exit 1
+    return 1
 fi
 
 # Ensure that this script is not run in a subshell.
@@ -12,7 +12,7 @@ fi
 if [[ ! "$BASH_SUBSHELL" == "0" ]]; then
     if [[ -z $GENCONFIG_CI_BYPASS_SUBSHELL_CHECK ]]; then
 	echo "This script cannot be run in a subshell since it modifies your shells environment."
-	exit 1
+	return 1
     fi
 fi
 
