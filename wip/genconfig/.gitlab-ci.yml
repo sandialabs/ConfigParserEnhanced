@@ -76,6 +76,10 @@ sphinx:
   stage: test
   timeout: 20m
   script:
+      # Base python setup
+    - python3 -m venv ./base_python_test
+    - source ./base_python_test/bin/activate
+
     - cd doc/
     - python3 -s -m pip install -U -r requirements.txt
     - bash -x make_html_docs.sh
