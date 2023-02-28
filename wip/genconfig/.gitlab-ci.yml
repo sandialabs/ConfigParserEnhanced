@@ -77,7 +77,7 @@ sphinx:
   timeout: 20m
   script:
     - cd doc/
-    - python3 -s -m pip install -U --user -r requirements.txt
+    - python3 -s -m pip install -U -r requirements.txt
     - bash -x make_html_docs.sh
 
 publish coverage:
