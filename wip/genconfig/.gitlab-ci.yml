@@ -78,7 +78,7 @@ sphinx:
   script:
     - cd doc/
     - python3 -s -m pip install -U --user -r requirements.txt
-    - bash make_html_docs.sh
+    - bash -x make_html_docs.sh
 
 publish coverage:
   stage: deploy
