@@ -17,6 +17,7 @@ Todo:
 from __future__ import print_function
 
 import inspect
+import logging
 import os
 from pathlib import Path
 import re
@@ -319,8 +320,11 @@ class SetEnvironment(ConfigParserEnhanced):
 
         output = 0
 
-        # kick off a parse of the section.
-        self.configparserenhanceddata[section]
+        try:
+            # kick off a parse of the section.
+            self.configparserenhanceddata[section]
+        except KeyError as e:
+            logging.exception(f"{section} missing from {self.inifilepath}")
 
         for iaction in self.actions[section]:
             rval = 0
