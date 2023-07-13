@@ -1,0 +1,10 @@
+#
+# Main requiremetns for using this project are in this file.
+#
+
+# Core Requirements
+
+
+# Privately hosted repositories
+configparserenhanced @ git+ssh://git@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+

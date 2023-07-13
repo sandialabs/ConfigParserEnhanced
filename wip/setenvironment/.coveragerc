@@ -1,0 +1,31 @@
+[run]
+omit =
+    */unittests/*
+    */venv*
+branch = True
+dynamic_context = test_function
+
+[paths]
+source = setenvironment
+
+[report]
+skip_covered = False
+fail_under = 99
+show_missing = True
+exclude_lines =
+    pragma: no cover
+    pragma: cover if on lmod
+    if 0:
+
+[html]
+directory = tests/htmlcov
+title = SetEnvironment Coverage Report
+show_contexts = True
+
+[xml]
+output = tests/coverage.xml
+
+[json]
+output = tests/coverage.json
+pretty_print = True
+show_contexts = True
