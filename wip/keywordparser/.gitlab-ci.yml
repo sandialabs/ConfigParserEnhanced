@@ -1,0 +1,53 @@
+stages:
+  - test
+  - deploy
+
+before_script:
+  # display centos version
+  - cat /etc/issue
+
+  # Pull required packages
+  # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
+  #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
+  - python3 -m pip install --user -U py pytest pytest-cov
+  - python3 -m pip install --user -U git+https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git@master#egg=configparserenhanced
+
+pytest:
+  stage: test
+  timeout: 20m
+  script:
+    - python3 -m pytest --color=yes -rs -vv --cov=keywordparser --cov-report html --cov-report term
+  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+
+sphinx:
+  stage: test
+  timeout: 20m
+  script:
+    - cd doc/
+    - python3 -m pip install -U -r requirements.txt
+    - bash make_html_docs.sh
+
+publish coverage:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - python3 -m pytest --cov=keywordparser --cov-report html --cov-report term
+    - rm -rf /home/trilinos/html_files/KeywordParser/coverage
+    - mkdir -p /home/trilinos/html_files/KeywordParser/coverage
+    - mv htmlcov/* /home/trilinos/html_files/KeywordParser/coverage/
+  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+
+publish docs:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - cd doc/
+    - python3 -m pip install -U -r requirements.txt
+    - bash make_html_docs.sh
+    - rm -rf /home/trilinos/html_files/KeywordParser/doc
+    - mkdir -p /home/trilinos/html_files/KeywordParser/doc
+    - mv html/* /home/trilinos/html_files/KeywordParser/doc/
