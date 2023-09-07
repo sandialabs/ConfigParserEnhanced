@@ -1,0 +1,56 @@
+stages:
+  - test
+  - deploy
+
+before_script:
+  # display centos version
+  - cat /etc/issue
+
+  # Pull required packages
+  - python3 -m pip install -U py pytest pytest-cov
+  - mkdir deps; cd deps
+  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/ConfigParserEnhanced.git
+  - git clone https://gitlab+deploy-token-CI:${CI_GROUP_READ_TOKEN}@internal.gitlab.server/trilinos-devops-consolidation/code/KeywordParser.git
+  - cd ..
+  - ln -s deps/ConfigParserEnhanced/src/configparserenhanced/ .
+  - ln -s deps/KeywordParser/keywordparser/ .
+
+pytest:
+  stage: test
+  timeout: 20m
+  script:
+    - python3 -m pytest --color=yes -rs -vv --cov=determinesystem --cov-report html --cov-report term
+  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+
+sphinx:
+  stage: test
+  timeout: 20m
+  script:
+    - cd doc/
+    - python3 -m pip install -U -r requirements.txt
+    - bash make_html_docs.sh
+
+publish coverage:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - python3 -m pytest --cov=determinesystem --cov-report html --cov-report term
+    - rm -rf /home/trilinos/html_files/DetermineSystem/coverage
+    - mkdir -p /home/trilinos/html_files/DetermineSystem/coverage
+    - mv htmlcov/* /home/trilinos/html_files/DetermineSystem/coverage/
+  coverage: '/TOTAL\s*[0-9]*\s*[0-9]*\s*(\d+%)/'
+
+publish docs:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - cd doc/
+    - python3 -m pip install -U -r requirements.txt
+    - bash make_html_docs.sh
+    - rm -rf /home/trilinos/html_files/DetermineSystem/doc
+    - mkdir -p /home/trilinos/html_files/DetermineSystem/doc
+    - mv html/* /home/trilinos/html_files/DetermineSystem/doc/
