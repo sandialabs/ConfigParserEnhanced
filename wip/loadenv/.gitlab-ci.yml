@@ -1,0 +1,69 @@
+stages:
+  - test
+  - deploy
+
+before_script:
+  # display centos version
+  - cat /etc/issue
+
+  # Pull required packages
+  # See https://pip.pypa.io/en/stable/reference/pip_install/#git : useful data on how to format this link
+  #     https://stackoverflow.com/a/35998253/2059999 : also useful for some info on how to write the target
+  - ./get_dependencies.sh
+
+base_python_test:
+  stage: test
+  timeout: 30s
+  script:
+    - python3 -m venv ./base_python_test
+    - source ./base_python_test/bin/activate
+    - source load-env.sh --help
+    - source load-env.sh --list-envs --force rhel7 --supported-systems loadenv/unittests/supporting_files/test_supported_systems.ini --supported-envs loadenv/unittests/supporting_files/test_supported_envs.ini --environment-specs loadenv/unittests/supporting_files/test_environment_specs.ini
+    - source load-env.sh --ci-mode --force rhel7_cuda --supported-systems loadenv/unittests/supporting_files/test_supported_systems.ini --supported-envs loadenv/unittests/supporting_files/test_supported_envs.ini --environment-specs loadenv/unittests/supporting_files/test_environment_specs.ini
+    - deactivate
+
+pytest:
+  stage: test
+  timeout: 20m
+  before_script:
+    - cat /etc/issue
+    - ./get_dependencies.sh
+    - python3 -m pip install --user -U py pytest pytest-cov
+  script:
+    #- python3 -m pytest --color=yes -rs -vv --cov=. --cov-report html --cov-report term
+    - python3 -m pytest -rs -vv --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
+  coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+
+sphinx:
+  stage: test
+  timeout: 20m
+  script:
+    - cd doc/
+    - python3 -m pip install -U -r requirements.txt
+    - bash make_html_docs.sh
+
+publish coverage:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - python3 -m pytest --cov=. --cov-report html --cov-report term --cov-config=.coveragerc
+    - ls -ltrhF
+    - rm -rf /home/trilinos/html_files/LoadEnv/coverage
+    - mkdir -p /home/trilinos/html_files/LoadEnv/coverage
+    - mv tests/htmlcov/* /home/trilinos/html_files/LoadEnv/coverage/
+  coverage: '/TOTAL\s*\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+
+publish docs:
+  stage: deploy
+  timeout: 20m
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - cd doc/
+    - python3 -m pip install -U -r requirements.txt
+    - bash make_html_docs.sh
+    - rm -rf /home/trilinos/html_files/LoadEnv/doc
+    - mkdir -p /home/trilinos/html_files/LoadEnv/doc
+    - mv html/* /home/trilinos/html_files/LoadEnv/doc/
