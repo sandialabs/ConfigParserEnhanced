@@ -24,6 +24,10 @@ Updates and Changes
 ### Security
 -->
 
+## [0.8.1.3] - 2023-10-24
+### Changed
+- Redirect users to `ActiveConfigParser` and its dependencies
+
 ## [0.8.1.2] - 2022-01-07
 ### Changed
 - Documentation cleanup.

@@ -2,7 +2,27 @@
 [![ConfigParserEnhanced Testing](https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/test-driver-core.yml/badge.svg)](https://github.com/sandialabs/ConfigParserEnhanced/actions/workflows/test-driver-core.yml)
 [![Documentation Status](https://readthedocs.org/projects/configparserenhanced/badge/?version=latest)](https://configparserenhanced.readthedocs.io/en/latest/?badge=latest)
 
-
+> **DEPRECATION NOTICE:**  This package was forked by the original author and
+> subdivided into separate packages:
+>
+> * `ConfigParserEnhanced` ⟶ `ActiveConfigParser`:
+>   * [GitLab](https://gitlab.com/semantik-software/code/python/ActiveConfigParser)
+>   * [PyPI](https://pypi.org/project/activeconfigparser/)
+>   * [Docs](https://semantik-software.gitlab.io/code/python/ActiveConfigParser/)
+> * `Debuggable` ⟶ `LightweightDebugMessages`:
+>   * [GitLab](https://gitlab.com/semantik-software/code/python/LightweightDebugMessages)
+>   * [PyPI](https://pypi.org/project/lightweightdebugmessages/)
+>   * [Docs](https://semantik-software.gitlab.io/code/python/LightweightDebugMessages)
+> * `ExceptionControl` ⟶ `ExceptionControl`:
+>   * [GitLab](https://gitlab.com/semantik-software/code/python/ExceptionControl)
+>   * [PyPI](https://pypi.org/project/exceptioncontrol/)
+>   * [Docs](https://semantik-software.gitlab.io/code/python/ExceptionControl)
+> * `TypedProperty` ⟶ `StronglyTypedProperty`:
+>   * [GitLab](https://gitlab.com/semantik-software/code/python/StronglyTypedProperty)
+>   * [PyPI](https://pypi.org/project/stronglytypedproperty/)
+>   * [Docs](https://semantik-software.gitlab.io/code/python/StronglyTypedProperty)
+>
+> Users of `ConfigParserEnhanced` should switch to the new packages.
 
 ConfigParserEnhanced
 ====================
