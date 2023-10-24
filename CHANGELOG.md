@@ -24,6 +24,10 @@ Updates and Changes
 ### Security
 -->
 
+## [0.8.1.5] - 2023-10-24
+### Changed
+- Add deprecation notice to the docs
+
 ## [0.8.1.4] - 2023-10-24
 ### Changed
 - Remove maintainer contact info

@@ -5,6 +5,31 @@
 
 ConfigParserEnhanced
 ====================
+
+.. admonition:: DEPRECATION NOTICE
+
+   This package was forked by the original author and subdivided into separate
+   packages:
+
+   * ``ConfigParserEnhanced`` ⟶ ``ActiveConfigParser``
+     (`GitLab <https://gitlab.com/semantik-software/code/python/ActiveConfigParser>`__,
+     `PyPI <https://pypi.org/project/activeconfigparser/>`__,
+     `Docs <https://semantik-software.gitlab.io/code/python/ActiveConfigParser/>`__)
+   * ``Debuggable`` ⟶ ``LightweightDebugMessages``
+     (`GitLab <https://gitlab.com/semantik-software/code/python/LightweightDebugMessages>`__,
+     `PyPI <https://pypi.org/project/lightweightdebugmessages/>`__,
+     `Docs <https://semantik-software.gitlab.io/code/python/LightweightDebugMessages>`__)
+   * ``ExceptionControl`` ⟶ ``ExceptionControl``
+     (`GitLab <https://gitlab.com/semantik-software/code/python/ExceptionControl>`__,
+     `PyPI <https://pypi.org/project/exceptioncontrol/>`__,
+     `Docs <https://semantik-software.gitlab.io/code/python/ExceptionControl>`__)
+   * ``TypedProperty`` ⟶ ``StronglyTypedProperty``
+     (`GitLab <https://gitlab.com/semantik-software/code/python/StronglyTypedProperty>`__,
+     `PyPI <https://pypi.org/project/stronglytypedproperty/>`__,
+     `Docs <https://semantik-software.gitlab.io/code/python/StronglyTypedProperty>`__)
+
+   Users of ``ConfigParserEnhanced`` should switch to the new packages.
+
 .. toctree::
    :maxdepth: 1
    :caption: Table of Contents:
