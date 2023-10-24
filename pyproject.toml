@@ -16,9 +16,6 @@ documentation = "https://configparserenhanced.readthedocs.io/en/latest/"
 authors = [
     "William McLendon <wcmclen@sandia.gov>",
 ]
-maintainers = [
-    "Sandia National Laboratories <wg-ConfigParserEnhanced@sandia.gov>",
-]
 classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
